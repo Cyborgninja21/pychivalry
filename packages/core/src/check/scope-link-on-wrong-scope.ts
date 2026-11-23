@@ -11,12 +11,19 @@
  * trigger or effect block (`is_vassal_of = root.liege`). A chain in a keyword's parameters, or
  * in the parameters of an iterator or a call, is evaluated where that runs it, and is not
  * judged.
+ *
+ * Beside the game's message, which does not say which scope the link needs, the finding's data
+ * says what is valid: the link (`link`), the scope it was applied to (`scope`), the scopes it
+ * starts from (`expected`), and the links that lead from that scope to one of them
+ * (`links_from_scope`, `check/scope-links.ts`).
  */
 
+import type { Spec } from '../spec/reader.js';
 import type { FileReading, KeyReading } from './context.js';
 import type { CheckFinding } from './finding.js';
 import { finding, type CheckContext } from './report.js';
 import type { LinkStep, ScopeReading } from './scope.js';
+import { linksData } from './scope-links.js';
 
 export const CODE = 'scope/link-on-wrong-scope';
 
@@ -50,6 +57,7 @@ export function linksOnWrongScope(
     reading: FileReading,
     scopes: ScopeReading,
     context: CheckContext,
+    spec: Spec,
 ): CheckFinding[] {
     const out: CheckFinding[] = [];
     for (const step of judgedSteps(reading, scopes)) {
@@ -70,6 +78,7 @@ export function linksOnWrongScope(
                     ...(step.scalar.type === 'chain'
                         ? { chain: step.scalar.text, segment: step.segment }
                         : {}),
+                    ...linksData(spec, input, step.expected),
                 },
                 context,
             ),

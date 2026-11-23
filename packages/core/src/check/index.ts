@@ -92,6 +92,9 @@ export {
     type UnknownWhy,
 } from './scope.js';
 export { judgedSteps } from './scope-link-on-wrong-scope.js';
+export { linksBetween, MAX_LINKS, type LinksBetween } from './scope-links.js';
+export { fieldValueData, MAX_VALUES } from './field-values.js';
+export { whatIsValid } from './valid.js';
 export { addToScopeMeasure, newScopeMeasure, type ScopeMeasure } from './measure.js';
 export { ADVICE_CHECKS, adviceFindings, runAdvice } from './advice-checks.js';
 export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
@@ -100,6 +103,7 @@ export {
     codesMatching,
     familyOf,
     inventoryRows,
+    SLOT_NAMES,
     type Code,
     type InventoryEvidence,
     type InventoryRow,
@@ -190,9 +194,9 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...rangesMinAboveMax(reading, context, records),
         ...nonCharacterShownEvents(context, records),
         ...definitionFindings(input.spec, input.file, context, input.index),
-        ...wrongScopeTriggers(uses, context),
-        ...wrongScopeEffects(uses, context),
-        ...linksOnWrongScope(reading, scopes, context),
+        ...wrongScopeTriggers(uses, context, input.spec),
+        ...wrongScopeEffects(uses, context, input.spec),
+        ...linksOnWrongScope(reading, scopes, context, input.spec),
         ...undefinedEventTargets(input.folders, input.parsed.file, input.names, context),
         ...missingKeys({ ...records, names: input.names }, context),
         ...adviceFindings({

@@ -10,6 +10,7 @@
 
 import {
     FINDING_KINDS,
+    readableMessage,
     severityOf,
     type Evidence,
     type FindingId,
@@ -44,13 +45,93 @@ export interface InventoryRow {
      * (`per-place`); or none, for advice.
      */
     readonly evidence: InventoryEvidence;
-    /** The message text, `%s` (or the game's own placeholders) for each value; null when the catalogue entry's text was not given. */
+    /**
+     * The message text, each value a readable slot (`<trigger>`, `SLOT_NAMES`) where the text
+     * has `%s` or the game's own `{}`; null when the catalogue entry's text was not given. A
+     * catalogue evidence's text is shown the same way.
+     */
     readonly message: string | null;
     /**
      * True for a check that is off by default and reports only when asked: the runner's
      * `unusedKeys` option (`localization/unused-key`, docs/decisions.md, decision 76).
      */
     readonly offByDefault: boolean;
+}
+
+/**
+ * What each placeholder of a row's message stands for, in order: the message is shown with
+ * each written as a readable slot (`Unknown trigger '<trigger>'`), never as `%s` or `{}`.
+ * `file:line` is the place a finding is at. A test holds every code that has a message with
+ * placeholders to a name for each of them.
+ */
+export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
+    'definitions/clash': ['name'],
+    'definitions/not-read': ['name', 'reason'],
+    'encoding/not-utf8': ['number', 'encoding'],
+    'fields/bare-value-in-record': ['token', 'file:line'],
+    'fields/missing-required-field': ['record'],
+    'fields/unknown-field': ['field', 'record'],
+    'fields/unusual-value': ['value', 'field', 'base-game values'],
+    'fields/usually-present': ['record', 'field', 'number'],
+    'fields/wrong-kind-of-value': ['value', 'kind of value', 'kinds the base game writes'],
+    'localization/missing-key': ['key'],
+    'localization/unbalanced-brackets': ['key', 'column', 'file'],
+    'localization/unused-key': ['key'],
+    'names/modifier-outside-use-area': ['modifier name', 'kind of block', 'use areas'],
+    'names/unknown-effect': ['effect'],
+    'names/unknown-link': ['link', 'file:line'],
+    'names/unknown-modifier': ['modifier name', 'file:line'],
+    'names/unknown-on-action': ['on-action'],
+    'names/unknown-trigger': ['trigger'],
+    'references/unknown-key': ['key', 'database'],
+    'references/unknown-name': ['name', 'folder'],
+    'scope/link-on-wrong-scope': ['link', 'scope'],
+    'scope/saved-late-read-in-desc': ['saved scope', 'field', 'blocks'],
+    'scope/undefined-event-target': ['saved scope'],
+    'scope/wrong-scope-for-effect': ['scope', 'scopes it takes'],
+    'scope/wrong-scope-for-trigger': ['scope', 'scopes it takes'],
+    'structure/casus-belli-without-outcome': ['casus belli', 'fields'],
+    'structure/else-without-if': ['key', 'keys'],
+    'structure/event-after-without-option': ['event id', 'field', 'fields'],
+    'structure/event-empty': ['event id'],
+    'structure/event-letter-without-sender': ['event id', 'field'],
+    'structure/event-non-character-shown': ['event id'],
+    'structure/event-portrait-position-twice': ['event id', 'portrait position'],
+    'structure/event-several-after': ['event id', 'field'],
+    'structure/event-several-immediate': ['event id', 'field'],
+    'structure/event-triggered-animation-without-animation': ['block', 'fields'],
+    'structure/event-triggered-animation-without-trigger': ['block', 'field'],
+    'structure/event-undeclared-namespace': ['namespace', 'event id', 'file'],
+    'structure/event-unknown-type': ['type', 'documented types'],
+    'structure/event-without-desc': ['event id', 'field'],
+    'structure/event-without-option': ['event id', 'field'],
+    'structure/logic-operator-without-block': ['operator'],
+    'structure/namespace-outside-events': ['namespace', 'folder'],
+    'structure/round-to-not-positive': ['field', 'value'],
+    'structure/story-effect-group-chance-above-100': ['field', 'value', 'maximum'],
+    'structure/story-effect-group-chance-not-positive': ['field', 'value'],
+    'structure/story-effect-group-several-timings': ['block', 'fields'],
+    'structure/story-effect-group-without-effect': ['block', 'fields'],
+    'structure/story-effect-group-without-timing': ['block', 'fields'],
+    'structure/switch-without-branches': ['block'],
+    'structure/switch-without-trigger': ['block', 'field'],
+    'structure/trigger-else-without-trigger-if': ['key', 'keys'],
+    'syntax/malformed-arithmetic': ['expression', 'reason'],
+    'syntax/missing-operator': ['token', 'file:line'],
+    'syntax/null-safe-operator-after-value': ['token', 'file:line'],
+    'syntax/unterminated-string': ['file:line'],
+};
+
+/** A row's message as it is shown: each placeholder a readable slot (`SLOT_NAMES`). */
+function shown(code: Code, text: string | null): string | null {
+    return text === null ? null : readableMessage(text, SLOT_NAMES[code] ?? []);
+}
+
+/** A row's evidence as it is shown: a catalogue message's text with readable slots. */
+function shownEvidence<E extends InventoryEvidence>(code: Code, evidence: E): E {
+    return evidence.kind === 'catalogue' && evidence.text !== null
+        ? { ...evidence, text: shown(code, evidence.text) }
+        : evidence;
 }
 
 /** The family of a code: the part before its `/`. */
@@ -76,9 +157,10 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
             code: id,
             family: familyOf(id),
             severity: severityOf(id),
-            finds: kind.description,
-            evidence,
-            message: evidence.kind === 'catalogue' ? evidence.text : kind.description,
+            // With no catalogue entry the description is also the message text.
+            finds: kind.catalogue === null ? (shown(id, kind.description) ?? '') : kind.description,
+            evidence: shownEvidence(id, evidence),
+            message: shown(id, evidence.kind === 'catalogue' ? evidence.text : kind.description),
             offByDefault: false,
         });
     }
@@ -93,8 +175,11 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
             family: familyOf(code),
             severity: kind.severity,
             finds: kind.description,
-            evidence,
-            message: evidence.kind === 'catalogue' ? evidence.text : (kind.text ?? null),
+            evidence: shownEvidence(code, evidence),
+            message: shown(
+                code,
+                evidence.kind === 'catalogue' ? evidence.text : (kind.text ?? null),
+            ),
             offByDefault: kind.offByDefault === true,
         });
     }

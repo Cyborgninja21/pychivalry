@@ -33,6 +33,10 @@ test('every code of this build is on the page once, with its severity and eviden
     assert.ok(trigger !== undefined);
     assert.equal(
         evidenceCell(trigger),
-        "The game's message `unknown_trigger_X`: \"Unknown trigger '%s'\"",
+        "The game's message `unknown_trigger_X`: \"Unknown trigger '<trigger>'\"",
     );
+    // A readable slot is shown on the page, not read as a tag; inside a code span it is kept.
+    assert.ok(page.includes("Unknown trigger '&lt;trigger&gt;'"));
+    assert.ok(page.includes('Loc key `<key>`'));
+    assert.doesNotMatch(page, /%s/);
 });

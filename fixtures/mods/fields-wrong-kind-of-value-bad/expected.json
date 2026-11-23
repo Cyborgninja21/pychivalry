@@ -10,9 +10,29 @@
             "data": {
                 "value": "ten",
                 "kind": "word",
-                "value_type": "integer",
                 "field": "sort_order",
-                "folder": "common/decision_group_types"
+                "folder": "common/decision_group_types",
+                "value_type": "integer",
+                "values": [
+                    "50",
+                    "101",
+                    "102",
+                    "225",
+                    "300",
+                    "-1",
+                    "1",
+                    "10",
+                    "100",
+                    "103",
+                    "104",
+                    "105",
+                    "110",
+                    "200",
+                    "210",
+                    "215",
+                    "250",
+                    "400"
+                ]
             }
         },
         {
@@ -25,9 +45,10 @@
             "data": {
                 "value": "maybe",
                 "kind": "word",
-                "value_type": "boolean",
                 "field": "important_decision_group",
-                "folder": "common/decision_group_types"
+                "folder": "common/decision_group_types",
+                "value_type": "boolean",
+                "values": ["yes"]
             }
         },
         {
@@ -40,9 +61,9 @@
             "data": {
                 "value": "fixture_tag",
                 "kind": "word",
-                "value_type": "list",
                 "field": "gui_tags",
-                "folder": "common/decision_group_types"
+                "folder": "common/decision_group_types",
+                "value_type": "list"
             }
         }
     ]

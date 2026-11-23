@@ -10,7 +10,15 @@
             "data": {
                 "name": "tier",
                 "scope": "character",
-                "expected": ["landed_title"]
+                "expected": ["landed_title"],
+                "links_from_scope": [
+                    "capital_barony",
+                    "capital_county",
+                    "ceremonial_liege_title",
+                    "clerical_elector_title",
+                    "fallback_succession_title",
+                    "primary_title"
+                ]
             }
         },
         {
@@ -23,7 +31,15 @@
             "data": {
                 "name": "is_adult",
                 "scope": "landed_title",
-                "expected": ["character"]
+                "expected": ["character"],
+                "links_from_scope": [
+                    "barony_controller",
+                    "county_controller",
+                    "current_heir",
+                    "holder",
+                    "lessee",
+                    "previous_holder"
+                ]
             }
         },
         {
@@ -36,7 +52,15 @@
             "data": {
                 "name": "any_vassal",
                 "scope": "landed_title",
-                "expected": ["character"]
+                "expected": ["character"],
+                "links_from_scope": [
+                    "barony_controller",
+                    "county_controller",
+                    "current_heir",
+                    "holder",
+                    "lessee",
+                    "previous_holder"
+                ]
             }
         },
         {
@@ -49,7 +73,15 @@
             "data": {
                 "name": "has_trait",
                 "scope": "landed_title",
-                "expected": ["character"]
+                "expected": ["character"],
+                "links_from_scope": [
+                    "barony_controller",
+                    "county_controller",
+                    "current_heir",
+                    "holder",
+                    "lessee",
+                    "previous_holder"
+                ]
             }
         },
         {
@@ -62,7 +94,8 @@
             "data": {
                 "name": "has_county_modifier",
                 "scope": "province",
-                "expected": ["landed_title"]
+                "expected": ["landed_title"],
+                "links_from_scope": ["barony", "county", "duchy", "empire", "hegemony", "kingdom"]
             }
         },
         {
@@ -75,7 +108,14 @@
             "data": {
                 "name": "is_adult",
                 "scope": "province",
-                "expected": ["character"]
+                "expected": ["character"],
+                "links_from_scope": [
+                    "barony_controller",
+                    "county_controller",
+                    "province_owner",
+                    "saint_in_province",
+                    "trade_post_owner"
+                ]
             }
         }
     ]

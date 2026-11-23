@@ -31,7 +31,8 @@
  * is the modifier's value, not a field's, and is not judged.
  *
  * Only a record's own fields and the sub-fields the walk of `check/records.ts` reaches are
- * judged.
+ * judged. The finding's data says what the field takes: its value type and the values the base
+ * game writes in it (`check/field-values.ts`).
  */
 
 import type { FolderTable } from '../index/folders.js';
@@ -40,6 +41,7 @@ import type { Spec } from '../spec/reader.js';
 import { vocabularyOf } from '../spec/vocabulary.js';
 import type { FileNode, Value } from '../syntax/tree.js';
 import { modifierAreaRow, type DefinedNames, type FileReading } from './context.js';
+import { fieldValueData } from './field-values.js';
 import type { CheckFinding } from './finding.js';
 import { isSuspect, recordsOf, valueGroupsOf, walkFields } from './records.js';
 import { finding, type CheckContext } from './report.js';
@@ -274,9 +276,9 @@ export function wrongKindsOfValue(
                     {
                         value: written,
                         kind,
-                        value_type: type,
                         field: site.path.join('.'),
                         folder: folder.path,
+                        ...fieldValueData(field),
                     },
                     context,
                 ),
