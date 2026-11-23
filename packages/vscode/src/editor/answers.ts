@@ -5,13 +5,14 @@
  *
  * - The editor (the language server's `pychivalry/findings`) and the command line (`check
  *   --json`) give the core's own finding: a range counted from 0, the severity, the code, the
- *   message, the evidence and the data.
+ *   message, the evidence, the data and the fix (build step 8).
  * - The agent server's `check` gives lines and columns counted from 1, the severity, the code,
- *   the message and the data; no evidence (its tools leave it to `explain_code`).
+ *   the message, the data and the fix, its edits' places in lines and columns from 1 too; no
+ *   evidence (its tools leave it to `explain_code`).
  * - VS Code's diagnostics give the range, the severity, the code and the message.
  *
- * Every list is compared on the file, the range, the severity, the code, the message and the
- * data; the editor's and the command line's on the evidence too.
+ * Every list is compared on the file, the range, the severity, the code, the message, the data
+ * and the fix; the editor's and the command line's on the evidence too.
  */
 
 /** The severities, most severe first. */
@@ -32,6 +33,11 @@ export interface Answer {
     readonly data: string | null;
     /** The evidence as JSON with its keys sorted, or null where the surface does not give it. */
     readonly evidence: string | null;
+    /**
+     * The fix as JSON with its keys sorted and its places as the core writes them, or null where
+     * the surface does not give it.
+     */
+    readonly fix: string | null;
 }
 
 /** JSON with every object's keys sorted, so two equal values give the same text. */
@@ -85,7 +91,42 @@ export function fromCore(value: unknown): Answer {
         message: str(f['message'], 'its message'),
         data: canonical(f['data'] ?? null),
         evidence: canonical(f['evidence'] ?? null),
+        fix: canonical(f['fix'] ?? null),
     };
+}
+
+/**
+ * A value of the agent server's with every span (`line`, `column`, `end_line`, `end_column`,
+ * counted from 1) written back as the core's `range` (counted from 0).
+ */
+export function withRanges(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(withRanges);
+    }
+    if (typeof value !== 'object' || value === null) {
+        return value;
+    }
+    const o = value as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    const spanned = ['line', 'column', 'end_line', 'end_column'].every(
+        (k) => typeof o[k] === 'number',
+    );
+    for (const [key, inner] of Object.entries(o)) {
+        if (spanned && ['line', 'column', 'end_line', 'end_column'].includes(key)) {
+            continue;
+        }
+        out[key] = withRanges(inner);
+    }
+    if (spanned) {
+        out['range'] = {
+            start: { line: (o['line'] as number) - 1, character: (o['column'] as number) - 1 },
+            end: {
+                line: (o['end_line'] as number) - 1,
+                character: (o['end_column'] as number) - 1,
+            },
+        };
+    }
+    return out;
 }
 
 /** A finding as the agent server's `check` gives it: lines and columns from 1, no evidence. */
@@ -102,6 +143,7 @@ export function fromAgent(value: unknown): Answer {
         message: str(f['message'], 'its message'),
         data: canonical(f['data'] ?? null),
         evidence: null,
+        fix: canonical(withRanges(f['fix'] ?? null)),
     };
 }
 
@@ -147,17 +189,18 @@ export function sorted(answers: readonly Answer[]): Answer[] {
 /** `answers` with the fields `keep` does not name set to null: what two surfaces share. */
 export function only(
     answers: readonly Answer[],
-    keep: { readonly data: boolean; readonly evidence: boolean },
+    keep: { readonly data: boolean; readonly evidence: boolean; readonly fix?: boolean },
 ): Answer[] {
     return answers.map((a) => ({
         ...a,
         data: keep.data ? a.data : null,
         evidence: keep.evidence ? a.evidence : null,
+        fix: keep.fix === false ? null : a.fix,
     }));
 }
 
 function line(a: Answer): string {
-    return `${a.file}:${String(a.line + 1)}:${String(a.character + 1)}-${String(a.endLine + 1)}:${String(a.endCharacter + 1)} ${a.severity} ${a.code} ${JSON.stringify(a.message)}${a.data === null ? '' : ` data ${a.data}`}${a.evidence === null ? '' : ` evidence ${a.evidence}`}`;
+    return `${a.file}:${String(a.line + 1)}:${String(a.character + 1)}-${String(a.endLine + 1)}:${String(a.endCharacter + 1)} ${a.severity} ${a.code} ${JSON.stringify(a.message)}${a.data === null ? '' : ` data ${a.data}`}${a.evidence === null ? '' : ` evidence ${a.evidence}`}${a.fix === null ? '' : ` fix ${a.fix}`}`;
 }
 
 /**

@@ -141,7 +141,6 @@ test("JSON: one finding per line with 2.3.0's six fields and the new ones, then 
         ]);
         assert.equal(typeof line['file'], 'string');
         assert.equal(line['source'], 'engine');
-        assert.equal(line['fix'], null);
         assert.equal(line['code'], 'names/unknown-trigger');
         assert.deepEqual(line['evidence'], {
             kind: 'catalogue',
@@ -159,6 +158,28 @@ test("JSON: one finding per line with 2.3.0's six fields and the new ones, then 
         evidence: { kind: 'catalogue', id: 'unknown_trigger_X', text: "Unknown trigger '%s'" },
         fix: null,
         data: { name: 'fixture_made_up_trigger' },
+    });
+    // The one finding with a mechanical fix: a removed trigger, its documented replacement.
+    const fixed = lines.filter((l) => l['fix'] !== null);
+    assert.equal(fixed.length, 1);
+    assert.deepEqual(fixed[0]?.['fix'], {
+        safety: 'safe',
+        basis: 'retired',
+        alternatives: [
+            {
+                title: "Replace 'has_special_building' with 'has_special_district'",
+                edits: [
+                    {
+                        file: 'common/scripted_triggers/fixture_triggers.txt',
+                        range: {
+                            start: { line: 21, character: 1 },
+                            end: { line: 21, character: 21 },
+                        },
+                        new_text: 'has_special_district',
+                    },
+                ],
+            },
+        ],
     });
     const spec = openSpec(defaultSpecDir());
     const s = summary?.['summary'] as Record<string, unknown>;

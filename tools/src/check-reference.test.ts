@@ -8,7 +8,12 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { catalogueFromSpec, inventoryRows, openSpec } from '@pychivalry/core';
-import { CHECK_REFERENCE_PAGE, currentCheckReference, evidenceCell } from './check-reference.js';
+import {
+    CHECK_REFERENCE_PAGE,
+    currentCheckReference,
+    evidenceCell,
+    fixCell,
+} from './check-reference.js';
 import { repoRoot } from './util.js';
 
 const root = repoRoot();
@@ -39,4 +44,17 @@ test('every code of this build is on the page once, with its severity and eviden
     assert.ok(page.includes("Unknown trigger '&lt;trigger&gt;'"));
     assert.ok(page.includes('Loc key `<key>`'));
     assert.doesNotMatch(page, /%s/);
+});
+
+test("every code's fix is on the page: safe, a suggestion, or none and why", () => {
+    const rows = inventoryRows(catalogueFromSpec(openSpec(path.join(root, 'spec')).data));
+    const cellOf = (code: string): string => {
+        const row = rows.find((r) => r.code === code);
+        assert.ok(row !== undefined, code);
+        return fixCell(row);
+    };
+    assert.match(cellOf('structure/range-min-above-max'), /^Safe: /);
+    assert.match(cellOf('names/unknown-trigger'), /^Safe or a suggestion: /);
+    assert.match(cellOf('localization/missing-key'), /^Suggestion: /);
+    assert.match(cellOf('definitions/clash'), /^None: /);
 });
