@@ -25,6 +25,10 @@ import { unknownLinks } from './names-unknown-link.js';
 import { unknownModifiers } from './names-unknown-modifier.js';
 import { unknownOnActions } from './names-unknown-on-action.js';
 import { unknownTriggers } from './names-unknown-trigger.js';
+import { keywordUses, readScopes } from './scope.js';
+import { linksOnWrongScope } from './scope-link-on-wrong-scope.js';
+import { wrongScopeEffects } from './scope-wrong-scope-for-effect.js';
+import { wrongScopeTriggers } from './scope-wrong-scope-for-trigger.js';
 
 export {
     fieldFor,
@@ -55,6 +59,19 @@ export {
     type FindingData,
 } from './finding.js';
 export { definedNamesOf } from './names.js';
+export {
+    headsOf,
+    keywordUses,
+    readScopes,
+    type KeywordUse,
+    type LinkStep,
+    type Scope,
+    type ScopeFrame,
+    type ScopeReading,
+    type UnjudgedWhy,
+    type UnknownWhy,
+} from './scope.js';
+export { judgedSteps } from './scope-link-on-wrong-scope.js';
 
 export interface CheckInput {
     readonly spec: Spec;
@@ -74,13 +91,16 @@ export interface CheckInput {
 
 /** Every finding of the engine checks on one file, in the order of where each starts. */
 export function checkFile(input: CheckInput): CheckFinding[] {
-    const reading: FileReading = readContext({
+    const read = {
         spec: input.spec,
         folders: input.folders,
         file: input.file,
         tree: input.parsed.file,
         names: input.names,
-    });
+    };
+    const reading: FileReading = readContext(read);
+    const scopes = readScopes(read, reading);
+    const uses = keywordUses(input.spec, reading, scopes);
     const context = { lines: input.parsed.lines, catalogue: input.catalogue };
     const records = {
         spec: input.spec,
@@ -108,6 +128,9 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...rangesMinAboveMax(reading, context, records),
         ...nonCharacterShownEvents(context, records),
         ...definitionFindings(input.spec, input.file, context, input.index),
+        ...wrongScopeTriggers(uses, context),
+        ...wrongScopeEffects(uses, context),
+        ...linksOnWrongScope(reading, scopes, context),
     ].sort(
         (a, b) =>
             a.start - b.start || a.end - b.end || (a.code < b.code ? -1 : a.code > b.code ? 1 : 0),

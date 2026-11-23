@@ -34,7 +34,10 @@ export type CheckCode =
     | 'structure/range-min-above-max'
     | 'structure/event-non-character-shown'
     | 'definitions/clash'
-    | 'definitions/not-read';
+    | 'definitions/not-read'
+    | 'scope/wrong-scope-for-trigger'
+    | 'scope/wrong-scope-for-effect'
+    | 'scope/link-on-wrong-scope';
 
 export interface CheckKind {
     readonly severity: Severity;
@@ -171,6 +174,24 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         slots: ['value', 'value'],
         description: 'A definition in a file the rules table says the game does not read.',
         text: "'%s' is defined in a file the game does not read: %s.",
+    },
+    'scope/wrong-scope-for-trigger': {
+        severity: 'error',
+        catalogue: 'wrong_scope_for_trigger_X_expected_X',
+        slots: ['value', 'value'],
+        description: 'A trigger in a scope its scope data does not list.',
+    },
+    'scope/wrong-scope-for-effect': {
+        severity: 'error',
+        catalogue: 'wrong_scope_for_effect_X_expected_X',
+        slots: ['value', 'value'],
+        description: 'An effect in a scope its scope data does not list.',
+    },
+    'scope/link-on-wrong-scope': {
+        severity: 'error',
+        catalogue: 'trying_to_use_X_link_on_an_invalid_scope_X',
+        slots: ['value', 'value'],
+        description: 'A link applied to a scope it cannot start from.',
     },
 };
 
