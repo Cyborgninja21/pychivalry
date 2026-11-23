@@ -65,6 +65,12 @@ test('a second run loads the base game from the cache and does not read the game
         path.join(mod, 'common', 'scripted_triggers', 'uses_the_game.txt'),
         'uses_the_game = { stand_in_trigger_0_0 = yes }\n',
     );
+    // The game file changed below gets a whole second as its time, so that setting it back
+    // after the change gives exactly the time the first run listed (a time in milliseconds
+    // goes through a float on its way to the file system and can come back a hair earlier).
+    const changed = path.join(game, 'common', 'scripted_triggers', 'stand_in_0.txt');
+    const time = 1_700_000_000;
+    utimesSync(changed, time, time);
     const argv = ['check', mod, '--vanilla', game, '--json'];
     const first = runCheck(argv, cache);
     assert.equal(first.result.code, 1, first.result.stderr);
@@ -78,12 +84,12 @@ test('a second run loads the base game from the cache and does not read the game
     const saved = statSync(cacheFile);
 
     // The game's file changed where the listing cannot see it: same size, same time.
-    const changed = path.join(game, 'common', 'scripted_triggers', 'stand_in_0.txt');
     const before = statSync(changed);
     const text = readFileSync(changed, 'utf8');
     writeFileSync(changed, text.replaceAll('stand_in_trigger_0_', 'stand_in_triggeR_0_'));
-    utimesSync(changed, before.atime, before.mtime);
+    utimesSync(changed, time, time);
     assert.equal(statSync(changed).size, before.size);
+    assert.equal(statSync(changed).mtimeMs, before.mtimeMs);
 
     const second = runCheck(argv, cache);
     assert.equal(second.result.code, 1, second.result.stderr);
