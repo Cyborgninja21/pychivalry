@@ -535,6 +535,8 @@ The MVP is done when all of these hold, each proved by a suite in the repository
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.
 8. **Development needs no human.** `task ci` passes from a clean clone with no display, no
    game files, no model and no key.
+   *2026-11-23:* a fresh clone of the step 4 integration branch passes `task ci` with
+   `CK3_GAME_PATH`, `CK3_CORPUS`, `DISPLAY` and `WAYLAND_DISPLAY` unset.
 
 ## Lessons from 2.3.0
 
