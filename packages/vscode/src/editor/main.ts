@@ -140,10 +140,15 @@ export function mainCases(): readonly EditorCase[] {
                 let seen: unknown[] = [];
                 const forwarded = (): boolean => {
                     seen = mcpFilesUnder(plugins).map((f) => {
-                        const data = JSON.parse(readFileSync(f, 'utf8')) as {
-                            mcpServers?: Record<string, unknown>;
-                        };
-                        return data.mcpServers?.['pychivalry'];
+                        // VS Code may be writing the file as it is read: read again next time.
+                        try {
+                            const data = JSON.parse(readFileSync(f, 'utf8')) as {
+                                mcpServers?: Record<string, unknown>;
+                            };
+                            return data.mcpServers?.['pychivalry'];
+                        } catch {
+                            return undefined;
+                        }
                     });
                     return seen.some((e) => {
                         if (typeof e !== 'object' || e === null) {
