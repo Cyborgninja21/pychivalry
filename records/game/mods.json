@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-23T10:31:53.622Z",
+    "made_at": "2026-11-23T14:17:06.748Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "416773e96c1b2e2b0b4c977ba15403ed333f428d",
+        "commit": "e9b2b09f0cad1d71e639b7bc474b1a299586ee53",
         "dirty": false
     },
     "machine": {
@@ -42,14 +42,14 @@
         "Every error is listed and classified in tools/data/mods-classifications.json, matched by mod, file, code and line: real-defect (shown from the mod and game 1.21.0.3), spec-package-fault, pychivalry-fault (fails the run) or unclassified (not shown either way: fails the run). Warnings are listed; information and hints are counted by code.",
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
-        "The load average over one minute was 3.42 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 4.07 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 16402,
-            "peak_rss_kib": 1532716
+            "build_ms": 17700,
+            "peak_rss_kib": 1506300
         },
         "mods": [
             {
@@ -65,15 +65,9 @@
                     "error": 0,
                     "warning": 0,
                     "information": 0,
-                    "hint": 105
+                    "hint": 0
                 },
-                "by_code": [
-                    {
-                        "code": "localization/unused-key",
-                        "severity": "hint",
-                        "count": 105
-                    }
-                ],
+                "by_code": [],
                 "errors": 0,
                 "error_list": [],
                 "warnings": 0,
@@ -134,11 +128,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1330,
-                    "check": 171,
-                    "total": 1501
+                    "load_base": 1834,
+                    "check": 137,
+                    "total": 1971
                 },
-                "peak_rss_kib": 758608
+                "peak_rss_kib": 756136
             },
             {
                 "slug": "divine-intervention",
@@ -153,18 +147,13 @@
                     "error": 0,
                     "warning": 0,
                     "information": 3,
-                    "hint": 3711
+                    "hint": 12
                 },
                 "by_code": [
                     {
                         "code": "scope/undefined-event-target",
                         "severity": "information",
                         "count": 3
-                    },
-                    {
-                        "code": "localization/unused-key",
-                        "severity": "hint",
-                        "count": 3699
                     },
                     {
                         "code": "fields/unusual-value",
@@ -256,11 +245,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1297,
-                    "check": 11519,
-                    "total": 12816
+                    "load_base": 1405,
+                    "check": 12949,
+                    "total": 14354
                 },
-                "peak_rss_kib": 2069044
+                "peak_rss_kib": 2058012
             },
             {
                 "slug": "elf-destiny",
@@ -279,7 +268,7 @@
                     "error": 2,
                     "warning": 79,
                     "information": 443,
-                    "hint": 2547
+                    "hint": 103
                 },
                 "by_code": [
                     {
@@ -321,11 +310,6 @@
                         "code": "references/unknown-name",
                         "severity": "information",
                         "count": 11
-                    },
-                    {
-                        "code": "localization/unused-key",
-                        "severity": "hint",
-                        "count": 2444
                     },
                     {
                         "code": "fields/unusual-value",
@@ -1006,11 +990,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1547,
-                    "check": 2555,
-                    "total": 4101
+                    "load_base": 1459,
+                    "check": 1865,
+                    "total": 3324
                 },
-                "peak_rss_kib": 882672
+                "peak_rss_kib": 861692
             },
             {
                 "slug": "rice",
@@ -1020,7 +1004,7 @@
                     "error": 841,
                     "warning": 1122,
                     "information": 857,
-                    "hint": 141212
+                    "hint": 122
                 },
                 "by_code": [
                     {
@@ -1102,11 +1086,6 @@
                         "code": "structure/story-effect-group-chance-above-100",
                         "severity": "information",
                         "count": 1
-                    },
-                    {
-                        "code": "localization/unused-key",
-                        "severity": "hint",
-                        "count": 141090
                     },
                     {
                         "code": "fields/unusual-value",
@@ -16551,15 +16530,9 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 1,
-                    "dropped": 275,
-                    "dropped_by_code": [
-                        {
-                            "code": "localization/unused-key",
-                            "severity": "hint",
-                            "count": 275
-                        }
-                    ]
+                    "files": 0,
+                    "dropped": 0,
+                    "dropped_by_code": []
                 },
                 "scope": {
                     "keyword_uses": 74642,
@@ -16641,11 +16614,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 1439,
-                    "check": 15979,
-                    "total": 17419
+                    "load_base": 1458,
+                    "check": 6056,
+                    "total": 7514
                 },
-                "peak_rss_kib": 1604668
+                "peak_rss_kib": 962480
             },
             {
                 "slug": "viet-events",
@@ -16655,7 +16628,7 @@
                     "error": 1,
                     "warning": 3,
                     "information": 58,
-                    "hint": 19698
+                    "hint": 0
                 },
                 "by_code": [
                     {
@@ -16682,11 +16655,6 @@
                         "code": "references/unknown-name",
                         "severity": "information",
                         "count": 3
-                    },
-                    {
-                        "code": "localization/unused-key",
-                        "severity": "hint",
-                        "count": 19698
                     }
                 ],
                 "errors": 1,
@@ -16733,15 +16701,9 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 8,
-                    "dropped": 1894,
-                    "dropped_by_code": [
-                        {
-                            "code": "localization/unused-key",
-                            "severity": "hint",
-                            "count": 1894
-                        }
-                    ]
+                    "files": 0,
+                    "dropped": 0,
+                    "dropped_by_code": []
                 },
                 "scope": {
                     "keyword_uses": 17360,
@@ -16819,11 +16781,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1274,
-                    "check": 4513,
-                    "total": 5787
+                    "load_base": 2813,
+                    "check": 2355,
+                    "total": 5167
                 },
-                "peak_rss_kib": 894472
+                "peak_rss_kib": 885384
             }
         ]
     }

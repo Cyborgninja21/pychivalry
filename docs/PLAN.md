@@ -831,7 +831,8 @@ equal the core's.
 On each of the five mods `check --json` gives the same findings as the core's `checkWorkspace`,
 finding by finding, and the same counts by code and the same error and warning lists as the
 `game:mods` record: 105, 3,714, 3,071, 144,032 and 19,760 findings (a one-off comparison,
-not committed).
+not committed). Those counts hold the unused-key hints, which decision 76 has since turned off
+by default: the record re-made after it counts 0, 15, 627, 2,942 and 62.
 
 **Not yet known.** Nothing identified.
 
