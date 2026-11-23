@@ -264,7 +264,15 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
     });
     const results = record.results;
     assert.equal(results.trials.length, 2);
-    assert.deepEqual(results.tasks, [{ name: 'agent-use', trials: 2, passed: 2, pass_rate: 1 }]);
+    assert.deepEqual(results.tasks, [
+        {
+            name: 'agent-use',
+            trials: 2,
+            passed: 2,
+            pass_rate: 1,
+            target: { run: 'development', needs: 2, met: true },
+        },
+    ]);
     assert.equal(results.harness.version, '2.1.330');
     assert.equal(results.model, PINNED_MODEL);
     assert.equal(results.session_limit, 2);
@@ -312,6 +320,14 @@ test('a run whose agent fixes the mod: every trial passes, and the record holds'
         assert.ok(!text.includes(kept), `the record holds ${kept}`);
     }
     assert.ok(log.some((l) => l.includes('2 of 2 trials passed')));
+    // The record states the target and whether the run met it; so does the last line printed.
+    assert.ok(
+        log.some((l) =>
+            /development target \(every test session passes; fewer is looked into\): 2 of 2, met/.test(
+                l,
+            ),
+        ),
+    );
 
     // Each trial: a fresh copy of the mod, no git history, the flags, the one server.
     assert.equal(calls.length, 2);
@@ -355,6 +371,7 @@ test('a run whose agent changes nothing: the trials fail on the checker graders'
         trials: 1,
         passed: 0,
         pass_rate: 0,
+        target: { run: 'development', needs: 1, met: false },
     });
     // Every error code, some planted more than once, the clash reported at both definitions.
     assert.equal(trial.findings_left.error, 26);
@@ -613,6 +630,7 @@ test('a continued run adds its trials to the record, numbered after its own, and
         trials: 1,
         passed: 1,
         pass_rate: 1,
+        target: { run: 'development', needs: 1, met: true },
     });
     const both = go({ SCORED_TRIALS: '2', SCORED_CONTINUE: 'true' });
     assert.deepEqual(
@@ -628,6 +646,7 @@ test('a continued run adds its trials to the record, numbered after its own, and
         trials: 3,
         passed: 1,
         pass_rate: 0.3333,
+        target: { run: 'development', needs: 3, met: false },
     });
     assert.match(both.command, / SCORED_CONTINUE=true task scored:agent-use$/);
     assert.equal(both.notes.length, first.notes.length + 1);

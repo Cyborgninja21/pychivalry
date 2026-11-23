@@ -9,7 +9,15 @@ import { test } from 'node:test';
 import { checkRecord, compileRecordSchema } from '../records-check.js';
 import { repoRoot } from '../util.js';
 import { GRADERS } from './graders.js';
-import { passRate, scoredProblems, type ScoredRecord, type TrialRecord } from './scored-record.js';
+import {
+    passRate,
+    RELEASE_TRIALS,
+    scoredProblems,
+    targetOf,
+    targetText,
+    type ScoredRecord,
+    type TrialRecord,
+} from './scored-record.js';
 
 const validate = compileRecordSchema(path.join(repoRoot(), 'records', 'record.schema.json'));
 const expected = {
@@ -90,7 +98,15 @@ function record(): ScoredRecord {
             arguments: ['-p', '<tools/scored-run/agent-use.prompt.md>'],
             server: { entry: 'packages/mcp/dist/main.js', arguments: ['<trial mod>'] },
             trials,
-            tasks: [{ name: 'agent-use', trials: 2, passed: 1, pass_rate: 0.5 }],
+            tasks: [
+                {
+                    name: 'agent-use',
+                    trials: 2,
+                    passed: 1,
+                    pass_rate: 0.5,
+                    target: { run: 'development', needs: 2, met: false },
+                },
+            ],
         },
     };
 }
@@ -124,7 +140,28 @@ test('a scored record that disagrees with itself fails', () => {
         '/results/trials/1/trial: 5 is not 2',
         '/results/tasks/0/passed: 1, but 2 trials passed',
         '/results/tasks/0/pass_rate: 0.4 is not 2 / 2 (1)',
+        '/results/tasks/0/target: {"run":"development","needs":2,"met":false}, but 2 of 2 trials passed: {"run":"development","needs":2,"met":true}',
     ]);
+});
+
+test('the target: every test session passes; 10 of 10 is a release run, 5 a development run', () => {
+    // docs/decisions.md, decision 82: a release run of 10 test sessions must pass all 10; a
+    // development run of 5 that passes fewer than 5 is looked into.
+    assert.equal(RELEASE_TRIALS, 10);
+    assert.deepEqual(targetOf(10, 10), { run: 'release', needs: 10, met: true });
+    assert.deepEqual(targetOf(9, 10), { run: 'release', needs: 10, met: false });
+    assert.deepEqual(targetOf(5, 5), { run: 'development', needs: 5, met: true });
+    assert.deepEqual(targetOf(4, 5), { run: 'development', needs: 5, met: false });
+    assert.deepEqual(targetOf(0, 0), { run: 'development', needs: 0, met: false });
+    assert.match(targetText(targetOf(9, 10), 9), /release target .*10 of 10.*: not met/);
+    assert.match(targetText(targetOf(4, 5), 4), /development target .*4 of 5, not met/);
+});
+
+test('a record made before the target was set has none, and is valid', () => {
+    // Item 6.11's record (records/scored/agent-use.json) states no target.
+    const r = plain();
+    delete (r.results as unknown as { tasks: Record<string, unknown>[] }).tasks[0]?.['target'];
+    assert.deepEqual(checkRecord(r, validate, expected), []);
 });
 
 test('a grader missing, or passing with problems, fails', () => {
