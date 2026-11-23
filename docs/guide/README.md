@@ -13,10 +13,10 @@ decided and built, and nothing more.
 | [Installing](install.md) | What to install, on which systems, and what to use until 1.0.0 is out |
 | [Commands](commands.md) | The commands the extension adds, and the command line for building it from source |
 | [Settings](settings.md) | The settings, and how pychivalry finds the game |
+| [Checks](checks.md) | Every code pychivalry reports: its severity, what it finds and the game's evidence for it |
 
-Coming with the steps that build them: the list of every check with its code and its evidence
-(step 4), the command-line checker (step 5), using pychivalry from an AI agent (step 6), the
-editor features (steps 7, 8 and 12), and writing content with AI (step 9).
+Coming with the steps that build them: using pychivalry from an AI agent (step 6), the editor
+features (steps 7, 8 and 12), and writing content with AI (step 9).
 
 ## What pychivalry will and will not tell you
 

@@ -90,6 +90,12 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    its errors with its error list; per check and per mod, the totals by severity with the
    counts by code, and the error count with the error list and the total of errors; and its
    mods are the corpus slugs it names.
+9. A check record (`game:check`, and each mod of `game:mods`) agrees with itself: the totals by
+   severity with the counts by code, the error and warning counts with their lists and their
+   severity's total, the findings the per-file cap dropped with their codes, `passed` with its
+   failures, the base game's files with its layers, and a `game:mods` record's mods with the
+   corpus slugs it names; a passing record holds no finding classified `unclassified` or
+   `pychivalry-fault`.
 
 ## Baselines
 
@@ -211,3 +217,39 @@ a whole number or an `@constant`, less the top-level forms the package's part D2
 no name (`namespace`, settings), and with the nested definitions and file-named records its part
 D3 confirms; a use is a word written anywhere else, or a `$name$` in a localization entry
 ([packages/core/src/index/extract.ts](../packages/core/src/index/extract.ts)).
+
+## Check records (`game:check`, `game:mods`)
+
+`task game:check` (item 4.10) runs every check on the base game's own files and `task
+game:mods` on each corpus mod over the base game, both through the core's one runner,
+`checkWorkspace`, the code path of the command line's `check`, so a record holds what the
+command line reports. Each check runs in a fresh process: `game:check` builds the base game's
+index in it; `game:mods` builds the index once into a cache in a temporary folder, deleted after
+the run, and checks each mod in a process that loads it. Their `notes` are required and state the
+load average before the run. `results` of `game:check`:
+
+| Field | What it states |
+| --- | --- |
+| `passed`, `failures` | Whether the run passed: every error and warning has a classification, none is a pychivalry fault, and every classification matches a finding |
+| `files`, `files_by_layer` | The files checked (the `.txt` and `.yml` files of the folders the spec lists), by layer (`game`, `jomini`, `clausewitz`, `dlc`) |
+| `by_severity`, `by_code` | Every finding the run reports, by severity and by code and severity, most first within a severity |
+| `errors`, `error_list`, `warnings`, `warning_list` | Every error and every warning: `file` (inside its layer), `layer`, `line` and `column` (from 1), `code`, `message`, and its `classification` (`game-defect`, `spec-package-fault`, `pychivalry-fault` or `unclassified`) with the `reason`, from `tools/data/check-classifications.json` |
+| `classified` | How many errors and warnings have each classification |
+| `capped` | The per-file cap: `max_per_file`, the `files` it shortened, the findings it `dropped`, and those `dropped_by_code` |
+| `scope` | What the scope checks judged: `keyword_uses` (triggers, effects and iterators in trigger and effect blocks), `keyword_uses_known_scope`, `keyword_uses_judged`, `findings`, the uses not judged by why (`unjudged_by_reason`), `link_steps_judged` and `link_findings` |
+| `baseline_2_3_0` | Release 2.3.0 on the same game, from `baseline-2.3.0/results-base-game.json`: its errors, how many are at a file and line this run also reports an error at, how many only one of the two reports, and its scope check's `keyword_uses` and `keyword_uses_judged` |
+| `time_ms`, `peak_rss_kib` | Listing the files, building the index, checking every file, in all; the process's peak resident memory |
+
+`results` of `game:mods`: `passed`, `failures`, `base_game_cache` (the build's time and peak
+memory) and per mod `slug`, `files`, `not_checked` (files in folders the spec does not list, by
+folder), `by_severity`, `by_code`, `errors` and `error_list` (each classified, from
+`tools/data/mods-classifications.json`: `real-defect`, `spec-package-fault`, `pychivalry-fault` or
+`unclassified`, with the reason), `warnings` and `warning_list`, `classified`, `capped`, `scope`,
+`baseline_2_3_0` (release 2.3.0's files, counts and errors on the mod from
+`baseline-2.3.0/results-mods.json`, compared by file and line; null for a mod it did not run), and
+`time_ms` (`load_base`: listing the base game and loading its index from the cache; `check`:
+indexing and checking the mod; `total`) with the process's `peak_rss_kib`.
+
+A run passes when every finding it must classify has an entry, every entry matches a finding,
+none is a pychivalry fault, and, for the mods, none is `unclassified`. A failed run still writes
+its record, and exits 1.

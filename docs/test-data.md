@@ -6,12 +6,13 @@ uses it. A step that adds test data adds it here.
 | Kind | Where | Committed | Used by | Runs in public CI |
 | --- | --- | --- | --- | --- |
 | Hand-written mods | [`fixtures/mods/`](../fixtures/mods/README.md) | Yes | Every package's tests | Yes |
-| Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures | Yes |
+| Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures, the checks that are silent without one, lookup | Yes |
 | The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use run; its graders' own tests | The graders' tests only |
 | Content requests | `fixtures/requests/` (step 9) | Yes | The scored authoring run | No |
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
 | The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, the 2.3.0 baselines | No |
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
+| Classifications | `tools/data/`: what the base game's parse errors and check findings are, and the five mods' check errors, each with its reason | Yes | `task game:parse`, `task game:check`, `task game:mods` | No |
 | Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus (a 2.3.0 baseline against the committed format 4 copy) | The check, yes |
 | The spec package | [`spec/`](../spec/README.md): the 1.21.0.3 package in format 8 (its override rules are part D1), its companions, and the format 4 copy for 2.3.0 | Yes, gzipped | Every reader of the spec; the index and its override fixtures; the parse and index suites; the 2.3.0 baselines (the format 4 copy) | Its check, yes; the tests read the package file |
 | Release 2.3.0's tests and records | [`legacy/`](../legacy/) | Yes, unchanged | Carried over by the step that owns each behaviour | No |
@@ -72,6 +73,22 @@ test (`packages/core/src/check/<name>.test.ts`) indexes the mod on its own and r
 on its files. The rules of reading the checks follow are tested on a few lines of text each, in
 `packages/core/src/check/context.test.ts`.
 
+Items 4.4 to 4.8 added a pair for every check they built: 3 for the scope checks (4.4), 10 for
+fields and structure (4.5), 4 for event targets and localization (4.6) and 28 for the advice
+checks (4.7), 51 pairs in all with item 4.2's six. A pair's `expected.json` lists its own
+check's findings and those of every check that is not advice; the advice checks are tested on
+their own pairs. The three checks that report nothing without a base game are read over a
+second game stub, [`fixtures/game/event-targets-and-localization`](../fixtures/game/README.md),
+which saves a scope and defines two localization keys. Lookup (4.8) reads the mod
+`lookup-definitions-and-uses` over a third stub, [`fixtures/game/lookup`](../fixtures/game/README.md),
+and answers for names of every kind the package has (`packages/core/src/lookup/lookup.test.ts`
+reads its expected texts from the committed package). The command line (step 5) is tested on
+these mods and stubs, on stubs its tests write, and against release 2.3.0's golden output for
+its `example-mod`, read in place in `legacy/`. Item 4.11's limits are tested on mods written
+in the test and on every bad half run with no game folder
+(`packages/core/src/check/limits.test.ts`). The list is in
+[fixtures/mods/README.md](../fixtures/mods/README.md).
+
 ## The planted-defect mod
 
 One mod with 20 to 30 defects, one per check code, a manifest of where each sits, lines that
@@ -104,6 +121,15 @@ of the game's file manifest in each record. `task game:parse` reads 4,854 script
 the spec's list that hold files, with the install's `jomini/` and `clausewitz/` folders and the
 DLC packs), caches and reloads the index, and indexes each of the five mods over it; its record
 is `records/game/index.json` ([records/README.md](../records/README.md#index-records-gameindex)).
+
+`task game:check` runs every check on those 17,302 files and `task game:mods` on each of the
+five mods, through the same code the command line runs; their records are
+`records/game/check.json` and `records/game/mods.json`
+([records/README.md](../records/README.md#check-records-gamecheck-gamemods)). Every error and
+warning the base game raises is classified in `tools/data/check-classifications.json`, as a
+defect of the game's own files or a fault of the spec package, each with its reason; every
+error of the five mods in `tools/data/mods-classifications.json`, as a real defect with its
+reason. A finding with no entry, or an entry that matches no finding, fails the suite.
 
 ## Release 2.3.0's baselines
 

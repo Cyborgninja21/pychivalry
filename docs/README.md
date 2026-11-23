@@ -10,7 +10,7 @@ a document adds its row here.
 | [MVP.md](MVP.md) | What is being built and why: the decisions as they stand, the scope, the tests each feature needs, the definition of done | Before step 1 |
 | [PLAN.md](PLAN.md) | How it is built: thirteen steps, each with numbered items, tests and a "done when" list; the Progress table | Before step 1; updated by every step |
 | [decisions.md](decisions.md) | Every decision with its date, in the order it was made, and the choices an agent made that the owner has not yet confirmed | Every step that asks or answers one |
-| [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces and its fixture pair; the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Signed off by the owner on 2026-11-21 | Step 4, item 4.1; every step that adds a check |
+| [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces, its fixture pair and its state (built, blocked, retired); the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Signed off by the owner on 2026-11-21 | Step 4, item 4.1; every step that adds a check |
 
 ## Sources and test data
 
@@ -23,7 +23,7 @@ a document adds its row here.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [guide/](guide/README.md) | The user guide: installing, commands, settings | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
+| [guide/](guide/README.md) | The user guide: installing, commands, settings, and the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
 | [wiki/](wiki/README.md) | How the repository's GitHub wiki is generated from these documents, and its home page | Step 1 |
 
 ## The game's behaviour, as each step establishes it
@@ -33,7 +33,7 @@ Each is written by the step named, from evidence.
 | Document | What it holds | Written by |
 | --- | --- | --- |
 | [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports | Step 2 |
-| [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one. The settled rules are carried as data in the stand-in table `spec/override-rules.json` ([spec/README.md](../spec/README.md#the-override-rules-table)) | Step 3, items 3.1 and 3.1a |
+| [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one. The rules are carried as data in the spec package's part D1 | Step 3, items 3.1 and 3.1a |
 
 These do not exist yet:
 
@@ -56,3 +56,4 @@ These do not exist yet:
 | [../records/README.md](../records/README.md) | The record format of the suites that need game files |
 | [../records/corpus/README.md](../records/corpus/README.md) | The five real mods and their manifest |
 | [../fixtures/README.md](../fixtures/README.md) | The hand-written test mods |
+| [../tools/data/](../tools/data/) | The classifications of the base game's parse errors (`parse-classifications.json`) and check findings (`check-classifications.json`), and of the five mods' check errors (`mods-classifications.json`), read by the game-file suites |

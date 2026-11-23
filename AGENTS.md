@@ -50,6 +50,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 8, the JSON Schema, the format 4 copy, the override rules (part D1) |
 | `task records:check` | Every committed record: valid format, made on the committed spec (a 2.3.0 baseline: on the format 4 copy) and corpus |
 | `task wiki:check` | The wiki builds from `docs/`: every published document exists and every link resolves |
+| `task docs:checks` | Writes the user guide's check reference, `docs/guide/checks.md`, from the core's check inventory |
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
 | `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |
 
@@ -85,7 +86,11 @@ From step 4. Each check is one file under `packages/core/src/check/`, with its t
 3. Write `check/<name>.test.ts` against the pair, then `check/<name>.ts`. Every keyword it
    needs comes from the spec package or the installed game, never from a list in the code.
 4. Run the base-game and real-mod suites (`task game:check`, `task game:mods`) and commit
-   their records. Every error the check raises in the base game is classified.
+   their records. Every error and warning the check raises in the base game is classified in
+   `tools/data/check-classifications.json`, and every error in a test mod in
+   `tools/data/mods-classifications.json`; an unclassified one fails the suite.
+5. Run `task docs:checks`: the user guide's check reference (`docs/guide/checks.md`) is written
+   from the core's inventory, and a test fails until it is.
 
 ## The suites that need game files
 

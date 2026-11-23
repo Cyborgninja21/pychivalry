@@ -4,10 +4,10 @@
 > scheme, the twelve families and the code names on this page are permanent from that date: a
 > code is never renamed and never reused. A check that is dropped or changed is retired. This
 > page is build item 4.1 of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Built so far:
-> what build steps 2 and 3 report (the parse findings and the index's statuses) and the six rows
-> of item 4.2 (`names/unknown-trigger`, `names/unknown-effect`, `names/unknown-link`,
-> `names/unknown-modifier`, `names/unknown-on-action`, `names/modifier-outside-use-area`), two
-> parts of the first two rows excepted; each group below says which of its rows are built. What
+> every row of step 4 but two that are blocked, and the eleven provisional advice rows item
+> 4.7's re-proof retired: 62 rows are built (five of them in part), 11 retired, 2 blocked, and
+> 3 belong to steps 10 and 11. The last column of each table, **State**, says which, and why
+> where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
 > was decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
 Every check pychivalry ships has one row here: its code, its severity, what it finds, the
@@ -57,6 +57,11 @@ Everything else is pychivalry's own advice and is information (semantic advice) 
 
 **Replaces.** The release 2.3.0 code the row carries over, or "new". The full mapping, every
 2.3.0 code in both directions, is [below](#release-230s-codes-one-by-one).
+
+**State.** Whether the row is built, and by which item; built in part, blocked, or not built yet,
+with what stands in the way; a retired row is in [Retired codes](#retired-codes), with the date
+and the reason. Item 4.7's re-proof counts (the base-game units an advice row applies to, and
+the findings it raises there) are given with each advice row.
 
 **Fixture pair.** `fixtures/mods/<pair>-bad`, which the check fires on, and
 `fixtures/mods/<pair>-good`, which it is silent on, where `<pair>` is the code with its `/`
@@ -209,19 +214,19 @@ values of `code` change.
 
 Built in `packages/core/src/syntax/findings.ts`; the identifier is the code.
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `syntax/missing-closing-brace` | error | A block still open at the end of the file | Catalogue `expected_after_arguments` ("Expected } after arguments") | `expected_after_arguments` | `parse-missing-closing-brace` | 2 | clean catalogue (the id may change) |
-| `syntax/unexpected-closing-brace` | error | A `}` at the top level, where no block is open | Catalogue `unexpected_token_expected_key` | `unexpected_token_expected_key` | `parse-unexpected-closing-brace` | 2 | clean catalogue |
-| `syntax/block-without-key` | error | A block at the top level with no key | Catalogue `unexpected_token_expected_key` | `unexpected_token_expected_key` | `parse-block-without-key` | 2 | clean catalogue |
-| `syntax/operator-without-key` | error | An operator with no key before it | Catalogue `unexpected_token_expected_key` | `unexpected_token_expected_key` | `parse-operator-without-key` | 2 | clean catalogue |
-| `syntax/missing-value` | error | An operator with no value after it | Catalogue `expected_between_equals_and_arguments` | `expected_between_equals_and_arguments` | `parse-missing-value` | 2 | clean catalogue |
-| `syntax/missing-operator` | error | A key at the top level with no operator after it | Catalogue `unexpected_token_X_found_at_X_expected` (see [its context](#where-the-executable-keeps-each-message)) | `unexpected_token_X_found_at_X_expected` | `parse-missing-operator` | 2 | clean catalogue |
-| `syntax/missing-equals-before-block` | error | `name { ... }` among statements, without its `=` | Catalogue `expected_between_block_name_and_body` | `expected_between_block_name_and_body` | `parse-missing-equals-before-block` | 2 | clean catalogue |
-| `syntax/null-safe-operator-after-value` | error | `?=` after a number, date, constant or quoted text | Catalogue `unexpected_token_X_found_at_X_expected` | `unexpected_token_X_found_at_X_expected` | `parse-null-safe-after-value` | 2 | clean catalogue |
-| `syntax/unterminated-string` | information | Quoted text without its closing quote | Advice ([why](#the-step-2-findings)) | `PYCH-P001` (error) | `parse-unterminated-string` | 2 | none |
-| `syntax/malformed-arithmetic` | information | `@[ ... ]` that is not well formed, or has no `]` | Advice; a candidate message was found ([why](#the-step-2-findings)) | `PYCH-P002` (error) | `parse-malformed-arithmetic` | 2 | clean catalogue, to settle the candidate |
-| `encoding/not-utf8` | information | A file that is not valid UTF-8 | Advice ([why](#the-step-2-findings)) | new | `encoding-windows-1252` | 2 | none |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `syntax/missing-closing-brace` | error | A block still open at the end of the file | Catalogue `expected_after_arguments` ("Expected } after arguments") | `expected_after_arguments` | `parse-missing-closing-brace` | 2 | clean catalogue (the id may change) | Built (step 2) |
+| `syntax/unexpected-closing-brace` | error | A `}` at the top level, where no block is open | Catalogue `unexpected_token_expected_key` | `unexpected_token_expected_key` | `parse-unexpected-closing-brace` | 2 | clean catalogue | Built (step 2) |
+| `syntax/block-without-key` | error | A block at the top level with no key | Catalogue `unexpected_token_expected_key` | `unexpected_token_expected_key` | `parse-block-without-key` | 2 | clean catalogue | Built (step 2) |
+| `syntax/operator-without-key` | error | An operator with no key before it | Catalogue `unexpected_token_expected_key` | `unexpected_token_expected_key` | `parse-operator-without-key` | 2 | clean catalogue | Built (step 2) |
+| `syntax/missing-value` | error | An operator with no value after it | Catalogue `expected_between_equals_and_arguments` | `expected_between_equals_and_arguments` | `parse-missing-value` | 2 | clean catalogue | Built (step 2) |
+| `syntax/missing-operator` | error | A key at the top level with no operator after it | Catalogue `unexpected_token_X_found_at_X_expected` (see [its context](#where-the-executable-keeps-each-message)) | `unexpected_token_X_found_at_X_expected` | `parse-missing-operator` | 2 | clean catalogue | Built (step 2) |
+| `syntax/missing-equals-before-block` | error | `name { ... }` among statements, without its `=` | Catalogue `expected_between_block_name_and_body` | `expected_between_block_name_and_body` | `parse-missing-equals-before-block` | 2 | clean catalogue | Built (step 2) |
+| `syntax/null-safe-operator-after-value` | error | `?=` after a number, date, constant or quoted text | Catalogue `unexpected_token_X_found_at_X_expected` | `unexpected_token_X_found_at_X_expected` | `parse-null-safe-after-value` | 2 | clean catalogue | Built (step 2) |
+| `syntax/unterminated-string` | information | Quoted text without its closing quote | Advice ([why](#the-step-2-findings)) | `PYCH-P001` (error) | `parse-unterminated-string` | 2 | none | Built (step 2) |
+| `syntax/malformed-arithmetic` | information | `@[ ... ]` that is not well formed, or has no `]` | Advice; a candidate message was found ([why](#the-step-2-findings)) | `PYCH-P002` (error) | `parse-malformed-arithmetic` | 2 | clean catalogue, to settle the candidate | Built (step 2) |
+| `encoding/not-utf8` | information | A file that is not valid UTF-8 | Advice ([why](#the-step-2-findings)) | new | `encoding-windows-1252` | 2 | none | Built (step 2) |
 
 ### 4.2: unknown names
 
@@ -232,14 +237,14 @@ finding's data, not a code of its own. A keyword the spec marks removed (the sta
 `retired` list, 16 entries) is the same finding with the version it was removed in and its
 replacement as data and as a fix; 2.3.0's `PYCH-R001` and `PYCH-R002` fold in here.
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `names/unknown-trigger` | error | A key in a trigger block that is no trigger there: a made-up or removed name, an effect, an `every_` or `random_` iterator, an iterator over no list | Catalogue `unknown_trigger_X` ("Unknown trigger '%s'") | `unknown_trigger_X`; `PYCH-R001`, `PYCH-R002`; `SWITCH-003` | `names-unknown-trigger` | 4.2 | 1.21 names; tables |
-| `names/unknown-effect` | error | A key in an effect block that is no effect there, including a trigger and an `any_` iterator | Catalogue `unknown_effect_X` ("Unknown effect '%s'") | `unknown_effect_X`; `PYCH-R001`, `PYCH-R002` | `names-unknown-effect` | 4.2 | 1.21 names; tables |
-| `names/unknown-link` | error | A segment of a scope chain (`root.foo`, `scope:x.bar`) that is no link | Catalogue `failed_to_parse_data_for_event_target_link_link_X_location_X` | same id | `names-unknown-link` | 4.2 | 1.21 names; tables (chain heads) |
-| `names/unknown-modifier` | error | A key in a modifier block that is no modifier and fills no modifier template | Catalogue `unknown_modifier_type_X_at_X` ("Unknown modifier type '{}' at {}") | same id; `PYCH-R001` for modifiers | `names-unknown-modifier` | 4.2 | 1.21 names (761 modifiers); tables (which blocks hold modifiers) |
-| `names/unknown-on-action` | error | A value naming an on-action the game does not have | Catalogue `unknown_on_action_X` ("Unknown on action: %s") | new | `names-unknown-on-action` | 4.2 | 1.21 names; value types (which fields name an on-action) |
-| `names/modifier-outside-use-area` | warning | A modifier in a block of a kind its use area does not include | Game output: the documentation dump's use area for each modifier. No catalogue message was found for it | new | `names-modifier-outside-use-area` | 4.2 | use areas; value types (which use area a block is) |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `names/unknown-trigger` | error | A key in a trigger block that is no trigger there: a made-up or removed name, an effect, an `every_` or `random_` iterator, an iterator over no list | Catalogue `unknown_trigger_X` ("Unknown trigger '%s'") | `unknown_trigger_X`; `PYCH-R001`, `PYCH-R002`; `SWITCH-003` | `names-unknown-trigger` | 4.2 | 1.21 names; tables | Built (4.2), but for its iterator sub-cases, which wait on the owner |
+| `names/unknown-effect` | error | A key in an effect block that is no effect there, including a trigger and an `any_` iterator | Catalogue `unknown_effect_X` ("Unknown effect '%s'") | `unknown_effect_X`; `PYCH-R001`, `PYCH-R002` | `names-unknown-effect` | 4.2 | 1.21 names; tables | Built (4.2), but for its iterator sub-cases, which wait on the owner |
+| `names/unknown-link` | error | A segment of a scope chain (`root.foo`, `scope:x.bar`) that is no link | Catalogue `failed_to_parse_data_for_event_target_link_link_X_location_X` | same id | `names-unknown-link` | 4.2 | 1.21 names; tables (chain heads) | Built (4.2) |
+| `names/unknown-modifier` | error | A key in a modifier block that is no modifier and fills no modifier template | Catalogue `unknown_modifier_type_X_at_X` ("Unknown modifier type '{}' at {}") | same id; `PYCH-R001` for modifiers | `names-unknown-modifier` | 4.2 | 1.21 names (761 modifiers); tables (which blocks hold modifiers) | Built (4.2) |
+| `names/unknown-on-action` | error | A value naming an on-action the game does not have | Catalogue `unknown_on_action_X` ("Unknown on action: %s") | new | `names-unknown-on-action` | 4.2 | 1.21 names; value types (which fields name an on-action) | Built (4.2) |
+| `names/modifier-outside-use-area` | warning | A modifier in a block of a kind its use area does not include | Game output: the documentation dump's use area for each modifier. No catalogue message was found for it | new | `names-modifier-outside-use-area` | 4.2 | use areas; value types (which use area a block is) | Built (4.2) |
 
 **Built** (item 4.2, `packages/core/src/check/`): all six rows, each with its fixture pair.
 `names/unknown-on-action` reads the fields and parameters part D6 of the spec package (format 7,
@@ -262,36 +267,57 @@ its own; its tables feed the rows of 4.2 and 4.4. **Built** inside item 4.2, who
 
 Judged only where the spec has scope data; "no requirement declared" is not a finding.
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `scope/wrong-scope-for-trigger` | error | A trigger in a scope its scope data does not list | Catalogue `wrong_scope_for_trigger_X_expected_X`; the scope data from the game's documentation output | same id | `scope-wrong-scope-for-trigger` | 4.4 | 1.21 names (scope data); .info (the scope each block receives); tables (iterator and link scopes) |
-| `scope/wrong-scope-for-effect` | error | An effect in a scope its scope data does not list | Catalogue `wrong_scope_for_effect_X_expected_X` | same id | `scope-wrong-scope-for-effect` | 4.4 | as above |
-| `scope/link-on-wrong-scope` | error | A link applied to a scope it cannot start from | Catalogue `trying_to_use_X_link_on_an_invalid_scope_X` (see [its context](#where-the-executable-keeps-each-message)) | same id | `scope-link-on-wrong-scope` | 4.4 | as above |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `scope/wrong-scope-for-trigger` | error | A trigger in a scope its scope data does not list | Catalogue `wrong_scope_for_trigger_X_expected_X`; the scope data from the game's documentation output | same id | `scope-wrong-scope-for-trigger` | 4.4 | 1.21 names (scope data); .info (the scope each block receives); tables (iterator and link scopes) | Built (4.4) |
+| `scope/wrong-scope-for-effect` | error | An effect in a scope its scope data does not list | Catalogue `wrong_scope_for_effect_X_expected_X` | same id | `scope-wrong-scope-for-effect` | 4.4 | as above | Built (4.4) |
+| `scope/link-on-wrong-scope` | error | A link applied to a scope it cannot start from | Catalogue `trying_to_use_X_link_on_an_invalid_scope_X` (see [its context](#where-the-executable-keeps-each-message)) | same id | `scope-link-on-wrong-scope` | 4.4 | as above | Built (4.4) |
+
+**Built** (item 4.4, `packages/core/src/check/scope.ts` and one file per row): all three rows,
+each with its fixture pair. On the 1.21.0.3 base game (`task game:check`) the checks see 610,898
+keyword uses, judge 178,395 of them and 41,022 link steps, and raise no finding; release 2.3.0
+judged 101,162 of 613,103 on the same game (93,665 of 561,077 on 1.20). On the five mods: 27
+`scope/wrong-scope-for-effect` errors, all in rice (buildings added in a province, which 1.21.0.3
+moved to districts).
 
 ### 4.5: fields and structure
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `fields/unknown-field` | warning | A field in a record that its folder's field list does not have | Catalogue `unknown_X_in_X` ("Unknown {} in {}"); see [its context](#where-the-executable-keeps-each-message) and question 6 | same id | `fields-unknown-field` | 4.5 | .info (field lists beside the base game's inventory; the stand-in lists only what the base game writes); the 14 folders 1.21 adds |
-| `fields/bare-value-in-record` | error | A bare value directly in a record body that holds statements, where the game expects `key =` | Catalogue `unexpected_token_X_found_at_X_expected` | same id (2.3.0's schema check) | `fields-bare-value-in-record` | 4.5 | value types (which records are lists) |
-| `fields/missing-required-field` | error | A field the spec marks required is missing. Three in the stand-in, each with the game's message: a casus belli's `on_invalidated_desc`, an interaction category's `index`, a tutorial lesson's `chain`. The base game has none missing: 0 of 138, 0 of 16, 0 of 124 | Required field, each with its catalogue message: `casus_belli_X_missing_on_invalidated_desc`, `invalid_or_undefined_index_for_character_interaction_categor`, `missing_or_invalid_tutorial_chain_for_tutorial_lesson_X` | those three ids; `PYCH-S002` | `fields-missing-required-field` | 4.5 | none for the three; any field format 5 adds comes with its evidence |
-| `fields/wrong-kind-of-value` | information | A value of another kind than the field takes (a word where a number goes, `maybe` where `yes` or `no` goes) | Advice. Whether the measured value types are clean enough for a warning is not yet known (PLAN.md step 4); no catalogue message for script values was found (the "Expected number" family belongs to the executable's JSON reader) | new | `fields-wrong-kind-of-value` | 4.5 | value types |
-| `references/unknown-key` | warning | A value that should be a key of a database (an event theme, a background, a decision group, a trait, an interaction category) names no key of it in the mod, the base game or a DLC | Catalogue `failed_to_read_key_reference_X_from_database_X` ("Failed to read key reference %s from database %s"); for an event option's `trait`, `unknown_trait_X_in_event_at_X`. The base game names no missing key: themes 0 of 8,859, decision groups 0 of 496, interaction categories 0 of 629 | `CK3430`, `CK3431`, `CK3800` | `references-unknown-key` | 4.5 | value types (which database each field's value is a key of) |
-| `structure/event-undeclared-namespace` | warning | An event whose namespace its file does not declare, including every event of a file that declares none. The base game has none: 0 of 10,836 events | Catalogue `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi` | `EVENT-016`; `EVENT-010` | `structure-event-undeclared-namespace` | 4.5 | keyword roles (`namespace` as a declaration, asked in step 3) |
-| `structure/range-min-above-max` | error | A range whose minimum is above its maximum | Catalogue `min_value_in_range_directive_is_larger_than_the_max_value_un` | `VALUE-002` | `structure-range-min-above-max` | 4.5 | value types (where a range is written) |
-| `structure/event-non-character-shown` | error | An event whose `scope` is not a character and that is neither hidden nor major. The base game has none: 0 of its 121 events with another scope | Catalogue `error_in_event_X_non_character_events_must_be_hidden_or_be_n` ("Error in event '{}'. Non-character events must be hidden, or be narrative events"); `events/_events.info`: "Non-character scoped events generally need to be hidden or major". That "narrative" means `major` is read from the `.info` file, not shown | new | `structure-event-non-character-shown` | 4.5 | keyword roles; .info |
-| `structure/triggered-desc-other-field` | warning | A `triggered_desc` block holding anything but `desc` and `trigger`. The base game has none: 0 of 22,387 | Executable: "The body of triggered_desc can only take desc and/or trigger. %s", kept beside the 1.21 dynamic-description reader; not in the 1.20 catalogue | new | `structure-triggered-desc-other-field` | 4.5 | clean catalogue (the message); keyword roles |
-| `definitions/clash` | error | Definitions the rules table says the game calls an error: two events with one id and the same `id_override_priority`, two history characters with one id and the same `history_override_priority` | Catalogue, named by the rules row: `duplicated_event_id_X_with_the_same_override_priority_X_foun`, `duplicate_character_id_X_found_in_history`. The base game has 3, all character ids (`records/game/index.json`); item 4.9 classifies them | new | `definitions-clash` (the step 3 mod `override-rules` already holds 2 clashes) | 4.5 | rules (a clash row carries its message) |
-| `definitions/not-read` | information | A definition in a file the rules table says the game does not read (replaced by another layer's file, hidden by `replace_path`, a folder in the wrong letter case) | Advice: the rules row has game evidence, but the game prints nothing for a file it skips | new | `definitions-not-read` | 4.5 | rules (most such rows are open today) |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `fields/unknown-field` | warning | A field in a record that its folder's field list does not have | Catalogue `unknown_X_in_X` ("Unknown {} in {}"); see [its context](#where-the-executable-keeps-each-message) and question 6 | same id | `fields-unknown-field` | 4.5 | .info (field lists beside the base game's inventory; the stand-in lists only what the base game writes); the 14 folders 1.21 adds | Built (4.5) |
+| `fields/bare-value-in-record` | error | A bare value directly in a record body that holds statements, where the game expects `key =` | Catalogue `unexpected_token_X_found_at_X_expected` | same id (2.3.0's schema check) | `fields-bare-value-in-record` | 4.5 | value types (which records are lists) | Built (4.5) |
+| `fields/missing-required-field` | error | A field the spec marks required is missing. Three in the stand-in, each with the game's message: a casus belli's `on_invalidated_desc`, an interaction category's `index`, a tutorial lesson's `chain`. The base game has none missing: 0 of 138, 0 of 16, 0 of 124 | Required field, each with its catalogue message: `casus_belli_X_missing_on_invalidated_desc`, `invalid_or_undefined_index_for_character_interaction_categor`, `missing_or_invalid_tutorial_chain_for_tutorial_lesson_X` | those three ids; `PYCH-S002` | `fields-missing-required-field` | 4.5 | none for the three; any field format 5 adds comes with its evidence | Built (4.5) |
+| `fields/wrong-kind-of-value` | information | A value of another kind than the field takes (a word where a number goes, `maybe` where `yes` or `no` goes) | Advice. Whether the measured value types are clean enough for a warning is not yet known (PLAN.md step 4); no catalogue message for script values was found (the "Expected number" family belongs to the executable's JSON reader) | new | `fields-wrong-kind-of-value` | 4.5 | value types | Built in part (4.5): 7 value groups (boolean, integer, decimal, number, date, list, path); block and word fire on correct mod script and are not judged |
+| `references/unknown-key` | warning | A value that should be a key of a database (an event theme, a background, a decision group, a trait, an interaction category) names no key of it in the mod, the base game or a DLC | Catalogue `failed_to_read_key_reference_X_from_database_X` ("Failed to read key reference %s from database %s"); for an event option's `trait`, `unknown_trait_X_in_event_at_X`. The base game names no missing key: themes 0 of 8,859, decision groups 0 of 496, interaction categories 0 of 629 | `CK3430`, `CK3431`, `CK3800` | `references-unknown-key` | 4.5 | value types (which database each field's value is a key of) | Built (4.5) |
+| `structure/event-undeclared-namespace` | warning | An event whose namespace its file does not declare, including every event of a file that declares none. The base game has none: 0 of 10,836 events | Catalogue `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi` | `EVENT-016`; `EVENT-010` | `structure-event-undeclared-namespace` | 4.5 | keyword roles (`namespace` as a declaration, asked in step 3) | Built (4.5) |
+| `structure/range-min-above-max` | error | A range whose minimum is above its maximum | Catalogue `min_value_in_range_directive_is_larger_than_the_max_value_un` | `VALUE-002` | `structure-range-min-above-max` | 4.5 | value types (where a range is written) | Built (4.5) |
+| `structure/event-non-character-shown` | error | An event whose `scope` is not a character and that is neither hidden nor major. The base game has none: 0 of its 121 events with another scope | Catalogue `error_in_event_X_non_character_events_must_be_hidden_or_be_n` ("Error in event '{}'. Non-character events must be hidden, or be narrative events"); `events/_events.info`: "Non-character scoped events generally need to be hidden or major". That "narrative" means `major` is read from the `.info` file, not shown | new | `structure-event-non-character-shown` | 4.5 | keyword roles; .info | Built (4.5) |
+| `structure/triggered-desc-other-field` | warning | A `triggered_desc` block holding anything but `desc` and `trigger`. The base game has none: 0 of 22,387 | Executable: "The body of triggered_desc can only take desc and/or trigger. %s", kept beside the 1.21 dynamic-description reader; not in the 1.20 catalogue | new | `structure-triggered-desc-other-field` | 4.5 | clean catalogue (the message); keyword roles | Blocked: its message is not in the committed catalogue (part D4 quotes it as executable evidence) |
+| `definitions/clash` | error | Definitions the rules table says the game calls an error: two events with one id and the same `id_override_priority`, two history characters with one id and the same `history_override_priority` | Catalogue, named by the rules row: `duplicated_event_id_X_with_the_same_override_priority_X_foun`, `duplicate_character_id_X_found_in_history`. The base game has 3, all character ids (`records/game/index.json`); item 4.9 classifies them | new | `definitions-clash` (the step 3 mod `override-rules` already holds 2 clashes) | 4.5 | rules (a clash row carries its message) | Built (4.5) |
+| `definitions/not-read` | information | A definition in a file the rules table says the game does not read (replaced by another layer's file, hidden by `replace_path`, a folder in the wrong letter case) | Advice: the rules row has game evidence, but the game prints nothing for a file it skips | new | `definitions-not-read` | 4.5 | rules (most such rows are open today) | Built (4.5) |
+
+**Built** (item 4.5): ten rows, each with its fixture pair, `fields/wrong-kind-of-value` for 7 of
+the 9 value groups. **Blocked:** `structure/triggered-desc-other-field`: its message is not in the
+committed catalogue, and an "Executable" row ships only once it is (part D4 quotes the string as
+rank-1 evidence; a question for the owner). The base game raises none of these errors or
+warnings; `definitions/not-read` gives 88 information findings, all in `jomini/` files the game's
+own copies replace.
 
 ### 4.6: event targets and localization
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game | Catalogue `undefined_event_target_X`. Information by the MVP's decision: the base game alone has 10,523 (2.3.0's record on 1.20) | same id | `scope-undefined-event-target` | 4.6 | tables (the effects that save a scope) |
-| `localization/missing-key` | warning | A localization key, in a field that holds one, defined in no localization file of the mod, the base game or a DLC. Literal text with spaces in such a field is this finding too: the game reads it as a key | Catalogue `unknown_loc_key_X` ("Unknown loc key %s"); for `title`, `desc` and option `name`, the 1.21 executable's "Unrecognized loc key %s. Near %s" beside the dynamic-description reader; `events/_events.info`: "Missing localization keys are logged as errors" | `CK4100`, `CK4101`, `CK4102` | `localization-missing-key` | 4.6 | loc fields; implicit keys (not in the plan); clean catalogue |
-| `localization/unbalanced-brackets` | warning | Localization text with an extra or unclosed `[`, `]`, `(`, `'` or `$`. The base game's English has no unbalanced `[ ]`: 0 of 340,445 entries | Catalogue `loc_key_X_unexpected_extra_at_position_X_file_X` and `_2`; the 1.21 executable's "Unterminated '[' ...", "Unterminated '(' ...", "Unterminated `'` ..." and "Unterminated '$' ..." messages beside the localization reader | `LOC-005`; the `$` part of `LOC-007` | `localization-unbalanced-brackets` | 4.6 | clean catalogue (the 1.21 messages) |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game | Catalogue `undefined_event_target_X`. Information by the MVP's decision: the base game alone has 10,523 (2.3.0's record on 1.20) | same id | `scope-undefined-event-target` | 4.6 | tables (the effects that save a scope) | Built (4.6); the package's `save_keys` lacks the effects that save a value, so a name is reported only when no file writes it but as `scope:name` |
+| `localization/missing-key` | warning | A localization key, in a field that holds one, defined in no localization file of the mod, the base game or a DLC. Literal text with spaces in such a field is this finding too: the game reads it as a key | Catalogue `unknown_loc_key_X` ("Unknown loc key %s"); for `title`, `desc` and option `name`, the 1.21 executable's "Unrecognized loc key %s. Near %s" beside the dynamic-description reader; `events/_events.info`: "Missing localization keys are logged as errors" | `CK4100`, `CK4101`, `CK4102` | `localization-missing-key` | 4.6 | loc fields; implicit keys (not in the plan); clean catalogue | Built (4.6) |
+| `localization/unbalanced-brackets` | warning | Localization text with an extra or unclosed `[`, `]`, `(`, `'` or `$`. The base game's English has no unbalanced `[ ]`: 0 of 340,445 entries | Catalogue `loc_key_X_unexpected_extra_at_position_X_file_X` and `_2`; the 1.21 executable's "Unterminated '[' ...", "Unterminated '(' ...", "Unterminated `'` ..." and "Unterminated '$' ..." messages beside the localization reader | `LOC-005`; the `$` part of `LOC-007` | `localization-unbalanced-brackets` | 4.6 | clean catalogue (the 1.21 messages) | Built in part (4.6): an extra `[` or `]`; an opener left open waits on the 1.21 "Unterminated" messages in the catalogue |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) | Built (4.6) |
+
+**Built** (item 4.6): all four rows, each with its fixture pair; `localization/unbalanced-brackets`
+reports an extra `[` or `]` only, as the 1.21 "Unterminated ..." messages are not in the committed
+catalogue. On the base game: 5,969 `scope/undefined-event-target` (76 names; `duel_value` alone
+4,716), 151 `localization/missing-key` warnings on 104 keys no localization file of the install
+defines (each a defect of the game's files, `tools/data/check-classifications.json`), no
+unbalanced brackets, no unused key.
 
 ### 4.7: advice that holds on 1.21
 
@@ -302,35 +328,35 @@ then the number it fires on. The first three rows take their data from the base 
 (how often a field is set, which values it holds, which names are defined). Item 4.7 re-proves
 each one on the base game before it ships.
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. Seventeen pre-2.0 required-field flags return through this row ([below](#the-38-required-field-flags)) | Advice (the base game's frequency, rank 4) | new | `fields-usually-present` | 4.7 | frequency |
-| `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set | Advice (observed values) | new | `fields-unusual-value` | 4.7 | observed values |
-| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known: a portrait animation, a game concept in `[concept\|E]`. The base game: 4 of 16,776 portrait animations name none of its 330 | Advice | `CK3422`; `LOC-006` | `references-unknown-name` | 4.7 | value types (which definition a field names) |
-| `structure/namespace-outside-events` | information | A file outside `events/` that declares a `namespace`. Every script file of `common/` and `history/`; 0 | Advice | `PYCH-S003` (warning) | `structure-namespace-outside-events` | 4.7 | keyword roles |
-| `structure/event-unknown-type` | information | An event `type` that `events/_events.info` does not list (character, letter, court, activity). 10,836 events; 0 | Advice (.info, rank 3) | `EVENT-001` | `structure-event-unknown-type` | 4.7 | .info; keyword roles |
-| `structure/event-letter-without-sender` | information | A letter event without `sender`. 705; 0 | Advice (.info: "required for letter events"; question 8) | `EVENT-002` | `structure-event-letter-without-sender` | 4.7 | .info; keyword roles |
-| `structure/event-without-desc` | information | An event that is not hidden and has no `desc`. 9,562; 0 | Advice | `CK3764` | `structure-event-without-desc` | 4.7 | keyword roles |
-| `structure/event-without-option` | information | An event that is not hidden and has no `option`. 9,562; 0 | Advice | `CK3763` | `structure-event-without-option` | 4.7 | keyword roles |
-| `structure/event-after-without-option` | information | An event that is not hidden, has an `after` and no `option`. 2,641; 0 | Advice | `CK3521` | `structure-event-after-without-option` | 4.7 | keyword roles |
-| `structure/event-several-immediate` | information | An event with more than one `immediate`. 10,836; 0 | Advice | `CK3768` | `structure-event-several-immediate` | 4.7 | keyword roles |
-| `structure/event-several-after` | information | An event with more than one `after`. 10,836; 0 | Advice | `CK3766` | `structure-event-several-after` | 4.7 | keyword roles |
-| `structure/event-empty` | information | An event with nothing in it. 10,836; 0 | Advice | `CK3767` | `structure-event-empty` | 4.7 | none |
-| `structure/event-portrait-position-twice` | information | One portrait position given twice in an event. 10,836; 0 | Advice | `CK3426` | `structure-event-portrait-position-twice` | 4.7 | keyword roles |
-| `structure/event-triggered-animation-without-trigger` | information | A portrait's `triggered_animation` without `trigger`. 3,124; 0 | Advice | `CK3423` | `structure-event-triggered-animation-without-trigger` | 4.7 | keyword roles |
-| `structure/event-triggered-animation-without-animation` | information | A `triggered_animation` with neither `animation` nor `scripted_animation`. 3,124; 0 | Advice | `CK3424` | `structure-event-triggered-animation-without-animation` | 4.7 | keyword roles |
-| `structure/logic-operator-without-block` | information | `AND`, `OR`, `NOT`, `NOR` or `NAND` with a single value instead of a block. 96,420; 0 | Advice | `CK3005` | `structure-logic-operator-without-block` | 4.7 | tables (structural keywords) |
-| `structure/else-without-if` | information | `else` or `else_if` not directly after an `if` or `else_if`. 26,134; 0 | Advice | `COND-003`; `VALUE-004` | `structure-else-without-if` | 4.7 | tables (structural keywords) |
-| `structure/trigger-else-without-trigger-if` | information | `trigger_else` or `trigger_else_if` not directly after a `trigger_if` or `trigger_else_if`. 4,473; 0 | Advice | `CK3510` | `structure-trigger-else-without-trigger-if` | 4.7 | tables (structural keywords) |
-| `structure/switch-without-trigger` | information | A `switch` block without `trigger`. 1,007; 0 | Advice | `SWITCH-001` | `structure-switch-without-trigger` | 4.7 | tables (structural keywords) |
-| `structure/switch-without-branches` | information | A `switch` block with no branch. 1,007; 0 | Advice | `SWITCH-002` | `structure-switch-without-branches` | 4.7 | tables (structural keywords) |
-| `structure/round-to-not-positive` | information | `round_to` with zero or a negative number. 20; 0 | Advice | `VALUE-006` | `structure-round-to-not-positive` | 4.7 | keyword roles |
-| `structure/casus-belli-without-outcome` | information | A casus belli with none of `on_victory`, `on_defeat`, `on_white_peace`. 138; 0 | Advice | new (pre-2.0 `CB-001`) | `structure-casus-belli-without-outcome` | 4.7 | keyword roles |
-| `structure/story-effect-group-without-timing` | information | A story cycle's `effect_group` with none of `days`, `weeks`, `months`, `years`. 171; 0 | Advice | new (pre-2.0 `STORY-001`) | `structure-story-effect-group-without-timing` | 4.7 | keyword roles |
-| `structure/story-effect-group-several-timings` | information | An `effect_group` with more than one of them. 171; 0 | Advice | new (pre-2.0 `STORY-004`) | `structure-story-effect-group-several-timings` | 4.7 | keyword roles |
-| `structure/story-effect-group-without-effect` | information | An `effect_group` with no `triggered_effect`, `first_valid` or `random_valid`. 171; 0 | Advice | new (pre-2.0 `STORY-025`) | `structure-story-effect-group-without-effect` | 4.7 | keyword roles |
-| `structure/story-effect-group-chance-above-100` | information | An `effect_group` whose `chance` is above 100. 50; 0 | Advice | new (pre-2.0 `STORY-023`) | `structure-story-effect-group-chance-above-100` | 4.7 | keyword roles |
-| `structure/story-effect-group-chance-not-positive` | information | An `effect_group` whose `chance` is zero or less. 50; 0 | Advice | new (pre-2.0 `STORY-024`) | `structure-story-effect-group-chance-not-positive` | 4.7 | keyword roles |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. Seventeen pre-2.0 required-field flags return through this row ([below](#the-38-required-field-flags)) | Advice (the base game's frequency, rank 4) | new | `fields-usually-present` | 4.7 | frequency | Built (4.7); re-proof: applies to 436,310, fires on 0 |
+| `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set | Advice (observed values) | new | `fields-unusual-value` | 4.7 | observed values | Built (4.7); re-proof: applies to 48,974, fires on 0 |
+| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known: a portrait animation, a game concept in `[concept\|E]`. The base game: 4 of 16,776 portrait animations name none of its 330 | Advice | `CK3422`; `LOC-006` | `references-unknown-name` | 4.7 | value types (which definition a field names) | Built in part (4.7): portrait animations (re-proof: applies to 16,899, fires on 4, the base game's own, as the row states); the game-concept half is blocked: the `[key\|E]` form is only in `.info` prose, not data |
+| `structure/namespace-outside-events` | information | A file outside `events/` that declares a `namespace`. Every script file of `common/` and `history/`; 0 | Advice | `PYCH-S003` (warning) | `structure-namespace-outside-events` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 4,215, fires on 0 |
+| `structure/event-unknown-type` | information | An event `type` that `events/_events.info` does not list (character, letter, court, activity). 10,836 events; 0 | Advice (.info, rank 3) | `EVENT-001` | `structure-event-unknown-type` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 9,727, fires on 0 |
+| `structure/event-letter-without-sender` | information | A letter event without `sender`. 705; 0 | Advice (.info: "required for letter events"; question 8) | `EVENT-002` | `structure-event-letter-without-sender` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 705, fires on 0 |
+| `structure/event-without-desc` | information | An event that is not hidden and has no `desc`. 9,562; 0 | Advice | `CK3764` | `structure-event-without-desc` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 9,562, fires on 0 |
+| `structure/event-without-option` | information | An event that is not hidden and has no `option`. 9,562; 0 | Advice | `CK3763` | `structure-event-without-option` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 9,562, fires on 0 |
+| `structure/event-after-without-option` | information | An event that is not hidden, has an `after` and no `option`. 2,641; 0 | Advice | `CK3521` | `structure-event-after-without-option` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 2,641, fires on 0 |
+| `structure/event-several-immediate` | information | An event with more than one `immediate`. 10,836; 0 | Advice | `CK3768` | `structure-event-several-immediate` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 10,836, fires on 0 |
+| `structure/event-several-after` | information | An event with more than one `after`. 10,836; 0 | Advice | `CK3766` | `structure-event-several-after` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 10,836, fires on 0 |
+| `structure/event-empty` | information | An event with nothing in it. 10,836; 0 | Advice | `CK3767` | `structure-event-empty` | 4.7 | none | Built (4.7); re-proof: applies to 10,836, fires on 0 |
+| `structure/event-portrait-position-twice` | information | One portrait position given twice in an event. 10,836; 0 | Advice | `CK3426` | `structure-event-portrait-position-twice` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 10,836, fires on 0 |
+| `structure/event-triggered-animation-without-trigger` | information | A portrait's `triggered_animation` without `trigger`. 3,124; 0 | Advice | `CK3423` | `structure-event-triggered-animation-without-trigger` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 3,129, fires on 0 |
+| `structure/event-triggered-animation-without-animation` | information | A `triggered_animation` with neither `animation` nor `scripted_animation`. 3,124; 0 | Advice | `CK3424` | `structure-event-triggered-animation-without-animation` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 3,129, fires on 0 |
+| `structure/logic-operator-without-block` | information | `AND`, `OR`, `NOT`, `NOR` or `NAND` with a single value instead of a block. 96,420; 0 | Advice | `CK3005` | `structure-logic-operator-without-block` | 4.7 | tables (structural keywords) | Built (4.7); re-proof: applies to 99,418, fires on 0 |
+| `structure/else-without-if` | information | `else` or `else_if` not directly after an `if` or `else_if`. 26,134; 0 | Advice | `COND-003`; `VALUE-004` | `structure-else-without-if` | 4.7 | tables (structural keywords) | Built (4.7); re-proof: applies to 26,149, fires on 0 |
+| `structure/trigger-else-without-trigger-if` | information | `trigger_else` or `trigger_else_if` not directly after a `trigger_if` or `trigger_else_if`. 4,473; 0 | Advice | `CK3510` | `structure-trigger-else-without-trigger-if` | 4.7 | tables (structural keywords) | Built (4.7); re-proof: applies to 4,561, fires on 0 |
+| `structure/switch-without-trigger` | information | A `switch` block without `trigger`. 1,007; 0 | Advice | `SWITCH-001` | `structure-switch-without-trigger` | 4.7 | tables (structural keywords) | Built (4.7); re-proof: applies to 1,007, fires on 0 |
+| `structure/switch-without-branches` | information | A `switch` block with no branch. 1,007; 0 | Advice | `SWITCH-002` | `structure-switch-without-branches` | 4.7 | tables (structural keywords) | Built (4.7); re-proof: applies to 1,007, fires on 0 |
+| `structure/round-to-not-positive` | information | `round_to` with zero or a negative number. 20; 0 | Advice | `VALUE-006` | `structure-round-to-not-positive` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 20, fires on 0 |
+| `structure/casus-belli-without-outcome` | information | A casus belli with none of `on_victory`, `on_defeat`, `on_white_peace`. 138; 0 | Advice | new (pre-2.0 `CB-001`) | `structure-casus-belli-without-outcome` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 138, fires on 0 |
+| `structure/story-effect-group-without-timing` | information | A story cycle's `effect_group` with none of `days`, `weeks`, `months`, `years`. 171; 0 | Advice | new (pre-2.0 `STORY-001`) | `structure-story-effect-group-without-timing` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 171, fires on 0 |
+| `structure/story-effect-group-several-timings` | information | An `effect_group` with more than one of them. 171; 0 | Advice | new (pre-2.0 `STORY-004`) | `structure-story-effect-group-several-timings` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 171, fires on 0 |
+| `structure/story-effect-group-without-effect` | information | An `effect_group` with no `triggered_effect`, `first_valid` or `random_valid`. 171; 0 | Advice | new (pre-2.0 `STORY-025`) | `structure-story-effect-group-without-effect` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 171, fires on 0 |
+| `structure/story-effect-group-chance-above-100` | information | An `effect_group` whose `chance` is above 100. 50; 0 | Advice | new (pre-2.0 `STORY-023`) | `structure-story-effect-group-chance-above-100` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 50, fires on 0 |
+| `structure/story-effect-group-chance-not-positive` | information | An `effect_group` whose `chance` is zero or less. 50; 0 | Advice | new (pre-2.0 `STORY-024`) | `structure-story-effect-group-chance-not-positive` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 50, fires on 0 |
 
 ### 4.7: advice carried over provisionally
 
@@ -339,41 +365,69 @@ counted on the base game without building them, which item 4.1 does not do. Each
 item 4.7's re-proof shows it holds on the 1.21 base game by the same criterion; otherwise it is
 retired before it ships. Whether they belong in the MVP at all is question 9.
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `scope/saved-in-immediate-read-in-trigger` | information | A scope read in an event's `trigger` that the event saves only in `immediate`, which runs later | Advice | `CK3550` | `scope-saved-in-immediate-read-in-trigger` | 4.7 | tables (saving effects); keyword roles |
-| `scope/saved-late-read-in-desc` | information | A scope read in `desc` that the event saves only in an option or in `after` | Advice | `CK3551` | `scope-saved-late-read-in-desc` | 4.7 | as above |
-| `scope/saved-late-read-in-triggered-desc` | information | The same, in a `triggered_desc` trigger | Advice | `CK3552` | `scope-saved-late-read-in-triggered-desc` | 4.7 | as above |
-| `scope/temporary-scope-passed-to-event` | information | A scope saved with `save_temporary_scope_as` passed to an event it triggers | Advice | `CK3554` | `scope-temporary-scope-passed-to-event` | 4.7 | as above |
-| `scope/desc-text-reads-scope-saved-late` | information | The `desc` localization text reads a scope the event saves only in an option or in `after` | Advice | `CK3560` | `scope-desc-text-reads-scope-saved-late` | 4.7 | as above; loc fields |
-| `scope/title-text-reads-scope-saved-late` | information | The same for the `title` text | Advice | `CK3561` | `scope-title-text-reads-scope-saved-late` | 4.7 | as above |
-| `scope/random-save-without-trigger-guard` | information | `immediate` saves a scope from a `random_` iterator, an option uses it, and the trigger has no `any_` check over the same list | Advice | `CK3563` | `scope-random-save-without-trigger-guard` | 4.7 | as above |
-| `variables/local-read-in-trigger-set-in-immediate` | information | A local variable read in `trigger` and set in `immediate` | Advice | `CK3553` | `variables-local-read-in-trigger-set-in-immediate` | 4.7 | tables (variable effects and triggers) |
-| `variables/read-never-set` | information | A variable read but set nowhere in the mod or the base game's script | Advice | `CK3701` | `variables-read-never-set` | 4.7 | as above |
-| `variables/set-never-read` | hint | A variable set but read nowhere | Advice | `CK3702` | `variables-set-never-read` | 4.7 | as above |
-| `variables/read-in-other-namespace` | information | A variable read as one of `var`, `local_var`, `global_var` and set only as another | Advice | `CK3703` | `variables-read-in-other-namespace` | 4.7 | as above |
-| `variables/list-and-value` | information | A variable used both as a list and as a value in one file | Advice | `CK3705` | `variables-list-and-value` | 4.7 | as above |
-| `structure/event-redundant-override-background` | information | An untriggered `override_background` equal to the background its theme shows first | Advice | `CK3433` | `structure-event-redundant-override-background` | 4.7 | keyword roles |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `scope/saved-late-read-in-desc` | information | A scope read in `desc` that the event saves only in an option or in `after` | Advice | `CK3551` | `scope-saved-late-read-in-desc` | 4.7 | tables (saving effects); keyword roles | Built (4.7); re-proof: applies to 595, fires on 0 |
+| `scope/title-text-reads-scope-saved-late` | information | The same for the `title` text | Advice | `CK3561` | `scope-title-text-reads-scope-saved-late` | 4.7 | tables (saving effects); keyword roles; loc fields | Blocked: needs the saved-scope form of localization text as data (a one-off count: applies to 574) |
+
+**Built** (item 4.7): every row of "advice that holds" (the game-concept half of
+`references/unknown-name` blocked) and, of the provisional rows, `scope/saved-late-read-in-desc`;
+`scope/title-text-reads-scope-saved-late` is blocked; the eleven others fired on the base game and
+are [retired](#retired-codes). The re-proof is `pychivalry-tools advice proof` (committed and
+tested), run on the 1.21.0.3 base game; its counts are in each row's State.
+
+### Retired codes
+
+A code that is retired stays here and is never emitted again ([How a code stays
+permanent](#how-a-code-stays-permanent)). The eleven below are provisional advice rows that item
+4.7's re-proof found firing on the 1.21.0.3 base game; each was retired on the terms of
+decisions 46 and 53 before it shipped. The counts come from a one-off script over the built core
+and the base game's index, not committed.
+
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | Retired |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `scope/saved-in-immediate-read-in-trigger` | information | A scope read in an event's `trigger` that the event saves only in `immediate`, which runs later | Advice | `CK3550` | `scope-saved-in-immediate-read-in-trigger` | 4.7 | tables (saving effects); keyword roles | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 4,657, fires on 73 (decision 46: an advice row ships only when it fires on none) |
+| `scope/saved-late-read-in-triggered-desc` | information | The same, in a `triggered_desc` trigger | Advice | `CK3552` | `scope-saved-late-read-in-triggered-desc` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 595, fires on 10 (decision 46: an advice row ships only when it fires on none) |
+| `scope/temporary-scope-passed-to-event` | information | A scope saved with `save_temporary_scope_as` passed to an event it triggers | Advice | `CK3554` | `scope-temporary-scope-passed-to-event` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 155, fires on 24 (decision 46: an advice row ships only when it fires on none) |
+| `scope/desc-text-reads-scope-saved-late` | information | The `desc` localization text reads a scope the event saves only in an option or in `after` | Advice | `CK3560` | `scope-desc-text-reads-scope-saved-late` | 4.7 | as above; loc fields | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 595, fires on 8 (decision 46: an advice row ships only when it fires on none) |
+| `scope/random-save-without-trigger-guard` | information | `immediate` saves a scope from a `random_` iterator, an option uses it, and the trigger has no `any_` check over the same list | Advice | `CK3563` | `scope-random-save-without-trigger-guard` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 2,569, fires on 1,089 (decision 46: an advice row ships only when it fires on none) |
+| `variables/local-read-in-trigger-set-in-immediate` | information | A local variable read in `trigger` and set in `immediate` | Advice | `CK3553` | `variables-local-read-in-trigger-set-in-immediate` | 4.7 | tables (variable effects and triggers) | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 79, fires on 70 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
+| `variables/read-never-set` | information | A variable read but set nowhere in the mod or the base game's script | Advice | `CK3701` | `variables-read-never-set` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 37,295, fires on 1,968 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
+| `variables/set-never-read` | hint | A variable set but read nowhere | Advice | `CK3702` | `variables-set-never-read` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 13,871, fires on 742 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
+| `variables/read-in-other-namespace` | information | A variable read as one of `var`, `local_var`, `global_var` and set only as another | Advice | `CK3703` | `variables-read-in-other-namespace` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 35,327, fires on 2 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
+| `variables/list-and-value` | information | A variable used both as a list and as a value in one file | Advice | `CK3705` | `variables-list-and-value` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 599, fires on 18 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
+| `structure/event-redundant-override-background` | information | An untriggered `override_background` equal to the background its theme shows first | Advice | `CK3433` | `structure-event-redundant-override-background` | 4.7 | keyword roles | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 3,511, fires on 206 (decision 46: an advice row ships only when it fires on none) |
 
 ### Step 10: graphics
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `graphics/missing-file` | warning | A `.dds`, `.png` or `.tga` path that exists in neither the mod, the base game nor a DLC pack. Silent when no game folder is set | Catalogue `failed_to_load_texture_X_file_not_found` ("Failed to load texture %s - file not found") | `GFX001` | `graphics-missing-file` | 10.5 | value types (which fields hold a texture path; 2.3.0 read nine names from its own code) |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `graphics/missing-file` | warning | A `.dds`, `.png` or `.tga` path that exists in neither the mod, the base game nor a DLC pack. Silent when no game folder is set | Catalogue `failed_to_load_texture_X_file_not_found` ("Failed to load texture %s - file not found") | `GFX001` | `graphics-missing-file` | 10.5 | value types (which fields hold a texture path; 2.3.0 read nine names from its own code) | Not built: step 10 |
 
 ### Step 11: the game's error log
 
 How a log line is tied to a file and line, and whether a tied line takes the code of the static
 check with the same catalogue entry, is decided in items 11.2 and 11.3 from captured logs.
 
-| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `log/game-message` | warning | A line of the game's own error log that names a file and line of the mod | Game output: the game's error log for the build it ran | new (2.3.0's log analyser had no codes) | `log-game-message` (with a captured log) | 11.3 | clean catalogue (to match lines) |
-| `log/unmatched-line` | information | A line of the log that cannot be tied to the mod; listed, never dropped | Advice | new | `log-unmatched-line` | 11.3 | none |
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `log/game-message` | warning | A line of the game's own error log that names a file and line of the mod | Game output: the game's error log for the build it ran | new (2.3.0's log analyser had no codes) | `log-game-message` (with a captured log) | 11.3 | clean catalogue (to match lines) | Not built: step 11 |
+| `log/unmatched-line` | information | A line of the log that cannot be tied to the mod; listed, never dropped | Advice | new | `log-unmatched-line` | 11.3 | none | Not built: step 11 |
 
 ## The inventory in numbers
 
-78 rows: 11 built in step 2, and 67 proposed.
+78 rows: 11 built in step 2, and 67 proposed. By state, after items 4.2 to 4.11
+(2026-11-23):
+
+| State | Rows | Which |
+| --- | ---: | --- |
+| Built | 57 | Step 2's 11; 4.2's 4 others; 4.4's 3; 4.5's 9 others; 4.6's 3 others; 4.7's 27 others |
+| Built in part | 5 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `localization/unbalanced-brackets` (an opener left open waits on the catalogue), `references/unknown-name` (the game-concept half is blocked) |
+| Blocked | 2 | `structure/triggered-desc-other-field` (its message is not in the catalogue), `scope/title-text-reads-scope-saved-late` (the saved-scope form of localization text is not data) |
+| Retired | 11 | The provisional advice rows item 4.7's re-proof found firing on the base game ([Retired codes](#retired-codes)) |
+| Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
+
+The tables below are the inventory as item 4.1 proposed it.
 
 | Group | Rows | Error | Warning | Information | Hint |
 | --- | ---: | ---: | ---: | ---: | ---: |

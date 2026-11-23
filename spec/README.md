@@ -100,9 +100,21 @@ areas a modifier block accepts). The index reads the folder list and record sche
 override rules), D2 (`declarations`) and D3 (`definitions`, with the scope of each nested name
 since format 8), and the table `save_keys` with the link its evidence names (the saves and
 reads of a scope, item 4.6). D4 (`keyword_roles`) states no
-context the tables do not (a test holds the two to each other). D5 (`implicit_loc_keys`) is read
-by `localization/missing-key` and `localization/unused-key`, with each field's `loc_key` and
-`info_type`; D8 is read by no check yet.
+context the tables do not (a test holds the two to each other); it is read, through one reader
+(`check/keyword-roles.ts`), for the keywords the structural checks of item 4.5 and the advice
+checks of item 4.7 test (confirmed roles only for an error or a warning), and for the keyword
+that sets an event's scope (item 4.4). D5 (`implicit_loc_keys`) is read by
+`localization/missing-key` and `localization/unused-key`, with each field's `loc_key` and
+`info_type`. D8 (`iterator_kinds`) gives the scope checks of item 4.4 the kind of each iterator
+prefix. The scope checks also read `scope_types`, `scope_validity` (the scopes each trigger,
+effect, link and on-action takes), the schema's `root_scope`, each field's `scope` and
+`info_scope`, and the tables `root_scope_contradicted`, `fields_outside_root` and
+`same_scope_structural`. The advice checks read the schema's `record_usage` and observed
+`values`, D6 for the database a portrait animation names, and the tables `event_types` and
+`save_keys`. Lookup (item 4.8) reads every part a name can be in: the buckets with their
+descriptions and scopes, D2, D4, D5 (a modifier's localization keys), D6, D7, D8,
+`scope_types`, `noise_dropped`, the schema's fields, the tables of part C4 with what the trust
+rule does with them, and the data-types companion when it is asked for.
 
 ## The format 4 copy
 

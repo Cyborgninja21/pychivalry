@@ -145,9 +145,54 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   own modifier documentation, in the blocks D7 confirms the use area of). The iterator
   sub-cases of `names/unknown-trigger` and `names/unknown-effect` are not built: no game message
   ties them to an iterator of the wrong kind, a question for the owner.
+- The rest of build step 4 and build step 5, built in parallel on the owner's word of
+  2026-11-23 (decisions 70 and 72) and brought together in one integration pull request:
+  - Item 4.4, the scope checks (#130): `packages/core/src/check/scope.ts` follows the scope a
+    block runs in, and `scope/wrong-scope-for-trigger`, `scope/wrong-scope-for-effect` and
+    `scope/link-on-wrong-scope` are errors on their catalogue messages. On the base game they
+    judge 178,395 of 610,898 keyword uses and 41,022 link steps, and find nothing.
+  - Item 4.5, fields and structure (#131): ten rows (`fields/unknown-field`,
+    `fields/bare-value-in-record`, `fields/missing-required-field`, `fields/wrong-kind-of-value`,
+    `references/unknown-key`, `structure/event-undeclared-namespace`,
+    `structure/range-min-above-max`, `structure/event-non-character-shown`,
+    `definitions/clash`, `definitions/not-read`).
+  - Item 4.6, event targets and localization (#134): `scope/undefined-event-target`,
+    `localization/missing-key`, `localization/unbalanced-brackets` and
+    `localization/unused-key`; the index records saved scopes and their reads (cache format 4)
+    and the runner checks `.yml` files.
+  - Item 4.7, the advice checks (#133): 28 rows, each re-proved on the base game with
+    `pychivalry-tools advice proof`.
+  - Item 4.8, lookup (#128): `packages/core/src/lookup/`, every reading of a name, its
+    definitions and uses in a workspace with what is in force, a modifier's localization, and
+    "did you mean" under a work budget.
+  - Build step 5, the command line (#129): `pychivalry check`, `lookup` and `explain`, text and
+    JSON, with filters, exit codes and the base game's index cached on disk; the core's
+    `checkWorkspace` is the one code path every surface runs.
+  - Items 4.9 and 4.10: `task game:check` and `task game:mods` are the real suites, over that
+    one runner, each check in a fresh process with its time and peak memory. Every error and
+    warning of the base game is classified in `tools/data/check-classifications.json` (13 errors
+    and 151 warnings are defects of the game's files, 793 errors faults of the spec package,
+    none pychivalry's), every error of the five mods in `tools/data/mods-classifications.json`
+    (844, each a real defect).
+  - Item 4.11: a file reports at most 1,000 findings, its most severe first, and what is left
+    out is counted (the command line's summary says so); tests that no check computes "did you
+    mean" and that, without a game folder, no finding depends on a name the base game might
+    define.
+  - `docs/guide/checks.md`, the user guide's reference of every code this build reports,
+    written from the core's check inventory by `task docs:checks` and tested against it.
 
 ### Changed
 
+- Merged without changing a finding: the advice checks read saved scopes as the index does
+  (item 4.6's reading); one reader of part D4, `check/keyword-roles.ts` (formerly
+  `advice-roles.ts`), serves the structural checks of item 4.5 and the advice checks; a field's
+  `.info` scope may name no scope (`string | null`); lookup shows the object a coat-of-arms
+  alias makes a name share.
+- `pychivalry explain` and the check inventory give `fields/missing-required-field` and
+  `definitions/clash` the evidence of the place they are found at; both were shown as advice.
+- `docs/checks.md` marks every row built, blocked or not built yet; the eleven provisional
+  advice rows item 4.7's re-proof found firing on the base game are retired, in a Retired codes
+  table.
 - The spec package is the 1.21.0.3 package in format 8 (the owner's go of 2026-11-23; 55.7 MB,
   3.18 MB gzipped), with `spec/schema.format8.json`; the format 4 copy is unchanged. Format 8 is
   format 7 plus keys inside parts D1, D2 and D3, which answer the five points the format 7
@@ -226,16 +271,16 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Open
 
+- Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its
+  message is not in the committed catalogue) and `scope/title-text-reads-scope-saved-late` (the
+  saved-scope form of localization text is not data). Parts of four more wait on the owner or
+  the spec work: the iterator sub-cases of `names/unknown-trigger` and `-effect`, the block and
+  word types of `fields/wrong-kind-of-value`, the open brackets of
+  `localization/unbalanced-brackets`, the game-concept half of `references/unknown-name`.
+- Twelve requests back to the spec work (decision 73); 793 of the base game's 806 errors are
+  spec-package faults until the package answers them.
 - The override rules `docs/overrides.md` leaves open (rules 3, 4, 5, 7, 8 and 9, and the open
   parts of 6 and 10) are to arrive as rows of a table in the spec package, read out of the
   Windows and Linux executables; the 1.21.0.3 package does not carry it. Until it does the
   index lists every definition those rules decide and names no winner: 1,309 names of the base
   game.
-- Item 4.2 stops with two rows unbuilt, a question for the owner: `names/unknown-on-action`
-  needs value types that say which fields name an on-action, and
-  `names/modifier-outside-use-area` the use area of a modifier block; neither is in the
-  1.21.0.3 package. The unknown-trigger and unknown-effect checks do not yet report an iterator
-  in the wrong kind of block, which needs the keyword roles held with the other requests to the
-  spec work. The owner decided on 2026-11-22 (decisions 61 to 63) to request all of these, and
-  a correction of `config` in `common/pool_character_selectors`, from the spec work; items 4.4
-  to 4.11 wait for that follow-up package.
