@@ -1,0 +1,64 @@
+{
+    "findings": [
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 6,
+            "column": 3,
+            "code": "scope/link-on-wrong-scope",
+            "severity": "error",
+            "message": "Trying to use holder link on an invalid scope character",
+            "data": {
+                "link": "holder",
+                "scope": "character",
+                "expected": ["landed_title"],
+                "position": "key"
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 9,
+            "column": 3,
+            "code": "scope/link-on-wrong-scope",
+            "severity": "error",
+            "message": "Trying to use liege link on an invalid scope landed_title",
+            "data": {
+                "link": "liege",
+                "scope": "landed_title",
+                "expected": ["character"],
+                "position": "key",
+                "chain": "primary_title.liege",
+                "segment": "liege"
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 12,
+            "column": 18,
+            "code": "scope/link-on-wrong-scope",
+            "severity": "error",
+            "message": "Trying to use holder link on an invalid scope character",
+            "data": {
+                "link": "holder",
+                "scope": "character",
+                "expected": ["landed_title"],
+                "position": "value",
+                "chain": "root.holder",
+                "segment": "holder"
+            }
+        },
+        {
+            "file": "common/decisions/fixture_decisions.txt",
+            "line": 16,
+            "column": 4,
+            "code": "scope/link-on-wrong-scope",
+            "severity": "error",
+            "message": "Trying to use title_province link on an invalid scope province",
+            "data": {
+                "link": "title_province",
+                "scope": "province",
+                "expected": ["landed_title"],
+                "position": "key"
+            }
+        }
+    ]
+}

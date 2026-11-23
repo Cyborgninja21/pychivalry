@@ -24,7 +24,10 @@ export type CheckCode =
     | 'names/unknown-link'
     | 'names/unknown-modifier'
     | 'names/unknown-on-action'
-    | 'names/modifier-outside-use-area';
+    | 'names/modifier-outside-use-area'
+    | 'scope/wrong-scope-for-trigger'
+    | 'scope/wrong-scope-for-effect'
+    | 'scope/link-on-wrong-scope';
 
 export interface CheckKind {
     readonly severity: Severity;
@@ -84,6 +87,24 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         slots: ['value', 'value', 'value'],
         description: 'A modifier in a block of a kind its use area does not include.',
         text: "The modifier '%s' is used in a block read as %s, but its use areas are %s.",
+    },
+    'scope/wrong-scope-for-trigger': {
+        severity: 'error',
+        catalogue: 'wrong_scope_for_trigger_X_expected_X',
+        slots: ['value', 'value'],
+        description: 'A trigger in a scope its scope data does not list.',
+    },
+    'scope/wrong-scope-for-effect': {
+        severity: 'error',
+        catalogue: 'wrong_scope_for_effect_X_expected_X',
+        slots: ['value', 'value'],
+        description: 'An effect in a scope its scope data does not list.',
+    },
+    'scope/link-on-wrong-scope': {
+        severity: 'error',
+        catalogue: 'trying_to_use_X_link_on_an_invalid_scope_X',
+        slots: ['value', 'value'],
+        description: 'A link applied to a scope it cannot start from.',
     },
 };
 

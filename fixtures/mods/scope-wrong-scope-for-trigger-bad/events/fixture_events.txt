@@ -1,0 +1,15 @@
+namespace = fixture
+
+# An event whose `scope` is a province: its root is that province, not a character.
+fixture.0001 = {
+	scope = province
+	hidden = yes
+	trigger = {
+		is_adult = yes
+	}
+	immediate = {
+		add_province_modifier = {
+			modifier = fixture_modifier
+		}
+	}
+}
