@@ -1,0 +1,11 @@
+fixture_trait_effect = {
+	switch = {
+		trigger = has_trait
+		brave = {
+			add_prestige = 10
+		}
+		fallback = {
+			add_gold = 10
+		}
+	}
+}

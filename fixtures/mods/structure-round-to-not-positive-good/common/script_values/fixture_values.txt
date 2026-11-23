@@ -1,0 +1,4 @@
+fixture_value = {
+	value = 17
+	round_to = 5
+}

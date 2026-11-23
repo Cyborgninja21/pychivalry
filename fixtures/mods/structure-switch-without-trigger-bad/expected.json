@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 2,
+            "column": 2,
+            "code": "structure/switch-without-trigger",
+            "severity": "information",
+            "message": "This 'switch' has no 'trigger'.",
+            "data": {
+                "block": "switch",
+                "missing": "trigger"
+            }
+        }
+    ]
+}
