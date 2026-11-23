@@ -5,9 +5,11 @@
  * and runs on each script file the parser and every engine check (`checkFile`, which holds
  * the list of checks); no surface lists checks of its own.
  *
- * - **The files checked** are the mod's script files (`.txt`) in the folders the spec lists:
- *   the files the index reads (docs/decisions.md, step 3: a file in a folder the spec does not
- *   list is not read at all). Those in other folders are counted, by folder, and not checked.
+ * - **The files checked** are the mod's script files (`.txt`) and localization files (`.yml`)
+ *   in the folders the spec lists: the files the index reads (docs/decisions.md, step 3: a
+ *   file in a folder the spec does not list is not read at all). Those in other folders are
+ *   counted, by folder, and not checked. A localization file is read as the index reads it,
+ *   and its engine checks are those of item 4.6 (`checkLocalizationFile`).
  * - **The base game** is the index `openGameIndex` gives: loaded from the on-disk cache when
  *   it answers for the installed game, otherwise built and saved there (docs/PLAN.md item
  *   5.7), and the mod is indexed over it.
@@ -23,7 +25,8 @@ import { readFileSync } from 'node:fs';
 import { folderTableFromSpec, type FolderTable } from '../index/folders.js';
 import { openGameIndex, type GameIndex } from '../index/game-index.js';
 import { compareCodePoints } from '../index/order.js';
-import { indexMod, type ModListing } from '../index/read-game.js';
+import { readLocalization } from '../index/localization.js';
+import { indexMod, unreadWords, type ModListing } from '../index/read-game.js';
 import { currentPlatform, rulesFromSpec, type Platform, type RulesTable } from '../index/rules.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
@@ -39,9 +42,9 @@ import type { Range } from '../syntax/position.js';
 import { readScript } from '../syntax/read.js';
 import type { DefinedNames } from './context.js';
 import { checkMessage, type FindingData } from './finding.js';
-import { checkFile } from './index.js';
+import { checkFile, checkLocalizationFile } from './index.js';
 import type { Code } from './inventory.js';
-import { definedNamesOf } from './names.js';
+import { definedNamesOf, type WorkspaceNames } from './names.js';
 
 /** One finding on a file of a workspace, as every surface reports it. */
 export interface WorkspaceFinding {
@@ -97,7 +100,11 @@ export interface ScriptInput {
     /** The file's path inside its mod, with `/`. */
     readonly file: string;
     readonly bytes: Uint8Array;
-    readonly names: DefinedNames;
+    /**
+     * The definitions the checks see (`definedNamesOf`); with the base game, also what the
+     * checks of item 4.6 ask the index (`WorkspaceNames`).
+     */
+    readonly names: DefinedNames & Partial<WorkspaceNames>;
     /**
      * The workspace index that holds the file, and the file's layer in it, for the checks of
      * definitions; without it they report nothing.
@@ -152,6 +159,41 @@ export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
         });
     }
     return out.sort(compareFindings);
+}
+
+export interface LocalizationInput {
+    readonly spec: Spec;
+    /** The file's path inside its mod, with `/`. */
+    readonly file: string;
+    readonly bytes: Uint8Array;
+    readonly names: DefinedNames & Partial<WorkspaceNames>;
+    readonly fallbackEncoding?: FallbackEncoding | undefined;
+}
+
+/** Every finding of the engine checks on one localization file, in the order of where each starts. */
+export function localizationFindings(input: LocalizationInput): WorkspaceFinding[] {
+    const { folders, catalogue } = specContext(input.spec);
+    const parsed = readLocalization(input.bytes, { fallbackEncoding: input.fallbackEncoding });
+    return checkLocalizationFile({
+        spec: input.spec,
+        folders,
+        file: input.file,
+        parsed,
+        names: input.names,
+        catalogue,
+    })
+        .map((f): WorkspaceFinding => ({
+            file: input.file,
+            code: f.code,
+            severity: f.severity,
+            range: f.range,
+            start: f.start,
+            end: f.end,
+            message: checkMessage(f, { file: input.file }),
+            evidence: f.evidence,
+            data: f.data,
+        }))
+        .sort(compareFindings);
 }
 
 export interface WorkspaceOptions {
@@ -215,7 +257,10 @@ export interface WorkspaceCheckOptions extends WorkspaceOptions {
 }
 
 export interface WorkspaceCheck {
-    /** The mod's script files checked, by their path inside the mod, in code-point order. */
+    /**
+     * The mod's script and localization files checked, by their path inside the mod, in
+     * code-point order.
+     */
     readonly files: readonly string[];
     /** Every finding, file by file in that order, each file's by where they start. */
     readonly findings: readonly WorkspaceFinding[];
@@ -233,25 +278,32 @@ export interface WorkspaceCheck {
 export function checkWorkspace(options: WorkspaceCheckOptions): WorkspaceCheck {
     const { index, game } = openWorkspace({ ...options, modDir: null });
     const listing = indexMod(index, options.modDir);
-    const names = game === null ? GAME_NOT_LOADED : definedNamesOf(index);
-    const scripts = listing.files
-        .filter((f) => fileKindOf(f.path) === 'script')
+    // With the base game, the words of the mod's files the index does not read (its interface
+    // files) count as uses of a localization key (`localization/unused-key`).
+    const names =
+        game === null
+            ? GAME_NOT_LOADED
+            : definedNamesOf(index, { unreadWords: unreadWords(options.modDir, index) });
+    const checked = listing.files
+        .filter((f) => fileKindOf(f.path) !== undefined)
         .sort((a, b) => compareCodePoints(a.path, b.path));
     const findings: WorkspaceFinding[] = [];
-    for (const file of scripts) {
+    for (const file of checked) {
+        const input = {
+            spec: options.spec,
+            file: file.path,
+            bytes: readFileSync(file.disk),
+            names,
+            fallbackEncoding: options.fallbackEncoding,
+        };
         findings.push(
-            ...scriptFindings({
-                spec: options.spec,
-                file: file.path,
-                bytes: readFileSync(file.disk),
-                names,
-                index: { workspace: index, layer: file.layer },
-                fallbackEncoding: options.fallbackEncoding,
-            }),
+            ...(fileKindOf(file.path) === 'localization'
+                ? localizationFindings(input)
+                : scriptFindings({ ...input, index: { workspace: index, layer: file.layer } })),
         );
     }
     return {
-        files: scripts.map((f) => f.path),
+        files: checked.map((f) => f.path),
         findings,
         notChecked: listing.notDescribed,
         game,

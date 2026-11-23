@@ -266,6 +266,7 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
     'localization/unused-key': {
         severity: 'hint',
         catalogue: null,
+        advice: true,
         slots: ['value'],
         description: 'A key the mod defines that nothing in the mod or the base game uses.',
         text: "The localization key '%s' is used nowhere in the mod or the base game.",

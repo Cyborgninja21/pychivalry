@@ -104,8 +104,10 @@ export {
 export {
     checkWorkspace,
     GAME_NOT_LOADED,
+    localizationFindings,
     openWorkspace,
     scriptFindings,
+    type LocalizationInput,
     type ScriptInput,
     type Workspace,
     type WorkspaceCheck,

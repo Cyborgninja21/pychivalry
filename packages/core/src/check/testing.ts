@@ -41,6 +41,17 @@ export function specContext(): { folders: FolderTable; catalogue: MessageCatalog
 }
 
 /**
+ * The game stub under `fixtures/game/` a check pair is read over, by the pair's name (its code
+ * with `/` written as `-`): the checks that stay silent without a base game. A pair not listed
+ * is read with none.
+ */
+export const PAIR_GAMES: Readonly<Record<string, string>> = {
+    'scope-undefined-event-target': 'event-targets-and-localization',
+    'localization-missing-key': 'event-targets-and-localization',
+    'localization-unused-key': 'event-targets-and-localization',
+};
+
+/**
  * A fixture mod under `fixtures/mods/`, with every check run on each of its script and
  * localization files: indexed on its own, or over a game stub under `fixtures/game/` (`game`),
  * which the checks that need a base game read as the base game.

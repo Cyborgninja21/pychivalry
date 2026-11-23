@@ -21,7 +21,7 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { CHECK_KINDS, isAdvice, type CheckCode } from './finding.js';
-import { checkFixture, expectedFindings } from './testing.js';
+import { checkFixture, expectedFindings, PAIR_GAMES } from './testing.js';
 import {
     checkWorkspace,
     GAME_NOT_LOADED,
@@ -105,6 +105,8 @@ test("on each check's fixture pair the runner reports what every check reports, 
         // leaves them out, as its own test does (#133).
         const keep = (f: Record<string, unknown>): boolean =>
             advice(code) || !advice(String(f['code']));
+        // A pair whose checks need a base game is read over its game stub (item 4.6).
+        const stub = PAIR_GAMES[bad.replace(/-bad$/, '')];
         for (const [mod, expected] of [
             [bad, expectedFindings(bad)],
             [bad.replace(/-bad$/, '-good'), []],
@@ -112,12 +114,19 @@ test("on each check's fixture pair the runner reports what every check reports, 
             const run = checkWorkspace({
                 spec,
                 modDir: path.join(MODS, mod),
-                gameDir: game,
+                gameDir:
+                    stub === undefined
+                        ? game
+                        : path.join(REPO_ROOT, 'fixtures', 'game', stub, 'game'),
                 cacheDir: null,
                 platform: 'linux',
             });
             const found = written(run.findings);
-            assert.deepEqual(found, checkFixture(mod), `${mod}: the runner is every check`);
+            assert.deepEqual(
+                found,
+                checkFixture(mod, stub === undefined ? {} : { game: stub }),
+                `${mod}: the runner is every check`,
+            );
             assert.deepEqual(found.filter(keep), expected, `${mod}: what the pair expects`);
         }
     }
