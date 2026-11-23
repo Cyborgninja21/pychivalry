@@ -38,7 +38,7 @@ import {
 } from './extract.js';
 import type { FolderTable } from './folders.js';
 import { parseLocalization, readLocalization } from './localization.js';
-import { compareFiles, layerMatches } from './order.js';
+import { layerMatches, sortByOrder } from './order.js';
 import {
     extensionOf,
     fileNameOf,
@@ -523,6 +523,12 @@ export class WorkspaceIndex {
     /** Per database, what a pass over all its definitions found; dropped on every change. */
     private replays = new Map<string, AliasReplay>();
     private refused = new Map<string, Map<string, number>>();
+    /**
+     * What is in force for each name asked about that has more than one definition, by
+     * database, name and container; dropped on every change. A check asks once per definition,
+     * so a name defined in n files would otherwise be resolved n times over all n definitions.
+     */
+    private resolutions = new Map<string, Resolution>();
 
     constructor(options: IndexOptions, strings = new StringTable()) {
         this.folders = options.folders;
@@ -1418,6 +1424,26 @@ export class WorkspaceIndex {
     /** What is in force for a name of a database (and a container, for entries). */
     resolve(database: string, name: string, container: string | null = null): Resolution {
         const definitions = this.definitions(name, { database, container });
+        if (definitions.length < 2) {
+            return this.resolveDefinitions(database, name, container, definitions);
+        }
+        const key = `${database}\u0000${name}\u0000${container ?? '\u0001'}`;
+        const known = this.resolutions.get(key);
+        if (known !== undefined) {
+            return known;
+        }
+        const resolution = this.resolveDefinitions(database, name, container, definitions);
+        this.resolutions.set(key, resolution);
+        return resolution;
+    }
+
+    /** What is in force among a name's definitions (`resolve`, without its memory). */
+    private resolveDefinitions(
+        database: string,
+        name: string,
+        container: string | null,
+        definitions: readonly Definition[],
+    ): Resolution {
         if (definitions.length === 0) {
             return { status: 'not-defined', definitions };
         }
@@ -1681,6 +1707,7 @@ export class WorkspaceIndex {
         this.statuses = null;
         this.replays = new Map();
         this.refused = new Map();
+        this.resolutions = new Map();
         this.usedBits = null;
         this.templateWords = null;
     }
@@ -1688,22 +1715,7 @@ export class WorkspaceIndex {
     /** A pool sorted in the order the game reads it, or undefined when no row orders it. */
     private inOrder(database: string, pool: readonly Definition[]): Definition[] | undefined {
         const order = this.orderRule(database);
-        if (order === undefined) {
-            return undefined;
-        }
-        const seen = { unordered: false };
-        const sorted = [...pool].sort((a, b) => {
-            const c = compareFiles(
-                { layer: a.layer, path: a.file },
-                { layer: b.layer, path: b.file },
-                order,
-            );
-            if (c === undefined) {
-                seen.unordered = true;
-            }
-            return (c ?? 0) || a.start - b.start;
-        });
-        return seen.unordered ? undefined : sorted;
+        return order === undefined ? undefined : sortByOrder(pool, order);
     }
 
     /**
@@ -1977,23 +1989,14 @@ export class WorkspaceIndex {
                 reasons: [{ kind: 'no-order', database, rule }],
             };
         }
-        const where = (d: Definition): { layer: string; path: string } => ({
-            layer: d.layer,
-            path: d.file,
-        });
-        const unordered = pool.some((a, i) =>
-            pool.slice(i + 1).some((b) => compareFiles(where(a), where(b), order) === undefined),
-        );
-        if (unordered) {
+        const sorted = sortByOrder(pool, order);
+        if (sorted === undefined) {
             return {
                 status: 'unknown',
                 definitions,
                 reasons: [{ kind: 'no-order', database, rule: order.id }],
             };
         }
-        const sorted = [...pool].sort(
-            (a, b) => (compareFiles(where(a), where(b), order) ?? 0) || a.start - b.start,
-        );
         const winner = (resolve === 'later-wins' ? sorted.at(-1) : sorted[0]) as Definition;
         return { status: 'winner', definitions, winner, combine, rule };
     }
