@@ -1,0 +1,9 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/subject_contracts/contracts",
+    "from": ["vassal_contracts.yaml"],
+    "outline": {
+        "symbol": "Interface",
+        "blocks": []
+    }
+}

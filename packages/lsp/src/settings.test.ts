@@ -17,6 +17,7 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
         fileLimit: 3000,
         unusedKeys: false,
         fallbackEncoding: null,
+        inlayHints: true,
     });
     assert.deepEqual(
         readSettings({
@@ -24,12 +25,14 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
             background: { fileLimit: 12.7 },
             localization: { unusedKeys: true },
             encoding: { fallback: 'windows-1252' },
+            inlayHints: { enabled: false },
         }),
         {
             gamePath: '/games/ck3/game',
             fileLimit: 12,
             unusedKeys: true,
             fallbackEncoding: 'windows-1252',
+            inlayHints: false,
         },
     );
     assert.deepEqual(readSettings({ 'background.fileLimit': 0, 'localization.unusedKeys': true }), {
@@ -42,6 +45,7 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
             gamePath: 3,
             background: { fileLimit: -1 },
             encoding: { fallback: 'latin-1' },
+            inlayHints: { enabled: 'no' },
         }),
         DEFAULT_SETTINGS,
     );

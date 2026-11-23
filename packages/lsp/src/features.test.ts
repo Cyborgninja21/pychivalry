@@ -134,8 +134,9 @@ test('hover, definitions, references, symbols and completion on the lookup fixtu
             const symbols = (await client.symbols(eventsUri)) ?? [];
             assert.deepEqual(names(symbols), ['namespace', 'fixture_lookup_mod.1']);
             const event = symbols[1];
-            assert.equal(event?.kind, SymbolKind.Object);
-            assert.equal(event.detail, 'events');
+            // The events outline rule of the presentation data (item 8.8): an event, its type.
+            assert.equal(event?.kind, SymbolKind.Event);
+            assert.equal(event.detail, 'character_event');
             assert.deepEqual(event.selectionRange, {
                 start: { line: 2, character: 0 },
                 end: { line: 2, character: 'fixture_lookup_mod.1'.length },

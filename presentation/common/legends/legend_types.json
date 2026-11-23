@@ -1,0 +1,18 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/legends/legend_types",
+    "from": ["legends.yaml"],
+    "outline": {
+        "symbol": "Object",
+        "blocks": []
+    },
+    "snippets": [
+        {
+            "label": "quality",
+            "description": "The legend's qualities, each with what it gives",
+            "at": "field",
+            "field": "quality",
+            "body": ["quality = {", "\tfamed = {", "\t\t$0", "\t}", "}"]
+        }
+    ]
+}

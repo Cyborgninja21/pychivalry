@@ -1,0 +1,106 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/activities/intents",
+    "from": ["intents.yaml"],
+    "outline": {
+        "symbol": "Interface",
+        "blocks": [
+            {
+                "field": "scripted_animation",
+                "symbol": "Property",
+                "label": "animation"
+            },
+            {
+                "field": "is_shown",
+                "symbol": "Object"
+            },
+            {
+                "field": "is_valid",
+                "symbol": "Object"
+            },
+            {
+                "field": "ai_will_do",
+                "symbol": "Property"
+            }
+        ]
+    },
+    "snippets": [
+        {
+            "label": "scripted_animation",
+            "description": "The animation of a character with the intent",
+            "at": "field",
+            "field": "scripted_animation",
+            "body": ["scripted_animation = {", "\tanimation = ${1:happiness}", "}"]
+        },
+        {
+            "label": "is_shown",
+            "description": "The conditions for the intent to be shown",
+            "at": "field",
+            "field": "is_shown",
+            "body": ["is_shown = {", "\t${1:is_adult = yes}", "}"]
+        },
+        {
+            "label": "is_valid",
+            "description": "The conditions for the intent to be kept",
+            "at": "field",
+            "field": "is_valid",
+            "body": ["is_valid = {", "\t${1:is_adult = yes}", "}"]
+        },
+        {
+            "label": "auto_complete",
+            "description": "The intent completes by itself",
+            "at": "field",
+            "field": "auto_complete",
+            "body": ["auto_complete = yes"]
+        },
+        {
+            "label": "on_invalidated",
+            "description": "What happens when the intent is no longer valid",
+            "at": "field",
+            "field": "on_invalidated",
+            "body": ["on_invalidated = {", "\t$0", "}"]
+        },
+        {
+            "label": "is_target_valid",
+            "description": "The conditions on the intent's target",
+            "at": "field",
+            "field": "is_target_valid",
+            "body": ["is_target_valid = {", "\t${1:is_adult = yes}", "}"]
+        },
+        {
+            "label": "on_target_invalidated",
+            "description": "What happens when the target is no longer valid",
+            "at": "field",
+            "field": "on_target_invalidated",
+            "body": ["on_target_invalidated = {", "\t$0", "}"]
+        },
+        {
+            "label": "ai_will_do",
+            "description": "How much the AI wants the intent",
+            "at": "field",
+            "field": "ai_will_do",
+            "body": ["ai_will_do = {", "\tvalue = ${1:50}", "}"]
+        },
+        {
+            "label": "ai_targets",
+            "description": "Who the AI picks targets among",
+            "at": "field",
+            "field": "ai_targets",
+            "body": ["ai_targets = {", "\tai_recipients = ${1:courtiers}", "\tmax = ${2:10}", "}"]
+        },
+        {
+            "label": "ai_target_quick_trigger",
+            "description": "Quick conditions on the AI's targets",
+            "at": "field",
+            "field": "ai_target_quick_trigger",
+            "body": ["ai_target_quick_trigger = {", "\tadult = yes", "}"]
+        },
+        {
+            "label": "ai_target_score",
+            "description": "How much the AI wants a target",
+            "at": "field",
+            "field": "ai_target_score",
+            "body": ["ai_target_score = {", "\tvalue = ${1:0}", "}"]
+        }
+    ]
+}

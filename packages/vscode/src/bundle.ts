@@ -6,6 +6,8 @@
  * - `lsp/pychivalry-lsp.mjs`: the language server (`@pychivalry/lsp` with the core and the
  *   protocol library), one ES module file, which the language client runs on VS Code's own
  *   runtime from the extension's folder;
+ * - `lsp/presentation/`: the presentation data (`presentation/`, docs/PLAN.md item 8.8), its
+ *   `.json` files beside the language server, which reads them from there;
  * - `server/pychivalry-mcp.mjs`: the agent server (`@pychivalry/mcp` with the core and the MCP
  *   library), one ES module file, which VS Code's own executable runs as Node;
  * - `server/pychivalry-cli.mjs`: the command line (`@pychivalry/cli` with the core, through
@@ -58,6 +60,18 @@ function version(): string {
     return manifest.version;
 }
 
+/** The presentation data's `.json` files, at their paths, without the schema. */
+function copyPresentation(from: string, to: string): void {
+    for (const entry of readdirSync(from, { withFileTypes: true })) {
+        if (entry.isDirectory()) {
+            copyPresentation(path.join(from, entry.name), path.join(to, entry.name));
+        } else if (entry.name.endsWith('.json') && entry.name !== 'presentation.schema.json') {
+            mkdirSync(to, { recursive: true });
+            copyFileSync(path.join(from, entry.name), path.join(to, entry.name));
+        }
+    }
+}
+
 async function main(): Promise<void> {
     rmSync(OUT, { recursive: true, force: true });
     await build({
@@ -97,6 +111,7 @@ async function main(): Promise<void> {
         format: 'cjs',
         external: ['vscode'],
     });
+    copyPresentation(path.join(REPO, 'presentation'), path.join(OUT, LSP_FOLDER, 'presentation'));
     const specDir = path.join(SERVER, SPEC_FOLDER);
     mkdirSync(specDir, { recursive: true });
     const specFiles = readdirSync(path.join(REPO, 'spec')).filter((f) => SPEC_FILE.test(f));

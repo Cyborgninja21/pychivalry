@@ -1,0 +1,187 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/Cyborgninja21/pychivalry/presentation/presentation.schema.json",
+    "title": "pychivalry presentation data",
+    "description": "One file of pychivalry's presentation data (presentation/README.md): how the editor shows the records of one game folder, or, in _all.json, what applies to every folder. Read by the language server only; never used to raise a finding.",
+    "oneOf": [{ "$ref": "#/$defs/folderFile" }, { "$ref": "#/$defs/everyFolderFile" }],
+    "$defs": {
+        "folderFile": {
+            "type": "object",
+            "required": ["folder"],
+            "additionalProperties": false,
+            "properties": {
+                "$schema": { "type": "string" },
+                "folder": {
+                    "description": "The game folder whose records this file is about, as the spec package writes it; it is also the file's path inside presentation/, without .json.",
+                    "type": "string",
+                    "pattern": "^[a-z0-9_]+(/[a-z0-9_]+)*$"
+                },
+                "from": {
+                    "description": "The pre-2.0 schema files the entries were brought back from; empty for data written new.",
+                    "type": "array",
+                    "items": { "type": "string", "pattern": "^[a-z_]+\\.yaml$" }
+                },
+                "outline": { "$ref": "#/$defs/outline" },
+                "fieldOrder": {
+                    "description": "The order the fields of a block are conventionally written in.",
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/fieldOrder" }
+                },
+                "snippets": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/snippet" }
+                },
+                "hints": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/hint" }
+                }
+            }
+        },
+        "everyFolderFile": {
+            "type": "object",
+            "required": ["folder"],
+            "additionalProperties": false,
+            "properties": {
+                "$schema": { "type": "string" },
+                "folder": { "const": "*" },
+                "language": {
+                    "description": "The language localized hints are read in, as a localization file's header names it.",
+                    "type": "string",
+                    "pattern": "^l_[a-z_]+$"
+                },
+                "hints": {
+                    "type": "array",
+                    "items": { "$ref": "#/$defs/hint" }
+                }
+            }
+        },
+        "symbolKind": {
+            "description": "A symbol kind of the language-server protocol, by its name in the protocol.",
+            "enum": [
+                "File",
+                "Module",
+                "Namespace",
+                "Package",
+                "Class",
+                "Method",
+                "Property",
+                "Field",
+                "Constructor",
+                "Enum",
+                "Interface",
+                "Function",
+                "Variable",
+                "Constant",
+                "String",
+                "Number",
+                "Boolean",
+                "Array",
+                "Object",
+                "Key",
+                "Null",
+                "EnumMember",
+                "Struct",
+                "Event",
+                "Operator",
+                "TypeParameter"
+            ]
+        },
+        "template": {
+            "description": "Text with placeholders: {key} the field's key, {n} its number among the fields of its key in its record, {value} its value when it is plain text, {<field>} the value a field of its block holds.",
+            "type": "string"
+        },
+        "blockPath": {
+            "description": "The keys from a record's body to a block, joined by '.'; the empty string is the record's body.",
+            "type": "string",
+            "pattern": "^([A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*)?$"
+        },
+        "fieldName": { "type": "string", "pattern": "^[A-Za-z0-9_]+$" },
+        "outline": {
+            "description": "How the folder's records appear in the outline: a record is a top-level key whose value is a block.",
+            "type": "object",
+            "required": ["symbol", "blocks"],
+            "additionalProperties": false,
+            "properties": {
+                "symbol": { "$ref": "#/$defs/symbolKind" },
+                "detail": { "$ref": "#/$defs/template" },
+                "blocks": {
+                    "description": "The fields of a record listed under it, in the order they are written.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["field", "symbol"],
+                        "additionalProperties": false,
+                        "properties": {
+                            "field": { "$ref": "#/$defs/fieldName" },
+                            "symbol": { "$ref": "#/$defs/symbolKind" },
+                            "label": { "$ref": "#/$defs/template" },
+                            "fallback": { "$ref": "#/$defs/template" },
+                            "children": {
+                                "description": "List the block's own keyed blocks under it.",
+                                "const": "blocks"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "fieldOrder": {
+            "type": "object",
+            "required": ["block", "fields"],
+            "additionalProperties": false,
+            "properties": {
+                "block": { "$ref": "#/$defs/blockPath" },
+                "fields": {
+                    "type": "array",
+                    "uniqueItems": true,
+                    "minItems": 1,
+                    "items": { "$ref": "#/$defs/fieldName" }
+                }
+            }
+        },
+        "snippet": {
+            "type": "object",
+            "required": ["label", "description", "at", "body"],
+            "additionalProperties": false,
+            "properties": {
+                "label": { "type": "string", "minLength": 1 },
+                "description": { "type": "string", "minLength": 1 },
+                "at": {
+                    "description": "file: the head of a new file of the folder; record: a new record; both at the top level of a file. field: a field, where completion offers it.",
+                    "enum": ["file", "record", "field"]
+                },
+                "block": { "$ref": "#/$defs/blockPath" },
+                "field": { "$ref": "#/$defs/fieldName" },
+                "body": {
+                    "description": "The snippet's lines, in VS Code's snippet syntax.",
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "type": "string" }
+                }
+            },
+            "if": { "properties": { "at": { "const": "field" } } },
+            "then": { "required": ["field"] },
+            "else": { "not": { "anyOf": [{ "required": ["field"] }, { "required": ["block"] }] } }
+        },
+        "hint": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "required": ["kind"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "kind": { "const": "text" },
+                        "block": { "$ref": "#/$defs/blockPath" },
+                        "field": { "$ref": "#/$defs/fieldName" }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": ["kind"],
+                    "additionalProperties": false,
+                    "properties": { "kind": { "const": "scope" } }
+                }
+            ]
+        }
+    }
+}

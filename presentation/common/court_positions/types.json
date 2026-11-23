@@ -1,0 +1,34 @@
+{
+    "$schema": "../../presentation.schema.json",
+    "folder": "common/court_positions/types",
+    "from": ["court_positions.yaml"],
+    "outline": {
+        "symbol": "Interface",
+        "blocks": []
+    },
+    "fieldOrder": [
+        {
+            "block": "",
+            "fields": [
+                "opinion",
+                "aptitude",
+                "is_shown",
+                "salary",
+                "scaling_employer_modifiers",
+                "custom_employer_modifier_description",
+                "base_employer_modifier",
+                "modifier",
+                "search_for_courtier"
+            ]
+        }
+    ],
+    "snippets": [
+        {
+            "label": "salary",
+            "description": "What the position costs its employer",
+            "at": "field",
+            "field": "salary",
+            "body": ["salary = {", "\tround = yes", "\tadd = ${1:2}", "}"]
+        }
+    ]
+}
