@@ -90,6 +90,16 @@ in the test and on every bad half run with no game folder
 (`packages/core/src/check/limits.test.ts`). The list is in
 [fixtures/mods/README.md](../fixtures/mods/README.md).
 
+Build step 8 added three mods. The fixes (items 8.6 and 8.7, #146) are tested on two:
+`fix-near-values`, three advice findings each a misspelling of exactly one value (a
+suggestion each, since advice is never fixed safely), and `fix-scope-links`, the fixes of the
+scope findings from the links the finding names (a safe one where one plain link leads there,
+suggestions where two do); both read over the stub `planted-defects`, and each fix applied
+takes its finding away and brings no other. The language server's use of the presentation data
+(item 8.8, #144) is tested on `presentation-outline-and-hints`, whose README lists what a
+correct server answers for its outline, completion and inline hints. The list is in
+[fixtures/mods/README.md](../fixtures/mods/README.md).
+
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7

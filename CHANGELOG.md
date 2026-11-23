@@ -280,6 +280,28 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `v0.1.0`, "pychivalry 0.1.0 (preview)", on commit `133a9a1`, with `pychivalry-0.1.0.vsix`
   attached; `docs/preview-release.md` is now the record of what was published, and the install
   page links the download. Step 7 is done.
+- Build step 8, item 8.8 (#144): `presentation/`, pychivalry's own presentation data, one JSON
+  file per game folder with `_all.json`, a schema and a README, read by the language server only
+  (a test holds that no check reads it): outline rules for 27 folders, 111 snippets (each raising
+  no error or warning), field orders re-ranked by what the base game writes most, and inline hints
+  (a record's localized name, an option's text, the scope type after a link), behind the new
+  setting `pychivalry.inlayHints.enabled`. Carried over from the pre-2.0 schema files: 266
+  entries, 30 corrected; 27 dropped. The bundle carries the data beside the language server.
+  Fixture `presentation-outline-and-hints`.
+- Build step 8, item 8.1 (#145): `docs/formatting.md`, the formatting rules, proposed for the
+  owner's sign-off: 13 rules checked against the base game, 11 decisions for the owner, and what
+  release 2.3.0's formatter does to the base game (it changes the tree of 3,203 of 4,842 files
+  and its output does not parse in 540).
+- Build step 8, items 8.6 and 8.7 (#146): every finding carries its fix as data (`fix`: null, or
+  its safety, its basis and at most five alternatives of edits), a safe fix checked by checking
+  the file again with it applied; the command line's JSON carries it, `check --fix` applies the
+  safe fixes and checks again, and `--dry-run` shows them; the agent server's `check` carries
+  them and writes nothing; the language server offers quick fixes, "fix every safe `<code>` in
+  the file" and `source.fixAll`. Of the 62 built codes 4 always have a safe fix, 12 when one
+  outcome is left, 10 only suggestions, 36 none (`FIX_ROWS`, the Fix column of `docs/checks.md`
+  and the guide's check reference). On rice, 141 safe fixes take its errors and warnings from
+  1,963 to 1,822. Fixtures `fix-near-values` and `fix-scope-links`. The three formatting fixes,
+  an empty block removed, a missing `ai_chance` and the three refactors are not built.
 - One shared index (decision 87, `docs/shared-index.md`): the language server lends its index of
   the base game, frozen, to the agent servers and the command line on the same machine, and
   answers their requests with their own code (the command line's `runSteps`, the agent server's
@@ -298,7 +320,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   fallback (no lender, a lender gone, refusing, silent or dying in the middle of a request, a
   second language server taking over). The same-answers test runs with sharing on, checking that
   the language server answered the command line and every page of the agent server, and again
-  with it off.
+  with it off. `check --fix` is never sent to the language server, and the language server
+  refuses one: the edits are made by the command line's own process.
 
 ### Changed
 

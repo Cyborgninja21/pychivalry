@@ -19,7 +19,10 @@ registers the agent server with VS Code's AI and Claude Code, the command line o
 path, the same-answers test, the packaged `.vsix` and its smoke test; the first preview,
 0.1.0, is published as a GitHub pre-release (2026-11-23). After it the language server, the
 agent servers and the command line were made to share one copy of the base game's index
-([shared-index.md](shared-index.md)). Build step 8, the formatter and fixes, has started. What
+([shared-index.md](shared-index.md)). Build step 8, the formatter and fixes, has started: the
+formatting rules are proposed for the owner's sign-off, findings carry their fixes with quick
+fixes in the editor and `check --fix` on the command line, and the presentation data (outline,
+snippets, field order, inline hints) is built. What
 waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 

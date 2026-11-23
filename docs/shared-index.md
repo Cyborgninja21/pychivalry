@@ -71,6 +71,10 @@ copy; nothing is left for a second mechanism to share.
   its arguments. The language server runs the command line's own command, or the agent server's
   own tool, over a fork, and sends back what it printed or returned. Every surface still gives
   its own answer, computed by its own code; only where the index is held changes.
+- **What writes files runs where it was started.** `check --fix` edits the user's mod, so it is
+  never sent: the command line checks, fixes and checks again in its own process, with its own
+  copy of the base game, and the language server refuses such a request should one reach it. The
+  findings, with the fixes they carry, are the same either way; only reading is lent.
 - **The language server keeps answering the editor** while it works for the others: a forwarded
   request is worked through a file at a time, with a pause for the editor between slices, the way
   the language server's background check already works.

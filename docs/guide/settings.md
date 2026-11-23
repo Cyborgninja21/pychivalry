@@ -1,6 +1,6 @@
 # Settings
 
-pychivalry has four settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
+pychivalry has five settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
 as `pychivalry.*`). The language server reads them, and the extension gives the agent server the
 game folder; each step that adds a setting adds it here with its name, its default and what it
 changes.
@@ -11,6 +11,7 @@ changes.
 | `pychivalry.background.fileLimit` | `3000` | The most files of the mod checked in the background; `0`: none. Files open in the editor are always checked |
 | `pychivalry.localization.unusedKeys` | `false` | Report `localization/unused-key`, a hint for each localization key nothing uses; off by default, as in the command line and the agent server |
 | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252, so their letters show correctly ([what the parser reads](../encoding.md)) |
+| `pychivalry.inlayHints.enabled` | `true` | Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies |
 
 A value of the wrong type is ignored and the default used. Changing the game folder or the
 fallback encoding reads the game again; turning `unusedKeys` on or off checks every file again.

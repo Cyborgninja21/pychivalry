@@ -27,7 +27,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
 | 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Item 6.11 run on the owner's word (decision 81): the first five test sessions are on record, 5 of 5 passed (`records/scored/agent-use.json`), after two repair sessions that found harness faults, fixed; the owner set the target from them: every test session passes, a release run 10 of 10 (decision 82), which the record now states. Then, on the owner's word (decision 83), the sessions' five proposals: the planted mod made harder (32 defects, every error and warning code at least once, 29 look-alikes, 17 files; defects that need a lookup, interact or are fixed elsewhere; its reference's wrong-scope fix made right), scope findings that name the links that lead to the scope they need, field findings that carry the value type and the base game's values, the instructions naming the tools' prefix, and readable slots in every message `explain_code` shows; with them, the core's check on a name defined in many files no longer grows with the cube of the files (300 files: 7.5 s before, 0.09 s after). "Done when" holds: both lines. The harder mod has not been run by a test session yet |
 | 7 | Language server and extension | Through step 4 | Done. Built on the owner's word (decisions 84 and 85), by agents in parallel: the language server, server side (#140); the extension with its AI wiring, items 7.1, 7.2 and 7.8 (#142); the rest of items 7.3 to 7.11 in one more pull request. The extension starts the language server over IPC on VS Code's own runtime, declares its four settings, gives the agent server the game folder, registers it with VS Code's AI and sets it up for Claude Code, and puts the command line on the integrated terminal's path. The same-answers test passes on the planted-defect mod in CI and on the five real mods (0, 15, 627, 2,942 and 62 findings, the same on the editor, the command line and the agent server). The `.vsix` is 3.88 MB (2.3.0's: 1.8 MB) and its smoke test passes in a clean VS Code on Linux and Windows. Editor speed against the 2.3.0 baseline: faster on all five mods, more memory on four (MVP.md, "Speed"). "Done when" holds: 2 to 4 in full, 1 for everything a test can show (a signed-in harness calling the tools is the owner's by-hand check). The first preview is published (decision 86): the GitHub pre-release `v0.1.0`, "pychivalry 0.1.0 (preview)", with the `.vsix` ([preview-release.md](preview-release.md)). The VS Code floor stays 1.146 (decision 88). After it, on the owner's word (decision 87), the three programs share one copy of the base game's index: the language server lends it to the agent servers and the command line, which load their own only when it cannot answer ([shared-index.md](shared-index.md)); on rice their peak memory went from 3.02 GiB to 1.83 GiB (the medians of five runs and six) in all, with the same findings on every surface. Open: the owner's questions on step 7 in decisions.md |
-| 8 | Formatter and fixes | No, but follows step 7 | In progress: started on the owner's word (decision 89), built by agents in parallel, each in its own worktree and pull request |
+| 8 | Formatter and fixes | No, but follows step 7 | In progress: started on the owner's word (decision 89), built by agents in parallel, each in its own worktree and pull request. Item 8.1, the formatting rules, is proposed (#145) and awaits the owner's sign-off, which items 8.2 to 8.5 wait on; 8.6, fix data in the core, is built and 8.7, quick fixes, built in part (#146: every finding carries its fix; `check --fix`; the language server's quick fixes; the formatting fixes wait for the formatter); 8.8, the presentation data, is built (#144). Not started: 8.2 to 8.5, 8.9, 8.10 |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
 | 10 | GUI files, graphics check, call graph | Partly | Not started |
 | 11 | Game-log analysis, in-game load | Yes | Not started |
@@ -1209,6 +1209,13 @@ blank lines. It had no golden files and no written rules, and its settings were 
   alignment on or off, list wrapping, quoting, blank lines, comments, line endings. 2.3.0's
   behaviour is the starting point and each rule is checked against how the base game is
   written.
+
+  *Proposed (#145), awaiting the owner's sign-off:* [formatting.md](formatting.md) proposes 13
+  rules, each checked against the base game, with 11 decisions for the owner at its end. It
+  measured 2.3.0's formatter on the base game: it changes the tree of 3,203 of 4,842 files, and
+  its output does not parse in 540 (it drops quotes, `?=`, the `rgb`, `hsv`, `list` and
+  `scripted_trigger` value forms and 3,301 comments). No rule is decided until the owner signs
+  it off; items 8.2 to 8.5 wait on it.
 - 8.2 The formatter, working from the tree and keeping every comment and token.
 - 8.3 The round-trip suite on the base game: after formatting, every file re-parses to the same
   tree. Part of `task game:parse`.
@@ -1216,12 +1223,48 @@ blank lines. It had no golden files and no written rules, and its settings were 
 - 8.5 On-type formatting, derived from the same rules, tested for agreement with the formatter.
 - 8.6 Fix data in the core: where a finding has a mechanical fix, the fix is part of the
   finding.
+
+  *Built (#146):* every finding carries `fix`: null, or its safety (`safe`, the one outcome that
+  can be right; `suggestion`, a choice), its basis (a removed keyword's documented replacement,
+  the names near the one written that fit the place, the links the game documents between
+  scopes, what the parser read) and at most five alternatives, each a title and its edits, which
+  may create or edit another file of the mod. The core checks a safe fix by checking the file
+  again with it applied. Of the 62 built codes, 4 always have a safe fix, 12 have one when a
+  single outcome is left and suggestions otherwise, 10 only suggestions, 36 none, each with its
+  reason (`FIX_ROWS`; the Fix column of [checks.md](checks.md) and of the guide's check
+  reference). Every surface carries them: the command line's JSON `fix`, `check --fix` (safe
+  fixes only, then the mod checked again) and `--dry-run`; the agent server's `check`, which
+  still writes nothing; the language server's quick fixes (8.7). On the corpus: rice has 141 safe
+  fixes, all documented replacements of removed keywords, which take its errors and warnings
+  from 1,963 to 1,822 and add nothing new; elf-destiny has 137 suggestions. New fixtures
+  `fix-near-values` and `fix-scope-links`.
 - 8.7 Quick fixes, each from fix data. 2.3.0's ten are the starting list: a localization stub
   for a missing key, a key rename, indentation, operator spacing, trailing whitespace, an
   empty block removed, a missing `ai_chance`, and three refactors.
+
+  *Built in part (#146):* the language server offers each finding's fix as a quick fix,
+  "Fix every safe `<code>` in the file", and "Fix every safe pychivalry finding in the file"
+  (`source.fixAll`), all from fix data. Of 2.3.0's ten, the localization stub for a missing key
+  is built (into one localization file of the mod: English if it has one, otherwise its first
+  language; the text is the key), and the renames to a near name are built for the unknown-name
+  name. Not built: indentation, operator spacing and trailing whitespace wait for the formatter
+  (8.2); an empty block removed and a missing `ai_chance` have no built check that reports them;
+  the three refactors.
 - 8.8 `presentation/`: outline rules, snippets, field order and inline hints, brought back from
   the pre-2.0 schema files as pychivalry's own data. Loaded by the language server only. A
   test proves no check reads it.
+
+  *Built (#144):* `presentation/`, one JSON file per game folder with `_all.json`, its schema
+  and its README, read by the language server only (a test holds that no check reads it):
+  outline rules for 27 folders; 111 snippets, each checked to raise no error or warning; field
+  orders kept from the old files and re-ranked by what the base game writes most (decisions
+  from 80 % to 95 % agreement, schemes from 86 % to 99 %); inline hints beside a record's key
+  (its localized name, an option's text) and after a link (the scope type it switches to), at
+  most 1,000 a file and 60 characters each, behind the new setting
+  `pychivalry.inlayHints.enabled` (on by default; five settings now). Of the old files' entries
+  266 are carried (30 corrected) and 27 dropped, the kind `faith_doctrines` with them. The
+  extension's bundle carries the data beside the language server
+  (`dist/bundle/lsp/presentation/`). New fixture `presentation-outline-and-hints`.
 - 8.9 `format` in the command line and the agent server, filled in.
 - 8.10 The second preview build.
 
