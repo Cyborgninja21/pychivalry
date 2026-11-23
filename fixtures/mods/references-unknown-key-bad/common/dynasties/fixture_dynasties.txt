@@ -1,0 +1,3 @@
+fixture_dynasty = {
+	name = fixture_dynasty_name
+}

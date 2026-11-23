@@ -1042,6 +1042,20 @@ export class WorkspaceIndex {
             .sort(compareDefinitions);
     }
 
+    /** Every definition of the file at a layer and exact path, in the order they are written. */
+    definitionsIn(layer: string, path: string): Definition[] {
+        const id = this.byKey.get(`${layer}\u0000${path}`);
+        const file = id === undefined ? undefined : this.files[id];
+        if (id === undefined || file === undefined) {
+            return [];
+        }
+        const out: Definition[] = [];
+        for (let i = 0; i < file.defs.length / DEF_STRIDE; i++) {
+            out.push(this.definition(id * SPAN + i));
+        }
+        return out.sort((a, b) => a.start - b.start);
+    }
+
     /** What is in force for a name of a database (and a container, for entries). */
     resolve(database: string, name: string, container: string | null = null): Resolution {
         const definitions = this.definitions(name, { database, container });

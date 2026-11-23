@@ -1,0 +1,28 @@
+{
+    "findings": [
+        {
+            "file": "common/script_values/fixture_values.txt",
+            "line": 1,
+            "column": 23,
+            "code": "structure/range-min-above-max",
+            "severity": "error",
+            "message": "min value in range directive is larger than the max value. Unknown location; yell at a programmer",
+            "data": {
+                "min": "10",
+                "max": "1"
+            }
+        },
+        {
+            "file": "common/script_values/fixture_values.txt",
+            "line": 4,
+            "column": 10,
+            "code": "structure/range-min-above-max",
+            "severity": "error",
+            "message": "min value in range directive is larger than the max value. Unknown location; yell at a programmer",
+            "data": {
+                "min": "8",
+                "max": "2"
+            }
+        }
+    ]
+}

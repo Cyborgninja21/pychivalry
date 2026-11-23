@@ -17,6 +17,8 @@ import {
     severityOf,
     type FindingId,
 } from '../syntax/findings.js';
+import { clashMessageOf } from './definitions.js';
+import { requiredFields } from './fields-missing-required-field.js';
 import { CHECK_KINDS, type CheckCode } from './finding.js';
 
 interface Row {
@@ -86,12 +88,52 @@ test("each check's catalogue message is in the committed catalogue, with a place
     for (const code of Object.keys(CHECK_KINDS) as CheckCode[]) {
         const kind = CHECK_KINDS[code];
         if (kind.catalogue === null) {
-            // Evidence of the game's own output, with no message: the row says so.
-            assert.ok(rows.get(code)?.evidence.startsWith('Game output'), code);
+            const evidence = rows.get(code)?.evidence ?? '';
+            if (kind.gameOutput !== undefined) {
+                // Evidence of the game's own output, with no message: the row says so.
+                assert.ok(evidence.startsWith('Game output'), code);
+            } else if (kind.evidenceFrom === 'required-field') {
+                assert.ok(evidence.startsWith('Required field'), code);
+            } else if (kind.evidenceFrom === 'rules-row') {
+                assert.ok(evidence.startsWith('Catalogue, named by the rules row'), code);
+            } else {
+                // No game evidence: the row says advice, and the code is no error or warning.
+                assert.ok(evidence.startsWith('Advice'), code);
+                assert.ok(kind.severity === 'information' || kind.severity === 'hint', code);
+            }
             continue;
         }
         const text = catalogue.get(kind.catalogue);
         assert.ok(text !== undefined, `${kind.catalogue} is in the catalogue`);
         assert.equal(placeholderCount(text), kind.slots.length, code);
+    }
+});
+
+test('a code whose message depends on the place names, in its row, every message it can cite', () => {
+    const spec = committedSpec();
+    const catalogue = catalogueFromSpec(spec.data);
+    // A required field's message: the catalogue entry whose text is its `required_evidence`.
+    const required = rows.get('fields/missing-required-field')?.evidence ?? '';
+    const fields = requiredFields(spec);
+    assert.ok(fields.length > 0);
+    for (const field of fields) {
+        const entry = spec.data.errors.find((e) => e.text === field.field.required_evidence);
+        assert.ok(
+            entry !== undefined,
+            `${field.directory} ${field.path.join('.')} has its message`,
+        );
+        assert.ok(required.includes(`\`${entry.id}\``), entry.id);
+        assert.equal(placeholderCount(catalogue.get(entry.id) ?? ''), 1, entry.id);
+    }
+    // A clash's message: the catalogue entry of the rules row's duplicate message.
+    const clash = rows.get('definitions/clash')?.evidence ?? '';
+    const deciding = (spec.part('override_rules')?.rules ?? []).filter(
+        (r) => r['resolve'] === 'priority' && typeof r['message'] === 'string',
+    );
+    assert.ok(deciding.length > 0);
+    for (const rule of deciding) {
+        const id = clashMessageOf(spec, String(rule['id']));
+        assert.ok(id !== null, String(rule['id']));
+        assert.ok(clash.includes(`\`${id}\``), id);
     }
 });

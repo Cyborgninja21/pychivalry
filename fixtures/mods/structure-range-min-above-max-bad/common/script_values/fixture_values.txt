@@ -1,0 +1,10 @@
+fixture_range_value = { 10 1 }
+
+fixture_formula_value = {
+	value = { 8 2 }
+	add = 1
+}
+
+fixture_named_range_value = { fixture_low_value fixture_high_value }
+fixture_low_value = 1
+fixture_high_value = 5

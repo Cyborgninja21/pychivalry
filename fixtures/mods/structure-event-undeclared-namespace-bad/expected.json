@@ -1,0 +1,30 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 7,
+            "column": 1,
+            "code": "structure/event-undeclared-namespace",
+            "severity": "warning",
+            "message": "Namespace 'fixture_other' used in event 'fixture_other.0001' (file: events/fixture_events.txt) is not defined in this file - it might not load properly.",
+            "data": {
+                "namespace": "fixture_other",
+                "event": "fixture_other.0001",
+                "declared": ["fixture"]
+            }
+        },
+        {
+            "file": "events/fixture_no_namespace_events.txt",
+            "line": 1,
+            "column": 1,
+            "code": "structure/event-undeclared-namespace",
+            "severity": "warning",
+            "message": "Namespace 'fixture_third' used in event 'fixture_third.0001' (file: events/fixture_no_namespace_events.txt) is not defined in this file - it might not load properly.",
+            "data": {
+                "namespace": "fixture_third",
+                "event": "fixture_third.0001",
+                "declared": []
+            }
+        }
+    ]
+}

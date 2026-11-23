@@ -1,0 +1,11 @@
+fixture_first_group = {
+	sort_order = 10
+	fixture_stray_value
+	important_decision_group = yes
+}
+
+fixture_second_group = {
+	sort_order = 20
+	gui_tags = { fixture_tag fixture_other_tag }
+	fixture_last_value
+}

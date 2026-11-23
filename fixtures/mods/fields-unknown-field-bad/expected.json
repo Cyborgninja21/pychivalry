@@ -1,0 +1,18 @@
+{
+    "findings": [
+        {
+            "file": "common/decision_group_types/fixture_decision_groups.txt",
+            "line": 12,
+            "column": 2,
+            "code": "fields/unknown-field",
+            "severity": "warning",
+            "message": "Unknown 'fixture_made_up_field' in decision_group_type 'fixture_second_group'",
+            "data": {
+                "name": "fixture_made_up_field",
+                "record": "fixture_second_group",
+                "path": ["fixture_made_up_field"],
+                "folder": "common/decision_group_types"
+            }
+        }
+    ]
+}

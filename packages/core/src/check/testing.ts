@@ -59,6 +59,7 @@ export function checkFixture(mod: string): WrittenFinding[] {
             parsed,
             names,
             catalogue: messages,
+            index: { workspace: index, layer: 'mod' },
         })) {
             out.push({
                 file: file.path,

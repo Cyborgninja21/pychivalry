@@ -90,6 +90,16 @@ export interface SchemaField {
     readonly fields?: Readonly<Record<string, SchemaField>>;
     readonly description?: string;
     readonly description_source?: string;
+    /**
+     * Part B1: how the base game's values were counted (`shapes`, the measured forms; `groups`,
+     * the value groups `value_type` joins).
+     */
+    readonly value_type_evidence?: {
+        readonly groups?: Readonly<Record<string, number>>;
+        readonly shapes?: Readonly<Record<string, number>>;
+    };
+    /** The spec work's note on the field; `kind suspect: ...` when its measured kind is in doubt. */
+    readonly note?: string;
 }
 
 /** The record schema of one directory (`schema.<dir>`). */

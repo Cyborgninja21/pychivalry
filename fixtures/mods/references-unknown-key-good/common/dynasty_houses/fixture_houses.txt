@@ -1,0 +1,9 @@
+fixture_house = {
+	name = fixture_house_name
+	dynasty = fixture_dynasty
+}
+
+fixture_other_house = {
+	name = fixture_other_house_name
+	dynasty = fixture_dynasty
+}

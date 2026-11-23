@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/DECISION_GROUP_TYPES/fixture_decision_groups.txt",
+            "line": 1,
+            "column": 1,
+            "code": "definitions/not-read",
+            "severity": "information",
+            "message": "'fixture_group' is defined in a file the game does not read: the rule path-case-linux.",
+            "data": {
+                "name": "fixture_group",
+                "database": "common/decision_group_types"
+            }
+        }
+    ]
+}
