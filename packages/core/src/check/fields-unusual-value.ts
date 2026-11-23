@@ -7,8 +7,9 @@
  * A field's or sub-field's value is judged when the schema lists its values, the base game
  * sets it in at least 10 records (`MIN_RECORDS`), and every value it writes is a word or a
  * boolean (`value_type`, part B1: numbers, script values, scopes and paths are no closed
- * set). A value is judged only when it is written as a bare word, and compared as written. A
- * field whose values are keys of a database (a row of part D6, `field_references`, for it) or
+ * set), none of them quoted (a field the base game writes as quoted text, such as an icon's
+ * name, holds names, not a closed set of words). A value is judged only when it is written as
+ * a bare word, and compared as written. A field whose values are keys of a database (a row of part D6, `field_references`, for it) or
  * localization keys (`loc_key`) is not judged: a mod adds keys of its own there, so the base
  * game's few values are no closed set either.
  */
@@ -65,6 +66,7 @@ function run(input: AdviceInput): AdviceResult {
             (field.record_usage ?? 0) < MIN_RECORDS ||
             field.loc_key === true ||
             !CLOSED_GROUPS.has(field.value_type ?? '') ||
+            values.some((v) => v.value.startsWith('"')) ||
             open.has(`${dir}::${path}`)
         ) {
             return;
