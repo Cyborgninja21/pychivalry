@@ -95,6 +95,29 @@ const EXCEPTIONS: readonly {
         reason: "A test helper, not shipped: the client's standard-input transport, which starts the agent server as a local process and talks to it over its standard input and output.",
     },
     {
+        module: 'vscode-languageserver/node',
+        files: [
+            'packages/lsp/src/completion.ts',
+            'packages/lsp/src/diagnostics.ts',
+            'packages/lsp/src/documents.ts',
+            'packages/lsp/src/main.ts',
+            'packages/lsp/src/server.ts',
+            'packages/lsp/src/symbols.ts',
+            'packages/lsp/src/testing.ts',
+        ],
+        reason: "The language-server protocol library's server: the connection, its message types and the IPC transport. pychivalry builds its connection only over IPC with the editor that started it (`--node-ipc`) or over its own standard input and output (`--stdio`); it refuses the library's socket and pipe transports (`args.ts`) and opens no port.",
+    },
+    {
+        module: 'vscode-languageserver-protocol/node',
+        files: ['packages/lsp/src/testing.ts'],
+        reason: "A test helper, not shipped: the tests' protocol client (a development dependency) speaks to the language server over its standard input and output, or over a pair of streams in the test's own process.",
+    },
+    {
+        module: 'node:child_process',
+        files: ['packages/lsp/src/testing.ts'],
+        reason: 'A test helper, not shipped: it starts the built language server in a process of its own, as an editor would, over its standard input and output.',
+    },
+    {
         module: 'node:child_process',
         files: ['packages/core/src/index/find-game.ts'],
         reason: "The game search on Windows asks the registry where Steam is installed by running the system's own `reg query`, a local program, and runs nothing else.",
