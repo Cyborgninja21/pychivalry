@@ -1,0 +1,6 @@
+fixture_ready_trigger = {
+	is_adult = yes
+	trigger_else = {
+		is_ai = no
+	}
+}

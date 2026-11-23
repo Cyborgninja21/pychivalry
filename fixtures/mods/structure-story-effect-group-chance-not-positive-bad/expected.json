@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/story_cycles/fixture_story_cycles.txt",
+            "line": 4,
+            "column": 12,
+            "code": "structure/story-effect-group-chance-not-positive",
+            "severity": "information",
+            "message": "'chance' is 0; the effect group would never run.",
+            "data": {
+                "keyword": "chance",
+                "value": "0"
+            }
+        }
+    ]
+}

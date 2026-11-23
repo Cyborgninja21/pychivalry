@@ -1,0 +1,60 @@
+/**
+ * The re-proof of the advice checks (advice-proof.ts) on a stub game written in the test: it
+ * reads the game's script files with the game's own index, counts what each row applies to
+ * and fires on, and gives each row its verdict.
+ */
+
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { test } from 'node:test';
+import { ADVICE_CHECKS, openSpec } from '@pychivalry/core';
+import { adviceProof, MIN_APPLIES, proofText, verdictOf } from './advice-proof.js';
+import { fixtureGame, tempDir, writeTree } from './testing.js';
+import { repoRoot } from './util.js';
+
+const spec = openSpec(path.join(repoRoot(), 'spec'));
+
+test('a row holds when it applies to at least 10 and fires on none', () => {
+    assert.equal(verdictOf(MIN_APPLIES, 0), 'holds');
+    assert.equal(verdictOf(MIN_APPLIES - 1, 0), 'too-few');
+    assert.equal(verdictOf(500, 1), 'fires');
+});
+
+test('every advice check has a row, with what it judged and what it found', (t) => {
+    const root = tempDir(t);
+    const game = fixtureGame(root);
+    const events: string[] = ['namespace = stub'];
+    for (let i = 1; i <= 12; i++) {
+        events.push(`stub.${String(i)} = { hidden = yes }`);
+    }
+    events.push('stub.13 = { }');
+    writeTree(root, {
+        'game/events/stub_events.txt': `${events.join('\n')}\n`,
+        'game/common/scripted_effects/stub_effects.txt': 'stub_effect = { if = { } else = { } }\n',
+    });
+    const proof = adviceProof(spec, game, 'linux');
+    assert.deepEqual(
+        proof.rows.map((r) => r.code),
+        ADVICE_CHECKS.map((c) => c.code),
+    );
+    const empty = proof.rows.find((r) => r.code === 'structure/event-empty');
+    assert.equal(empty?.applies, 13);
+    assert.equal(empty.fires, 1);
+    assert.equal(empty.verdict, 'fires');
+    assert.deepEqual(empty.findings, [
+        {
+            file: 'events/stub_events.txt',
+            line: 14,
+            message: "The event 'stub.13' is empty.",
+        },
+    ]);
+    const twice = proof.rows.find((r) => r.code === 'structure/event-several-immediate');
+    assert.equal(twice?.applies, 13);
+    assert.equal(twice.verdict, 'holds');
+    const orphan = proof.rows.find((r) => r.code === 'structure/else-without-if');
+    assert.equal(orphan?.applies, 1);
+    assert.equal(orphan.verdict, 'too-few');
+    const text = proofText(proof);
+    assert.match(text, /^structure\/event-empty: applies to 13, fires on 1: fires$/m);
+    assert.match(text, /^ {2}events\/stub_events\.txt:14: The event 'stub\.13' is empty\.$/m);
+});

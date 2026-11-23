@@ -1,36 +1,6 @@
 {
     "findings": [
         {
-            "file": "common/court_positions/types/fixture_court_positions.txt",
-            "line": 2,
-            "column": 1,
-            "code": "localization/missing-key",
-            "severity": "warning",
-            "message": "Unknown loc key fixture_court_position",
-            "data": {
-                "key": "fixture_court_position",
-                "pattern": "<name>",
-                "directory": "common/court_positions/types",
-                "requirement": "required",
-                "row_status": "confirmed"
-            }
-        },
-        {
-            "file": "common/court_positions/types/fixture_court_positions.txt",
-            "line": 2,
-            "column": 1,
-            "code": "localization/missing-key",
-            "severity": "warning",
-            "message": "Unknown loc key fixture_court_position_desc",
-            "data": {
-                "key": "fixture_court_position_desc",
-                "pattern": "<name>_desc",
-                "directory": "common/court_positions/types",
-                "requirement": "required",
-                "row_status": "confirmed"
-            }
-        },
-        {
             "file": "common/decision_group_types/fixture_decision_groups.txt",
             "line": 2,
             "column": 1,
@@ -42,6 +12,36 @@
                 "pattern": "decision_group_type_<name>",
                 "directory": "common/decision_group_types",
                 "requirement": "always-present-in-base-game",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "common/game_concepts/fixture_game_concepts.txt",
+            "line": 3,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "information",
+            "message": "Every record of common/game_concepts in the base game has the localization key game_concept_<name>; 'game_concept_fixture_concept' is defined in no localization file.",
+            "data": {
+                "key": "game_concept_fixture_concept",
+                "pattern": "game_concept_<name>",
+                "directory": "common/game_concepts",
+                "requirement": "always-present-in-base-game",
+                "row_status": "confirmed"
+            }
+        },
+        {
+            "file": "common/game_concepts/fixture_game_concepts.txt",
+            "line": 3,
+            "column": 1,
+            "code": "localization/missing-key",
+            "severity": "warning",
+            "message": "Unknown loc key game_concept_fixture_concept_desc",
+            "data": {
+                "key": "game_concept_fixture_concept_desc",
+                "pattern": "game_concept_<name>_desc",
+                "directory": "common/game_concepts",
+                "requirement": "required",
                 "row_status": "confirmed"
             }
         },

@@ -1,0 +1,17 @@
+{
+    "findings": [
+        {
+            "file": "common/story_cycles/fixture_story_cycles.txt",
+            "line": 4,
+            "column": 12,
+            "code": "structure/story-effect-group-chance-above-100",
+            "severity": "information",
+            "message": "'chance' is 150, above 100.",
+            "data": {
+                "keyword": "chance",
+                "value": "150",
+                "range": "0 to 100"
+            }
+        }
+    ]
+}

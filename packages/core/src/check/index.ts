@@ -9,6 +9,7 @@ import type { WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
 import type { MessageCatalogue } from '../syntax/findings.js';
 import type { ParseResult } from '../syntax/parser.js';
+import { adviceFindings } from './advice-checks.js';
 import { readContext, type DefinedNames, type FileReading } from './context.js';
 import type { CheckFinding } from './finding.js';
 import { definitionFindings } from './definitions.js';
@@ -59,6 +60,8 @@ export {
     CHECK_KINDS,
     checkMessage,
     evidenceOf,
+    isAdvice,
+    type AdviceCode,
     type CheckCode,
     type CheckFinding,
     type CheckKind,
@@ -88,6 +91,8 @@ export {
     type UnknownWhy,
 } from './scope.js';
 export { judgedSteps } from './scope-link-on-wrong-scope.js';
+export { ADVICE_CHECKS, adviceFindings, runAdvice } from './advice-checks.js';
+export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 
 export interface CheckInput {
     readonly spec: Spec;
@@ -153,6 +158,14 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...linksOnWrongScope(reading, scopes, context),
         ...undefinedEventTargets(input.folders, input.parsed.file, input.names, context),
         ...missingKeys({ ...records, names: input.names }, context),
+        ...adviceFindings({
+            spec: input.spec,
+            folders: input.folders,
+            file: input.file,
+            tree: input.parsed.file,
+            names: input.names,
+            context,
+        }),
     ].sort(byPlace);
 }
 

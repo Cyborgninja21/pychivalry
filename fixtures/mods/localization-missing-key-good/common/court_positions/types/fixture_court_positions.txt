@@ -1,3 +1,0 @@
-# The game reports a court position type without its name and description keys (part D5).
-fixture_court_position = {
-}

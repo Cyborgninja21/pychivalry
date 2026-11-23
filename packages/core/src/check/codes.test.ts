@@ -37,7 +37,8 @@ function registry(): Map<string, Row> {
             section = line;
             continue;
         }
-        const cells = line.split('|').map((c) => c.trim());
+        // A cell may hold an escaped `\|`, which is no cell boundary.
+        const cells = line.split(/(?<!\\)\|/).map((c) => c.trim());
         const code = /^`([a-z]+\/[a-z0-9-]+)`$/.exec(cells[1] ?? '')?.[1];
         if (code === undefined || cells.length < 6) {
             continue;
@@ -97,6 +98,11 @@ test("each check's catalogue message is in the committed catalogue, with a place
     const catalogue = catalogueFromSpec(committedSpec().data);
     for (const code of Object.keys(CHECK_KINDS) as CheckCode[]) {
         const kind = CHECK_KINDS[code];
+        if (kind.advice === true) {
+            // Advice, with no game evidence: the row says so.
+            assert.ok(rows.get(code)?.evidence.startsWith('Advice'), code);
+            continue;
+        }
         if (kind.catalogue === null) {
             const evidence = rows.get(code)?.evidence ?? '';
             if (kind.gameOutput !== undefined) {

@@ -12,3 +12,6 @@ expected %s", each with the trigger's name, the scope it is in and the scopes it
 silent on the triggers that fit, on `is_adult` inside `any_vassal` (a character again), and on
 `tier` after `scope:fixture_target`, a saved scope whose type the spec package does not give.
 `expected.json` holds the findings.
+
+The decision has a `picture`, as every base-game decision does, so that the advice check
+`fields/usually-present` (item 4.7) has nothing to say about it.

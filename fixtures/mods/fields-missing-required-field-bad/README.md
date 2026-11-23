@@ -10,3 +10,6 @@ A correct tool reports three errors, each with that field's own message: "Casus 
 missing on_invalidated_desc", "Invalid or undefined index for character interaction category
 '{}'" and "Missing or invalid tutorial chain for tutorial lesson '%s'", filled with the
 record's key. `expected.json` holds the findings.
+
+The casus belli and the category also carry every field each base-game record of their kind
+sets, so that the advice check `fields/usually-present` (item 4.7) has nothing to say about them.

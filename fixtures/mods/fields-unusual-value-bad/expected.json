@@ -1,0 +1,17 @@
+{
+    "findings": [
+        {
+            "file": "common/nicknames/fixture_nicknames.txt",
+            "line": 2,
+            "column": 11,
+            "code": "fields/unusual-value",
+            "severity": "hint",
+            "message": "The base game never writes 'no' in 'is_bad'; it writes 'yes'.",
+            "data": {
+                "field": "is_bad",
+                "value": "no",
+                "observed": ["yes"]
+            }
+        }
+    ]
+}

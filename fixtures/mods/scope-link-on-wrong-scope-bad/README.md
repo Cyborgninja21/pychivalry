@@ -12,3 +12,6 @@ scope %s", each with the link, the scope it is applied to and the scopes it can 
 the chain and segment where it is one. It is silent on `is_adult` inside the blocks of those
 links: after a link on the wrong scope the scope is not known, so one mistake gives one finding.
 `expected.json` holds the findings.
+
+The decision has a `picture`, as every base-game decision does, so that the advice check
+`fields/usually-present` (item 4.7) has nothing to say about it.

@@ -1,0 +1,4 @@
+# The game reports a game concept without its description key, game_concept_<name>_desc, and
+# every game concept of the base game has game_concept_<name> (part D5).
+fixture_concept = {
+}

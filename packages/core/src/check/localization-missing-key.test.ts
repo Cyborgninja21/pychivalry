@@ -16,10 +16,16 @@ test(`${CODE} fires on its bad fixture, and only it`, () => {
     assert.ok(found.every((f) => f.code === CODE));
     const warnings = found.filter((f) => f.severity === 'warning');
     assert.ok(warnings.every((f) => f.message.startsWith('Unknown loc key ')));
-    // The key every base-game decision group has is advice, not a warning.
+    // The keys every base-game decision group and game concept have are advice, not warnings.
     assert.deepEqual(
         found.filter((f) => f.severity === 'information').map((f) => f.data['key']),
-        ['decision_group_type_fixture_decision_group'],
+        ['decision_group_type_fixture_decision_group', 'game_concept_fixture_concept'],
+    );
+    assert.ok(
+        found.some(
+            (f) =>
+                f.severity === 'warning' && f.data['key'] === 'game_concept_fixture_concept_desc',
+        ),
     );
 });
 

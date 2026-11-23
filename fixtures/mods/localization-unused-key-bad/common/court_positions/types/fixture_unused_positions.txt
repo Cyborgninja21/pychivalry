@@ -1,3 +1,0 @@
-# A record whose name gives it its keys (part D5): fixture_unused_position and its _desc.
-fixture_unused_position = {
-}

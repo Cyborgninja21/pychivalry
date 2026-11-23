@@ -11,16 +11,21 @@ import { committedSpec } from '../spec/testing.js';
 import { parse } from '../syntax/parser.js';
 import { blockOf, type Block } from '../syntax/tree.js';
 import { readContext, type BlockKind } from './context.js';
-import { checkMessage } from './finding.js';
+import { checkMessage, isAdvice } from './finding.js';
 import { checkText, specContext } from './testing.js';
 
-/** The messages every check gives on a text read as `file`. */
+/**
+ * The messages every check but the advice checks gives on a text read as `file`. The advice
+ * checks of item 4.7 are tested on their own fixtures.
+ */
 function messages(
     file: string,
     text: string,
     defined: Record<string, readonly string[]> = {},
 ): string[] {
-    return checkText(file, text, defined).map((f) => checkMessage(f));
+    return checkText(file, text, defined)
+        .filter((f) => !isAdvice(f.code))
+        .map((f) => checkMessage(f));
 }
 
 /** The kind of the block below each top-level record's field `key`. */

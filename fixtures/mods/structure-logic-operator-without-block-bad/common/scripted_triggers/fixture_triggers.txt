@@ -1,0 +1,3 @@
+fixture_child_trigger = {
+	NOT = is_adult
+}

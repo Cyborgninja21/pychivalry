@@ -11,3 +11,6 @@ its data: the buckets an effect is in, the iterator's prefix and list, the versi
 trigger went in and its replacement. It is silent on everything else in the file: triggers,
 `NOT`, `ROOT` (read as the link `root`), `trigger_if` with its `limit`, `any_vassal` with its
 `count` parameter, and the scripted trigger the mod defines. `expected.json` holds the findings.
+
+The event is hidden (`hidden = yes`), so that the advice checks of item 4.7 have nothing to say
+about it.

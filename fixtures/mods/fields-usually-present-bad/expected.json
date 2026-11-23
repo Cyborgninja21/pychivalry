@@ -1,0 +1,17 @@
+{
+    "findings": [
+        {
+            "file": "common/deathreasons/fixture_deathreasons.txt",
+            "line": 1,
+            "column": 1,
+            "code": "fields/usually-present",
+            "severity": "information",
+            "message": "'death_fixture' has no 'icon', which every one of the base game's 326 records of its kind sets.",
+            "data": {
+                "record": "death_fixture",
+                "field": "icon",
+                "base_game_records": "326"
+            }
+        }
+    ]
+}

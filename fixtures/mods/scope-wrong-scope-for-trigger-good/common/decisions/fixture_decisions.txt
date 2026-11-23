@@ -28,4 +28,7 @@ fixture_decision = {
 	effect = {
 		add_gold = 5
 	}
+	picture = {
+		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
+	}
 }

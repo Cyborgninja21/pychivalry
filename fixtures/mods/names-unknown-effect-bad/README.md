@@ -10,3 +10,6 @@ A correct tool reports five errors with the game's message "Unknown effect '%s'"
 data. It is silent on the rest: effects, `if` with its `limit` and `else`, `every_vassal` with
 its `limit`, `random_list` with its weighted entries and their `trigger`, `hidden_effect`, and
 the scripted effect the mod defines. `expected.json` holds the findings.
+
+The event is hidden (`hidden = yes`), so that the advice checks of item 4.7 have nothing to say
+about it.

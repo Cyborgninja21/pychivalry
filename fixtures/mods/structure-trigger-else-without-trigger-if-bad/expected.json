@@ -1,0 +1,16 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 3,
+            "column": 2,
+            "code": "structure/trigger-else-without-trigger-if",
+            "severity": "information",
+            "message": "'trigger_else' is not directly after 'trigger_if' or 'trigger_else_if'.",
+            "data": {
+                "branch": "trigger_else",
+                "follows": ["trigger_if", "trigger_else_if"]
+            }
+        }
+    ]
+}

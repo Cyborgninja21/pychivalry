@@ -12,15 +12,16 @@ option `name`), and keys records have by their names (part D5):
   `localization/english/replace/` folder; a data-binding expression in brackets; a dynamic
   description (`first_valid`, `triggered_desc`), whose block is not a key;
 - warnings, with the game's message "Unknown loc key %s": `fixture_loc.0001.missing`, defined
-  nowhere; `"fixture text with spaces"`, literal text the game reads as a key; and the court
-  position type's `fixture_court_position` and `fixture_court_position_desc`, which the package
-  shows the game requires (D5 `required`, confirmed);
-- information, advice: `decision_group_type_fixture_decision_group`, the key every decision group
+  nowhere; `"fixture text with spaces"`, literal text the game reads as a key; and the game
+  concept's `game_concept_fixture_concept_desc`, which the package shows the game requires (D5
+  `required`, confirmed);
+- information, advice: `game_concept_fixture_concept` and
+  `decision_group_type_fixture_decision_group`, keys every game concept and every decision group
   of the base game has (D5 `always-present-in-base-game`, a measurement, not a requirement).
 
 `fixture_loc_no_bom` is defined only in `fixture_loc_no_bom_l_english.yml`, a file without the
 UTF-8 byte-order mark. On Linux the game reads no key from such a file (the package's override
 rule `msg-localization-missing-bom`), which the index applies, and the check takes the index's
-answer: a fifth warning. `expected.json` holds the findings.
+answer: a fourth warning. `expected.json` holds the findings.
 
 With no base game read the check reports nothing.

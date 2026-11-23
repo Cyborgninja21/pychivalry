@@ -5,6 +5,6 @@
  fixture_loc.0001.missing:0 "No longer missing"
  fixture_loc.0001.spaces:0 "A key in place of literal text"
  fixture_loc_no_bom:0 "Defined in a file with the byte-order mark too"
- fixture_court_position:0 "A court position"
- fixture_court_position_desc:0 "What it does"
+ game_concept_fixture_concept:0 "A game concept"
+ game_concept_fixture_concept_desc:0 "What it means"
  decision_group_type_fixture_decision_group:0 "A decision group"
