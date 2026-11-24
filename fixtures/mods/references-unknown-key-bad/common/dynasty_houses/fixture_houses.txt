@@ -1,4 +1,4 @@
-fixture_house = {
+﻿fixture_house = {
 	name = fixture_house_name
 	dynasty = fixture_dynasty
 }

@@ -2,7 +2,7 @@
     "findings": [
         {
             "file": "events/fixture_events.txt",
-            "line": 12,
+            "line": 10,
             "column": 15,
             "code": "references/unknown-name",
             "severity": "information",

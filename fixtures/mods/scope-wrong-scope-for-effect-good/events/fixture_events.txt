@@ -1,4 +1,4 @@
-namespace = fixture
+﻿namespace = fixture
 
 # A character event: its root is a character. Each block below changes the scope by a link
 # (primary_title, capital_province).
@@ -14,22 +14,16 @@ fixture.0001 = {
 			}
 		}
 		add_gold = 10
-		every_vassal = {
-			add_gold = 1
-		}
+		every_vassal = { add_gold = 1 }
 		if = {
-			limit = {
-				is_adult = yes
-			}
+			limit = { is_adult = yes }
 			add_prestige = 10
 		}
 	}
 	option = {
 		name = fixture.0001.a
 		capital_province = {
-			add_province_modifier = {
-				modifier = fixture_modifier
-			}
+			add_province_modifier = { modifier = fixture_modifier }
 		}
 	}
 }

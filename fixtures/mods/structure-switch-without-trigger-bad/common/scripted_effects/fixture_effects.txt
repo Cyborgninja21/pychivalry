@@ -1,10 +1,6 @@
-fixture_trait_effect = {
+﻿fixture_trait_effect = {
 	switch = {
-		brave = {
-			add_prestige = 10
-		}
-		fallback = {
-			add_gold = 10
-		}
+		brave = { add_prestige = 10 }
+		fallback = { add_gold = 10 }
 	}
 }

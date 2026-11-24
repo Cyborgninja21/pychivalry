@@ -1,3 +1,1 @@
-fixture_scripted_trigger = {
-	always = no
-}
+﻿fixture_scripted_trigger = { always = no }

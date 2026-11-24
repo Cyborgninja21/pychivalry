@@ -47,8 +47,8 @@
         },
         {
             "file": "events/fixture_loc_events.txt",
-            "line": 14,
-            "column": 10,
+            "line": 9,
+            "column": 20,
             "code": "localization/missing-key",
             "severity": "warning",
             "message": "Unknown loc key fixture_loc_no_bom",
@@ -59,8 +59,8 @@
         },
         {
             "file": "events/fixture_loc_events.txt",
-            "line": 17,
-            "column": 10,
+            "line": 10,
+            "column": 20,
             "code": "localization/missing-key",
             "severity": "warning",
             "message": "Unknown loc key fixture_loc.0001.missing",
@@ -71,8 +71,8 @@
         },
         {
             "file": "events/fixture_loc_events.txt",
-            "line": 20,
-            "column": 10,
+            "line": 11,
+            "column": 20,
             "code": "localization/missing-key",
             "severity": "warning",
             "message": "Unknown loc key fixture text with spaces",

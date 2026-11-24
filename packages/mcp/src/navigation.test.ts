@@ -154,19 +154,19 @@ test('find_definition by name: every definition, the one in force first, and the
 
 test('find_definition by place: the name written there, then its definitions', async (t) => {
     const s = await server(t);
-    // `fixture_scripted_trigger = yes` on line 6 of the mod's event file, column 3 onwards.
+    // `fixture_scripted_trigger = yes` on line 5 of the mod's event file, column 14 onwards.
     const out = await s.output('find_definition', {
         file: 'events/fixture_lookup_mod_events.txt',
-        line: 6,
-        column: 10,
+        line: 5,
+        column: 20,
     });
     assert.equal(out['name'], 'fixture_scripted_trigger');
     assert.deepEqual(out['at'], {
         file: 'events/fixture_lookup_mod_events.txt',
-        line: 6,
-        column: 3,
-        end_line: 6,
-        end_column: 27,
+        line: 5,
+        column: 14,
+        end_line: 5,
+        end_column: 38,
         written_as: 'use',
     });
     assert.equal((out['definitions'] as unknown[]).length, 1);
@@ -194,8 +194,8 @@ test('find_references: the count by layer, the mod first, a page at a time', asy
     assert.deepEqual(
         refs.map((r) => [r.layer, r.line]),
         [
-            ['mod', 6],
-            ['mod', 14],
+            ['mod', 5],
+            ['mod', 10],
             ['game', 6],
         ],
     );

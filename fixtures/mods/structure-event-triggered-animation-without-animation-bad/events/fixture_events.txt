@@ -1,18 +1,14 @@
-namespace = fixture
+﻿namespace = fixture
 
 fixture.0001 = {
 	type = character_event
 	title = fixture.0001.t
 	desc = fixture.0001.desc
-	option = {
-		name = fixture.0001.a
-	}
+	option = { name = fixture.0001.a }
 	left_portrait = {
 		character = root
 		triggered_animation = {
-			trigger = {
-				is_adult = yes
-			}
+			trigger = { is_adult = yes }
 		}
 	}
 }

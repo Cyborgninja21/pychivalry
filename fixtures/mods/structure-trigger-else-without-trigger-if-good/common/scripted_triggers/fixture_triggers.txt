@@ -1,11 +1,7 @@
-fixture_ready_trigger = {
+﻿fixture_ready_trigger = {
 	trigger_if = {
-		limit = {
-			is_ai = yes
-		}
+		limit = { is_ai = yes }
 		is_adult = yes
 	}
-	trigger_else = {
-		is_ai = no
-	}
+	trigger_else = { is_ai = no }
 }

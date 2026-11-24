@@ -1,34 +1,20 @@
-# A decision runs in the character scope, the root scope of its directory. Each block below
+﻿# A decision runs in the character scope, the root scope of its directory. Each block below
 # changes the scope by a link (primary_title, capital_province) or an iterator (any_held_title).
 fixture_decision = {
 	is_shown = {
 		is_adult = yes
-		primary_title = {
-			tier >= 2
-		}
-		any_vassal = {
-			is_adult = yes
-		}
+		primary_title = { tier >= 2 }
+		any_vassal = { is_adult = yes }
 		any_held_title = {
-			holder = {
-				has_trait = brave
-			}
+			holder = { has_trait = brave }
 		}
-		scope:fixture_target = {
-			tier >= 2
-		}
+		scope:fixture_target = { tier >= 2 }
 	}
 	is_valid = {
 		capital_province = {
-			county = {
-				has_county_modifier = fixture_modifier
-			}
+			county = { has_county_modifier = fixture_modifier }
 		}
 	}
-	effect = {
-		add_gold = 5
-	}
-	picture = {
-		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
-	}
+	effect = { add_gold = 5 }
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
 }

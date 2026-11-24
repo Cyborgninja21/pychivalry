@@ -3,4 +3,4 @@
  fixture.1.desc: "Uses $fixture.1.t$ and $fixture_value|0$, costs $$5"
  fixture.1.a:0 "OK # not a comment"
  fixture_trait: "Trait" # a comment
-# fixture_effect in a comment line is not a use
+ # fixture_effect in a comment line is not a use

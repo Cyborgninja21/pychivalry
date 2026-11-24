@@ -4,21 +4,16 @@
  * A script file is UTF-8, with or without a byte-order mark. The mark is removed and
  * reported; it is never part of the text, so positions never count it. A file that is not
  * valid UTF-8 is still read in full, because the game itself ships and loads such files:
- * each invalid sequence becomes U+FFFD, the replacement character, and one information-level
- * note says the file is not valid UTF-8. A caller that names a fallback encoding (only
- * Windows-1252 today; off by default) has the invalid bytes of such a file, and only those,
- * decoded with it, so that both those letters and the file's valid UTF-8 letters read
- * correctly; the note is still given.
+ * each invalid sequence becomes U+FFFD, the replacement character, and the decoder records
+ * where each invalid stretch is and how the file was read, which the one finding about such a
+ * file, the warning `style/not-utf8`, reports (since 2026-11-23; the information note
+ * `encoding/not-utf8` the decoder gave until then is retired). A caller that names a fallback
+ * encoding (only Windows-1252 today; off by default) has the invalid bytes of such a file, and
+ * only those, decoded with it, so that both those letters and the file's valid UTF-8 letters
+ * read correctly.
  */
 
-import { LineIndex } from './position.js';
-import {
-    toFinding,
-    type Finding,
-    type InvalidStretch,
-    type MessageCatalogue,
-    type RawFinding,
-} from './findings.js';
+import type { InvalidStretch, MessageCatalogue } from './findings.js';
 
 /** The encodings a caller can name for files that are not valid UTF-8. */
 export type FallbackEncoding = 'windows-1252';
@@ -26,7 +21,7 @@ export type FallbackEncoding = 'windows-1252';
 export interface DecodeOptions {
     /** Decode the invalid bytes of a file that is not valid UTF-8 with this encoding. Off by default. */
     readonly fallbackEncoding?: FallbackEncoding | undefined;
-    /** The error catalogue, for findings' evidence (none of the decoding notes use it). */
+    /** The error catalogue, for the parser's findings (decoding gives none). */
     readonly catalogue?: MessageCatalogue | undefined;
 }
 
@@ -43,8 +38,6 @@ export interface Decoded {
     readonly invalidBytes: number;
     /** Each stretch that is not valid UTF-8, where its text is and what it reads as in Windows-1252. */
     readonly invalid: readonly InvalidStretch[];
-    /** The note that the file is not valid UTF-8, or nothing. */
-    readonly findings: readonly Finding[];
 }
 
 const utf8Strict = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
@@ -170,19 +163,12 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
             validUtf8: true,
             invalidBytes: 0,
             invalid: [],
-            findings: [],
         };
     } catch {
         // Not valid UTF-8: read it anyway, below.
     }
     const ranges = invalidUtf8Ranges(body);
-    const invalid = {
-        bytes: ranges.reduce((sum, range) => sum + (range.end - range.start), 0),
-        first: ranges[0]?.start ?? 0,
-    };
     const fallback = options.fallbackEncoding;
-    // The note sits at the first invalid byte: the length of the valid text before it.
-    const at = utf8Strict.decode(body.subarray(0, invalid.first)).length;
     // Valid UTF-8 stays UTF-8; each invalid stretch becomes one U+FFFD, or, with the fallback,
     // its bytes read as Windows-1252. Built stretch by stretch, so where each stretch's text is
     // is known; read as UTF-8 the result is what `TextDecoder` gives (a test holds the two).
@@ -198,30 +184,19 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
         from = range.end;
     }
     text += utf8Strict.decode(body.subarray(from));
-    const encoding = fallback ?? 'utf-8';
-    const raw: RawFinding = {
-        id: 'encoding/not-utf8',
-        start: at,
-        end: Math.min(at + 1, text.length),
-        args: [
-            String(invalid.bytes),
-            encoding === 'utf-8'
-                ? 'UTF-8 with replacement characters'
-                : 'UTF-8, with its invalid bytes read as Windows-1252',
-        ],
-    };
     return {
         text,
         bom,
-        encoding,
+        encoding: fallback ?? 'utf-8',
         validUtf8: false,
-        invalidBytes: invalid.bytes,
+        invalidBytes: ranges.reduce((sum, range) => sum + (range.end - range.start), 0),
         invalid: invalidStretches,
-        findings: [
-            {
-                ...toFinding(raw, new LineIndex(text), options.catalogue),
-                invalid: invalidStretches,
-            },
-        ],
     };
+}
+
+/** How a file not valid UTF-8 was read, in words: what the warning `style/not-utf8` says. */
+export function readingOf(encoding: 'utf-8' | FallbackEncoding): string {
+    return encoding === 'utf-8'
+        ? 'UTF-8 with replacement characters'
+        : 'UTF-8, with its invalid bytes read as Windows-1252';
 }

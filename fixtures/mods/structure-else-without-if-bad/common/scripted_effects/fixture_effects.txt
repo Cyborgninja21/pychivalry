@@ -1,6 +1,4 @@
-fixture_reward_effect = {
+﻿fixture_reward_effect = {
 	add_gold = 10
-	else = {
-		add_prestige = 10
-	}
+	else = { add_prestige = 10 }
 }

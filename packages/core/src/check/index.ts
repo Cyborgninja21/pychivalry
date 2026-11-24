@@ -7,6 +7,7 @@ import type { FolderTable } from '../index/folders.js';
 import type { LocalizationFile } from '../index/localization.js';
 import type { WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
+import type { FallbackEncoding } from '../syntax/decode.js';
 import type { InvalidStretch, MessageCatalogue } from '../syntax/findings.js';
 import type { ParseResult } from '../syntax/parser.js';
 import { adviceFindings } from './advice-checks.js';
@@ -38,6 +39,7 @@ import { judgedSteps, linksOnWrongScope } from './scope-link-on-wrong-scope.js';
 import { wrongScopeEffects } from './scope-wrong-scope-for-effect.js';
 import { wrongScopeTriggers } from './scope-wrong-scope-for-trigger.js';
 import { bestPracticeFindings } from './best-practice-checks.js';
+import { localizationKeyFindings } from './style-localization-key-characters.js';
 import { notUtf8Finding } from './style-not-utf8.js';
 
 export {
@@ -105,9 +107,16 @@ export {
     bestPracticeFindings,
 } from './best-practice-checks.js';
 export type { BestPracticeCheck, BestPracticeInput } from './best-practice.js';
-export { bodyFieldOrder, FIELD_ORDERS, JUDGED_FOLDERS, type FieldOrder } from './field-order.js';
+export {
+    bodyFieldOrder,
+    FIELD_ORDERS,
+    INFO_ORDER_FOLDERS,
+    JUDGED_FOLDERS,
+    type FieldOrder,
+} from './field-order.js';
 export { fieldsReadByName, judgedFields } from './style-unusual-field-order.js';
 export { MAX_DEPTH } from './style-deep-nesting.js';
+export { keyProblem, localizationKeyFindings } from './style-localization-key-characters.js';
 export type { BestPracticeCode } from './best-practice-kinds.js';
 export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 export {
@@ -129,6 +138,7 @@ export {
     type CappedFile,
     type CheckedFile,
     type CheckSource,
+    type NotUtf8Reading,
     type FileCheckInput,
     GAME_NOT_LOADED,
     MAX_FINDINGS_PER_FILE,
@@ -169,10 +179,12 @@ export interface CheckInput {
      */
     readonly measure?: ScopeMeasure | undefined;
     /**
-     * The stretches of the file that are not valid UTF-8, from the decoder's note
+     * The stretches of the file that are not valid UTF-8, as the decoder read them
      * (`style/not-utf8`); none when the file is valid UTF-8 or its bytes are not known.
      */
     readonly invalid?: readonly InvalidStretch[] | undefined;
+    /** How the decoder read them: as UTF-8 (by default), or with the fallback named. */
+    readonly encoding?: 'utf-8' | FallbackEncoding | undefined;
 }
 
 /** Every finding of the engine checks on one file, in the order of where each starts. */
@@ -238,6 +250,7 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             names: input.names,
             context,
             invalid: input.invalid ?? [],
+            encoding: input.encoding ?? 'utf-8',
         }),
     ].sort(byPlace);
 }
@@ -269,9 +282,10 @@ export interface LocalizationCheckInput {
  */
 export function checkLocalizationFile(input: LocalizationCheckInput): CheckFinding[] {
     const context = { lines: input.parsed.lines, catalogue: input.catalogue };
-    const notUtf8 = notUtf8Finding(input.parsed.invalid, context);
+    const notUtf8 = notUtf8Finding(input.parsed.invalid, input.parsed.encoding, context);
     return [
         ...(notUtf8 === null ? [] : [notUtf8]),
+        ...localizationKeyFindings(input.parsed, context).findings,
         ...unbalancedBrackets(input.file, input.parsed, context),
         ...(input.unusedKeys !== false
             ? unusedKeys(

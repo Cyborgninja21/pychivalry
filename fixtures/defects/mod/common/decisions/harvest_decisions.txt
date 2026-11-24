@@ -1,11 +1,8 @@
-# Hold a harvest festival in the capital.
+﻿# Hold a harvest festival in the capital.
 harvest_festival_decision = {
-	picture = {
-		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
-	}
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
 	decision_group_type = harvest_group
 	ai_check_inteval = 120
-	cooldown = { years = 5 }
 
 	is_shown = {
 		is_ruler = yes
@@ -15,31 +12,28 @@ harvest_festival_decision = {
 	is_valid = {
 		this = root
 		is_adult = yes
-		holder = {
-			is_alive = yes
-		}
+		holder = { is_alive = yes }
 	}
+
+	cooldown = { years = 5 }
 
 	effect = {
 		harvest_feast_effect = yes
-		trigger_event = { id = harvest_markt.0001 days = 7 }
+		trigger_event = {
+			id = harvest_markt.0001
+			days = 7
+		}
 		trigger_event = { on_action = harvest_festival_pulse }
 	}
 
-	ai_potential = {
-		is_at_war = no
-	}
+	ai_potential = { is_at_war = no }
 
-	ai_will_do = {
-		base = 50
-	}
+	ai_will_do = { base = 50 }
 }
 
 # Open the granaries to the poor.
 harvest_open_granaries_decision = {
-	picture = {
-		reference = "gfx/interface/illustrations/decisions/decision_misc.dds"
-	}
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
 	decision_group_type = harvest_group
 	ai_check_interval = 60
 
@@ -56,10 +50,11 @@ harvest_open_granaries_decision = {
 	effect = {
 		add_gold = -25
 		harvest_alms_giving_effect = yes
-		trigger_event = { id = harvest_market.0002 days = 7 }
+		trigger_event = {
+			id = harvest_market.0002
+			days = 7
+		}
 	}
 
-	ai_will_do = {
-		base = 10
-	}
+	ai_will_do = { base = 10 }
 }

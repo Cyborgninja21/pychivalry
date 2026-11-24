@@ -12,7 +12,7 @@
             "description": "What the project costs",
             "at": "field",
             "field": "cost",
-            "body": ["cost = {", "\tgold = ${1:500}", "}"]
+            "body": ["cost = { gold = ${1:500} }"]
         }
     ]
 }

@@ -1,7 +1,5 @@
-namespace = fixture
-scripted_trigger fixture_inline_trigger = {
-	has_trait = fixture_trait
-}
+﻿namespace = fixture
+scripted_trigger fixture_inline_trigger = { has_trait = fixture_trait }
 fixture.1 = {
 	type = character_event
 	title = fixture.1.t
@@ -15,9 +13,10 @@ fixture.1 = {
 		fixture_effect = yes
 		trigger_event = fixture.1
 		add_gold = value:fixture_scaled_value
-		set_variable = { name = $FIXTURE_PARAM$ value = 867.1.1 }
+		set_variable = {
+			name = $FIXTURE_PARAM$
+			value = 867.1.1
+		}
 	}
-	option = {
-		name = fixture.1.a
-	}
+	option = { name = fixture.1.a }
 }

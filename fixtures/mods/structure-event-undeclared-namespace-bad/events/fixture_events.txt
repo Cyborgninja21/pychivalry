@@ -1,9 +1,5 @@
-namespace = fixture
+﻿namespace = fixture
 
-fixture.0001 = {
-	hidden = yes
-}
+fixture.0001 = { hidden = yes }
 
-fixture_other.0001 = {
-	hidden = yes
-}
+fixture_other.0001 = { hidden = yes }

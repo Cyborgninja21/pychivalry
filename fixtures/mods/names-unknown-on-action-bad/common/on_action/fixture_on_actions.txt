@@ -1,9 +1,6 @@
-# The fields part D6 confirms name an on-action: a list, a weighted list and a fallback.
+﻿# The fields part D6 confirms name an on-action: a list, a weighted list and a fallback.
 fixture_on_action = {
-	on_actions = {
-		fixture_other_on_action
-		fixture_no_such_on_action
-	}
+	on_actions = { fixture_other_on_action fixture_no_such_on_action }
 	random_on_action = {
 		10 = fixture_other_on_action
 		10 = fixture_missing_random_on_action

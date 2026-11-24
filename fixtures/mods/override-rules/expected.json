@@ -207,7 +207,7 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/defines/jomini/fixture_jomini_only.txt",
-                "line": 2
+                "line": 1
             },
             "definitions": [
                 {
@@ -219,7 +219,7 @@
                 {
                     "layer": "mod",
                     "file": "common/defines/jomini/fixture_jomini_only.txt",
-                    "line": 2,
+                    "line": 1,
                     "read": "yes"
                 }
             ]
@@ -1144,13 +1144,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/genes/zz_fixture_genes.txt",
-                "line": 11
+                "line": 9
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 11,
+                    "line": 9,
                     "read": "yes"
                 }
             ]
@@ -1173,7 +1173,7 @@
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 19,
+                    "line": 15,
                     "read": "yes"
                 }
             ]
@@ -1209,13 +1209,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/genes/zz_fixture_genes.txt",
-                "line": 20
+                "line": 16
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 20,
+                    "line": 16,
                     "read": "yes"
                 }
             ]
@@ -1238,7 +1238,7 @@
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 25,
+                    "line": 20,
                     "read": "yes"
                 }
             ]
@@ -1274,13 +1274,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/genes/zz_fixture_genes.txt",
-                "line": 8
+                "line": 7
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 8,
+                    "line": 7,
                     "read": "yes"
                 }
             ]
@@ -1355,7 +1355,7 @@
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 13,
+                    "line": 11,
                     "read": "yes"
                 }
             ]
@@ -1372,7 +1372,7 @@
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 16,
+                    "line": 13,
                     "read": "yes"
                 }
             ]
@@ -1408,13 +1408,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/genes/zz_fixture_genes.txt",
-                "line": 21
+                "line": 17
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 21,
+                    "line": 17,
                     "read": "yes"
                 }
             ]
@@ -1429,7 +1429,7 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/genes/zz_fixture_genes.txt",
-                "line": 27
+                "line": 22
             },
             "definitions": [
                 {
@@ -1441,7 +1441,7 @@
                 {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
-                    "line": 27,
+                    "line": 22,
                     "read": "yes"
                 }
             ]
@@ -1916,13 +1916,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/traits/00_fixture_traits.txt",
-                "line": 9
+                "line": 7
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/traits/00_fixture_traits.txt",
-                    "line": 9,
+                    "line": 7,
                     "read": "yes"
                 }
             ]
@@ -1937,13 +1937,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/traits/00_fixture_traits.txt",
-                "line": 18
+                "line": 15
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/traits/00_fixture_traits.txt",
-                    "line": 18,
+                    "line": 15,
                     "read": "yes"
                 }
             ]
@@ -1958,13 +1958,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/traits/00_fixture_traits.txt",
-                "line": 6
+                "line": 4
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/traits/00_fixture_traits.txt",
-                    "line": 6,
+                    "line": 4,
                     "read": "yes"
                 }
             ]
@@ -1979,13 +1979,13 @@
             "winner": {
                 "layer": "mod",
                 "file": "common/traits/00_fixture_traits.txt",
-                "line": 15
+                "line": 12
             },
             "definitions": [
                 {
                     "layer": "mod",
                     "file": "common/traits/00_fixture_traits.txt",
-                    "line": 15,
+                    "line": 12,
                     "read": "yes"
                 }
             ]

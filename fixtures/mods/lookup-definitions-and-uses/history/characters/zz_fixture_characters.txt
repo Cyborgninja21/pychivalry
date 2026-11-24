@@ -1,3 +1,1 @@
-fixture_character = {
-	name = "Fixture"
-}
+﻿fixture_character = { name = "Fixture" }

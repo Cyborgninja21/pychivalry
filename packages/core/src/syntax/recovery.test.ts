@@ -44,7 +44,7 @@ for (const mod of mods) {
                 catalogue: committedCatalogue(),
             });
             assert.deepEqual(
-                result.allFindings.map((f) => ({
+                result.findings.map((f) => ({
                     id: f.id,
                     severity: f.severity,
                     line: f.range.start.line + 1,
@@ -65,9 +65,7 @@ for (const mod of mods) {
 }
 
 test('every kind of parse finding has a broken-input fixture', () => {
-    const kinds = (Object.keys(FINDING_KINDS) as FindingId[]).filter((id) =>
-        id.startsWith('syntax/'),
-    );
+    const kinds = Object.keys(FINDING_KINDS) as FindingId[];
     assert.deepEqual(
         kinds.filter((id) => !seen.has(id)),
         [],

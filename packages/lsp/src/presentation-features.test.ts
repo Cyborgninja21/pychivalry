@@ -10,7 +10,6 @@
 
 import { parse, type FileNode } from '@pychivalry/core';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import {
@@ -29,6 +28,7 @@ import {
     committedSpec,
     gameStub,
     MODS,
+    readDocument,
     scratch,
     spawnServer,
     uriOf,
@@ -108,9 +108,9 @@ test('outline, snippets, field order and inline hints on the presentation fixtur
     const init = await start(client, true);
     const caps = init['capabilities'] as Record<string, unknown>;
     assert.equal(caps['inlayHintProvider'], true);
-    const events = readFileSync(EVENTS, 'utf8');
+    const events = readDocument(EVENTS);
     const eventsUri = await client.open(EVENTS, events);
-    const decisions = readFileSync(DECISIONS, 'utf8');
+    const decisions = readDocument(DECISIONS);
     const decisionsUri = await client.open(DECISIONS, decisions);
 
     await t.test('the outline follows the folder rule: an event and its blocks', async () => {
@@ -165,7 +165,7 @@ test('outline, snippets, field order and inline hints on the presentation fixtur
                     ['ai_will_do', SymbolKind.Object],
                 ],
             );
-            const effects = readFileSync(EFFECTS, 'utf8');
+            const effects = readDocument(EFFECTS);
             const uri = await client.open(EFFECTS, effects);
             const plain = (await client.symbols(uri)) ?? [];
             assert.deepEqual(
@@ -206,10 +206,10 @@ test('outline, snippets, field order and inline hints on the presentation fixtur
                 .map((i) => i.label);
             assert.deepEqual(fields.slice(0, 5), [
                 'picture',
-                'cooldown',
                 'ai_check_interval',
                 'is_shown',
                 'is_valid',
+                'is_valid_showing_failures_only',
             ]);
             const preselected = list.items.filter((i) => i.preselect === true).map((i) => i.label);
             assert.deepEqual(preselected, ['is_valid'], 'the first of the order after is_shown');
@@ -246,8 +246,9 @@ test('outline, snippets, field order and inline hints on the presentation fixtur
             [at(events, 'presentation_fixture.1 =').line, 'The Fixture Begins'],
             [at(events, 'liege').line, ': character'],
             [at(events, 'every_vassal').line, ': character'],
-            [at(events, 'name = presentation_fixture.1.a').line - 1, 'Agree'],
-            [at(events, 'name = presentation_fixture.1.b').line - 1, 'Refuse, at length'],
+            // Each option is written on one line, its name inside it (the fixture is in the format).
+            [at(events, 'name = presentation_fixture.1.a').line, 'Agree'],
+            [at(events, 'name = presentation_fixture.1.b').line, 'Refuse, at length'],
         ]);
         const first = (await hints(client, eventsUri, events))[0];
         assert.deepEqual(
@@ -285,7 +286,7 @@ test('an editor that takes no snippets is offered none', async (t) => {
     const game = gameStub(path.join(scratch(t), 'install'));
     const { client } = spawnServer(t, { gamePath: game });
     await start(client, false);
-    const events = readFileSync(EVENTS, 'utf8');
+    const events = readDocument(EVENTS);
     const uri = await client.open(EVENTS, events);
     const end = events.split('\n').length - 1;
     const list = await completion(client, uri, { line: end, character: 0 });
@@ -293,7 +294,7 @@ test('an editor that takes no snippets is offered none', async (t) => {
         list.items.filter((i) => i.kind === CompletionItemKind.Snippet),
         [],
     );
-    const decisions = readFileSync(DECISIONS, 'utf8');
+    const decisions = readDocument(DECISIONS);
     const decisionsUri = await client.open(DECISIONS, decisions);
     const inBody = await completion(client, decisionsUri, at(decisions, 'effect'));
     assert.deepEqual(

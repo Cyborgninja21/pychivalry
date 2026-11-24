@@ -1,4 +1,4 @@
-fixture_first_group = {
+﻿fixture_first_group = {
 	sort_order = 10
 	fixture_stray_value
 	important_decision_group = yes

@@ -12,7 +12,7 @@
             "description": "The conditions for the travel option to be shown",
             "at": "field",
             "field": "is_shown",
-            "body": ["is_shown = {", "\t$0", "}"]
+            "body": ["is_shown = {$0}"]
         }
     ]
 }

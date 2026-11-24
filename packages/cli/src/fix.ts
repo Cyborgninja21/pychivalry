@@ -67,11 +67,7 @@ export function applySafeFixes(
     dryRun: boolean,
     all: readonly WorkspaceFinding[] = findings,
 ): FixRun {
-    const notUtf8 = new Set(
-        all
-            .filter((f) => f.code === 'encoding/not-utf8' || f.code === 'style/not-utf8')
-            .map((f) => f.file),
-    );
+    const notUtf8 = new Set(all.filter((f) => f.code === 'style/not-utf8').map((f) => f.file));
     // A file formatted whole needs none of its other formatting fixes.
     const formatted = new Set(
         findings

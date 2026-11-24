@@ -27,8 +27,7 @@ export type FindingId =
     | 'syntax/missing-equals-before-block'
     | 'syntax/null-safe-operator-after-value'
     | 'syntax/unterminated-string'
-    | 'syntax/malformed-arithmetic'
-    | 'encoding/not-utf8';
+    | 'syntax/malformed-arithmetic';
 
 /** A value a message is about, or the place the finding is at, which the renderer fills in. */
 export type Slot = 'value' | 'location';
@@ -103,11 +102,6 @@ export const FINDING_KINDS: Readonly<Record<FindingId, FindingKind>> = {
         slots: ['value', 'value'],
         description: "Malformed inline expression '@[%s]': %s",
     },
-    'encoding/not-utf8': {
-        catalogue: null,
-        slots: ['value', 'value'],
-        description: 'This file is not valid UTF-8 (%s invalid bytes); it was read as %s.',
-    },
 };
 
 /** The evidence behind a finding. */
@@ -169,7 +163,8 @@ export type Evidence =
 /**
  * One stretch of a file's bytes that is not valid UTF-8, as the decoder read it
  * (docs/encoding.md): where its text is in the decoded text, and what its bytes read as in
- * Windows-1252.
+ * Windows-1252. The check `style/not-utf8` and its fix read them; until 2026-11-23 they also
+ * travelled on the decoder's information note `encoding/not-utf8`, retired that day.
  */
 export interface InvalidStretch {
     /**
@@ -194,12 +189,6 @@ export interface Finding {
     /** The values the message is about, for the `value` slots, in order. */
     readonly args: readonly string[];
     readonly evidence: Evidence;
-    /**
-     * On the note `encoding/not-utf8` only: every stretch of the file that is not valid
-     * UTF-8, in order, which the check `style/not-utf8` and its fix read (the bytes themselves
-     * are no longer in the text).
-     */
-    readonly invalid?: readonly InvalidStretch[];
 }
 
 /** The game's message texts by catalogue id: the spec package's error catalogue. */

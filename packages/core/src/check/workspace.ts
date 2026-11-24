@@ -67,7 +67,7 @@ import {
     fillPlaceholders,
     findingMessage,
     type Evidence,
-    type Finding,
+    type InvalidStretch,
     type MessageCatalogue,
     type Severity,
 } from '../syntax/findings.js';
@@ -314,26 +314,28 @@ export function scriptFindings(input: ScriptInput): WorkspaceFinding[] {
         catalogue,
         fallbackEncoding: input.fallbackEncoding,
     });
-    return parsedScriptFindings(input, parsed, parsed.allFindings);
+    return parsedScriptFindings(input, parsed, {
+        invalid: parsed.invalid,
+        encoding: parsed.encoding,
+    });
 }
 
 /**
- * The findings of a script file already parsed: `syntax` holds the decoder's note, if any,
- * and the parser's findings, in the order of where each starts (`readScript`'s `allFindings`).
+ * The findings of a script file already parsed, with what the decoder read of the file's bytes
+ * where they are not valid UTF-8 (`style/not-utf8`): none for text whose bytes are not known.
  */
 function parsedScriptFindings(
     input: Omit<ScriptInput, 'bytes'>,
     parsed: ParseResult,
-    syntax: readonly Finding[],
+    decoded: NotUtf8Reading = NO_INVALID,
     withFixes = true,
     bom = parsed.bom,
 ): WorkspaceFinding[] {
     const { folders, catalogue } = specContext(input.spec);
     const out: Omit<WorkspaceFinding, 'fix'>[] = [];
     const layer = input.index?.layer ?? MOD_LAYER;
-    // The stretches that are not valid UTF-8 travel on the decoder's note (`style/not-utf8`).
-    const invalid = syntax.find((f) => f.id === 'encoding/not-utf8')?.invalid ?? [];
-    for (const f of syntax) {
+    const invalid = decoded.invalid;
+    for (const f of parsed.findings) {
         out.push({
             file: input.file,
             layer,
@@ -357,6 +359,7 @@ function parsedScriptFindings(
         index: input.index,
         measure: input.measure,
         invalid,
+        encoding: decoded.encoding,
     })) {
         out.push({
             file: input.file,
@@ -390,12 +393,7 @@ function parsedScriptFindings(
         (text) => {
             // Checked again only to prove a fix: nothing of it is counted.
             const again = parse(text, { catalogue });
-            return parsedScriptFindings(
-                { ...input, measure: undefined },
-                again,
-                again.findings,
-                false,
-            );
+            return parsedScriptFindings({ ...input, measure: undefined }, again, NO_INVALID, false);
         },
     );
     return withStyle(
@@ -632,16 +630,32 @@ export interface WorkspaceCheck {
 }
 
 /**
+ * What the decoder read of a file's bytes where they are not valid UTF-8: each invalid
+ * stretch, and how it was read (`utf-8`, or the fallback encoding named).
+ */
+export interface NotUtf8Reading {
+    readonly invalid: readonly InvalidStretch[];
+    readonly encoding: 'utf-8' | FallbackEncoding;
+}
+
+/** A file whose bytes are valid UTF-8, or are not known. */
+const NO_INVALID: NotUtf8Reading = { invalid: [], encoding: 'utf-8' };
+
+/**
  * What one file is checked from: its bytes, as the runner reads them from disk; or text an
  * editor holds, already read. A script file's text comes parsed (`parse`, or `reparse` after
- * an edit), with the decoder's note about the file on disk when the text is still what the
- * file holds; a localization file's text comes read (`readLocalization`).
+ * an edit), with what the decoder read of the file on disk where it is not valid UTF-8 when the
+ * text is still what the file holds; a localization file's text comes read (`readLocalization`).
  */
 export type CheckSource =
     | { readonly bytes: Uint8Array }
     | {
           readonly script: ParseResult;
-          readonly notes?: readonly Finding[] | undefined;
+          /**
+           * What the decoder read of the file's bytes where they are not valid UTF-8, when the
+           * text is still what the file holds (`style/not-utf8`); none otherwise.
+           */
+          readonly decoded?: NotUtf8Reading | undefined;
           /** True when the file on disk has the byte-order mark, which an editor's text never holds. */
           readonly bom?: boolean | undefined;
       }
@@ -718,13 +732,10 @@ export function checkSourceFile(input: FileCheckInput): {
         if ('bytes' in source) {
             found = scriptFindings({ ...scriptInput, bytes: source.bytes });
         } else {
-            const syntax = [...(source.notes ?? []), ...source.script.findings].sort(
-                (a, b) => a.start - b.start || a.end - b.end,
-            );
             found = parsedScriptFindings(
                 scriptInput,
                 source.script,
-                syntax,
+                source.decoded ?? NO_INVALID,
                 true,
                 source.bom ?? source.script.bom,
             );

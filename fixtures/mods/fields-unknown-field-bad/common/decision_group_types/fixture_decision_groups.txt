@@ -1,4 +1,4 @@
-# Decision groups of the fixture.
+﻿# Decision groups of the fixture.
 @fixture_order = 10
 
 fixture_first_group = {

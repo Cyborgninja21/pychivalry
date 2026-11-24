@@ -16,18 +16,10 @@
                 "\tgroup = ${2:conquest}",
                 "\twar_name = ${1:my_casus_belli}_war_name",
                 "\ton_invalidated_desc = ${3:msg_invalidate_war_title}",
-                "\tvalid_to_start = {",
-                "\t\t$4",
-                "\t}",
-                "\ton_victory = {",
-                "\t\t$5",
-                "\t}",
-                "\ton_white_peace = {",
-                "\t\t$6",
-                "\t}",
-                "\ton_defeat = {",
-                "\t\t$0",
-                "\t}",
+                "\tvalid_to_start = {$4}",
+                "\ton_victory = {$5}",
+                "\ton_white_peace = {$6}",
+                "\ton_defeat = {$0}",
                 "}"
             ]
         },
@@ -36,21 +28,21 @@
             "description": "The conditions for a war to be declared with it",
             "at": "field",
             "field": "valid_to_start",
-            "body": ["valid_to_start = {", "\t$0", "}"]
+            "body": ["valid_to_start = {$0}"]
         },
         {
             "label": "on_victory",
             "description": "What the attacker's victory does",
             "at": "field",
             "field": "on_victory",
-            "body": ["on_victory = {", "\t$0", "}"]
+            "body": ["on_victory = {$0}"]
         },
         {
             "label": "on_defeat",
             "description": "What the attacker's defeat does",
             "at": "field",
             "field": "on_defeat",
-            "body": ["on_defeat = {", "\t$0", "}"]
+            "body": ["on_defeat = {$0}"]
         }
     ]
 }

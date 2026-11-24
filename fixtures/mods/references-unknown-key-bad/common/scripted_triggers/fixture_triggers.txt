@@ -1,4 +1,4 @@
-fixture_tradition_trigger = {
+﻿fixture_tradition_trigger = {
 	has_cultural_tradition = fixture_missing_tradition
 	has_cultural_tradition = prev
 }

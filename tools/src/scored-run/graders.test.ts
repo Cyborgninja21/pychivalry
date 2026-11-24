@@ -63,27 +63,28 @@ test('on the untouched mod/, the checker graders fail and the others pass', () =
     const { grades } = gradeMod({ root, spec, manifest, original, result: original });
     assert.deepEqual(failing(original), ['zero-errors', 'defects-gone']);
     const gone = grades.find((g) => g.name === 'defects-gone');
-    // 33 findings of planted codes, shown up to the cap and counted past it.
+    // 36 findings of planted codes, shown up to the cap and counted past it.
     assert.equal(gone?.problems.length, MAX_PROBLEMS + 1);
-    assert.equal(gone.problems[MAX_PROBLEMS], 'and 13 more');
+    assert.equal(gone.problems[MAX_PROBLEMS], 'and 16 more');
 });
 
-test('a fix that deletes the offending block fails nothing-deleted alone', (t) => {
+test('a fix that deletes the offending block fails nothing-deleted, its block left out of the format', (t) => {
     // The effect run in the wrong scope is deleted instead of moved into the right one: the
-    // finding is gone and only the planted lines changed, but content was lost.
+    // finding is gone and only the planted lines changed, but content was lost, and the block
+    // left holding one pair is no longer laid out as the format says (style/not-formatted).
     const dir = referenceWith(t, 'events/harvest_events.txt', (text) =>
         replaceOnce(
             text,
-            '\t\tcapital_county = {\n\t\t\tadd_county_modifier = {\n\t\t\t\tmodifier = harvest_granary_modifier\n\t\t\t\tyears = 5\n\t\t\t}\n\t\t}\n',
+            '\t\tcapital_county = {\r\n\t\t\tadd_county_modifier = {\r\n\t\t\t\tmodifier = harvest_granary_modifier\r\n\t\t\t\tyears = 5\r\n\t\t\t}\r\n\t\t}\r\n',
             '',
         ),
     );
-    assert.deepEqual(failing(dir), ['nothing-deleted']);
+    assert.deepEqual(failing(dir), ['defects-gone', 'nothing-deleted']);
 });
 
 test('commenting the offending line out fails nothing-deleted alone', (t) => {
     const dir = referenceWith(t, 'common/scripted_effects/harvest_effects.txt', (text) =>
-        replaceOnce(text, '\tadd_piety = 10\n', '\t# add_piety =\n'),
+        replaceOnce(text, '\tadd_piety = 10\r\n', '\t# add_piety =\r\n'),
     );
     assert.deepEqual(failing(dir), ['nothing-deleted']);
 });
@@ -95,14 +96,18 @@ test('a fix that also edits a look-alike fails look-alikes-untouched alone', (t)
         t,
         'common/character_interaction_categories/harvest_categories.txt',
         (text) =>
-            replaceOnce(text, '\tcolor = { 0.8 0.6 0.2 }\n', '\tcolor = hsv { 0.1 0.75 0.8 }\n'),
+            replaceOnce(
+                text,
+                '\tcolor = { 0.8 0.6 0.2 }\r\n',
+                '\tcolor = hsv { 0.1 0.75 0.8 }\r\n',
+            ),
     );
     assert.deepEqual(failing(dir), ['look-alikes-untouched']);
 });
 
 test('a fix that rewrites an unrelated file fails only-planted-lines alone', (t) => {
     const dir = referenceWith(t, 'common/modifiers/harvest_modifiers.txt', (text) =>
-        replaceOnce(text, '\tstewardship = 2\n', '\tstewardship = 3\n'),
+        replaceOnce(text, '\tstewardship = 2\r\n', '\tstewardship = 3\r\n'),
     );
     assert.deepEqual(failing(dir), ['only-planted-lines']);
 });
@@ -111,7 +116,7 @@ test('a line added away from the planted lines fails only-planted-lines alone', 
     const dir = referenceWith(
         t,
         'common/script_values/harvest_values.txt',
-        (text) => `${text}\n# Tidied up.\n`,
+        (text) => `${text}\r\n# Tidied up.\r\n`,
     );
     assert.deepEqual(failing(dir), ['only-planted-lines']);
 });
@@ -119,7 +124,7 @@ test('a line added away from the planted lines fails only-planted-lines alone', 
 test('a file added or removed fails only-planted-lines, and a removed one nothing-deleted', (t) => {
     const added = path.join(tempDir(t), 'mod');
     cpSync(reference, added, { recursive: true });
-    writeFileSync(path.join(added, 'common', 'scripted_effects', 'notes.txt'), '# notes\n');
+    writeFileSync(path.join(added, 'common', 'scripted_effects', 'notes.txt'), '\uFEFF# notes\r\n');
     assert.deepEqual(failing(added), ['only-planted-lines']);
     const removed = path.join(tempDir(t), 'mod');
     cpSync(reference, removed, { recursive: true });
@@ -141,16 +146,16 @@ test('a fix the game accepts is accepted, though the reference fixes it another 
     const holder = referenceWith(t, 'common/decisions/harvest_decisions.txt', (text) =>
         replaceOnce(
             text,
-            '\t\tliege = {\n\t\t\tis_alive',
-            '\t\tprimary_title.holder = {\n\t\t\tis_alive',
+            '\t\tliege = { is_alive = yes }',
+            '\t\tprimary_title.holder = { is_alive = yes }',
         ),
     );
     assert.deepEqual(failing(holder), []);
     const character = referenceWith(t, 'events/harvest_events.txt', (text) =>
         replaceOnce(
             text,
-            '\t\tcapital_county = {\n\t\t\tadd_county_modifier = {\n\t\t\t\tmodifier = harvest_granary_modifier\n\t\t\t\tyears = 5\n\t\t\t}\n\t\t}\n',
-            '\t\tadd_character_modifier = {\n\t\t\tmodifier = harvest_granary_modifier\n\t\t\tyears = 5\n\t\t}\n',
+            '\t\tcapital_county = {\r\n\t\t\tadd_county_modifier = {\r\n\t\t\t\tmodifier = harvest_granary_modifier\r\n\t\t\t\tyears = 5\r\n\t\t\t}\r\n\t\t}\r\n',
+            '\t\tadd_character_modifier = {\r\n\t\t\tmodifier = harvest_granary_modifier\r\n\t\t\tyears = 5\r\n\t\t}\r\n',
         ),
     );
     assert.deepEqual(failing(character), []);
@@ -178,7 +183,7 @@ test('the obvious fix of a defect that interacts with another fails', (t) => {
     // The faith event's scope removed instead of hiding it: its faith trigger and effect are
     // then in a character scope, and words are lost.
     const scope = referenceWith(t, 'events/harvest_faith_events.txt', (text) =>
-        replaceOnce(text, '\tscope = faith\n\thidden = yes\n', ''),
+        replaceOnce(text, '\tscope = faith\r\n\thidden = yes\r\n', ''),
     );
     assert.deepEqual(failing(scope), [
         'zero-errors',
@@ -187,16 +192,16 @@ test('the obvious fix of a defect that interacts with another fails', (t) => {
         'look-alikes-untouched',
         'nothing-deleted',
     ]);
-    // The unclosed block closed at the end of the file: the checker is silent, but the brace
-    // is not where the block ends.
+    // The unclosed block closed at the end of the file: no error is left, but the brace is not
+    // where the block ends, and the line after it is no longer indented as the format says.
     const brace = referenceWith(t, 'common/scripted_effects/harvest_reward_effects.txt', (text) =>
         replaceOnce(
             text,
-            '\t\tyears = 2\n\t}\n\tadd_gold = 25\n}\n',
-            '\t\tyears = 2\n\tadd_gold = 25\n}\n}\n',
+            '\t\tyears = 2\r\n\t}\r\n\tadd_gold = 25\r\n}\r\n',
+            '\t\tyears = 2\r\n\tadd_gold = 25\r\n}\r\n}\r\n',
         ),
     );
-    assert.deepEqual(failing(brace), ['only-planted-lines']);
+    assert.deepEqual(failing(brace), ['defects-gone', 'only-planted-lines']);
 });
 
 test('an error of a code not planted fails zero-errors alone', () => {
@@ -221,12 +226,17 @@ test('an error of a code not planted fails zero-errors alone', () => {
     );
 });
 
-test('line endings and a final newline are not changes', (t) => {
+test('line endings and a final newline are not changes of lines, but the checker flags them', (t) => {
     const dir = path.join(tempDir(t), 'mod');
     cpSync(reference, dir, { recursive: true });
     const file = path.join(dir, 'common', 'modifiers', 'harvest_modifiers.txt');
-    writeFileSync(file, readFileSync(file, 'utf8').replaceAll('\n', '\r\n').replace(/\r\n$/, ''));
-    assert.deepEqual(failing(dir), []);
+    writeFileSync(file, readFileSync(file, 'utf8').replaceAll('\r\n', '\n').replace(/\n$/, ''));
+    // No line changed: only the file's form, which the planted code style/not-formatted reports.
+    assert.deepEqual(failing(dir), ['defects-gone']);
+    const { grades } = gradeMod({ root, spec, manifest, original, result: dir });
+    assert.deepEqual(grades.find((g) => g.name === 'defects-gone')?.problems, [
+        'common/modifiers/harvest_modifiers.txt:1 warning style/not-formatted (planted at events/harvest_market_events.txt:28)',
+    ]);
 });
 
 test('words: comments and braces are not words; quoted text is one', () => {

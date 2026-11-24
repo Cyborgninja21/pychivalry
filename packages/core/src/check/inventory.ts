@@ -69,7 +69,6 @@ export interface InventoryRow {
 export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'definitions/clash': ['name'],
     'definitions/not-read': ['name', 'reason'],
-    'encoding/not-utf8': ['number', 'encoding'],
     'fields/bare-value-in-record': ['token', 'file:line'],
     'fields/missing-required-field': ['record'],
     'fields/unknown-field': ['field', 'record'],
@@ -130,8 +129,9 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'style/line-endings': ['line breaks'],
     'style/deep-nesting': ['block', 'depth', 'deepest allowed', 'places'],
     'style/empty-block': ['block'],
-    'style/not-utf8': ['number'],
+    'style/not-utf8': ['number', 'reading'],
     'style/unusual-field-order': ['field', 'field before it', 'folder'],
+    'style/localization-key-characters': ['key', 'what it holds'],
 };
 
 /** A row's message as it is shown: each placeholder a readable slot (`SLOT_NAMES`). */

@@ -8,7 +8,6 @@
  */
 
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import {
@@ -17,7 +16,7 @@ import {
     type MarkupContent,
 } from 'vscode-languageserver-protocol/node';
 import { escapeMarkdown } from './hover.js';
-import { committedSpec, GAMES, MODS, spawnServer, uriOf } from './testing.js';
+import { committedSpec, GAMES, MODS, readDocument, spawnServer, uriOf } from './testing.js';
 
 const spec = committedSpec();
 const MOD = path.join(MODS, 'lookup-definitions-and-uses');
@@ -41,12 +40,12 @@ test('hover, definitions, references, symbols and completion on the lookup fixtu
     const { client } = spawnServer(t, { gamePath: GAME });
     await client.start([MOD]);
     await client.settled();
-    const events = readFileSync(EVENTS, 'utf8');
+    const events = readDocument(EVENTS);
     const eventsUri = await client.open(EVENTS, events);
 
     await t.test("hover on a keyword is the spec's description, with its source", async () => {
         const file = path.join(MOD, 'common', 'scripted_triggers', 'zz_fixture_triggers.txt');
-        const text = readFileSync(file, 'utf8');
+        const text = readDocument(file);
         const uri = await client.open(file, text);
         const pos = at(text, 'always', 2);
         const hover = await client.hover(uri, pos.line, pos.character);
@@ -95,7 +94,7 @@ test('hover, definitions, references, symbols and completion on the lookup fixtu
                 one?.map((l) => l.uri),
                 [uriOf(path.join(MOD, 'common', 'scripted_triggers', 'zz_fixture_triggers.txt'))],
             );
-            const characters = readFileSync(CHARACTERS, 'utf8');
+            const characters = readDocument(CHARACTERS);
             const uri = await client.open(CHARACTERS, characters);
             const both = await client.definition(uri, 0, 3);
             assert.deepEqual(
@@ -141,7 +140,7 @@ test('hover, definitions, references, symbols and completion on the lookup fixtu
                 start: { line: 2, character: 0 },
                 end: { line: 2, character: 'fixture_lookup_mod.1'.length },
             });
-            const loc = readFileSync(LOC, 'utf8');
+            const loc = readDocument(LOC);
             const locUri = await client.open(LOC, loc, 'ck3-localization');
             const locSymbols = (await client.symbols(locUri)) ?? [];
             assert.equal(locSymbols.length, 1);

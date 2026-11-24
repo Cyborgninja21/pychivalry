@@ -44,21 +44,21 @@
             "description": "The conditions for the activity to be shown",
             "at": "field",
             "field": "is_shown",
-            "body": ["is_shown = {", "\t${1:is_adult = yes}", "}"]
+            "body": ["is_shown = { ${1:is_adult = yes} }"]
         },
         {
             "label": "can_start",
             "description": "The conditions for the activity to be started",
             "at": "field",
             "field": "can_start",
-            "body": ["can_start = {", "\t$0", "}"]
+            "body": ["can_start = {$0}"]
         },
         {
             "label": "is_valid",
             "description": "The conditions for the activity to go on",
             "at": "field",
             "field": "is_valid",
-            "body": ["is_valid = {", "\t${1:exists = scope:host}", "}"]
+            "body": ["is_valid = { ${1:exists = scope:host} }"]
         },
         {
             "label": "phases",
@@ -69,9 +69,7 @@
                 "phases = {",
                 "\t${1:my_phase} = {",
                 "\t\tis_predefined = yes",
-                "\t\ton_phase_active = {",
-                "\t\t\t$0",
-                "\t\t}",
+                "\t\ton_phase_active = {$0}",
                 "\t}",
                 "}"
             ]
@@ -84,9 +82,7 @@
             "body": [
                 "options = {",
                 "\t${1:my_option_category} = {",
-                "\t\t${2:my_option} = {",
-                "\t\t\tdefault = yes",
-                "\t\t}",
+                "\t\t${2:my_option} = { default = yes }",
                 "\t}",
                 "}"
             ]
@@ -100,9 +96,7 @@
                 "special_guests = {",
                 "\t${1:honorary_guest} = {",
                 "\t\tis_required = no",
-                "\t\tselect_character = {",
-                "\t\t\t$0",
-                "\t\t}",
+                "\t\tselect_character = {$0}",
                 "\t}",
                 "}"
             ]
@@ -112,21 +106,21 @@
             "description": "What the activity costs its host",
             "at": "field",
             "field": "cost",
-            "body": ["cost = {", "\tgold = {", "\t\tvalue = ${1:100}", "\t}", "}"]
+            "body": ["cost = {", "\tgold = { value = ${1:100} }", "}"]
         },
         {
             "label": "cooldown",
             "description": "How long before the host can hold it again",
             "at": "field",
             "field": "cooldown",
-            "body": ["cooldown = {", "\tyears = ${1:1}", "}"]
+            "body": ["cooldown = { years = ${1:1} }"]
         },
         {
             "label": "ai_will_do",
             "description": "How much the AI wants to hold the activity",
             "at": "field",
             "field": "ai_will_do",
-            "body": ["ai_will_do = {", "\tvalue = ${1:100}", "}"]
+            "body": ["ai_will_do = { value = ${1:100} }"]
         },
         {
             "label": "province_filter",
@@ -148,9 +142,7 @@
             "at": "field",
             "field": "background",
             "body": [
-                "background = {",
-                "\ttexture = \"${1:gfx/interface/illustrations/activity_feast.dds}\"",
-                "}"
+                "background = { texture = \"${1:gfx/interface/illustrations/activity_feast.dds}\" }"
             ]
         },
         {
@@ -158,14 +150,14 @@
             "description": "What happens when the activity starts",
             "at": "field",
             "field": "on_start",
-            "body": ["on_start = {", "\tscope:host = {", "\t\t$0", "\t}", "}"]
+            "body": ["on_start = {", "\tscope:host = {$0}", "}"]
         },
         {
             "label": "on_complete",
             "description": "What happens when the activity ends",
             "at": "field",
             "field": "on_complete",
-            "body": ["on_complete = {", "\t$0", "}"]
+            "body": ["on_complete = {$0}"]
         },
         {
             "label": "guest_invite_rules",
@@ -174,12 +166,8 @@
             "field": "guest_invite_rules",
             "body": [
                 "guest_invite_rules = {",
-                "\trules = {",
-                "\t\t1 = ${1:activity_invite_rule_friends}",
-                "\t}",
-                "\tdefaults = {",
-                "\t\t1 = ${2:activity_invite_rule_close_family}",
-                "\t}",
+                "\trules = { 1 = ${1:activity_invite_rule_friends} }",
+                "\tdefaults = { 1 = ${2:activity_invite_rule_close_family} }",
                 "}"
             ]
         },

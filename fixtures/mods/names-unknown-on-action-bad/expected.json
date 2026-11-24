@@ -2,8 +2,8 @@
     "findings": [
         {
             "file": "common/on_action/fixture_on_actions.txt",
-            "line": 5,
-            "column": 3,
+            "line": 3,
+            "column": 41,
             "code": "names/unknown-on-action",
             "severity": "error",
             "message": "Unknown on action: fixture_no_such_on_action",
@@ -14,7 +14,7 @@
         },
         {
             "file": "common/on_action/fixture_on_actions.txt",
-            "line": 9,
+            "line": 6,
             "column": 8,
             "code": "names/unknown-on-action",
             "severity": "error",
@@ -26,7 +26,7 @@
         },
         {
             "file": "common/on_action/fixture_on_actions.txt",
-            "line": 11,
+            "line": 8,
             "column": 13,
             "code": "names/unknown-on-action",
             "severity": "error",
@@ -38,7 +38,7 @@
         },
         {
             "file": "common/on_action/fixture_on_actions.txt",
-            "line": 19,
+            "line": 16,
             "column": 33,
             "code": "names/unknown-on-action",
             "severity": "error",

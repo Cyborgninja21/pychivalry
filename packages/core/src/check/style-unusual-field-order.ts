@@ -19,8 +19,10 @@
  *   has, with no name before the key and no other operator; a bare value, a block without a
  *   key, a `$PARAM$`, an unknown key or a comparison leaves the record unjudged.
  * - **Two fields of the order at least** are written in it.
- * - **The base game follows the order** in the folder more often than it breaks it
- *   (`JUDGED_FOLDERS`): two folders it does not are left out until the owner says otherwise.
+ * - **The folder is judged** (`JUDGED_FOLDERS`): every folder of the data, since the owner's
+ *   word of 2026-11-23, `common/decisions` and `common/character_interactions` among them, whose
+ *   orders come from their `.info` files although the base game breaks them more often than it
+ *   follows them (best practice over what the base game writes).
  *
  * A field written more than once keeps the order of its copies: the order is judged, and fixed,
  * with each copy at its field's place, never one copy moved past another (part D1 says, per

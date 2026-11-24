@@ -1,3 +1,2 @@
-# A record whose name gives it its keys (part D5): game_concept_fixture_unused_concept and its _desc.
-fixture_unused_concept = {
-}
+﻿# A record whose name gives it its keys (part D5): game_concept_fixture_unused_concept and its _desc.
+fixture_unused_concept = {}

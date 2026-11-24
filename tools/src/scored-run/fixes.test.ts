@@ -38,15 +38,15 @@ const spec = openSpec(path.join(root, 'spec'));
 const modDir = path.join(root, DEFECTS_DIR, 'mod');
 const gameDir = path.join(root, ...manifest.game.split('/'));
 
-/** The findings on the mod in `dir`, but the `style/` family's, which plants nothing. */
-function check(dir: string): WorkspaceFinding[] {
+/** The findings on the mod in `dir`, the `style/` family's among them. */
+function check(dir: string): readonly WorkspaceFinding[] {
     return checkWorkspace({
         spec,
         gameDir,
         cacheDir: null,
         modDir: dir,
         platform: 'linux',
-    }).findings.filter((f) => !f.code.startsWith('style/'));
+    }).findings;
 }
 
 /** Apply one alternative to the mod in `dir`. */
@@ -179,6 +179,9 @@ test("each safe fix of the planted-defect mod fixes its defect as the mod's grad
         'syntax/missing-equals-before-block',
         'syntax/unexpected-closing-brace',
         'structure/range-min-above-max',
+        'style/not-formatted',
+        'style/indentation',
+        'style/not-utf8',
     ]) {
         assert.ok(codes.has(code), `a safe fix of ${code}`);
     }

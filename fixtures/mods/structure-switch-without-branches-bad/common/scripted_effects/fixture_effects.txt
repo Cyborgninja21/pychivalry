@@ -1,8 +1,6 @@
-fixture_trait_effect = {
+﻿fixture_trait_effect = {
 	switch = {
 		trigger = has_trait
-		fallback = {
-			add_gold = 10
-		}
+		fallback = { add_gold = 10 }
 	}
 }

@@ -19,18 +19,42 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
     assert.deepEqual(
         found.map((f) => [f.code, f.severity, f.file]),
         [
-            ['encoding/not-utf8', 'information', 'common/scripted_effects/fixture_effects.txt'],
             [CODE, 'warning', 'common/scripted_effects/fixture_effects.txt'],
             [CODE, 'warning', 'localization/english/fixture_l_english.yml'],
         ],
     );
 });
 
+test(`${CODE} is the one finding about a file not UTF-8, and says how it was read`, () => {
+    // The information note encoding/not-utf8 is retired (the owner's word of 2026-11-23); what it
+    // said is in the warning's message and data.
+    for (const fallback of [undefined, 'windows-1252'] as const) {
+        const run = checkFixtureMod(path.join(MODS, 'style-not-utf8-bad'), fallback);
+        // Beside it only the formatter's findings: the file has no byte-order mark.
+        const found = run.findings.filter(
+            (f) =>
+                f.file === 'common/scripted_effects/fixture_effects.txt' &&
+                f.severity !== 'hint' &&
+                f.code !== 'style/not-formatted',
+        );
+        assert.deepEqual(
+            found.map((f) => [f.code, f.data['read_as']]),
+            [[CODE, fallback ?? 'utf-8']],
+        );
+        assert.match(
+            found[0]?.message ?? '',
+            fallback === undefined
+                ? /it was read as UTF-8 with replacement characters\./
+                : /it was read as UTF-8, with its invalid bytes read as Windows-1252\./,
+        );
+    }
+});
+
 test(`${CODE} is silent on its good fixture`, () => {
     assert.deepEqual(styleFixture('style-not-utf8-good'), []);
 });
 
-test(`${CODE} is a best-practice rule, at warning, beside the signed-off note encoding/not-utf8`, () => {
+test(`${CODE} is a best-practice rule, at warning, with no game evidence`, () => {
     assert.equal(CHECK_KINDS[CODE].severity, 'warning');
     assert.equal(CHECK_KINDS[CODE].bestPractice, true);
     assert.equal(CHECK_KINDS[CODE].catalogue, null);

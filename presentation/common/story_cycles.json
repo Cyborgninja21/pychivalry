@@ -31,26 +31,16 @@
             "at": "record",
             "body": [
                 "${1:my_story} = {",
-                "\ton_setup = {",
-                "\t\t$2",
-                "\t}",
-                "\ton_end = {",
-                "\t\t$3",
-                "\t}",
+                "\ton_setup = {$2}",
+                "\ton_end = {$3}",
                 "\ton_owner_death = {",
-                "\t\tscope:story = {",
-                "\t\t\tend_story = yes",
-                "\t\t}",
+                "\t\tscope:story = { end_story = yes }",
                 "\t}",
                 "\teffect_group = {",
                 "\t\tdays = ${4:30}",
                 "\t\ttriggered_effect = {",
-                "\t\t\ttrigger = {",
-                "\t\t\t\t${5:always = yes}",
-                "\t\t\t}",
-                "\t\t\teffect = {",
-                "\t\t\t\t$0",
-                "\t\t\t}",
+                "\t\t\ttrigger = { ${5:always = yes} }",
+                "\t\t\teffect = {$0}",
                 "\t\t}",
                 "\t}",
                 "}"
@@ -61,21 +51,21 @@
             "description": "What happens when the story starts",
             "at": "field",
             "field": "on_setup",
-            "body": ["on_setup = {", "\t$0", "}"]
+            "body": ["on_setup = {$0}"]
         },
         {
             "label": "on_end",
             "description": "What happens when the story ends",
             "at": "field",
             "field": "on_end",
-            "body": ["on_end = {", "\t$0", "}"]
+            "body": ["on_end = {$0}"]
         },
         {
             "label": "on_owner_death",
             "description": "What happens when the story's owner dies",
             "at": "field",
             "field": "on_owner_death",
-            "body": ["on_owner_death = {", "\tscope:story = {", "\t\tend_story = yes", "\t}", "}"]
+            "body": ["on_owner_death = {", "\tscope:story = { end_story = yes }", "}"]
         },
         {
             "label": "effect_group",
@@ -85,16 +75,10 @@
             "body": [
                 "effect_group = {",
                 "\tdays = ${1:30}",
-                "\ttrigger = {",
-                "\t\t$2",
-                "\t}",
+                "\ttrigger = {$2}",
                 "\ttriggered_effect = {",
-                "\t\ttrigger = {",
-                "\t\t\t$3",
-                "\t\t}",
-                "\t\teffect = {",
-                "\t\t\t$0",
-                "\t\t}",
+                "\t\ttrigger = {$3}",
+                "\t\teffect = {$0}",
                 "\t}",
                 "}"
             ]
@@ -105,16 +89,7 @@
             "at": "field",
             "block": "effect_group",
             "field": "triggered_effect",
-            "body": [
-                "triggered_effect = {",
-                "\ttrigger = {",
-                "\t\t$1",
-                "\t}",
-                "\teffect = {",
-                "\t\t$0",
-                "\t}",
-                "}"
-            ]
+            "body": ["triggered_effect = {", "\ttrigger = {$1}", "\teffect = {$0}", "}"]
         },
         {
             "label": "first_valid",
@@ -125,20 +100,12 @@
             "body": [
                 "first_valid = {",
                 "\ttriggered_effect = {",
-                "\t\ttrigger = {",
-                "\t\t\t$1",
-                "\t\t}",
-                "\t\teffect = {",
-                "\t\t\t$2",
-                "\t\t}",
+                "\t\ttrigger = {$1}",
+                "\t\teffect = {$2}",
                 "\t}",
                 "\ttriggered_effect = {",
-                "\t\ttrigger = {",
-                "\t\t\talways = yes",
-                "\t\t}",
-                "\t\teffect = {",
-                "\t\t\t$0",
-                "\t\t}",
+                "\t\ttrigger = { always = yes }",
+                "\t\teffect = {$0}",
                 "\t}",
                 "}"
             ]
@@ -152,20 +119,12 @@
             "body": [
                 "random_valid = {",
                 "\ttriggered_effect = {",
-                "\t\ttrigger = {",
-                "\t\t\t$1",
-                "\t\t}",
-                "\t\teffect = {",
-                "\t\t\t$2",
-                "\t\t}",
+                "\t\ttrigger = {$1}",
+                "\t\teffect = {$2}",
                 "\t}",
                 "\ttriggered_effect = {",
-                "\t\ttrigger = {",
-                "\t\t\t$3",
-                "\t\t}",
-                "\t\teffect = {",
-                "\t\t\t$0",
-                "\t\t}",
+                "\t\ttrigger = {$3}",
+                "\t\teffect = {$0}",
                 "\t}",
                 "}"
             ]

@@ -213,7 +213,7 @@ test('no game folder: the localization is absent, and so it is with no file sour
 test('a file source may hand over the text an editor holds; a file it cannot read has no text', () => {
     const { files } = fixture();
     // The editor's copy of the mod's file, with the text it holds; every other file from disk.
-    const held = '﻿l_english:\n monthly_prestige:0 "As the editor holds it"\n';
+    const held = '﻿l_english:\r\n monthly_prestige:0 "As the editor holds it"\r\n';
     const editor: FileSource = (layer, path) =>
         layer === 'mod' && path === 'localization/english/fixture_lookup_l_english.yml'
             ? held

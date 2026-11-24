@@ -1,4 +1,4 @@
-# Each year, one event of the festival.
+﻿# Each year, one event of the festival.
 harvest_festival_pulse = {
 	random_events = {
 		100 = harvest.0001
@@ -9,24 +9,20 @@ harvest_festival_pulse = {
 
 # Late in the year, the court and the market.
 harvest_festival_pulse_late = {
-	events = {
-		harvest.0004
-		harvest.0013
-		harvest_market.0001
-	}
+	events = { harvest.0004 harvest.0013 harvest_market.0001 }
 	on_actions = { harvest_festival_cleanup }
 }
 
 # The festival is cleared away.
 harvest_festival_cleanup = {
-	events = {
-		harvst.0004
-	}
+	events = { harvst.0004 }
 }
 
 on_game_start = {
 	on_actions = {
+		# Each year.
 		harvest_festival_pulse
+		# Late in the year.
 		harvest_festival_puls_late
 	}
 }

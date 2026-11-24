@@ -1,5 +1,5 @@
 {
-    "$comment": "The order the fields of each folder's records are conventionally written in: completion follows it (the language server) and the best-practice rule style/unusual-field-order judges it (the core). Moved here from the language server's presentation data on 2026-11-23 so that every surface reads the one copy; see packages/core/src/check/field-order.ts. 'judged' lists the folders the rule judges: those whose records the game reads field by field and whose base-game records follow the order more often than they break it (1.21.0.3, pychivalry-tools advice proof). common/decisions (321 of 587 records in another order) and common/character_interactions (401 of 650) are left out until the owner says otherwise.",
+    "$comment": "The order the fields of each folder's records are conventionally written in: completion follows it (the language server) and the best-practice rule style/unusual-field-order judges it (the core). Moved here from the language server's presentation data on 2026-11-23 so that every surface reads the one copy; see packages/core/src/check/field-order.ts. Six orders are the pre-2.0 schema files' sets ranked by the base game's majority order; the two folders 'from_info' names take the order of their fields in the folder's own .info file (Paradox's documentation, the spec package's companion info_docs), on the owner's word of 2026-11-23. 'judged' lists the folders the rule judges: every folder here, each one whose records the game reads field by field.",
     "folders": {
         "common/casus_belli_types": [
             {
@@ -22,21 +22,21 @@
             {
                 "block": "",
                 "fields": [
+                    "interface_priority",
                     "category",
                     "icon",
-                    "interface_priority",
-                    "cooldown",
-                    "redirect",
-                    "is_shown",
                     "is_highlighted",
+                    "cooldown",
+                    "is_shown",
                     "can_send",
-                    "on_auto_accept",
-                    "ai_frequency",
-                    "ai_potential",
+                    "redirect",
                     "on_accept",
                     "on_decline",
-                    "ai_accept",
+                    "on_auto_accept",
                     "ai_targets",
+                    "ai_frequency",
+                    "ai_potential",
+                    "ai_accept",
                     "ai_will_do"
                 ]
             }
@@ -62,16 +62,16 @@
                 "block": "",
                 "fields": [
                     "picture",
-                    "cooldown",
                     "ai_check_interval",
                     "is_shown",
                     "is_valid",
                     "is_valid_showing_failures_only",
                     "cost",
-                    "widget",
+                    "cooldown",
                     "effect",
                     "ai_potential",
-                    "ai_will_do"
+                    "ai_will_do",
+                    "widget"
                 ]
             }
         ],
@@ -145,10 +145,13 @@
     },
     "judged": [
         "common/casus_belli_types",
+        "common/character_interactions",
         "common/court_positions/types",
+        "common/decisions",
         "common/on_action",
         "common/schemes/scheme_types",
         "common/story_cycles",
         "events"
-    ]
+    ],
+    "from_info": ["common/character_interactions", "common/decisions"]
 }

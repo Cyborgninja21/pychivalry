@@ -1,3 +1,1 @@
-nick_fixture = {
-	is_bad = no
-}
+﻿nick_fixture = { is_bad = no }

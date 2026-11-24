@@ -12,7 +12,7 @@
             "description": "The legend's qualities, each with what it gives",
             "at": "field",
             "field": "quality",
-            "body": ["quality = {", "\tfamed = {", "\t\t$0", "\t}", "}"]
+            "body": ["quality = {", "\tfamed = {$0}", "}"]
         }
     ]
 }

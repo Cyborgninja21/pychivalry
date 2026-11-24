@@ -2,7 +2,7 @@
     "findings": [
         {
             "file": "events/fixture_events.txt",
-            "line": 12,
+            "line": 10,
             "column": 3,
             "code": "structure/event-triggered-animation-without-animation",
             "severity": "information",

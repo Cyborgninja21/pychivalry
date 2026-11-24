@@ -12,7 +12,7 @@
 
 import { openSpec, type Spec } from '@pychivalry/core';
 import { spawn } from 'node:child_process';
-import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { PassThrough } from 'node:stream';
@@ -79,6 +79,15 @@ export function modCopy(t: TestContext, mod: string): string {
     const dir = path.join(scratch(t), mod);
     cpSync(path.join(MODS, mod), dir, { recursive: true });
     return dir;
+}
+
+/**
+ * A file's text as an editor holds it: decoded as UTF-8, without the byte-order mark, which an
+ * editor keeps as the document's encoding, not as its text (the fixtures are in pychivalry's
+ * format, so they start with it).
+ */
+export function readDocument(file: string): string {
+    return readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
 }
 
 /**

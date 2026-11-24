@@ -1,4 +1,4 @@
-namespace = fixture_on_action_events
+﻿namespace = fixture_on_action_events
 
 fixture_on_action_events.1 = {
 	type = character_event

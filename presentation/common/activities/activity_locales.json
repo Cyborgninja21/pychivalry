@@ -21,7 +21,7 @@
             "description": "What happens when a character enters the locale",
             "at": "field",
             "field": "on_enter_locale",
-            "body": ["on_enter_locale = {", "\t$0", "}"]
+            "body": ["on_enter_locale = {$0}"]
         },
         {
             "label": "visuals",
@@ -30,9 +30,7 @@
             "field": "visuals",
             "body": [
                 "visuals = {",
-                "\ttrigger = {",
-                "\t\t${1:always = yes}",
-                "\t}",
+                "\ttrigger = { ${1:always = yes} }",
                 "\treference = \"${2:widget_name}\"",
                 "}"
             ]
@@ -42,21 +40,21 @@
             "description": "How likely the locale is to be picked",
             "at": "field",
             "field": "chance",
-            "body": ["chance = {", "\tvalue = ${1:100}", "}"]
+            "body": ["chance = { value = ${1:100} }"]
         },
         {
             "label": "ai_will_do",
             "description": "How much the AI wants to enter the locale",
             "at": "field",
             "field": "ai_will_do",
-            "body": ["ai_will_do = {", "\tvalue = ${1:0}", "}"]
+            "body": ["ai_will_do = { value = ${1:0} }"]
         },
         {
             "label": "cooldown",
             "description": "How long before the locale can be entered again",
             "at": "field",
             "field": "cooldown",
-            "body": ["cooldown = {", "\tdays = ${1:7}", "}"]
+            "body": ["cooldown = { days = ${1:7} }"]
         }
     ]
 }

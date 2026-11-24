@@ -1,0 +1,6 @@
+﻿# Shows the three tooltips.
+fixture_tooltips_effect = {
+	custom_tooltip = fixture_key_with_dash
+	custom_tooltip = fixture_leading_digit
+	custom_tooltip = fixture_good_key.tooltip
+}

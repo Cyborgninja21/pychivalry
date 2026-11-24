@@ -81,10 +81,9 @@ test('the suite parses the listed folders, classifies every error and passes', (
             reason: 'The event is never closed.',
         },
     ]);
-    assert.deepEqual(
-        results.notes.map((n) => [n.file, n.line, n.id]),
-        [['history/titles/k_fixture.txt', 1, 'encoding/not-utf8']],
-    );
+    // A file not valid UTF-8 is counted (`not_utf8`); the parse gives no note about it, the
+    // decoder's note encoding/not-utf8 being retired (2026-11-23).
+    assert.deepEqual(results.notes, []);
 });
 
 test('the encoding measurement covers every text file and finds where the bad bytes are', (t) => {

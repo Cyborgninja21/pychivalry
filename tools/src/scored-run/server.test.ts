@@ -179,39 +179,22 @@ test(
             cursor = page.next_cursor;
         }
         assert.equal(cursor, null, 'every page read');
-        // The `style/` family (pychivalry's formatting rules) plants nothing: left out here.
-        const style = (severity: string): number =>
-            Object.entries(output.totals.by_code)
-                .filter(([code]) => code.startsWith('style/'))
-                .reduce(
-                    (n, [code, count]) =>
-                        n +
-                        (code === 'style/not-formatted'
-                            ? severity === 'warning'
-                                ? count
-                                : 0
-                            : severity === 'hint'
-                              ? count
-                              : 0),
-                    0,
-                );
+        // The `style/` family is planted too: a file not in the format (a warning and its
+        // rule's hint) and a file not UTF-8 (a warning).
         assert.deepEqual(
             {
-                error: (output.totals.by_severity['error'] ?? 0) - style('error'),
-                warning: (output.totals.by_severity['warning'] ?? 0) - style('warning'),
-                information: (output.totals.by_severity['information'] ?? 0) - style('information'),
-                hint: (output.totals.by_severity['hint'] ?? 0) - style('hint'),
+                error: output.totals.by_severity['error'] ?? 0,
+                warning: output.totals.by_severity['warning'] ?? 0,
+                information: output.totals.by_severity['information'] ?? 0,
+                hint: output.totals.by_severity['hint'] ?? 0,
             },
-            { error: 26, warning: 7, information: 0, hint: 0 },
+            { error: 26, warning: 9, information: 0, hint: 1 },
         );
         const planted = manifest.defects.flatMap((d) =>
             reportedAt(d).map((p) => `${d.code} ${p.file}:${String(p.line)}`),
         );
         assert.deepEqual(
-            findings
-                .filter((f) => !f.code.startsWith('style/'))
-                .map((f) => `${f.code} ${f.file}:${String(f.line)}`)
-                .sort(),
+            findings.map((f) => `${f.code} ${f.file}:${String(f.line)}`).sort(),
             planted.sort(),
             'the planted defects, at the lines the manifest counts from 1',
         );

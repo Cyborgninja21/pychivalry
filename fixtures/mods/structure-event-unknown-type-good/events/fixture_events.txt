@@ -1,9 +1,7 @@
-namespace = fixture
+﻿namespace = fixture
 
 fixture.0001 = {
 	type = character_event
 	hidden = yes
-	immediate = {
-		add_gold = 10
-	}
+	immediate = { add_gold = 10 }
 }

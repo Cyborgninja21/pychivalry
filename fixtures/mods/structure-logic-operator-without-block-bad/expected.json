@@ -2,8 +2,8 @@
     "findings": [
         {
             "file": "common/scripted_triggers/fixture_triggers.txt",
-            "line": 2,
-            "column": 2,
+            "line": 1,
+            "column": 27,
             "code": "structure/logic-operator-without-block",
             "severity": "information",
             "message": "'NOT' is given a single value instead of a block of triggers.",

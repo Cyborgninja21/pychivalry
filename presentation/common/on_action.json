@@ -32,42 +32,42 @@
             "label": "on_action",
             "description": "A new on-action, fired from script: its effect",
             "at": "record",
-            "body": ["${1:my_on_action} = {", "\teffect = {", "\t\t$0", "\t}", "}"]
+            "body": ["${1:my_on_action} = {", "\teffect = {$0}", "}"]
         },
         {
             "label": "trigger",
             "description": "The conditions for the on-action to run",
             "at": "field",
             "field": "trigger",
-            "body": ["trigger = {", "\t$0", "}"]
+            "body": ["trigger = {$0}"]
         },
         {
             "label": "effect",
             "description": "What the on-action does",
             "at": "field",
             "field": "effect",
-            "body": ["effect = {", "\t$0", "}"]
+            "body": ["effect = {$0}"]
         },
         {
             "label": "events",
             "description": "The events the on-action fires, each that is valid",
             "at": "field",
             "field": "events",
-            "body": ["events = {", "\t$0", "}"]
+            "body": ["events = {$0}"]
         },
         {
             "label": "random_events",
             "description": "The events the on-action picks one of, by weight",
             "at": "field",
             "field": "random_events",
-            "body": ["random_events = {", "\tchance_to_happen = ${1:50}", "\t$0", "}"]
+            "body": ["random_events = { chance_to_happen = ${1:50}$0 }"]
         },
         {
             "label": "first_valid",
             "description": "The events the on-action fires the first valid of",
             "at": "field",
             "field": "first_valid",
-            "body": ["first_valid = {", "\t$0", "}"]
+            "body": ["first_valid = {$0}"]
         }
     ]
 }

@@ -1,4 +1,4 @@
-# An era's blocks that hold modifiers, each read with the use area part D7 confirms:
+﻿# An era's blocks that hold modifiers, each read with the use area part D7 confirms:
 # character_modifier with character, county_modifier with county, province_modifier with
 # province. Every modifier here has the block's use area among its own.
 culture_era_fixture = {
@@ -12,7 +12,5 @@ culture_era_fixture = {
 		baron_levy_contribution_add = 1
 		baron_herd_contribution_mult = 0.1
 	}
-	province_modifier = {
-		defender_winter_advantage = 1
-	}
+	province_modifier = { defender_winter_advantage = 1 }
 }

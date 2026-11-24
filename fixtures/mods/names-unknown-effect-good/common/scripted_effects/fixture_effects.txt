@@ -1,4 +1,4 @@
-# Keys in effect blocks: effects, containers, an iterator, a random list, a scripted effect
+﻿# Keys in effect blocks: effects, containers, an iterator, a random list, a scripted effect
 # of this mod.
 fixture_reward_effect = {
 	add_gold = 10
@@ -6,9 +6,7 @@ fixture_reward_effect = {
 		limit = { is_adult = yes }
 		add_prestige = 5
 	}
-	else = {
-		add_gold = 1
-	}
+	else = { add_gold = 1 }
 	every_vassal = {
 		limit = { is_adult = yes }
 		add_prestige = 5
@@ -20,14 +18,10 @@ fixture_reward_effect = {
 			add_prestige = 1
 		}
 	}
-	hidden_effect = {
-		save_scope_as = fixture_target
-	}
+	hidden_effect = { save_scope_as = fixture_target }
 	add_prestige = 1
 	add_gold = 2
 	every_courtier = { add_prestige = 5 }
 }
 
-fixture_slot_effect = {
-	add_special_district_slot = yes
-}
+fixture_slot_effect = { add_special_district_slot = yes }

@@ -10,8 +10,9 @@
  * that fires with the file and line of each.
  *
  * The best-practice rules of the family `style` (the owner's principle of 2026-11-23) are
- * counted the same way, on the base game's script files and, for `style/not-utf8`, its
- * localization files too, but judged otherwise: the zero-exceptions rule is for advice that
+ * counted the same way, on the base game's script files and, for `style/not-utf8` and
+ * `style/localization-key-characters`, its localization files too (by language), but judged
+ * otherwise: the zero-exceptions rule is for advice that
  * claims something about the game, and a style rule claims a best practice, so the base game
  * breaking it does not retire it. A style row `follows` when the base game breaks it at most
  * as often as it follows it (at most half the units it applies to), and is `broken` otherwise:
@@ -32,6 +33,7 @@ import {
     indexFiles,
     installFolders,
     listInstall,
+    localizationKeyFindings,
     readLocalization,
     readScript,
     rulesFromSpec,
@@ -48,6 +50,9 @@ export const MIN_APPLIES = 10;
 
 /** The most findings a style row lists, file and line each; past it only its counts. */
 export const MAX_STYLE_LISTED = 100;
+
+/** The best-practice rule of localization files' keys, counted beside the script rules. */
+const LOCALIZATION_KEY_CODE = 'style/localization-key-characters';
 
 export type Verdict = 'holds' | 'fires' | 'too-few' | 'follows' | 'broken';
 
@@ -126,8 +131,8 @@ export function adviceProof(
             byFolder: Map<string, FolderCount>;
         }
     >(
-        BEST_PRACTICE_CHECKS.map((c) => [
-            c.code,
+        [...BEST_PRACTICE_CHECKS.map((c) => c.code), LOCALIZATION_KEY_CODE].map((code) => [
+            code,
             { applies: 0, fires: 0, findings: [], byFolder: new Map() },
         ]),
     );
@@ -141,7 +146,10 @@ export function adviceProof(
         if (count === undefined) {
             return;
         }
-        const folder = folders.classify(file)?.folder.path ?? '(none)';
+        // A localization file is counted by its language's folder (`localization/english`).
+        const folder = file.endsWith('.yml')
+            ? file.split('/').slice(0, 2).join('/')
+            : (folders.classify(file)?.folder.path ?? '(none)');
         const was = count.byFolder.get(folder) ?? { folder, applies: 0, fires: 0 };
         count.byFolder.set(folder, {
             folder,
@@ -166,8 +174,10 @@ export function adviceProof(
             continue;
         }
         if (file.path.endsWith('.yml')) {
-            // A localization file: only whether it is UTF-8 is a style rule's to judge.
+            // A localization file: whether it is UTF-8, and the characters of its keys.
             const loc = readLocalization(readFileSync(file.disk));
+            const keys = localizationKeyFindings(loc, { lines: loc.lines, catalogue });
+            countStyle(LOCALIZATION_KEY_CODE, file.path, keys.judged, keys.findings);
             const found = checkLocalizationFile({
                 spec,
                 folders,
@@ -208,8 +218,11 @@ export function adviceProof(
                 });
             }
         }
-        const invalid = parsed.allFindings.find((f) => f.id === 'encoding/not-utf8')?.invalid ?? [];
-        for (const [code, result] of runBestPractice({ ...input, invalid })) {
+        for (const [code, result] of runBestPractice({
+            ...input,
+            invalid: parsed.invalid,
+            encoding: parsed.encoding,
+        })) {
             countStyle(code, file.path, result.judged, result.findings);
         }
     }

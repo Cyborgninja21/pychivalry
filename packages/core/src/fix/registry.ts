@@ -100,10 +100,6 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         offer: 'none',
         what: 'None: what the expression should compute is a choice.',
     },
-    'encoding/not-utf8': {
-        offer: 'none',
-        what: 'None: which encoding the file was written in is not known.',
-    },
     'names/unknown-trigger': {
         offer: 'safe-or-suggestion',
         what: 'The documented replacement of a removed trigger, or the triggers near the name that fit the scope; safe when there is only one.',
@@ -327,6 +323,10 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         offer: 'safe-or-suggestion',
         what: 'The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree.',
         fixer: (_finding, file) => notUtf8Fix(file),
+    },
+    'style/localization-key-characters': {
+        offer: 'none',
+        what: "None: a key's name is the author's, and renaming it means renaming every use of it.",
     },
     'style/unusual-field-order': {
         offer: 'safe',

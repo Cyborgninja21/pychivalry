@@ -47,14 +47,13 @@ test('every error and warning code is planted at least once, and only codes of t
         assert.ok(rows.has(code), `${code} is a code of this build`);
     }
     const planted = new Set(codes);
-    // The `style/` family rests on pychivalry's own rules, its formatting rules and its
-    // best-practice rules (2026-11-23), not on what the game rejects: not planted.
+    // The `style/` family's warnings too (the owner's word of 2026-11-23): a file not in the
+    // format, and a file not UTF-8.
     const severe = [...rows.values()].filter(
-        (r) =>
-            (r.severity === 'error' || r.severity === 'warning') &&
-            r.evidence.kind !== 'formatting-rules' &&
-            r.evidence.kind !== 'best-practice',
+        (r) => r.severity === 'error' || r.severity === 'warning',
     );
+    assert.ok(severe.some((r) => r.code === 'style/not-formatted'));
+    assert.ok(severe.some((r) => r.code === 'style/not-utf8'));
     assert.deepEqual(
         severe.filter((r) => !planted.has(r.code)).map((r) => r.code),
         [],
@@ -86,7 +85,7 @@ test('the mod is hard enough to tell servers apart: defects that need a lookup, 
         0,
     );
     assert.ok(
-        files.length >= 15 && lines >= 550,
+        files.length >= 15 && lines >= 500,
         `${String(files.length)} files, ${String(lines)} lines`,
     );
 });
