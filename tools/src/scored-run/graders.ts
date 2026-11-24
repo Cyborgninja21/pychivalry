@@ -82,8 +82,8 @@ export function filesIn(dir: string): string[] {
 
 /**
  * The checker's findings on a mod over a game folder: the core's one runner, no cache, with its
- * defaults, as the agent server's `check` answers by default: `localization/unused-key` off
- * unless `unusedKeys` is given (docs/decisions.md, decision 76).
+ * defaults, as the agent server's `check` answers by default: `localization/unused-key` on
+ * unless `unusedKeys` is false (on by default since 2026-11-23, replacing decision 76).
  */
 export function checkMod(
     spec: Spec,

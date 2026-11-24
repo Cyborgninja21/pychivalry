@@ -33,6 +33,9 @@ export function evidenceText(row: InventoryRow): string {
     if (evidence.kind === 'required-field') {
         return `the game's own message for the missing field ${evidence.field}: "${evidence.text}"`;
     }
+    if (evidence.kind === 'best-practice') {
+        return "none: this is one of pychivalry's own best-practice rules (the family style), which the base game follows more often than it breaks";
+    }
     return "none: this is pychivalry's own advice, never an error or a warning";
 }
 
@@ -55,7 +58,8 @@ export function rowText(row: InventoryRow): string {
         `  Finds: ${row.finds}`,
         `  Evidence: ${evidenceText(row)}`,
         ...message,
-        ...(row.offByDefault ? ['  Off by default: check --unused-keys turns it on'] : []),
+        ...(row.offByDefault ? ['  Off by default: check reports it only when asked'] : []),
+        ...(row.canTurnOff ? ['  On by default: check --no-unused-keys turns it off'] : []),
     ].join('\n');
 }
 
@@ -70,6 +74,7 @@ export function rowJson(row: InventoryRow): Record<string, unknown> {
         evidence: row.evidence,
         message: row.message,
         off_by_default: row.offByDefault,
+        can_turn_off: row.canTurnOff,
     };
 }
 

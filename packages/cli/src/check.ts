@@ -27,8 +27,8 @@
  *   `--limit` shortens the listing only.
  * - **`--fix`** applies the safe fixes of the findings the filters keep, then checks again and
  *   reports what is left; `--fix --dry-run` writes nothing and prints the edits (`fix.ts`).
- * - **Off by default:** `localization/unused-key` runs only with `--unused-keys`
- *   (docs/decisions.md, decision 76).
+ * - **Unused keys:** `localization/unused-key` runs by default since the owner's word of
+ *   2026-11-23 (replacing docs/decisions.md, decision 76); `--no-unused-keys` turns it off.
  * - **Exit codes:** 0 when no finding kept is an error, 1 when one is, 2 on bad usage, a mod
  *   that is not a folder, or a spec or game folder that cannot be read.
  * - **The base game's index** comes from the on-disk cache in the user's cache folder
@@ -100,8 +100,8 @@ const LIMIT_OPTION: OptionSpec = {
     help: 'show at most n findings; the summary still counts all of them',
 };
 const UNUSED_KEYS_OPTION: OptionSpec = {
-    name: '--unused-keys',
-    help: 'also report localization keys nothing uses (localization/unused-key, off by default)',
+    name: '--no-unused-keys',
+    help: 'do not report localization keys nothing uses (localization/unused-key, on by default)',
 };
 const FIX_OPTION: OptionSpec = {
     name: '--fix',
@@ -363,7 +363,7 @@ function* checkSteps(parsed: Parsed, io: Io): Steps<number> {
             modDir,
             gameDir: game.dir,
             cacheDir: defaultCacheDir(io.env, io.platform, io.home),
-            unusedKeys: parsed.flags.has('--unused-keys'),
+            unusedKeys: !parsed.flags.has('--no-unused-keys'),
             base: io.base,
         });
     let run = yield* checkMod();

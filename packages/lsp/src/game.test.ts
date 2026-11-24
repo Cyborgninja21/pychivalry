@@ -52,7 +52,7 @@ test('without a game the server says so once and judges no name the game might d
     assert.equal(unknownTriggers(client.diagnostics.get(uriOf(events))?.diagnostics), 0);
     // Opening the workspace again does not say it again.
     const before = client.done.length;
-    await client.configure({ localization: { unusedKeys: true } });
+    await client.configure({ localization: { unusedKeys: false } });
     await client.settled(before);
     await client.folders([dir], [dir]);
     await client.settled(before + 1);
