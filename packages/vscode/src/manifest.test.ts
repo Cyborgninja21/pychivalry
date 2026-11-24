@@ -2,7 +2,8 @@
  * The extension's manifest, `package.json`, held to the code, to the language server and to the
  * spec package: the ids the code registers, the activation, the VS Code floor (item 7.2), the
  * file patterns of the two languages, which are the spec's own folders, and the settings, which
- * are the language server's own (items 7.4 and 7.6).
+ * are the language server's own (items 7.4 and 7.6). The skills it contributes to VS Code
+ * (`contributes.chatSkills`, item 9.1) are held to the skills folder by `skill-files.test.ts`.
  */
 
 import { openSpec } from '@pychivalry/core';
@@ -26,6 +27,7 @@ import {
     GAME_PATH_SETTING,
     LANGUAGES,
     PROVIDER_ID,
+    REMOVE_FROM_CLAUDE_CODE,
     SET_UP_CLAUDE_CODE,
     SETTINGS_SECTION,
     SHARING_REQUEST,
@@ -90,12 +92,17 @@ test('the floor is pinned, and the API types are no newer than it', () => {
     }
 });
 
-test('the agent-server provider and the command are the ones the code registers', () => {
+test('the agent-server provider and the commands are the ones the code registers', () => {
     assert.deepEqual(manifest.contributes.mcpServerDefinitionProviders, [
         { id: PROVIDER_ID, label: 'pychivalry' },
     ]);
     assert.deepEqual(manifest.contributes.commands, [
         { command: SET_UP_CLAUDE_CODE, title: 'Set up for Claude Code', category: 'pychivalry' },
+        {
+            command: REMOVE_FROM_CLAUDE_CODE,
+            title: 'Remove from Claude Code',
+            category: 'pychivalry',
+        },
     ]);
 });
 

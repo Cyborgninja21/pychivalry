@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import path from 'node:path';
+import { readSkills } from '../skills.js';
 import type { CheckAnswer, Entry } from './agent.js';
 
 /** The fixture mod the editor tests open: one error, whatever game the server finds. */
@@ -23,6 +24,10 @@ export function assertFixtureAnswer(answer: CheckAnswer): void {
         JSON.stringify(answer.output),
     );
 }
+
+/** The line the update suite adds to each skill of its second version (`run.ts`). */
+export const SKILL_NOTE = (version: string): string =>
+    `\nThis copy is the skill of version ${version}.\n`;
 
 /** Whether two paths name the same file: on Windows without regard to letter case. */
 export function samePath(a: string, b: string): boolean {
@@ -75,4 +80,23 @@ export function asEntry(entry: Record<string, unknown>): Entry {
         args: entry['args'] as string[],
         env: (entry['env'] ?? {}) as Record<string, string>,
     };
+}
+
+/**
+ * That Claude Code's skills folder `claudeSkills` holds each skill of `bundled` (the extension's
+ * own folder of them), byte for byte.
+ */
+export function assertSkillsCopied(claudeSkills: string, bundled: string): void {
+    const shipped = readSkills(bundled);
+    assert.equal(shipped.length, 3, shipped.map((s) => s.name).join(', '));
+    const copied = new Map(readSkills(claudeSkills).map((s) => [s.name, s]));
+    for (const skill of shipped) {
+        const copy = copied.get(skill.name);
+        assert.ok(copy !== undefined, `${skill.name} is not in ${claudeSkills}`);
+        assert.deepEqual(
+            copy.files.map((f) => [f.path, f.sha256]),
+            skill.files.map((f) => [f.path, f.sha256]),
+            `${skill.name} in ${claudeSkills} is not the extension's`,
+        );
+    }
 }

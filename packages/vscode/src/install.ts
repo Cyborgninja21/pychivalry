@@ -137,7 +137,7 @@ function complete(dir: string, manifest: BundleManifest): boolean {
 }
 
 /** Write `bytes` to `file` through a temporary file beside it, renamed over it. */
-function replaceFile(file: string, bytes: Uint8Array): void {
+export function replaceFile(file: string, bytes: Uint8Array): void {
     mkdirSync(path.dirname(file), { recursive: true });
     const temp = `${file}.${String(process.pid)}-${randomBytes(4).toString('hex')}.tmp`;
     writeFileSync(temp, bytes);
