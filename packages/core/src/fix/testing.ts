@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { checkWorkspace, type WorkspaceCheck, type WorkspaceFinding } from '../check/workspace.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
+import { decodeScript, type FallbackEncoding } from '../syntax/decode.js';
 import { applyFixes } from './apply.js';
 import type { FixAlternative } from './fix.js';
 
@@ -68,11 +69,42 @@ export function checkMod(modDir: string, gameDir: string | null): WorkspaceCheck
     });
 }
 
+/**
+ * The one runner's check of a fixture mod with no game and no cache, read with a fallback
+ * encoding when one is given; `files` replaces files of it, by their path in the mod, in a copy.
+ */
+export function checkFixtureMod(
+    modDir: string,
+    fallbackEncoding?: FallbackEncoding,
+    files?: Readonly<Record<string, Uint8Array>>,
+): WorkspaceCheck {
+    let dir = modDir;
+    if (files !== undefined) {
+        dir = copyMod(modDir);
+        for (const [file, bytes] of Object.entries(files)) {
+            writeFileSync(path.join(dir, ...file.split('/')), bytes);
+        }
+    }
+    return checkWorkspace({
+        spec: committedSpec(),
+        modDir: dir,
+        gameDir: null,
+        cacheDir: null,
+        platform: 'linux',
+        fallbackEncoding,
+    });
+}
+
 /** Apply alternatives to a mod on disk, as `check --fix` does; returns the files written. */
 export function applyToMod(modDir: string, alternatives: readonly FixAlternative[]): string[] {
     const read = (file: string): string | null => {
         const at = path.join(modDir, ...file.split('/'));
-        return existsSync(at) ? readFileSync(at, 'utf8') : null;
+        if (!existsSync(at)) {
+            return null;
+        }
+        // As the runner reads it: a file that is not valid UTF-8 with U+FFFD for each stretch.
+        const decoded = decodeScript(readFileSync(at));
+        return `${decoded.bom ? '\ufeff' : ''}${decoded.text}`;
     };
     const { files } = applyFixes(alternatives, read);
     for (const [file, text] of files) {

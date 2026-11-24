@@ -1,0 +1,11 @@
+# Scripted effects whose blocks hold nothing.
+fixture_empty_effect = {
+	add_gold = 10
+	if = {
+		limit = { }
+		add_prestige = 5
+	}
+	else = {
+		# Nothing here yet.
+	}
+}

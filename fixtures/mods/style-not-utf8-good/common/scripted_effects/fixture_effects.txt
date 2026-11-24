@@ -1,0 +1,5 @@
+# A scripted effect written by René.
+fixture_tooltip_effect = {
+	custom_tooltip = fixture_tooltip
+	add_gold = 10 # Café money.
+}

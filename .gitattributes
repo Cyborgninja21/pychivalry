@@ -17,3 +17,5 @@ spec/schema.format8.json -text
 
 # Fixtures that exist to test another encoding: their bytes are exact.
 fixtures/mods/encoding-windows-1252/history/** -text
+fixtures/mods/style-not-utf8-bad/common/** -text
+fixtures/mods/style-not-utf8-bad/localization/** -text

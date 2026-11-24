@@ -47,8 +47,12 @@ test('every error and warning code is planted at least once, and only codes of t
         assert.ok(rows.has(code), `${code} is a code of this build`);
     }
     const planted = new Set(codes);
+    // Every error and warning with the game's evidence; the best-practice rules of the family
+    // `style` (2026-11-23) are pychivalry's own, not what the game rejects, and are not planted.
     const severe = [...rows.values()].filter(
-        (r) => r.severity === 'error' || r.severity === 'warning',
+        (r) =>
+            (r.severity === 'error' || r.severity === 'warning') &&
+            r.evidence.kind !== 'best-practice',
     );
     assert.deepEqual(
         severe.filter((r) => !planted.has(r.code)).map((r) => r.code),
@@ -155,16 +159,14 @@ test('the checker reports nothing on reference/, at any severity', () => {
     assert.deepEqual(checkMod(spec, gameDir, referenceDir), []);
 });
 
-test('with unused keys on, neither mod/ nor reference/ has one: the defaults change nothing', () => {
-    // localization/unused-key is off by default in the one runner and in the agent server's
-    // check (docs/decisions.md, decision 76); the fixture means the same either way.
+test('with unused keys on or off, neither mod/ nor reference/ has one: the setting changes nothing', () => {
+    // localization/unused-key is on by default in the one runner and in the agent server's
+    // check since 2026-11-23 (replacing decision 76); the fixture means the same either way.
     for (const dir of [modDir, referenceDir]) {
         assert.deepEqual(
-            checkMod(spec, gameDir, dir, { unusedKeys: true }).filter(
-                (f) => f.code === 'localization/unused-key',
-            ),
+            checkMod(spec, gameDir, dir).filter((f) => f.code === 'localization/unused-key'),
             [],
         );
     }
-    assert.equal(checkMod(spec, gameDir, referenceDir, { unusedKeys: true }).length, 0);
+    assert.equal(checkMod(spec, gameDir, referenceDir, { unusedKeys: false }).length, 0);
 });

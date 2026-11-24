@@ -2,7 +2,8 @@
  * The `check` tool against fixture mods, over a real round trip (docs/PLAN.md items 6.2 to
  * 6.4): it returns exactly the core's findings for the same mod, page by page; totals first,
  * over every finding of the path; the minimum severity, the codes, a file or a folder;
- * `unused_keys`; a cursor; and a mod edited between two calls.
+ * `unused_keys` (on by default, `false` turns it off); a cursor; and a mod edited between two
+ * calls.
  */
 
 import assert from 'node:assert/strict';
@@ -54,7 +55,7 @@ async function allPages(
     return { findings, pages };
 }
 
-function core(mod: string, game: string, unusedKeys = false): WorkspaceFinding[] {
+function core(mod: string, game: string, unusedKeys = true): WorkspaceFinding[] {
     return [
         ...checkWorkspace({ spec, modDir: mod, gameDir: game, cacheDir: null, unusedKeys })
             .findings,
@@ -152,18 +153,18 @@ test('a path checks one file or one folder of the mod, with the findings of a wh
     assert.match(String((none['notes'] as string[])[0]), /nothing was checked/);
 });
 
-test('localization/unused-key is off by default and reported with unused_keys', async (t) => {
+test('localization/unused-key is on by default; unused_keys: false turns it off', async (t) => {
     const mod = path.join(MODS, 'localization-unused-key-bad');
     const game = path.join(GAMES, 'event-targets-and-localization', 'game');
     const { server } = await setup(t, mod, game);
-    const off = await server.output('check', { min_severity: 'hint' });
-    const offCodes = Object.keys((off['totals'] as { by_code: object }).by_code);
-    assert.ok(!offCodes.includes('localization/unused-key'), 'off by default');
-    assert.deepEqual(off['findings'], json(core(mod, game).map(findingOutput)));
-    const on = await server.output('check', { min_severity: 'hint', unused_keys: true });
-    const expected = core(mod, game, true);
+    const on = await server.output('check', { min_severity: 'hint' });
+    const expected = core(mod, game);
     assert.ok(expected.some((f) => f.code === 'localization/unused-key'));
     assert.deepEqual(on['findings'], json(expected.map(findingOutput)));
+    const off = await server.output('check', { min_severity: 'hint', unused_keys: false });
+    const offCodes = Object.keys((off['totals'] as { by_code: object }).by_code);
+    assert.ok(!offCodes.includes('localization/unused-key'), 'turned off');
+    assert.deepEqual(off['findings'], json(core(mod, game, false).map(findingOutput)));
 });
 
 test('each call reads the mod as it is now: an edit between two calls is seen', async (t) => {
@@ -201,4 +202,37 @@ test('the game read: its build and that its index came from the cache the second
     const without = await none.output('check', {});
     assert.equal(without['game'], null);
     assert.match(String((without['notes'] as string[])[0]), /without the base game/);
+});
+
+test('a fix too large for a result comes without its edits, with their count', async (t) => {
+    const mod = path.join(scratch(t), 'mod');
+    write(path.join(mod, 'descriptor.mod'), 'name="Fixture"\n');
+    // A scripted effect of 400 lines, each with a Windows-1252 letter in a comment.
+    const lines: number[] = [];
+    for (let i = 0; i < 400; i++) {
+        lines.push(...new TextEncoder().encode(`# line ${String(i)} caf`), 0xe9, 0x0a);
+    }
+    lines.push(...new TextEncoder().encode('fixture_effect = { add_gold = 1 }\n'));
+    write(
+        path.join(mod, 'common', 'scripted_effects', 'fixture_effects.txt'),
+        new Uint8Array(lines),
+    );
+    const { game, server } = await setup(t, mod);
+    const out = await server.output('check', {
+        min_severity: 'warning',
+        codes: ['style/not-utf8'],
+    });
+    const [finding] = out['findings'] as { fix: Record<string, unknown> }[];
+    assert.ok(finding !== undefined);
+    assert.equal(finding.fix['safety'], 'safe');
+    assert.match(String(finding.fix['edits_left_out']), /check --fix/);
+    const [alternative] = finding.fix['alternatives'] as {
+        edits: unknown[];
+        edits_total: number;
+    }[];
+    assert.deepEqual(alternative?.edits, []);
+    // The core's fix is whole: one edit for each of the 400 lines, and the byte-order mark.
+    const whole = core(mod, game).find((f) => f.code === 'style/not-utf8');
+    assert.equal(whole?.fix?.alternatives[0]?.edits.length, 401);
+    assert.equal(alternative.edits_total, 401);
 });

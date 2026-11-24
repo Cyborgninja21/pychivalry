@@ -7,6 +7,9 @@
 
 import type { Code } from '../check/inventory.js';
 import type { Fixer } from './file.js';
+import { emptyBlockFix } from './empty-block.js';
+import { notUtf8Fix } from './encoding.js';
+import { unusualFieldOrderFix } from './field-order.js';
 import { localizationStubFix } from './localization-stub.js';
 import { bareValueFix, eventShownFix, missingRequiredFieldFix, rangeSwapFix } from './records.js';
 import { linkOnWrongScopeFix, wrongScopeFix } from './scope-links.js';
@@ -261,4 +264,23 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     'structure/story-effect-group-without-effect': { offer: 'none', what: NONE_ADVICE },
     'structure/story-effect-group-chance-above-100': { offer: 'none', what: NONE_ADVICE },
     'structure/story-effect-group-chance-not-positive': { offer: 'none', what: NONE_ADVICE },
+    'style/empty-block': {
+        offer: 'suggestion',
+        what: "The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say.",
+        fixer: emptyBlockFix,
+    },
+    'style/deep-nesting': {
+        offer: 'none',
+        what: 'None: how to restructure deep script is a choice.',
+    },
+    'style/not-utf8': {
+        offer: 'safe-or-suggestion',
+        what: 'The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree.',
+        fixer: (_finding, file) => notUtf8Fix(file),
+    },
+    'style/unusual-field-order': {
+        offer: 'safe',
+        what: "The record's fields written in the usual order, comments with their field; none where a comment's field is not clear.",
+        fixer: unusualFieldOrderFix,
+    },
 };

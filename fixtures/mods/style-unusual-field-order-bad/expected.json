@@ -1,0 +1,49 @@
+{
+    "findings": [
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 7,
+            "column": 2,
+            "code": "style/unusual-field-order",
+            "severity": "hint",
+            "message": "'trigger' is written after 'effect', against the usual order of the fields of common/on_action.",
+            "data": {
+                "record": "fixture_on_action",
+                "field": "trigger",
+                "after": "effect",
+                "folder": "common/on_action",
+                "order": ["trigger", "effect", "on_actions"]
+            }
+        },
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 11,
+            "column": 48,
+            "code": "style/unusual-field-order",
+            "severity": "hint",
+            "message": "'trigger' is written after 'effect', against the usual order of the fields of common/on_action.",
+            "data": {
+                "record": "fixture_one_line",
+                "field": "trigger",
+                "after": "effect",
+                "folder": "common/on_action",
+                "order": ["trigger", "effect"]
+            }
+        },
+        {
+            "file": "common/on_action/fixture_on_actions.txt",
+            "line": 17,
+            "column": 2,
+            "code": "style/unusual-field-order",
+            "severity": "hint",
+            "message": "'trigger' is written after 'effect', against the usual order of the fields of common/on_action.",
+            "data": {
+                "record": "fixture_unclear",
+                "field": "trigger",
+                "after": "effect",
+                "folder": "common/on_action",
+                "order": ["trigger", "effect"]
+            }
+        }
+    ]
+}

@@ -51,11 +51,13 @@ export interface InventoryRow {
      * catalogue evidence's text is shown the same way.
      */
     readonly message: string | null;
-    /**
-     * True for a check that is off by default and reports only when asked: the runner's
-     * `unusedKeys` option (`localization/unused-key`, docs/decisions.md, decision 76).
-     */
+    /** True for a check that is off by default and reports only when asked: none since 2026-11-23. */
     readonly offByDefault: boolean;
+    /**
+     * True for a check that is on by default and can be turned off: `localization/unused-key`,
+     * with the runner's `unusedKeys: false` (on by default since 2026-11-23).
+     */
+    readonly canTurnOff: boolean;
 }
 
 /**
@@ -120,6 +122,10 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'syntax/missing-operator': ['token', 'file:line'],
     'syntax/null-safe-operator-after-value': ['token', 'file:line'],
     'syntax/unterminated-string': ['file:line'],
+    'style/deep-nesting': ['block', 'depth', 'deepest allowed', 'places'],
+    'style/empty-block': ['block'],
+    'style/not-utf8': ['number'],
+    'style/unusual-field-order': ['field', 'field before it', 'folder'],
 };
 
 /** A row's message as it is shown: each placeholder a readable slot (`SLOT_NAMES`). */
@@ -162,6 +168,7 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
             evidence: shownEvidence(id, evidence),
             message: shown(id, evidence.kind === 'catalogue' ? evidence.text : kind.description),
             offByDefault: false,
+            canTurnOff: false,
         });
     }
     for (const code of Object.keys(CHECK_KINDS) as CheckCode[]) {
@@ -181,6 +188,7 @@ export function inventoryRows(catalogue?: MessageCatalogue): InventoryRow[] {
                 evidence.kind === 'catalogue' ? evidence.text : (kind.text ?? null),
             ),
             offByDefault: kind.offByDefault === true,
+            canTurnOff: kind.canTurnOff === true,
         });
     }
     return rows.sort((a, b) => (a.code < b.code ? -1 : a.code > b.code ? 1 : 0));

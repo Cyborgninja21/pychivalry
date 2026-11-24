@@ -1,0 +1,11 @@
+# Scripted effects whose blocks each hold something.
+fixture_empty_effect = {
+	add_gold = 10
+	if = {
+		limit = { is_adult = yes }
+		add_prestige = 5
+	}
+	else = {
+		add_prestige = 1
+	}
+}

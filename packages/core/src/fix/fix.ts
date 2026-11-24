@@ -48,6 +48,10 @@ export const MAX_FIX_ALTERNATIVES = 5;
  * - `observed-values`: the values the base game writes in the field.
  * - `range`: a range's two bounds, written in the order the game reads them.
  * - `declared-names`: the names the file declares (an event's namespace).
+ * - `windows-1252`: the bytes of a file that are not valid UTF-8, read as Windows-1252, the
+ *   code page the game's own message for title history asks for ("ansi").
+ * - `field-order`: the usual order of a folder's record fields, from the presentation data, in
+ *   a folder whose record fields the game reads by name.
  */
 export type FixBasis =
     | 'retired'
@@ -59,7 +63,9 @@ export type FixBasis =
     | 'game-message'
     | 'observed-values'
     | 'range'
-    | 'declared-names';
+    | 'declared-names'
+    | 'windows-1252'
+    | 'field-order';
 
 /** One edit: a span of a file replaced with new text. */
 export interface FixEdit {

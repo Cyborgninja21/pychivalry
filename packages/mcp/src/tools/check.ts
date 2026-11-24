@@ -11,7 +11,9 @@
  * 1, as the tools write places. The server applies nothing (it writes nothing): an agent applies
  * a fix with its own edit tool. A fix's size is bounded in the core (at most five alternatives,
  * each edit only the text it changes), and a page holds as many findings as fit the result's
- * budget, fixes and all, so fixes never push a result over it.
+ * budget, fixes and all, so fixes never push a result over it. A fix larger than a third of the
+ * budget (a file of many lines converted to UTF-8) comes without its edits, with their count and
+ * how to apply it (`MAX_FIX_CHARACTERS`).
  */
 
 import {
@@ -22,7 +24,16 @@ import {
     type WorkspaceFinding,
 } from '@pychivalry/core';
 import { spanOf, withSpans } from '../places.js';
-import { DEFAULT_LIMIT, MAX_LIMIT, page, questionKey, readCursor, valueList } from '../result.js';
+import {
+    DEFAULT_LIMIT,
+    MAX_LIMIT,
+    page,
+    questionKey,
+    readCursor,
+    RESULT_BUDGET,
+    sizeOf,
+    valueList,
+} from '../result.js';
 import type { Schema } from '../schema.js';
 import type { Session } from '../session.js';
 import {
@@ -47,6 +58,32 @@ export interface CheckArgs {
     readonly unused_keys?: boolean;
 }
 
+/**
+ * The most characters one finding's fix may take in a result: a third of the budget, so a page
+ * always holds the finding with room for the totals. A fix larger than that (a file of many
+ * lines converted to UTF-8, a large block moved) is given without its edits, with how many
+ * there are: the command line's `check --fix` applies it, and `check --json` prints it whole.
+ */
+export const MAX_FIX_CHARACTERS = Math.floor(RESULT_BUDGET / 3);
+
+/** A fix as `check` returns it: its places as spans, its edits left out when too large. */
+function fixOutput(fix: NonNullable<WorkspaceFinding['fix']>): unknown {
+    const whole = withSpans(fix);
+    if (sizeOf(whole) <= MAX_FIX_CHARACTERS) {
+        return whole;
+    }
+    return {
+        ...fix,
+        alternatives: fix.alternatives.map((a) => ({
+            title: a.title,
+            edits: [],
+            edits_total: a.edits.length,
+        })),
+        edits_left_out:
+            'too large for a result: pychivalry check --fix applies a safe fix, pychivalry check --json prints every edit',
+    };
+}
+
 /** A finding as `check` returns it. */
 export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
     return {
@@ -56,7 +93,7 @@ export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
         code: f.code,
         message: f.message,
         data: f.data,
-        fix: f.fix === null ? null : withSpans(f.fix),
+        fix: f.fix === null ? null : fixOutput(f.fix),
     };
 }
 
@@ -110,7 +147,7 @@ const FIX: Schema = {
         basis: {
             type: 'string',
             description:
-                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range or declared-names',
+                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names, windows-1252 or field-order',
         },
         alternatives: {
             type: 'array',
@@ -119,6 +156,11 @@ const FIX: Schema = {
                 properties: {
                     title: { type: 'string' },
                     edits: { type: 'array', items: EDIT },
+                    edits_total: {
+                        ...COUNT,
+                        description:
+                            'Given when the edits are left out because the fix is too large for a result: how many it has',
+                    },
                 },
                 required: ['title', 'edits'],
             },
@@ -127,6 +169,11 @@ const FIX: Schema = {
         alternatives_total: {
             ...COUNT,
             description: 'How many alternatives there are in all, when more than are listed',
+        },
+        edits_left_out: {
+            type: 'string',
+            description:
+                "Given when the fix is too large for a result: its alternatives' edits are left out, and this says how to apply it",
         },
     },
     required: ['safety', 'basis', 'alternatives'],
@@ -186,9 +233,9 @@ export const checkTool: Tool<CheckArgs> = {
             ...pagedInput('findings', DEFAULT_LIMIT, MAX_LIMIT),
             unused_keys: {
                 type: 'boolean',
-                default: false,
+                default: true,
                 description:
-                    'Also run localization/unused-key, which is off by default: a hint for each localization key nothing uses',
+                    'Run localization/unused-key, a hint for each localization key nothing uses; on by default, false turns it off',
             },
         },
         additionalProperties: false,
@@ -257,7 +304,7 @@ function* checkSteps(args: CheckArgs, session: Session): Steps<Record<string, un
     const minSeverity = args.min_severity ?? 'error';
     const codes = args.codes === undefined ? null : codesOf(args.codes, 'codes');
     const target = args.path === undefined ? null : session.modPath(args.path, 'path');
-    const unusedKeys = args.unused_keys ?? false;
+    const unusedKeys = args.unused_keys ?? true;
     const key = questionKey('check', {
         path: target?.relative ?? '',
         min_severity: minSeverity,

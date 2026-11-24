@@ -1,0 +1,39 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 1,
+            "column": 35,
+            "code": "encoding/not-utf8",
+            "severity": "information",
+            "message": "This file is not valid UTF-8 (2 invalid bytes); it was read as UTF-8 with replacement characters.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 1,
+            "column": 35,
+            "code": "style/not-utf8",
+            "severity": "warning",
+            "message": "This file is not UTF-8: 2 of its bytes are not. Convert it to UTF-8 with a byte-order mark.",
+            "data": {
+                "invalid_bytes": "2",
+                "stretches": "2",
+                "windows_1252": ["é"]
+            }
+        },
+        {
+            "file": "localization/english/fixture_l_english.yml",
+            "line": 2,
+            "column": 37,
+            "code": "style/not-utf8",
+            "severity": "warning",
+            "message": "This file is not UTF-8: 1 of its bytes are not. Convert it to UTF-8 with a byte-order mark.",
+            "data": {
+                "invalid_bytes": "1",
+                "stretches": "1",
+                "windows_1252": ["é"]
+            }
+        }
+    ]
+}

@@ -8,14 +8,28 @@
 import { LineIndex } from '../syntax/position.js';
 import { overlapsAny, type FixAlternative, type FixEdit } from './fix.js';
 
+/** True when two edits are the same: one file, one span, one new text. */
+function sameEdit(a: FixEdit, b: FixEdit): boolean {
+    return (
+        a.file === b.file &&
+        a.new_text === b.new_text &&
+        a.range.start.line === b.range.start.line &&
+        a.range.start.character === b.range.start.character &&
+        a.range.end.line === b.range.end.line &&
+        a.range.end.character === b.range.end.character
+    );
+}
+
 /**
  * A text with edits applied: each edit's range read against the text as it was, the edits
  * applied from the last to the first. Two edits of the text must not overlap; insertions at
- * one place keep the order they are given in.
+ * one place keep the order they are given in. Two edits that are the same (one span, one new
+ * text: two fixes that each add the byte-order mark) are made once.
  */
 export function applyEdits(text: string, edits: readonly FixEdit[]): string {
     const lines = new LineIndex(text);
-    const placed = edits.map((edit, order) => ({
+    const unique = edits.filter((edit, i) => !edits.slice(0, i).some((e) => sameEdit(e, edit)));
+    const placed = unique.map((edit, order) => ({
         start: lines.offsetAt(edit.range.start),
         end: lines.offsetAt(edit.range.end),
         text: edit.new_text,

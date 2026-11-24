@@ -103,6 +103,13 @@ test("each check's catalogue message is in the committed catalogue, with a place
             assert.ok(rows.get(code)?.evidence.startsWith('Advice'), code);
             continue;
         }
+        if (kind.bestPractice === true) {
+            // One of pychivalry's own best-practice rules (the family style), with no game
+            // evidence: the row says so, with the base game's rate.
+            assert.ok(code.startsWith('style/'), code);
+            assert.ok(rows.get(code)?.evidence.startsWith('Best practice'), code);
+            continue;
+        }
         if (kind.catalogue === null) {
             const evidence = rows.get(code)?.evidence ?? '';
             if (kind.gameOutput !== undefined) {

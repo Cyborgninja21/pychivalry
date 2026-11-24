@@ -12,8 +12,9 @@
  *   baseline speed                 release 2.3.0's speed baselines (task baseline:speed)
  *   baseline results               release 2.3.0's result baselines (task baseline:results)
  *   wiki check|build|publish       the repository wiki, generated from docs/ (task wiki:*)
- *   advice proof                   the advice checks of item 4.7 on the base game: per row, the
- *                                  units it applies to and the findings it raises there
+ *   advice proof                   the advice checks of item 4.7 and the best-practice rules
+ *                                  of the family style on the base game: per row, the units it
+ *                                  applies to and the findings it raises there
  *   docs checks                    write the user guide's check reference, docs/guide/checks.md,
  *                                  from the core's check inventory (task docs:checks)
  *   scored agent-use               the scored agent-use test: test sessions of the developer's
@@ -163,7 +164,9 @@ function run(args: readonly string[]): number {
         const gameDir = requireGameDir(process.env['CK3_GAME_PATH']);
         const proof = adviceProof(openSpec(path.join(root, 'spec')), gameDir);
         process.stdout.write(proofText(proof));
-        return proof.rows.every((r) => r.verdict === 'holds') ? EXIT.ok : EXIT.failed;
+        return proof.rows.every((r) => r.verdict === 'holds' || r.verdict === 'follows')
+            ? EXIT.ok
+            : EXIT.failed;
     }
     if (group === 'docs' && command === 'checks') {
         const file = writeCheckReference(root);

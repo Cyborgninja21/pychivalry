@@ -146,7 +146,31 @@ export type Evidence =
     | {
           /** No game message: pychivalry's own advice (principle 1 of docs/MVP.md). */
           readonly kind: 'advice';
+      }
+    | {
+          /**
+           * No game message: one of pychivalry's own best-practice rules, the family `style`
+           * (the owner's principle of 2026-11-23: best practice and tidiness come before what a
+           * mod's author wrote). Each rule says how often the base game follows it.
+           */
+          readonly kind: 'best-practice';
       };
+
+/**
+ * One stretch of a file's bytes that is not valid UTF-8, as the decoder read it
+ * (docs/encoding.md): where its text is in the decoded text, and what its bytes read as in
+ * Windows-1252.
+ */
+export interface InvalidStretch {
+    /**
+     * The span of the decoded text the stretch became: one U+FFFD read as UTF-8, its letters
+     * read with the Windows-1252 fallback.
+     */
+    readonly start: number;
+    readonly end: number;
+    /** The stretch's bytes read as Windows-1252, one character per byte. */
+    readonly windows1252: string;
+}
 
 /** One finding of the syntax layer. */
 export interface Finding {
@@ -160,6 +184,12 @@ export interface Finding {
     /** The values the message is about, for the `value` slots, in order. */
     readonly args: readonly string[];
     readonly evidence: Evidence;
+    /**
+     * On the note `encoding/not-utf8` only: every stretch of the file that is not valid
+     * UTF-8, in order, which the check `style/not-utf8` and its fix read (the bytes themselves
+     * are no longer in the text).
+     */
+    readonly invalid?: readonly InvalidStretch[];
 }
 
 /** The game's message texts by catalogue id: the spec package's error catalogue. */

@@ -1,0 +1,58 @@
+/**
+ * The best-practice rows of the family `style`: pychivalry's own best-practice rules (the owner's principle
+ * of 2026-11-23: best practice and tidiness come before what a mod's author wrote; an untidy
+ * mod is flagged and, where the change is mechanical, fixed). No row has game evidence: each
+ * says how often the base game follows it, and none ships that the base game breaks more often
+ * than it follows. Each has pychivalry's own message, `%s` for each value, at the severity the
+ * owner set for it.
+ */
+
+import type { CheckKind } from './finding.js';
+
+/** The codes of the best-practice rules of this file. */
+export type BestPracticeCode =
+    'style/empty-block' | 'style/deep-nesting' | 'style/not-utf8' | 'style/unusual-field-order';
+
+function style(
+    severity: 'warning' | 'information' | 'hint',
+    slots: number,
+    description: string,
+    text: string,
+): CheckKind {
+    return {
+        severity,
+        catalogue: null,
+        bestPractice: true,
+        slots: Array.from({ length: slots }, () => 'value' as const),
+        description,
+        text,
+    };
+}
+
+/** Every best-practice code of this file, with its row of docs/checks.md. */
+export const BEST_PRACTICE_KINDS: Readonly<Record<BestPracticeCode, CheckKind>> = {
+    'style/empty-block': style(
+        'hint',
+        1,
+        "A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314.",
+        "The block '%s' is empty.",
+    ),
+    'style/deep-nesting': style(
+        'hint',
+        4,
+        "A record with a block nested more than six blocks deep, its body the first: one finding a record, at the first such block; release 2.3.0's CK3317.",
+        "The block '%s' is %s blocks deep, past the style rule's limit of %s; places in this record past it: %s.",
+    ),
+    'style/not-utf8': style(
+        'warning',
+        1,
+        'A file that is not valid UTF-8; its fix converts it to UTF-8 with a byte-order mark, reading the bytes that are not as Windows-1252.',
+        'This file is not UTF-8: %s of its bytes are not. Convert it to UTF-8 with a byte-order mark.',
+    ),
+    'style/unusual-field-order': style(
+        'hint',
+        3,
+        "A record whose fields are written in another order than its folder's usual one, in a folder whose records' fields the game reads by name.",
+        "'%s' is written after '%s', against the usual order of the fields of %s.",
+    ),
+};
