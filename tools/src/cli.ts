@@ -28,6 +28,8 @@
  *   scored calibrate               the judge's calibration: a judge's test session on each
  *                                  result graded by hand, and the agreement (task
  *                                  scored:calibrate; never in CI, only on the owner's word)
+ *   scored targets                 an authoring record read against the owner's targets, each
+ *                                  met or not; starts no test session (task scored:targets)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -41,11 +43,12 @@ import { requireGameDir } from './game.js';
 import { checkRecords } from './records-check.js';
 import { checkRulesTable, RULES_SOURCE, rulesUse } from './rules-table.js';
 import { runAuthoring } from './scored-run/authoring.js';
+import { readRecordTargets, targetLines } from './scored-run/authoring-targets.js';
 import { runCalibration } from './scored-run/calibration.js';
 import { runScored } from './scored-run/run.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
-import { CommandError, EXIT, repoRoot } from './util.js';
+import { CommandError, EXIT, relativePosix, repoRoot } from './util.js';
 import { buildWiki, publishWiki } from './wiki.js';
 
 const USAGE = `usage: pychivalry-tools <command>
@@ -57,7 +60,7 @@ const USAGE = `usage: pychivalry-tools <command>
   wiki check|build|publish
   advice proof
   docs checks
-  scored agent-use|authoring|calibrate`;
+  scored agent-use|authoring|calibrate|targets`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -198,6 +201,16 @@ function run(args: readonly string[]): number {
         });
         // The run passes when every trial's harness held; the measures are the result.
         return record.results.trials.every((t) => t.harness_held) ? EXIT.ok : EXIT.failed;
+    }
+    if (group === 'scored' && command === 'targets') {
+        const { file, made_at, reading } = readRecordTargets(root, process.env);
+        process.stdout.write(
+            `scored:targets: ${relativePosix(root, file)}, made ${made_at.slice(0, 10)}\n`,
+        );
+        for (const line of targetLines(reading)) {
+            process.stdout.write(`scored:targets: ${line}\n`);
+        }
+        return reading.met ? EXIT.ok : EXIT.failed;
     }
     if (group === 'scored' && command === 'calibrate') {
         const { stopped } = runCalibration(root, process.env, (line) => {

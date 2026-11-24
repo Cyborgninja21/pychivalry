@@ -4,10 +4,10 @@
  * authoring. Per trial: what the session was offered and did, as for agent use; grade one, the
  * checker's validity (errors, warnings, and whether the result is in pychivalry's format, each a
  * measure of its own); grade two, the expectations checked in code and the judge's answer per
- * dimension. Per request and over all of them: how many trials measured each. There is no
- * target yet: the owner sets the targets from the first run (item 9.8). Its schema is
- * `authoringResults` in records/record.schema.json; `authoringProblems` is what `task
- * records:check` adds to the schema: the figures agree with each other.
+ * dimension. Per request and over all of them: how many trials measured each. It holds no
+ * target: the owner's targets (item 9.8) are read from its measures (`authoring-targets.ts`).
+ * Its schema is `authoringResults` in records/record.schema.json; `authoringProblems` is what
+ * `task records:check` adds to the schema: the figures agree with each other.
  *
  * Like the agent-use record it is not tied to the committed spec: making it again means new test
  * sessions, which only the owner starts.

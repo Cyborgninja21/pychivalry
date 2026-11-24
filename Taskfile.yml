@@ -204,6 +204,12 @@ tasks:
     cmds:
       - node tools/dist/cli.js scored calibrate
 
+  scored:targets:
+    desc: "An authoring record read against the owner's targets for the scored authoring test (docs/decisions.md, decision 127; tools/scored-run/README.md): the committed records/scored/authoring.json, or the record SCORED_RECORD names; prints each target met or not, and exits 1 when one is not. Reads the record only: starts no test session"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js scored targets
+
   # ─── Documents written from the code ───
 
   docs:checks:
