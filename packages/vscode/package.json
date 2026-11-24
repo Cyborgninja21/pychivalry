@@ -59,6 +59,22 @@
                 "command": "pychivalry.setUpClaudeCode",
                 "title": "Set up for Claude Code",
                 "category": "pychivalry"
+            },
+            {
+                "command": "pychivalry.removeFromClaudeCode",
+                "title": "Remove from Claude Code",
+                "category": "pychivalry"
+            }
+        ],
+        "chatSkills": [
+            {
+                "path": "./dist/bundle/skills/pychivalry-explain-error/SKILL.md"
+            },
+            {
+                "path": "./dist/bundle/skills/pychivalry-fix-error/SKILL.md"
+            },
+            {
+                "path": "./dist/bundle/skills/pychivalry-write-content/SKILL.md"
             }
         ],
         "mcpServerDefinitionProviders": [

@@ -16,6 +16,10 @@
  *   the one copy all three servers read;
  * - `server/manifest.json`: every file of `server/` with its SHA-256 and size, which the
  *   extension compares to decide whether its stored copy is current (`install.ts`);
+ * - `skills/`: the repository's skills (`skills/<name>/SKILL.md`, docs/PLAN.md item 9.1), each
+ *   folder copied whole, which VS Code's AI reads where they are (the manifest's
+ *   `contributes.chatSkills`) and "Set up for Claude Code" copies into Claude Code's skills
+ *   folder (`skills.ts`);
  *
  * and, beside it and never shipped, `dist/test-bundle/suite.cjs`: the editor tests, which run
  * inside a real VS Code (`task vscode:test`).
@@ -29,6 +33,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { manifestOf, MANIFEST_FILE } from './install.js';
 import { CLI_FILE, LSP_FILE, LSP_FOLDER, SERVER_FILE, SPEC_FOLDER } from './launch.js';
+import { readSkills, SKILLS_FOLDER } from './skills.js';
 
 /** The extension's package folder: this file is `packages/vscode/dist/bundle.js`. */
 const PACKAGE = fileURLToPath(new URL('../', import.meta.url));
@@ -112,6 +117,14 @@ async function main(): Promise<void> {
         external: ['vscode'],
     });
     copyPresentation(path.join(REPO, 'presentation'), path.join(OUT, LSP_FOLDER, 'presentation'));
+    const skills = readSkills(path.join(REPO, SKILLS_FOLDER));
+    for (const skill of skills) {
+        for (const file of skill.files) {
+            const to = path.join(OUT, SKILLS_FOLDER, skill.name, ...file.path.split('/'));
+            mkdirSync(path.dirname(to), { recursive: true });
+            writeFileSync(to, file.bytes);
+        }
+    }
     const specDir = path.join(SERVER, SPEC_FOLDER);
     mkdirSync(specDir, { recursive: true });
     const specFiles = readdirSync(path.join(REPO, 'spec')).filter((f) => SPEC_FILE.test(f));
@@ -126,7 +139,7 @@ async function main(): Promise<void> {
     writeFileSync(path.join(SERVER, MANIFEST_FILE), `${JSON.stringify(manifest, null, 2)}\n`);
     const size = manifest.files.reduce((n, f) => n + f.size, 0);
     process.stdout.write(
-        `vscode:bundle: dist/bundle/extension.cjs, ${LSP_FOLDER}/${LSP_FILE}, server/ (${String(manifest.files.length)} files, ${String(Math.round(size / 1024))} KiB)\n`,
+        `vscode:bundle: dist/bundle/extension.cjs, ${LSP_FOLDER}/${LSP_FILE}, server/ (${String(manifest.files.length)} files, ${String(Math.round(size / 1024))} KiB), ${SKILLS_FOLDER}/ (${skills.map((s) => s.name).join(', ')})\n`,
     );
 }
 

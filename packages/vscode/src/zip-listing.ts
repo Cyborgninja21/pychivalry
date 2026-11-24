@@ -58,6 +58,7 @@ const ALLOWED = [
     /^extension\/dist\/bundle\/lsp\/presentation\/([a-z0-9_]+\/)*[a-z0-9_]+\.json$/,
     /^extension\/dist\/bundle\/server\/(pychivalry-mcp\.mjs|pychivalry-cli\.mjs|manifest\.json)$/,
     /^extension\/dist\/bundle\/server\/spec\/ck3-spec-[0-9.]+(\.[a-z_]+)?\.(json\.gz|sha256)$/,
+    /^extension\/dist\/bundle\/skills\/[a-z0-9]+(-[a-z0-9]+)*\/SKILL\.md$/,
 ];
 
 /** What must never ship, whatever the allowed list says. */

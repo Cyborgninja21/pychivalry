@@ -4,8 +4,9 @@
  * extensions folder, on a copy of the planted-defect mod read over its game stub, which the
  * setting `pychivalry.gamePath` names. It activates; the language server's diagnostics appear;
  * hover and completion answer; the agent server's definition is given to VS Code's AI with the
- * game folder; the command line runs from the terminal's path; and the editor, the command line
- * and the agent server give the same findings.
+ * game folder; the command line runs from the terminal's path; the editor, the command line
+ * and the agent server give the same findings; and VS Code lists the three skills it holds
+ * (item 9.1).
  */
 
 import { openSpec } from '@pychivalry/core';
@@ -16,10 +17,11 @@ import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
 import { EXTENSION_ID } from '../ids.js';
 import { CLI_FILE, LSP_FILE, LSP_FOLDER, SERVER_FILE, SPEC_FOLDER } from '../launch.js';
+import { SKILL_FILE, SKILLS_FOLDER } from '../skills.js';
 import { BIN_FOLDER } from '../terminal.js';
 import { isInside, sameFile, samePath } from './fixture.js';
 import { given, type EditorCase } from './harness.js';
-import { activeExtension, displayCase } from './main.js';
+import { activeExtension, contributedSkills, displayCase } from './main.js';
 import { assertSameAnswers, assertSameFormatting, pychivalryInTerminal } from './same.js';
 
 /** Every file below `dir`, relative to it and written with `/`. */
@@ -78,6 +80,9 @@ export function smokeCases(): readonly EditorCase[] {
                     `dist/bundle/server/${SERVER_FILE}`,
                     `dist/bundle/server/${CLI_FILE}`,
                     'dist/bundle/server/manifest.json',
+                    ...(
+                        ext.packageJSON as { contributes: { chatSkills: { path: string }[] } }
+                    ).contributes.chatSkills.map((c) => c.path.replace(/^\.\//, '')),
                 ]) {
                     assert.ok(files.includes(want), `${want} is in the installed extension`);
                 }
@@ -90,6 +95,18 @@ export function smokeCases(): readonly EditorCase[] {
                 assert.deepEqual(unwanted, [], 'no source, test, fixture or source map');
                 const folders = vscode.workspace.workspaceFolders ?? [];
                 assert.ok(samePath(folders[0]?.uri.fsPath ?? '', mod));
+            },
+        },
+        {
+            name: '9.1: VS Code lists the three skills of the packaged extension, from its versioned folder',
+            run: async () => {
+                const bundled = path.join(theExt().extensionPath, 'dist', 'bundle', SKILLS_FOLDER);
+                const listed = await contributedSkills();
+                assert.equal(listed.length, 3, listed.join(', '));
+                for (const file of listed) {
+                    assert.ok(isInside(file, bundled), `${file} is not in ${bundled}`);
+                    assert.equal(path.basename(file), SKILL_FILE);
+                }
             },
         },
         {

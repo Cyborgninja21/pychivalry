@@ -103,7 +103,7 @@ export function writeVsix(file: string, extensionDir: string): void {
 </PackageManifest>
 `;
     const contentTypes = `<?xml version="1.0" encoding="utf-8"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension=".json" ContentType="application/json"/><Default Extension=".vsixmanifest" ContentType="text/xml"/><Default Extension=".cjs" ContentType="application/javascript"/><Default Extension=".mjs" ContentType="application/javascript"/><Default Extension=".gz" ContentType="application/gzip"/><Default Extension=".sha256" ContentType="text/plain"/></Types>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension=".json" ContentType="application/json"/><Default Extension=".vsixmanifest" ContentType="text/xml"/><Default Extension=".cjs" ContentType="application/javascript"/><Default Extension=".mjs" ContentType="application/javascript"/><Default Extension=".gz" ContentType="application/gzip"/><Default Extension=".sha256" ContentType="text/plain"/><Default Extension=".md" ContentType="text/markdown"/></Types>
 `;
     const entries: ZipEntry[] = [
         { name: '[Content_Types].xml', data: Buffer.from(contentTypes, 'utf8') },

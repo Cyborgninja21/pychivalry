@@ -3,7 +3,9 @@
  * user has it, installed in an extensions folder under a folder named after its version. The
  * runner starts VS Code with the first version, then installs a second version in its own
  * folder, removes the first, starts the server from Claude Code's entry with no VS Code running,
- * and starts VS Code again.
+ * and starts VS Code again. The skills "Set up for Claude Code" copied into Claude Code's skills
+ * folder (item 9.3) are the first version's, then, once the second activates, the second's,
+ * whose skills the runner made differ.
  */
 
 import assert from 'node:assert/strict';
@@ -14,8 +16,16 @@ import type { PychivalryApi } from '../extension.js';
 import { EXTENSION_ID, SET_UP_CLAUDE_CODE } from '../ids.js';
 import { MANIFEST_FILE, parseManifest } from '../install.js';
 import { serverEntry } from '../setup.js';
+import { readSkills, SKILL_FILE } from '../skills.js';
 import { checkThrough } from './agent.js';
-import { asEntry, assertFixtureAnswer, claudeEntryFor, isInside } from './fixture.js';
+import {
+    asEntry,
+    assertFixtureAnswer,
+    assertSkillsCopied,
+    claudeEntryFor,
+    isInside,
+    SKILL_NOTE,
+} from './fixture.js';
 import { given, type EditorCase } from './harness.js';
 import { activeExtension } from './main.js';
 
@@ -80,6 +90,10 @@ export function updateCases(step: 1 | 2): readonly EditorCase[] {
                 const entry = claudeEntryFor(claudeConfig, mod);
                 assert.deepEqual(entry, serverEntry(await theExt().exports.launchFor(mod)));
                 assertFixtureAnswer(await checkThrough(asEntry(entry)));
+                // 9.3: the skills, version 1's, in Claude Code's skills folder.
+                const { bundled, claudeDir } = theExt().exports.skills;
+                assert.equal(claudeDir(), path.join(claudeConfig, 'skills'));
+                assertSkillsCopied(claudeDir(), bundled);
             },
         });
     } else {
@@ -95,6 +109,25 @@ export function updateCases(step: 1 | 2): readonly EditorCase[] {
                     [entry['command'], entry['args']],
                 );
                 assertFixtureAnswer(await checkThrough(asEntry(entry)));
+            },
+        });
+        cases.push({
+            name: "9.3: after the update, the skills copied for Claude Code are brought up to the new version's",
+            run: async () => {
+                const refreshed = await theExt().exports.skillsRefreshed;
+                const { bundled, claudeDir } = theExt().exports.skills;
+                assert.deepEqual(
+                    refreshed.map((r) => [r.dir, [...r.written].sort(), r.refused]),
+                    [[claudeDir(), readSkills(bundled).map((s) => s.name), []]],
+                );
+                assertSkillsCopied(claudeDir(), bundled);
+                for (const skill of readSkills(claudeDir())) {
+                    const text = skill.files.find((f) => f.path === SKILL_FILE)?.bytes.toString();
+                    assert.ok(
+                        text?.endsWith(SKILL_NOTE(version)),
+                        `${skill.name} is version ${version}'s`,
+                    );
+                }
             },
         });
     }

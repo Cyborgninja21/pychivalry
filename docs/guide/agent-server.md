@@ -31,6 +31,12 @@ whose path does not change when the extension updates:
 
 Outside the extension it runs from a build of this repository, as below.
 
+**Skills tell the AI how to use it.** The extension also gives your AI three skills, written
+instructions it loads when a task calls for one: explain a finding, fix the mod's errors, and
+write new content (events with their localization, decisions, scripted effects and scripted
+triggers), each driving the tools below. VS Code's AI has them from the extension; "Set up for
+Claude Code" copies them for Claude Code ([Commands](commands.md#the-skills)).
+
 ## Starting it
 
 ```text

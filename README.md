@@ -19,7 +19,12 @@ the language server, the agent servers and the command line share one copy of th
 index in memory ([how](docs/shared-index.md)), and build step 8 is built: the formatter, by
 the formatting rules the owner decided ([docs/formatting.md](docs/formatting.md)), on every
 surface, the `style/` findings, fixes carried by findings and quick fixes, and the presentation
-data. The second preview, 0.2.0, waits for the owner's word.
+data. The second preview, **0.2.0**, is published as a
+[GitHub pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0) (build step
+8, 2026-11-23). Build step 9 has started: the skills that tell your AI how to explain an error,
+fix one and write new content ([skills/](skills/README.md)), which VS Code's own AI gets from the
+extension and Claude Code from "Set up for Claude Code"; the scored authoring run is being
+built.
 
 - What is being built, and why: [docs/MVP.md](docs/MVP.md).
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
@@ -28,7 +33,8 @@ data. The second preview, 0.2.0, waits for the owner's word.
   pinned test mods, the 2.3.0 speed and result baselines, and the documents every later step
   fills. The parser (step 2), the workspace index (step 3), the checks and lookup (step 4), the
   command line (step 5), the agent server (step 6) and the language server and extension (step
-  7) are built, and so are the formatter and fixes of step 8 but for its preview.
+  7) are built, and so are the formatter and fixes of step 8 and its preview; step 9's skills
+  are built.
 - Every document, and which step writes it: [docs/README.md](docs/README.md). The sources
   pychivalry draws on: [docs/references/](docs/references/README.md). What the tests run on:
   [docs/test-data.md](docs/test-data.md). The user guide so far:
@@ -62,6 +68,7 @@ tools/            the scripts behind the local tasks
 spec/             the committed spec package, its companions, checksums and schema
 records/          committed results of the suites that need game files
 fixtures/         hand-written test mods, game stubs and the planted-defect mod
+skills/           the skills an AI loads: explain an error, fix an error, write new content
 docs/             MVP and plan, decision log, references, test data, user guide, wiki source
 legacy/           release 2.3.0, unchanged
 ```

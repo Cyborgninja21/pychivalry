@@ -1,22 +1,37 @@
 /**
  * The `main` editor suite: the extension from its development folder, on a copy of a fixture
- * mod (docs/PLAN.md, items 7.1 (a) and (b), 7.3, 7.4, 7.6 and 7.8): the agent server reaches
- * both AI harnesses, the language server checks the mod and VS Code shows what it finds, the
- * settings are declared, and the game folder setting reaches the agent server, VS Code's AI and
- * a Claude Code set-up made before it changed.
+ * mod (docs/PLAN.md, items 7.1 (a) and (b), 7.3, 7.4, 7.6, 7.8, 9.1 and 9.3): the agent server
+ * and the skills reach both AI harnesses, the language server checks the mod and VS Code shows
+ * what it finds, the settings are declared, the game folder setting reaches the agent server,
+ * VS Code's AI and a Claude Code set-up made before it changed, and "Remove from Claude Code"
+ * undoes the set-up.
  */
 
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
-import { EXTENSION_ID, GAME_PATH_SETTING, SET_UP_CLAUDE_CODE, SETTINGS_SECTION } from '../ids.js';
+import {
+    EXTENSION_ID,
+    GAME_PATH_SETTING,
+    REMOVE_FROM_CLAUDE_CODE,
+    SET_UP_CLAUDE_CODE,
+    SETTINGS_SECTION,
+} from '../ids.js';
 import { SERVER_FILE, SPEC_FOLDER, stableRuntime, type ServerLaunch } from '../launch.js';
-import { PROJECT_FILE, serverEntry } from '../setup.js';
+import { PROJECT_FILE, serverEntry, type RemoveOutcome, type SetupOutcome } from '../setup.js';
+import { readSkills, SKILL_FILE } from '../skills.js';
 import { checkThrough } from './agent.js';
-import { asEntry, assertFixtureAnswer, claudeEntryFor, isInside, samePath } from './fixture.js';
+import {
+    asEntry,
+    assertFixtureAnswer,
+    assertSkillsCopied,
+    claudeEntryFor,
+    isInside,
+    samePath,
+} from './fixture.js';
 import { given, Skip, waitFor, type EditorCase } from './harness.js';
 
 /** The extension, once VS Code has activated it on its own. */
@@ -43,6 +58,39 @@ export function displayCase(): EditorCase {
             return Promise.resolve();
         },
     };
+}
+
+/** What VS Code's internal `_listExtensionPromptFiles` gives: the files extensions contribute. */
+interface ContributedFile {
+    readonly uri: { readonly scheme: string; readonly path: string };
+    readonly type: string;
+    readonly extensionId: string;
+}
+
+/** The skills this extension contributes, as VS Code lists them: each skill's file on disk. */
+export async function contributedSkills(): Promise<string[]> {
+    const files = await vscode.commands.executeCommand<ContributedFile[]>(
+        '_listExtensionPromptFiles',
+    );
+    return files
+        .filter((f) => f.type === 'skill' && f.extensionId.toLowerCase() === EXTENSION_ID)
+        .map((f) => vscode.Uri.from(f.uri).fsPath)
+        .sort();
+}
+
+/** Every `SKILL.md` below `dir`, by the name of the skill's folder. */
+function skillFilesUnder(dir: string): Map<string, string> {
+    const found = new Map<string, string>();
+    if (!existsSync(dir)) {
+        return found;
+    }
+    for (const rel of readdirSync(dir, { recursive: true, encoding: 'utf8' })) {
+        const parts = rel.split(path.sep);
+        if (parts.at(-1) === SKILL_FILE && parts.at(-3) === 'skills') {
+            found.set(parts.at(-2) ?? '', path.join(dir, rel));
+        }
+    }
+    return found;
 }
 
 /** Every `.mcp.json` below `dir`. */
@@ -248,6 +296,57 @@ export function mainCases(): readonly EditorCase[] {
             },
         },
         {
+            name: '9.1: VS Code lists the three skills the extension contributes, read where they are in its folder',
+            run: async () => {
+                const ext = vscode.extensions.getExtension(EXTENSION_ID);
+                assert.ok(ext !== undefined);
+                const bundled = path.join(ext.extensionPath, 'dist', 'bundle', 'skills');
+                assert.ok(samePath(theApi().skills.bundled, bundled), theApi().skills.bundled);
+                const names = readSkills(bundled).map((s) => s.name);
+                assert.equal(names.length, 3, names.join(', '));
+                let listed: string[] = [];
+                await waitFor('the contributed skills', () => {
+                    void contributedSkills().then((l) => (listed = l));
+                    return listed.length === names.length;
+                });
+                assert.deepEqual(
+                    listed.map((f) => path.relative(bundled, f).split(path.sep)),
+                    names.map((n) => [n, SKILL_FILE]),
+                );
+            },
+        },
+        {
+            name: '9.1: VS Code hands the skills, unchanged, to its default AI harness, the Copilot harness',
+            run: async () => {
+                // As the server's definition (7.1 (a)): VS Code syncs the skills it has into the
+                // plugin it writes for the Copilot harness, each under skills/<name>/. VS Code's
+                // own folder layout (1.147), not an API.
+                const plugins = path.join(given('PYCHIVALRY_TEST_USER_DATA'), 'agentPlugins');
+                const skills = readSkills(theApi().skills.bundled);
+                const same = (): boolean => {
+                    const found = skillFilesUnder(plugins);
+                    return skills.every((s) => {
+                        const file = found.get(s.name);
+                        try {
+                            return (
+                                file !== undefined &&
+                                readFileSync(file).equals(s.files[0]?.bytes ?? Buffer.alloc(0))
+                            );
+                        } catch {
+                            return false;
+                        }
+                    });
+                };
+                await waitFor('the skills in the Copilot harness plugin', same, 60_000).catch(
+                    (err: unknown) => {
+                        throw new Error(
+                            `${String(err)}; skills under ${plugins}: ${JSON.stringify([...skillFilesUnder(plugins).keys()])}`,
+                        );
+                    },
+                );
+            },
+        },
+        {
             name: "7.1 (a): the definition's command line starts a server that answers check",
             run: async () => {
                 const [d] = await theApi().definitions();
@@ -281,6 +380,29 @@ export function mainCases(): readonly EditorCase[] {
             },
         },
         {
+            name: "9.3: the set-up copied the skills into Claude Code's skills folder; set up again, nothing changes",
+            run: async () => {
+                const { bundled, claudeDir } = theApi().skills;
+                const dir = path.join(claudeConfig, 'skills');
+                assert.ok(samePath(claudeDir(), dir), claudeDir());
+                assertSkillsCopied(dir, bundled);
+                const names = readSkills(bundled).map((s) => s.name);
+                const again = await vscode.commands.executeCommand<SetupOutcome>(
+                    SET_UP_CLAUDE_CODE,
+                    vscode.Uri.file(mod),
+                );
+                assert.ok(again.kind === 'claude', JSON.stringify(again));
+                assert.ok(again.skills.kind === 'installed', JSON.stringify(again.skills));
+                assert.deepEqual(
+                    [again.skills.install.written, again.skills.install.unchanged],
+                    [[], names],
+                );
+                assertSkillsCopied(dir, bundled);
+                // Nothing else is written into Claude Code's skills folder.
+                assert.deepEqual(readdirSync(dir).sort(), names);
+            },
+        },
+        {
             name: '7.8: without the claude command it asks first, and writes .mcp.json only on yes',
             run: async () => {
                 const file = path.join(mod, PROJECT_FILE);
@@ -309,7 +431,11 @@ export function mainCases(): readonly EditorCase[] {
                     { confirmProjectFile: () => Promise.resolve(true) },
                     () => null,
                 );
-                assert.deepEqual(yes, { kind: 'project-file', file });
+                assert.ok(yes.kind === 'project-file', JSON.stringify(yes));
+                assert.equal(yes.file, file);
+                // The skills were installed already: a project file's set-up leaves them in place.
+                assert.ok(yes.skills.kind === 'installed', JSON.stringify(yes.skills));
+                assert.deepEqual(yes.skills.install.written, []);
                 const written = JSON.parse(readFileSync(file, 'utf8')) as {
                     mcpServers: Record<string, Record<string, unknown>>;
                 };
@@ -374,6 +500,33 @@ export function mainCases(): readonly EditorCase[] {
                         .getConfiguration(SETTINGS_SECTION)
                         .update(GAME_PATH_SETTING, undefined, vscode.ConfigurationTarget.Global);
                 }
+            },
+        },
+        {
+            name: '9.3: "Remove from Claude Code" takes out the entry and the skills, and leaves the rest',
+            run: async () => {
+                const dir = path.join(claudeConfig, 'skills');
+                // A skill of the person's own beside pychivalry's stays.
+                const own = path.join(dir, 'my-own-skill', SKILL_FILE);
+                mkdirSync(path.dirname(own), { recursive: true });
+                writeFileSync(own, '---\nname: my-own-skill\ndescription: mine\n---\nmine\n');
+                const outcome = await vscode.commands.executeCommand<RemoveOutcome>(
+                    REMOVE_FROM_CLAUDE_CODE,
+                    vscode.Uri.file(mod),
+                );
+                assert.equal(outcome.claude?.removed, true, JSON.stringify(outcome));
+                assert.ok(outcome.skills.kind === 'removed', JSON.stringify(outcome.skills));
+                assert.deepEqual(outcome.skills.removal.kept, []);
+                assert.deepEqual(readdirSync(dir), ['my-own-skill']);
+                assert.throws(() => claudeEntryFor(claudeConfig, mod), /no pychivalry server/);
+                assert.deepEqual(await theApi().claudeCodeOutOfDate(), []);
+                // Removed again: nothing left to take out, and nothing fails.
+                const again = await theApi().removeFromClaudeCode(mod);
+                assert.equal(again.claude?.removed, false, JSON.stringify(again));
+                assert.ok(again.skills.kind === 'removed');
+                assert.deepEqual(again.skills.removal.removed, []);
+                // VS Code's AI keeps the skills: they are the extension's own.
+                assert.equal((await contributedSkills()).length, 3);
             },
         },
     ];
