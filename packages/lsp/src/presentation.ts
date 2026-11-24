@@ -4,8 +4,10 @@
  * is per game folder, a file says how the editor shows that folder's records: the outline rule
  * (which records and which of their blocks the outline lists, with what label and symbol
  * kind), the snippets (a new file's head, a new record, a field with its tab stops), the field
- * order (the order fields are conventionally written in, which completion follows) and the
- * inline hints (a record's localized name beside its key). One more file, `_all.json`, holds
+ * order (the order fields are conventionally written in, which completion follows: the core's
+ * field-order data since 2026-11-23, `FIELD_ORDERS`, which the best-practice rule
+ * `style/unusual-field-order` also reads, so the data files no longer hold it) and the inline
+ * hints (a record's localized name beside its key). One more file, `_all.json`, holds
  * what applies to every folder: the scope a link switches to, shown after its key, and the
  * language the localized hints are read in. The format is `presentation/README.md`, its
  * JSON Schema `presentation/presentation.schema.json`.
@@ -19,6 +21,7 @@
  * repository's `presentation/` folder beside this package.
  */
 
+import { FIELD_ORDERS, type FieldOrder } from '@pychivalry/core';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -48,12 +51,7 @@ export interface OutlineRule {
     readonly blocks: readonly OutlineBlockRule[];
 }
 
-/** The order the fields of one block are conventionally written in. */
-export interface FieldOrder {
-    /** The path of keys from the record's body to the block, joined by `.`; `""` the body. */
-    readonly block: string;
-    readonly fields: readonly string[];
-}
+export type { FieldOrder };
 
 /** One snippet, in VS Code's snippet syntax (`$1`, `${1:default}`, `${1|a,b|}`, `$0`). */
 export interface Snippet {
@@ -95,6 +93,7 @@ export interface FolderPresentation {
     /** The pre-2.0 schema files the entries were brought back from; empty for new data. */
     readonly from: readonly string[];
     readonly outline: OutlineRule | null;
+    /** The core's field order for the folder (`FIELD_ORDERS`), not a part of the data files. */
     readonly fieldOrder: readonly FieldOrder[];
     readonly snippets: readonly Snippet[];
     readonly hints: readonly HintRule[];
@@ -189,21 +188,6 @@ function readOutline(value: unknown): OutlineRule | null {
     };
 }
 
-function readOrder(value: unknown): FieldOrder[] {
-    if (value === undefined) {
-        return [];
-    }
-    if (!Array.isArray(value)) {
-        throw new Error('fieldOrder is not a list');
-    }
-    return value.map((o: unknown, i): FieldOrder => {
-        if (!isRecord(o) || typeof o['block'] !== 'string' || !isStringArray(o['fields'])) {
-            throw new Error(`fieldOrder[${String(i)}] has no block and fields`);
-        }
-        return { block: o['block'], fields: o['fields'] };
-    });
-}
-
 function readSnippets(value: unknown): Snippet[] {
     if (value === undefined) {
         return [];
@@ -291,11 +275,16 @@ export function readFolderFile(relative: string, data: unknown): FolderPresentat
     if (!isStringArray(from)) {
         throw new Error('from is not a list of file names');
     }
+    if (data['fieldOrder'] !== undefined) {
+        throw new Error(
+            "fieldOrder is the core's data now (packages/core/src/check/field-order.json), not the presentation data's",
+        );
+    }
     return {
         folder,
         from,
         outline: readOutline(data['outline']),
-        fieldOrder: readOrder(data['fieldOrder']),
+        fieldOrder: FIELD_ORDERS.get(folder) ?? [],
         snippets: readSnippets(data['snippets']),
         hints: readHints(data['hints']),
     };
@@ -349,6 +338,19 @@ export function loadPresentation(dir: string = defaultPresentationDir()): Presen
             }
         } catch (err) {
             problems.push(`${shown}: ${err instanceof Error ? err.message : String(err)}`);
+        }
+    }
+    // A folder with a field order and no data file of its own still has its order.
+    for (const [folder, fieldOrder] of FIELD_ORDERS) {
+        if (!folders.has(folder)) {
+            folders.set(folder, {
+                folder,
+                from: [],
+                outline: null,
+                fieldOrder,
+                snippets: [],
+                hints: [],
+            });
         }
     }
     return { folders, every, problems };

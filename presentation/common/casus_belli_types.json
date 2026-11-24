@@ -6,23 +6,6 @@
         "symbol": "Class",
         "blocks": []
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": [
-                "icon",
-                "group",
-                "valid_to_start",
-                "should_invalidate",
-                "on_invalidated",
-                "cost",
-                "on_victory",
-                "on_white_peace",
-                "on_defeat",
-                "ai_score"
-            ]
-        }
-    ],
     "snippets": [
         {
             "label": "casus belli",

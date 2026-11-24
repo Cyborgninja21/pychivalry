@@ -22,11 +22,6 @@
                     "items": { "type": "string", "pattern": "^[a-z_]+\\.yaml$" }
                 },
                 "outline": { "$ref": "#/$defs/outline" },
-                "fieldOrder": {
-                    "description": "The order the fields of a block are conventionally written in.",
-                    "type": "array",
-                    "items": { "$ref": "#/$defs/fieldOrder" }
-                },
                 "snippets": {
                     "type": "array",
                     "items": { "$ref": "#/$defs/snippet" }
@@ -122,20 +117,6 @@
                             }
                         }
                     }
-                }
-            }
-        },
-        "fieldOrder": {
-            "type": "object",
-            "required": ["block", "fields"],
-            "additionalProperties": false,
-            "properties": {
-                "block": { "$ref": "#/$defs/blockPath" },
-                "fields": {
-                    "type": "array",
-                    "uniqueItems": true,
-                    "minItems": 1,
-                    "items": { "$ref": "#/$defs/fieldName" }
                 }
             }
         },

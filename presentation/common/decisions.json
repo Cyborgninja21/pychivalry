@@ -28,24 +28,6 @@
             }
         ]
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": [
-                "picture",
-                "cooldown",
-                "ai_check_interval",
-                "is_shown",
-                "is_valid",
-                "is_valid_showing_failures_only",
-                "cost",
-                "widget",
-                "effect",
-                "ai_potential",
-                "ai_will_do"
-            ]
-        }
-    ],
     "snippets": [
         {
             "label": "decision",

@@ -27,12 +27,6 @@
             }
         ]
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": ["trigger", "events", "first_valid", "effect", "on_actions", "random_events"]
-        }
-    ],
     "snippets": [
         {
             "label": "on_action",
