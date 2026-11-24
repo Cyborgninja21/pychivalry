@@ -8,6 +8,10 @@
  * It passes when every folder holds the files expected, every file yields a tree, and every
  * error is classified as a defect of the game's own files: an error without a classification,
  * a classification that matches no error, and a pychivalry fault each fail it.
+ *
+ * Since build step 8 it also runs the formatter's round trip (item 8.3, `round-trip.ts`) over
+ * every file it parses, and over the game's localization files: a file whose tree, tokens or
+ * comments the formatter changes, or that a second format changes, fails it.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -21,6 +25,7 @@ import {
     type Finding,
     type MessageCatalogue,
 } from '@pychivalry/core';
+import { RoundTrip, type RoundTripResults } from './round-trip.js';
 import { CommandError, EXIT, isObject, readJson } from './util.js';
 
 /** A folder of the game the suite reads, with the evidence that it holds script. */
@@ -278,6 +283,10 @@ export interface ParseSuiteResults {
     notes: NoteResult[];
     not_read: { what: string; why: string }[];
     encoding: EncodingResult;
+    /** The formatter's round trip over every file parsed (item 8.3). */
+    round_trip: RoundTripResults;
+    /** The same over the game's localization files. */
+    round_trip_localization: RoundTripResults;
 }
 
 /** Where each invalid UTF-8 byte of a file sits: in a comment, quoted text, or elsewhere. */
@@ -451,6 +460,7 @@ export function runParseSuite(
     let files = 0;
     let trees = 0;
     let parseMs = 0;
+    const roundTrip = new RoundTrip('script');
     for (const entry of folders) {
         const dir = path.join(gameDir, ...entry.folder.split('/'));
         const excluded = new Set((entry.excluded ?? []).map((e) => e.file));
@@ -487,6 +497,7 @@ export function runParseSuite(
                 const file = readScript(bytes, { catalogue: options.catalogue });
                 findings = file.allFindings;
                 row.trees++;
+                roundTrip.add(rel, (file.bom ? '\uFEFF' : '') + file.text);
                 if (file.bom) {
                     row.bom++;
                 }
@@ -542,6 +553,21 @@ export function runParseSuite(
             failures.push(`classification matches no error: ${c.file}:${String(c.line)} ${c.id}`);
         }
     }
+    // The formatter's round trip, the parse timed apart from it.
+    const round_trip = roundTrip.done();
+    const localization = new RoundTrip('localization');
+    const locDir = path.join(gameDir, 'localization');
+    if (statSync(locDir, { throwIfNoEntry: false })?.isDirectory() === true) {
+        for (const rel of filesUnder(gameDir, locDir)) {
+            if (path.extname(rel).toLowerCase() === '.yml') {
+                const bytes = readFileSync(path.join(gameDir, ...rel.split('/')));
+                localization.add(rel, new TextDecoder('utf-8', { ignoreBOM: true }).decode(bytes));
+            }
+        }
+    }
+    const round_trip_localization = localization.done();
+    failures.push(...round_trip.failures.map((f) => `round trip: ${f}`));
+    failures.push(...round_trip_localization.failures.map((f) => `round trip: ${f}`));
     return {
         passed: failures.length === 0,
         failures,
@@ -553,5 +579,7 @@ export function runParseSuite(
         notes,
         not_read: NOT_READ.map((n) => ({ what: n.what, why: n.why })),
         encoding: measureEncoding(gameDir),
+        round_trip,
+        round_trip_localization,
     };
 }

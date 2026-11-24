@@ -151,7 +151,7 @@ test(
         // the next ones, each from a server started again, by the cursor the last one gave.
         const findings = [...output.findings];
         let cursor = output.next_cursor;
-        for (let pages = 1; cursor !== null && pages < 5; pages++) {
+        for (let pages = 1; cursor !== null && pages < 20; pages++) {
             const [, next] = await converse(entry, [
                 {
                     jsonrpc: '2.0',
@@ -179,17 +179,39 @@ test(
             cursor = page.next_cursor;
         }
         assert.equal(cursor, null, 'every page read');
-        assert.deepEqual(output.totals.by_severity, {
-            error: 26,
-            warning: 7,
-            information: 0,
-            hint: 0,
-        });
+        // The `style/` family (pychivalry's formatting rules) plants nothing: left out here.
+        const style = (severity: string): number =>
+            Object.entries(output.totals.by_code)
+                .filter(([code]) => code.startsWith('style/'))
+                .reduce(
+                    (n, [code, count]) =>
+                        n +
+                        (code === 'style/not-formatted'
+                            ? severity === 'warning'
+                                ? count
+                                : 0
+                            : severity === 'hint'
+                              ? count
+                              : 0),
+                    0,
+                );
+        assert.deepEqual(
+            {
+                error: (output.totals.by_severity['error'] ?? 0) - style('error'),
+                warning: (output.totals.by_severity['warning'] ?? 0) - style('warning'),
+                information: (output.totals.by_severity['information'] ?? 0) - style('information'),
+                hint: (output.totals.by_severity['hint'] ?? 0) - style('hint'),
+            },
+            { error: 26, warning: 7, information: 0, hint: 0 },
+        );
         const planted = manifest.defects.flatMap((d) =>
             reportedAt(d).map((p) => `${d.code} ${p.file}:${String(p.line)}`),
         );
         assert.deepEqual(
-            findings.map((f) => `${f.code} ${f.file}:${String(f.line)}`).sort(),
+            findings
+                .filter((f) => !f.code.startsWith('style/'))
+                .map((f) => `${f.code} ${f.file}:${String(f.line)}`)
+                .sort(),
             planted.sort(),
             'the planted defects, at the lines the manifest counts from 1',
         );

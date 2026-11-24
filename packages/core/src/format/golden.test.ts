@@ -97,7 +97,7 @@ const scripts = goldens().filter(
 
 for (const golden of scripts) {
     // On-type formatting works on the text an editor holds: without the byte-order mark.
-    const output = golden.after.replace(/^﻿/, '');
+    const output = golden.after.replace(/^\uFEFF/, '');
 
     test(`on-type agrees with the formatter on ${golden.name}: typed key by key`, () => {
         let text = '';

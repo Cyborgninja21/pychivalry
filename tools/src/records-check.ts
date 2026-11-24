@@ -161,6 +161,46 @@ function parseProblems(results: unknown): string[] {
             }
         });
     }
+    problems.push(...roundTripProblems(results['round_trip'], 'round_trip', results['passed']));
+    problems.push(
+        ...roundTripProblems(
+            results['round_trip_localization'],
+            'round_trip_localization',
+            results['passed'],
+        ),
+    );
+    return problems;
+}
+
+/**
+ * A round trip's figures that disagree with each other: what was formatted and what was left
+ * make the files; a passing record has every tree, token list and second format the same, and
+ * every comment kept in its place.
+ */
+function roundTripProblems(value: unknown, key: string, passed: unknown): string[] {
+    if (!isObject(value)) {
+        return [];
+    }
+    const problems: string[] = [];
+    const n = (k: string): number => (typeof value[k] === 'number' ? value[k] : -1);
+    const left = Array.isArray(value['left']) ? value['left'].length : 0;
+    if (n('formatted') + left !== n('files')) {
+        problems.push(
+            `/results/${key}: ${String(n('formatted'))} formatted and ${String(left)} left are not its ${String(n('files'))} files`,
+        );
+    }
+    if (passed === true) {
+        for (const k of ['trees_equal', 'tokens_equal', 'second_format_unchanged']) {
+            if (n(k) !== n('formatted')) {
+                problems.push(
+                    `/results/${key}/${k}: ${String(n(k))} of ${String(n('formatted'))} in a passing record`,
+                );
+            }
+        }
+        if (n('comments_after') !== n('comments_before') || n('comments_moved') !== 0) {
+            problems.push(`/results/${key}: comments lost or moved in a passing record`);
+        }
+    }
     return problems;
 }
 
@@ -285,7 +325,13 @@ function checkFindingProblems(results: Record<string, unknown>, where: string): 
         ['warnings', 'warning_list', 'warning'],
     ] as const) {
         const listed = Array.isArray(results[list]) ? results[list].length : 0;
-        if (results[count] !== listed || bySeverity[severity] !== listed) {
+        // The `style/` family is counted by code and never listed (docs/formatting.md).
+        const style = byCode
+            .filter((c) => c['severity'] === severity && String(c['code']).startsWith('style/'))
+            .reduce((n, c) => n + (typeof c['count'] === 'number' ? c['count'] : 0), 0);
+        const counted =
+            typeof bySeverity[severity] === 'number' ? bySeverity[severity] - style : -1;
+        if (results[count] !== listed || counted !== listed) {
             problems.push(
                 `${where}/${list}: ${String(listed)} listed, but ${count} is ${JSON.stringify(results[count])} and by_severity counts ${JSON.stringify(bySeverity[severity])}`,
             );

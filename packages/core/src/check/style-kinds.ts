@@ -40,7 +40,7 @@ export const STYLE_KINDS: Readonly<Record<StyleCode, CheckKind>> = {
         formattingRules: true,
         slots: ['value'],
         description:
-            "Two tokens on a line not one space apart (around an operator, inside the braces of a block on one line, between values; `{}` for an empty block), or an entry's key and its text not one space apart.",
+            "Two tokens on a line not one space apart (around an operator, inside the braces of a block on one line, between values; an empty block's braces with nothing between them), or an entry's key and its text not one space apart.",
         text: "One space between the tokens: '%s'.",
     },
     'style/comment-spacing': {

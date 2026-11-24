@@ -17,7 +17,7 @@ import { FORMAT_RULES, type LayoutRules } from './rules.js';
 import { formatScript } from './script.js';
 import { columnsAfter, LINE_WIDTH } from './width.js';
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 /** Every file under a folder with one of the extensions. */
 function filesUnder(dir: string, extensions: readonly string[]): string[] {

@@ -8,13 +8,17 @@ it finds and the game's evidence for it, with the game's own message as the spec
 catalogue for game 1.21.0.3 gives it. `pychivalry explain <code>` prints the same for one
 code ([Commands](commands.md)).
 
-62 codes: 21 errors, 6 warnings, 33 information and 2 hints. 28 rest on the game's own evidence; 34 are advice.
+71 codes: 21 errors, 7 warnings, 33 information and 10 hints. 28 rest on the game's own evidence; 34 are advice; 9 rest on pychivalry's own formatting rules.
 
 - An **error** or a **warning** is something the game itself rejects or complains about, and
   rests on the game's own evidence: a message of the game, the game's own output, or a
   field the spec package marks required with the game's message for it.
 - **Information** and **hints** without such evidence are advice: usually right, not
   something the game enforces.
+- The **`style/`** findings rest on pychivalry's own formatting rules
+  ([formatting rules](../formatting.md)), not on the game: by the owner's decision, a file
+  that is not in that format is a warning, and each place that differs a hint, each with a
+  safe fix. A file with a parse error has none.
 - A file reports at most 1,000 findings, its most severe first; the command line says how
   many it left out.
 - A check marked **off by default** reports only when asked: the command line's
@@ -119,6 +123,20 @@ check each replaces and how each was proved on the base game, is the
 | `structure/switch-without-branches` | information | A switch block with no branch. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
 | `structure/switch-without-trigger` | information | A switch block without the trigger its cases are values of. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
 | `structure/trigger-else-without-trigger-if` | information | A trigger else branch not directly after the conditional it belongs to. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+
+## style
+
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `style/not-formatted` | warning | A file that is not in pychivalry's format: one finding a file, whose fix formats the whole file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The whole file formatted: only the whitespace between tokens changes. |
+| `style/blank-lines` | hint | Blank lines beyond one between two items, or any after '{', before '}' or at either end of the file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The blank lines the format does not keep removed. |
+| `style/block-layout` | hint | A block laid out otherwise than the format says: on one line when it holds one simple pair, plain values or nothing and fits in 120 columns, otherwise over several lines, one item a line; a pair on one line. One finding a block. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The block laid out as the format says: joined onto one line, or one item a line. |
+| `style/byte-order-mark` | hint | A file that does not start with the UTF-8 byte-order mark. One finding a file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The UTF-8 byte-order mark added. |
+| `style/comment-spacing` | hint | A comment at the end of a line not one space after the code before it. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: One space before the comment. |
+| `style/indentation` | hint | A line indented otherwise than the format says: one tab for each enclosing block in a script file, one space before an entry or a comment in a localization file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The line indented as the format says. |
+| `style/line-endings` | hint | Line breaks other than Windows line breaks (\r\n), or none at the end of the file. One finding a file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: Every line break written as \r\n, and one at the end of the file. |
+| `style/spacing` | hint | Two tokens on a line not one space apart (around an operator, inside the braces of a block on one line, between values; an empty block's braces with nothing between them), or an entry's key and its text not one space apart. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: One space between the two tokens, or none between the braces of an empty block. |
+| `style/trailing-whitespace` | hint | Spaces or tabs at the end of a line, or on a blank line. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The spaces and tabs at the end of the line removed. |
 
 ## syntax
 

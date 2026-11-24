@@ -13,7 +13,7 @@ import { formatText } from './index.js';
 import { applyFormatEdits, type FormatKind } from './result.js';
 import { styleOf, type StylePlace } from './style.js';
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 /** A text with the mark apart, as the runner gives it. */
 function split(text: string): { body: string; bom: boolean } {

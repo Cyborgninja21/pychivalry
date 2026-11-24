@@ -10,7 +10,7 @@
 
 import { openSpec } from '@pychivalry/core';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
@@ -20,7 +20,7 @@ import { BIN_FOLDER } from '../terminal.js';
 import { isInside, sameFile, samePath } from './fixture.js';
 import { given, type EditorCase } from './harness.js';
 import { activeExtension, displayCase } from './main.js';
-import { assertSameAnswers, pychivalryInTerminal } from './same.js';
+import { assertSameAnswers, assertSameFormatting, pychivalryInTerminal } from './same.js';
 
 /** Every file below `dir`, relative to it and written with `/`. */
 function filesUnder(dir: string, base = dir): string[] {
@@ -195,6 +195,34 @@ export function smokeCases(): readonly EditorCase[] {
                 const report = await assertSameAnswers(theExt().exports, mod, game, work);
                 console.log(`  same answers: ${JSON.stringify(report)}`);
                 assert.ok(report.bySeverity.error > 0 && report.bySeverity.warning > 0);
+            },
+        },
+        {
+            name: '8.9: the editor, the command line and the agent server format alike',
+            run: async () => {
+                const report = await assertSameFormatting(theExt().exports, mod, work);
+                console.log(`  same formatting: ${JSON.stringify(report)}`);
+                assert.ok(report.changed > 0, 'files the formatter changes');
+                assert.ok(report.left > 0, 'files with a parse error, left as they are');
+            },
+        },
+        {
+            name: '8.5: on-type formatting answers in the editor: a } typed first on its line',
+            run: async () => {
+                const file = path.join(work, 'on-type', 'common', 'scripted_effects', 'typed.txt');
+                mkdirSync(path.dirname(file), { recursive: true });
+                writeFileSync(file, 'typed_effect = {\n\tadd_gold = 1\n\t\t}\n');
+                const uri = vscode.Uri.file(file);
+                await vscode.workspace.openTextDocument(uri);
+                const edits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+                    'vscode.executeFormatOnTypeProvider',
+                    uri,
+                    new vscode.Position(2, 3),
+                    '}',
+                    { tabSize: 4, insertSpaces: true },
+                );
+                assert.equal(edits.length, 1);
+                assert.equal(edits[0]?.newText, '');
             },
         },
     ];

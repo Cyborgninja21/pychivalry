@@ -20,7 +20,7 @@ export {
     type FormatResult,
 } from './result.js';
 export { DEFAULT_RULES, FORMAT_RULES, type BlockRule, type LayoutRules } from './rules.js';
-export { formatScript, type FormatOptions } from './script.js';
+export { formatScript, layoutScript, type FormatOptions, type ScriptLayout } from './script.js';
 export { formatLocalization } from './localization.js';
 export { onTypeEdits, ON_TYPE_TRIGGERS } from './on-type.js';
 export { columnsAfter, LINE_WIDTH, lineColumns, TAB_COLUMNS } from './width.js';

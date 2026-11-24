@@ -13,15 +13,20 @@
  *   carries the game folder the setting `pychivalry.gamePath` names, and asked `check` with every
  *   severity, page after page to the end.
  *
+ * Since build step 8 it covers formatting too (`assertSameFormatting`): every script and
+ * localization file of the mod formatted by the editor's Format Document, by the command line's
+ * `format` typed into a terminal on a copy of the mod, and by the agent server's `format`, with
+ * sharing the base game's index on and off, gives the same text.
+ *
  * Test code only, bundled into the editor tests.
  */
 
 import assert from 'node:assert/strict';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
-import { checkAll } from './agent.js';
+import { checkAll, formatAll } from './agent.js';
 import {
     bySeverity,
     differences,
@@ -346,4 +351,132 @@ export async function assertSameAnswers(
         cliPath: cli.found,
         shared,
     };
+}
+
+/** What the same-formatting test found: the files formatted, and those each surface left. */
+export interface SameFormattingReport {
+    readonly files: number;
+    readonly changed: number;
+    readonly left: number;
+}
+
+/**
+ * A text with VS Code's edits applied, as the editor would apply them: each edit's text at its
+ * place, then a set end of line (`TextEdit.setEndOfLine`) over every line break.
+ */
+function appliedInEditor(document: vscode.TextDocument, edits: readonly vscode.TextEdit[]): string {
+    let text = document.getText();
+    const placed = edits
+        .filter((e) => e.newEol === undefined)
+        .map((e) => ({
+            start: document.offsetAt(e.range.start),
+            end: document.offsetAt(e.range.end),
+            text: e.newText.replace(
+                /\r?\n/g,
+                document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n',
+            ),
+        }))
+        .sort((a, b) => b.start - a.start);
+    for (const e of placed) {
+        text = text.slice(0, e.start) + e.text + text.slice(e.end);
+    }
+    const eol = edits.find((e) => e.newEol !== undefined)?.newEol;
+    if (eol === vscode.EndOfLine.CRLF) {
+        text = text.replace(/\r?\n/g, '\r\n');
+    }
+    return text;
+}
+
+/**
+ * Run the same-formatting test on the mod VS Code has open: each file the language server checks
+ * is formatted by the editor (Format Document), the command line (`pychivalry format` on a copy
+ * of the mod, typed into a terminal) and the agent server (`format`, page after page, with the
+ * base game's index shared and not), and the three texts must be the same. A file left as it is
+ * (a parse error) must be left by all three. Fails naming the files that differ.
+ */
+export async function assertSameFormatting(
+    api: PychivalryApi,
+    mod: string,
+    work: string,
+): Promise<SameFormattingReport> {
+    const files: string[] = [];
+    for (const rel of filesUnder(mod)) {
+        const result = await api.language.findings(
+            vscode.Uri.file(path.join(mod, ...rel.split('/'))),
+        );
+        if (result.file !== null) {
+            files.push(rel);
+        }
+    }
+    assert.ok(files.length > 0, 'the mod has files to format');
+
+    // The editor: Format Document on each file, its edits applied as VS Code applies them.
+    const editor = new Map<string, string>();
+    for (const rel of files) {
+        const uri = vscode.Uri.file(path.join(mod, ...rel.split('/')));
+        const document = await vscode.workspace.openTextDocument(uri);
+        const edits =
+            (await vscode.commands.executeCommand<vscode.TextEdit[] | undefined>(
+                'vscode.executeFormatDocumentProvider',
+                uri,
+                { tabSize: 4, insertSpaces: true },
+            )) ?? [];
+        editor.set(rel, appliedInEditor(document, edits));
+    }
+
+    // The command line, on a copy of the mod, from the terminal's path.
+    const copy = path.join(work, 'format-copy');
+    cpSync(mod, copy, { recursive: true });
+    const cli = await pychivalryInTerminal(path.join(work, 'format-cli'), ['format', copy]);
+    assert.equal(cli.code, 0, `pychivalry format exited ${String(cli.code)}:\n${cli.stderr}`);
+    const fromCli = new Map<string, { text: string; bom: boolean }>();
+    for (const rel of files) {
+        const text = readFileSync(path.join(copy, ...rel.split('/')), 'utf8');
+        fromCli.set(rel, { text: text.replace(/^\uFEFF/, ''), bom: text.startsWith('\uFEFF') });
+    }
+
+    // The agent server, from the definition VS Code's AI is given, sharing on and then off.
+    const [definition] = await api.definitions();
+    assert.ok(definition !== undefined, 'the extension gives VS Code an agent server');
+    const entry = {
+        command: definition.command,
+        args: definition.args,
+        env: definition.env,
+        ...(definition.cwd === undefined ? {} : { cwd: definition.cwd.fsPath }),
+    };
+    const before = (await api.language.sharing()).answered['mcp'] ?? 0;
+    const shared = await formatAll(entry, files);
+    const after = (await api.language.sharing()).answered['mcp'] ?? 0;
+    assert.ok(after - before >= files.length, 'the language server answered every format call');
+    const alone = await formatAll({ ...entry, env: { ...entry.env, ...SHARING_OFF } }, files);
+    assert.deepEqual(alone, shared, 'the agent server alone gives what the language server gave');
+
+    const differ: string[] = [];
+    let changed = 0;
+    let left = 0;
+    for (const [i, rel] of files.entries()) {
+        const original = readFileSync(path.join(mod, ...rel.split('/')), 'utf8').replace(
+            /^\uFEFF/,
+            '',
+        );
+        const agent = shared[i];
+        const fromAgent = agent?.changed === true ? agent.text : original;
+        const inEditor = editor.get(rel) ?? '';
+        const inCli = fromCli.get(rel);
+        if (agent?.formatted === false) {
+            left++;
+        } else if (agent?.changed === true) {
+            changed++;
+            if (inCli?.bom !== true) {
+                differ.push(`${rel}: the command line wrote no byte-order mark`);
+            }
+        }
+        if (inEditor !== fromAgent || inCli?.text !== fromAgent) {
+            differ.push(
+                `${rel}: the editor ${JSON.stringify(inEditor.slice(0, 80))}, the command line ${JSON.stringify(inCli?.text.slice(0, 80))}, the agent server ${JSON.stringify(fromAgent.slice(0, 80))}`,
+            );
+        }
+    }
+    assert.deepEqual(differ, [], 'the three surfaces format alike');
+    return { files: files.length, changed, left };
 }

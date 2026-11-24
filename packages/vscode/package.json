@@ -106,6 +106,17 @@
                     "markdownDescription": "Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies."
                 }
             }
+        },
+        "configurationDefaults": {
+            "[ck3]": {
+                "editor.insertSpaces": false,
+                "files.encoding": "utf8bom",
+                "files.eol": "\r\n"
+            },
+            "[ck3-localization]": {
+                "files.encoding": "utf8bom",
+                "files.eol": "\r\n"
+            }
         }
     },
     "scripts": {

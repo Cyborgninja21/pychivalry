@@ -96,6 +96,53 @@ export async function checkAll(entry: Entry): Promise<AllFindings> {
     });
 }
 
+/** What the agent server's `format` gave for one file: its text put together from its pages. */
+export interface FormattedByAgent {
+    readonly file: string;
+    readonly formatted: boolean;
+    readonly changed: boolean;
+    readonly bom: boolean;
+    /** The formatted text without the mark; empty when the file is unchanged or left. */
+    readonly text: string;
+}
+
+/** Start the server from `entry` and call `format` on each file, page after page. */
+export async function formatAll(
+    entry: Entry,
+    files: readonly string[],
+): Promise<FormattedByAgent[]> {
+    return withServer(entry, async (client) => {
+        const out: FormattedByAgent[] = [];
+        for (const file of files) {
+            let text = '';
+            let cursor: string | null = null;
+            let first: Record<string, unknown> | null = null;
+            do {
+                const result = (await client.callTool(
+                    { name: 'format', arguments: { file, ...(cursor === null ? {} : { cursor }) } },
+                    { timeout: 600_000 },
+                )) as { structuredContent?: Record<string, unknown>; isError?: boolean };
+                if (result.isError === true || result.structuredContent === undefined) {
+                    throw new Error(`format ${file} returned an error: ${JSON.stringify(result)}`);
+                }
+                const page = result.structuredContent;
+                first ??= page;
+                text += String(page['text']);
+                const next = page['next_cursor'];
+                cursor = typeof next === 'string' ? next : null;
+            } while (cursor !== null);
+            out.push({
+                file,
+                formatted: first['formatted'] === true,
+                changed: first['changed'] === true,
+                bom: first['bom'] === true,
+                text,
+            });
+        }
+        return out;
+    });
+}
+
 async function callCheck(
     client: Client,
     args: Record<string, unknown>,

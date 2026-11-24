@@ -22,3 +22,5 @@ fixtures/mods/encoding-windows-1252/history/** -text
 # are exact on every platform (the style/ pairs, the golden files of fixtures/format/).
 fixtures/mods/style-*/** -text
 fixtures/format/** -text
+# Fixtures in the format, whose tests are about other things: their Windows line breaks kept.
+fixtures/mods/names-unknown-trigger-*/** -text

@@ -7,6 +7,11 @@
  * holds no checking, parsing or lookup logic (docs/MVP.md, "Architecture"). The server reads the
  * settings of the section `pychivalry` itself, through the client (`workspace/configuration`).
  *
+ * Formatting is the server's too (docs/formatting.md); the client adds one thing an edit's text
+ * cannot do in VS Code, which writes every edit in the document's own line breaks: when the
+ * document uses `\n`, Format Document, a quick fix of a `style/line-endings` or
+ * `style/not-formatted` finding and "fix all" also turn its line breaks to `\r\n`, the format's.
+ *
  * The extension listens to two of the server's own messages: `pychivalry/backgroundDone`, the
  * end of a background pass, which gives the time to the first full result and the server's peak
  * memory; and it sends `pychivalry/findings`, a file's findings in the core's shape, which the
@@ -51,6 +56,51 @@ export interface LanguageServer {
     readonly sharing: () => Promise<SharingStatus>;
 }
 
+/** The codes whose quick fix changes a file's line breaks. */
+const BREAK_CODES: ReadonlySet<string> = new Set(['style/line-endings', 'style/not-formatted']);
+
+/** True for a code action that fixes line breaks: one of `BREAK_CODES`' fixes, or fix all. */
+function fixesBreaks(action: vscode.Command | vscode.CodeAction): action is vscode.CodeAction {
+    if (!(action instanceof vscode.CodeAction) || action.edit === undefined) {
+        return false;
+    }
+    if (action.kind !== undefined && vscode.CodeActionKind.SourceFixAll.contains(action.kind)) {
+        return true;
+    }
+    return (action.diagnostics ?? []).some((d) => {
+        const code = typeof d.code === 'object' ? d.code.value : d.code;
+        return BREAK_CODES.has(String(code));
+    });
+}
+
+/** Edits of the document, and its line breaks set to `\r\n` when they are `\n`. */
+function withWindowsBreaks(
+    document: vscode.TextDocument,
+    edits: vscode.TextEdit[] | null | undefined,
+): vscode.TextEdit[] | null | undefined {
+    // No edit: a file in the format, or one the formatter leaves as it is (a parse error).
+    if (edits === null || edits === undefined || edits.length === 0) {
+        return edits;
+    }
+    if (document.eol !== vscode.EndOfLine.LF) {
+        return edits;
+    }
+    return [...edits, vscode.TextEdit.setEndOfLine(vscode.EndOfLine.CRLF)];
+}
+
+/** A code action whose edit also sets the document's line breaks to `\r\n`. */
+function withBreaksAction(
+    document: vscode.TextDocument,
+    action: vscode.CodeAction,
+): vscode.CodeAction {
+    const edit = action.edit;
+    if (edit === undefined || document.eol !== vscode.EndOfLine.LF) {
+        return action;
+    }
+    edit.set(document.uri, withWindowsBreaks(document, edit.get(document.uri)) ?? []);
+    return action;
+}
+
 /** Start the language server bundled at `module`, reading the spec package in `specDir`. */
 export function startLanguageServer(
     module: string,
@@ -62,6 +112,14 @@ export function startLanguageServer(
     const clientOptions: LanguageClientOptions = {
         documentSelector: LANGUAGES.map((language) => ({ scheme: 'file', language })),
         outputChannel: log,
+        middleware: {
+            provideDocumentFormattingEdits: async (document, options, token, next) =>
+                withWindowsBreaks(document, await next(document, options, token)),
+            provideCodeActions: async (document, range, context, token, next) => {
+                const actions = await next(document, range, context, token);
+                return actions?.map((a) => (fixesBreaks(a) ? withBreaksAction(document, a) : a));
+            },
+        },
     };
     const client = new LanguageClient('pychivalry', 'pychivalry', serverOptions, clientOptions);
 

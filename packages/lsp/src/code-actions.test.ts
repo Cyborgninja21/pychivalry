@@ -74,28 +74,36 @@ test("the quick fixes of the planted-defect mod are its findings' fix data", asy
     const diagnostics = await client.diagnosticsOf(uri, (d) => d.length > 0);
     const { findings } = await client.findings(uri);
     const got = await actions(client, uri, diagnostics);
-    // Every alternative of every finding's fix is an action, and nothing else is.
+    // Every alternative of every finding's fix is an action, and nothing else is but the "fix
+    // every safe" actions; the insertion of the byte-order mark, which is the file's encoding in
+    // the editor, is left out of an action, and an action of nothing else is not offered.
+    const mark = (e: { new_text: string }): boolean => e.new_text === '\uFEFF';
     const expected = findings.flatMap((f: WorkspaceFinding) =>
-        (f.fix?.alternatives ?? []).map((a) => ({
-            title: a.title,
-            preferred: f.fix?.safety === 'safe',
-            changes: Object.fromEntries(
-                [...new Set(a.edits.map((e) => e.file))].map((name) => [
-                    uriOf(path.join(mod, ...name.split('/'))),
-                    a.edits
-                        .filter((e) => e.file === name)
-                        .map((e) => ({ range: e.range, newText: e.new_text })),
-                ]),
-            ),
-        })),
+        (f.fix?.alternatives ?? [])
+            .map((a) => ({ ...a, edits: a.edits.filter((e) => !mark(e)) }))
+            .filter((a) => a.edits.length > 0)
+            .map((a) => ({
+                title: a.title,
+                preferred: f.fix?.safety === 'safe',
+                changes: Object.fromEntries(
+                    [...new Set(a.edits.map((e) => e.file))].map((name) => [
+                        uriOf(path.join(mod, ...name.split('/'))),
+                        a.edits
+                            .filter((e) => e.file === name)
+                            .map((e) => ({ range: e.range, newText: e.new_text })),
+                    ]),
+                ),
+            })),
     );
     assert.ok(expected.length > 0);
     assert.deepEqual(
-        got.map((a) => ({
-            title: a.title,
-            preferred: a.isPreferred === true,
-            changes: a.edit?.changes,
-        })),
+        got
+            .filter((a) => !a.title.startsWith('Fix every safe '))
+            .map((a) => ({
+                title: a.title,
+                preferred: a.isPreferred === true,
+                changes: a.edit?.changes,
+            })),
         expected,
     );
     assert.ok(got.every((a) => a.kind === 'quickfix'));

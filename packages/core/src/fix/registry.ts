@@ -279,7 +279,7 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     'style/spacing': {
         offer: 'safe',
         carried: true,
-        what: 'One space between the two tokens, or none in `{}`.',
+        what: 'One space between the two tokens, or none between the braces of an empty block.',
     },
     'style/comment-spacing': {
         offer: 'safe',

@@ -168,7 +168,7 @@ function markPlace(rules: LayoutRules, bom: boolean): StylePlace | null {
         end: 0,
         args: [],
         title: STYLE_TITLES['style/byte-order-mark'],
-        edits: bom ? [] : [{ start: 0, end: 0, text: '﻿' }],
+        edits: bom ? [] : [{ start: 0, end: 0, text: '\uFEFF' }],
     };
 }
 

@@ -164,12 +164,109 @@
         "count": { "type": "integer", "minimum": 0 },
         "text": { "type": "string", "minLength": 1 },
         "extension": { "type": "string", "pattern": "^\\.[a-z0-9]+$" },
-        "parseResults": {
-            "description": "The base-game parse suite (records/README.md, \"Parse records\"): the folders read, every parse error with its classification, the information notes, the text files not read, and how every text file of the game is encoded.",
+        "roundTrip": {
+            "description": "The formatter's round trip (records/README.md, \"Parse records\"; docs/PLAN.md item 8.3): files formatted, left as they are, changed; trees, tokens and comments the same; a second format unchanged; how much the formatter changes, by rule; the 120-column rule; the time.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["passed", "failures", "files", "trees", "parse_ms", "folders", "errors", "notes", "not_read", "encoding"],
+            "required": ["rules", "files", "formatted", "left", "changed", "trees_equal", "tokens_equal", "second_format_unchanged", "comments_before", "comments_after", "comments_moved", "lines_before", "lines_after", "lines_changed", "blocks_written_on_one_line_broken", "blocks", "by_rule", "width", "format_ms", "largest_file", "failures"],
             "properties": {
+                "rules": { "$ref": "#/$defs/text" },
+                "files": { "$ref": "#/$defs/count" },
+                "formatted": { "$ref": "#/$defs/count" },
+                "left": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["file", "id", "line"],
+                        "properties": {
+                            "file": { "$ref": "#/$defs/text" },
+                            "id": { "$ref": "#/$defs/text" },
+                            "line": { "type": "integer", "minimum": 1 }
+                        }
+                    }
+                },
+                "changed": { "$ref": "#/$defs/count" },
+                "trees_equal": { "$ref": "#/$defs/count" },
+                "tokens_equal": { "$ref": "#/$defs/count" },
+                "second_format_unchanged": { "$ref": "#/$defs/count" },
+                "comments_before": { "$ref": "#/$defs/count" },
+                "comments_after": { "$ref": "#/$defs/count" },
+                "comments_moved": { "$ref": "#/$defs/count" },
+                "lines_before": { "$ref": "#/$defs/count" },
+                "lines_after": { "$ref": "#/$defs/count" },
+                "lines_changed": { "$ref": "#/$defs/count" },
+                "blocks_written_on_one_line_broken": { "$ref": "#/$defs/count" },
+                "blocks": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["kind", "written_one_line_kept", "written_one_line_broken", "written_several_joined", "written_several_kept"],
+                        "properties": {
+                            "kind": { "enum": ["one-simple-pair", "plain-values", "empty", "other"] },
+                            "written_one_line_kept": { "$ref": "#/$defs/count" },
+                            "written_one_line_broken": { "$ref": "#/$defs/count" },
+                            "written_several_joined": { "$ref": "#/$defs/count" },
+                            "written_several_kept": { "$ref": "#/$defs/count" }
+                        }
+                    }
+                },
+                "by_rule": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["code", "files", "places", "lines"],
+                        "properties": {
+                            "code": { "type": "string", "pattern": "^style/[a-z-]+$" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "places": { "$ref": "#/$defs/count" },
+                            "lines": { "$ref": "#/$defs/count" }
+                        }
+                    }
+                },
+                "width": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["columns", "tab_columns", "lines_over_before", "files_with_lines_over_before", "lines_over_without_width_rule", "lines_over_after", "files_changed_by_width_alone"],
+                    "properties": {
+                        "columns": { "type": "integer", "minimum": 1 },
+                        "tab_columns": { "type": "integer", "minimum": 1 },
+                        "lines_over_before": { "$ref": "#/$defs/count" },
+                        "files_with_lines_over_before": { "$ref": "#/$defs/count" },
+                        "lines_over_without_width_rule": { "$ref": "#/$defs/count" },
+                        "lines_over_after": { "$ref": "#/$defs/count" },
+                        "files_changed_by_width_alone": { "$ref": "#/$defs/count" }
+                    }
+                },
+                "format_ms": { "$ref": "#/$defs/count" },
+                "largest_file": {
+                    "oneOf": [
+                        { "type": "null" },
+                        {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": ["file", "bytes", "format_ms"],
+                            "properties": {
+                                "file": { "$ref": "#/$defs/text" },
+                                "bytes": { "$ref": "#/$defs/count" },
+                                "format_ms": { "$ref": "#/$defs/count" }
+                            }
+                        }
+                    ]
+                },
+                "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } }
+            }
+        },
+        "parseResults": {
+            "description": "The base-game parse suite (records/README.md, \"Parse records\"): the folders read, every parse error with its classification, the information notes, the text files not read, how every text file of the game is encoded, and the formatter's round trip over the script files read and the localization files.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failures", "files", "trees", "parse_ms", "folders", "errors", "notes", "not_read", "encoding", "round_trip", "round_trip_localization"],
+            "properties": {
+                "round_trip": { "$ref": "#/$defs/roundTrip" },
+                "round_trip_localization": { "$ref": "#/$defs/roundTrip" },
                 "passed": { "type": "boolean" },
                 "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
                 "files": { "$ref": "#/$defs/count" },

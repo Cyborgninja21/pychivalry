@@ -42,7 +42,8 @@ test('every snippet produces script the checks accept with no error and no warni
         write(path.join(mod, 'descriptor.mod'), 'name = "snippets"\n');
         write(path.join(mod, ...host.file.split('/')), host.text);
         const run = checkWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
-        for (const f of run.findings) {
+        // The `style/` family is the formatter's: a snippet is laid out where it is inserted.
+        for (const f of run.findings.filter((x) => !x.code.startsWith('style/'))) {
             if (f.severity === 'error' || f.severity === 'warning') {
                 failures.push(
                     `${host.folder} "${host.snippet.label}": ${f.code} ${f.message} (line ${String(f.range.start.line + 1)})\n${host.text}`,

@@ -285,7 +285,56 @@ function parseRecord(): SuiteRecord {
                 by_folder: [{ folder: 'events', extension: '.txt', files: 2, bom: 1, not_utf8: 0 }],
                 not_utf8_files: [],
             },
+            round_trip: roundTrip(2, 1),
+            round_trip_localization: roundTrip(0, 0),
         },
+    };
+}
+
+/** A round trip's results: `files` files, `formatted` of them formatted, the rest left. */
+function roundTrip(files: number, formatted: number): Record<string, unknown> {
+    return {
+        rules: 'docs/formatting.md',
+        files,
+        formatted,
+        left: Array.from({ length: files - formatted }, () => ({
+            file: 'events/b.txt',
+            id: 'syntax/missing-closing-brace',
+            line: 1,
+        })),
+        changed: formatted,
+        trees_equal: formatted,
+        tokens_equal: formatted,
+        second_format_unchanged: formatted,
+        comments_before: 3,
+        comments_after: 3,
+        comments_moved: 0,
+        lines_before: 10,
+        lines_after: 9,
+        lines_changed: 4,
+        blocks_written_on_one_line_broken: 1,
+        blocks: [
+            {
+                kind: 'one-simple-pair',
+                written_one_line_kept: 1,
+                written_one_line_broken: 0,
+                written_several_joined: 1,
+                written_several_kept: 0,
+            },
+        ],
+        by_rule: [{ code: 'style/indentation', files: formatted, places: 2, lines: 2 }],
+        width: {
+            columns: 120,
+            tab_columns: 4,
+            lines_over_before: 1,
+            files_with_lines_over_before: 1,
+            lines_over_without_width_rule: 1,
+            lines_over_after: 0,
+            files_changed_by_width_alone: 1,
+        },
+        format_ms: 1,
+        largest_file: files === 0 ? null : { file: 'events/a.txt', bytes: 100, format_ms: 1 },
+        failures: [],
     };
 }
 
@@ -311,6 +360,12 @@ test('a parse record must agree with itself: totals, error counts, passed and cl
     ]);
     const noShape = { ...parseRecord(), results: {} };
     assert.ok(checkRecord(noShape, validate, expected).some((p) => p.includes('required')));
+    const lost = parseRecord();
+    lost.results['round_trip'] = { ...roundTrip(2, 1), comments_after: 2, trees_equal: 0 };
+    assert.deepEqual(checkRecord(lost, validate, expected), [
+        '/results/round_trip/trees_equal: 0 of 1 in a passing record',
+        '/results/round_trip: comments lost or moved in a passing record',
+    ]);
 });
 
 function resultsModsRecord(): SuiteRecord {
