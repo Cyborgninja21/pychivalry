@@ -573,7 +573,9 @@ export function runAuthoring(
     // The base game's index, built once into the cache every trial's agent server reads, so that
     // no session waits for it; the grader loads it from there too.
     const indexCache = defaultCacheDir({ XDG_CACHE_HOME: cacheDir, LOCALAPPDATA: cacheDir });
-    openWorkspace({ spec, gameDir: options.gameDir, cacheDir: indexCache, modDir: null });
+    if (sessions > 0) {
+        openWorkspace({ spec, gameDir: options.gameDir, cacheDir: indexCache, modDir: null });
+    }
     let stopped = false;
     try {
         for (const { request, first, count } of plan) {
@@ -707,7 +709,7 @@ function runTrial(ctx: TrialContext): AuthoringTrial {
         options.timeoutMinutes,
         authoringConfinement(ctx.skills),
     );
-    const outside = callsOutside(summary, modDir, FILE_TOOLS);
+    const outside = callsOutside(summary, [modDir, skillsDir], FILE_TOOLS);
     if (outside.length > 0) {
         const tools = [...new Set(outside.map((c) => c.tool))].join(', ');
         problems.push(

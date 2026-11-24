@@ -123,25 +123,29 @@ export function sessionProblems(
 }
 
 /**
- * The calls of a session's built-in tools that name a file outside `folder` (relative names are
- * read from it, as the session's working folder): a session confined to its mod reads and
- * writes only there. The files themselves are for the person running the test, never recorded.
+ * The calls of a session's built-in tools that name a file outside every one of `folders`
+ * (relative names are read from the first, the session's working folder): a session confined to
+ * its mod reads and writes only there, and in the folder of the skills it was given. The files
+ * themselves are for the person running the test, never recorded.
  */
 export function callsOutside(
     summary: StreamSummary,
-    folder: string,
+    folders: readonly string[],
     builtIn: readonly string[],
 ): { readonly tool: string; readonly file: string }[] {
-    const root = path.resolve(folder);
+    const roots = folders.map((f) => path.resolve(f));
+    const inside = (full: string): boolean =>
+        roots.some((root) => {
+            const rel = path.relative(root, full);
+            return !(rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel));
+        });
     const out: { tool: string; file: string }[] = [];
     for (const call of summary.toolCalls) {
         if (!builtIn.includes(call.name)) {
             continue;
         }
         for (const file of call.paths) {
-            const full = path.resolve(root, file);
-            const rel = path.relative(root, full);
-            if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
+            if (!inside(path.resolve(roots[0] ?? '.', file))) {
                 out.push({ tool: call.name, file });
             }
         }

@@ -14,6 +14,8 @@ import { checkRecord, compileRecordSchema } from '../records-check.js';
 import { tempDir } from '../testing.js';
 import { CommandError } from '../util.js';
 import { authoringProblems, type AuthoringRecord } from './authoring-record.js';
+import { callsOutside } from './confinement.js';
+import { readStream } from './stream.js';
 import {
     authoringArgs,
     authoringOptions,
@@ -634,6 +636,33 @@ test('the record check finds figures that disagree', (t) => {
         [
             '/results/trials/0: must NOT have additional properties (extra)',
             '(root): must match "then" schema',
+        ],
+    );
+});
+
+test('a session may name files in its mod and in the folder of its skills, and nowhere else', (t) => {
+    const dir = tempDir(t);
+    const mod = path.join(dir, 'mod');
+    const skills = path.join(dir, 'claude-config', 'skills');
+    const summary = readStream(
+        authoringStream({
+            files: [
+                'events/x.txt',
+                path.join(mod, 'common', 'y.txt'),
+                path.join(skills, 'pychivalry-write-content', 'SKILL.md'),
+                path.join(dir, 'elsewhere.txt'),
+                path.join(mod, '..', 'escaped.txt'),
+            ],
+        }),
+    );
+    assert.deepEqual(
+        callsOutside(summary, [mod, skills], ['Read', 'Edit', 'Write']).map((c) => [
+            c.tool,
+            path.basename(c.file),
+        ]),
+        [
+            ['Write', 'elsewhere.txt'],
+            ['Write', 'escaped.txt'],
         ],
     );
 });
