@@ -126,6 +126,7 @@ const CHECK_NOTES = [
     "Every error and warning is listed with its file, layer, line and column, and classified in tools/data/check-classifications.json, matched by layer, file, code and line: game-defect (a defect of the game's own files), spec-package-fault (the committed spec package is wrong or lacks what the check needs; the request is in docs/decisions.md) or pychivalry-fault (fails the run). Information and hints are counted by code.",
     "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
     "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
+    "The style/ family (docs/formatting.md) rests on pychivalry's own formatting rules, not on the game: its warning (style/not-formatted, one a file not in the format) and its hints are counted in by_code and by_severity, never listed or classified; warnings and warning_list are the other warnings. The base game is not written in the format, so nearly every file has a style warning.",
 ];
 
 const MODS_NOTES = [
@@ -133,6 +134,7 @@ const MODS_NOTES = [
     'Every error is listed and classified in tools/data/mods-classifications.json, matched by mod, file, code and line: real-defect (shown from the mod and game 1.21.0.3), spec-package-fault, pychivalry-fault (fails the run) or unclassified (not shown either way: fails the run). Warnings are listed; information and hints are counted by code.',
     "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
     "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
+    "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
 ];
 
 const INDEX_NOTES = [
@@ -154,6 +156,7 @@ const PARSE_NOTES = [
     'Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and gets one information note (results.notes).',
     'Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.',
     'results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.',
+    "results.round_trip is the formatter's round trip (docs/PLAN.md item 8.3) over every file parsed, with the rules every surface uses (docs/formatting.md): each is formatted, its output parsed and compared with the input without offsets (the same items in order and nesting, of the same kinds, with the same texts, scalar types, operators, names before keys, closings and chain segments, and comments but for their trailing spaces and tabs), its tokens compared, its comments counted and each checked to keep the tokens around it and its own line or not, and formatted a second time to the same bytes. A file with a parse error is left as it is (results.round_trip.left). by_rule counts the places, files and lines each style/ hint names; width the lines over 120 columns (a tab to the next multiple of four, every code point one column) before formatting, formatted without the 120-column rule and with it, and the files that rule changes on its own. format_ms is formatting alone, in one process. results.round_trip_localization is the same over the game's localization/ .yml files, their reading by the index's localization reader compared.",
 ];
 
 /** The load average just before a run, as a note. */

@@ -1,12 +1,10 @@
-namespace = fixture
+﻿namespace = fixture
 
 fixture.0001 = {
 	trigger = {
 		fixture_ready_trigger = yes
 		fixture_district_trigger = yes
 	}
-	immediate = {
-		add_gold = 10
-	}
+	immediate = { add_gold = 10 }
 	hidden = yes
 }

@@ -2,7 +2,7 @@
     "name": "pychivalry",
     "displayName": "pychivalry",
     "publisher": "cyborgninja21",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "preview": true,
     "private": true,
     "description": "Crusader Kings 3 modding: pychivalry's checks and lookups for VS Code's own AI and for Claude Code. Preview.",
@@ -105,6 +105,17 @@
                     "default": true,
                     "markdownDescription": "Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies."
                 }
+            }
+        },
+        "configurationDefaults": {
+            "[ck3]": {
+                "editor.insertSpaces": false,
+                "files.encoding": "utf8bom",
+                "files.eol": "\r\n"
+            },
+            "[ck3-localization]": {
+                "files.encoding": "utf8bom",
+                "files.eol": "\r\n"
             }
         }
     },

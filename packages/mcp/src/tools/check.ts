@@ -11,14 +11,16 @@
  * 1, as the tools write places. The server applies nothing (it writes nothing): an agent applies
  * a fix with its own edit tool. A fix's size is bounded in the core (at most five alternatives,
  * each edit only the text it changes), and a page holds as many findings as fit the result's
- * budget, fixes and all, so fixes never push a result over it. A fix larger than a third of the
- * budget (a file of many lines converted to UTF-8) comes without its edits, with their count and
- * how to apply it (`MAX_FIX_CHARACTERS`).
+ * budget, fixes and all, so fixes never push a result over it. A fix too long to list (the core's
+ * `fixTooLongToList`: a formatting fix of a large file, a large file converted to UTF-8) comes
+ * without its edits, marked so (`fixOutput`).
  */
 
 import {
     checkWorkspaceSteps,
     drain,
+    fixTooLongToList,
+    type FindingFix,
     type Severity,
     type Steps,
     type WorkspaceFinding,
@@ -30,8 +32,6 @@ import {
     page,
     questionKey,
     readCursor,
-    RESULT_BUDGET,
-    sizeOf,
     valueList,
 } from '../result.js';
 import type { Schema } from '../schema.js';
@@ -59,28 +59,22 @@ export interface CheckArgs {
 }
 
 /**
- * The most characters one finding's fix may take in a result: a third of the budget, so a page
- * always holds the finding with room for the totals. A fix larger than that (a file of many
- * lines converted to UTF-8, a large block moved) is given without its edits, with how many
- * there are: the command line's `check --fix` applies it, and `check --json` prints it whole.
+ * A fix as `check` returns it: whole, but a fix too long for a result (`fixTooLongToList`: a
+ * formatting fix of a large file, or any other fix past a third of the result's budget, such as
+ * a large file converted to UTF-8), whose edits are left out and marked so: the `format` tool
+ * gives a formatting fix's text, and the command line's `check --fix` applies any safe fix.
  */
-export const MAX_FIX_CHARACTERS = Math.floor(RESULT_BUDGET / 3);
-
-/** A fix as `check` returns it: its places as spans, its edits left out when too large. */
-function fixOutput(fix: NonNullable<WorkspaceFinding['fix']>): unknown {
-    const whole = withSpans(fix);
-    if (sizeOf(whole) <= MAX_FIX_CHARACTERS) {
-        return whole;
+export function fixOutput(fix: FindingFix): FindingFix | Record<string, unknown> {
+    if (!fixTooLongToList(fix)) {
+        return fix;
     }
     return {
         ...fix,
         alternatives: fix.alternatives.map((a) => ({
             title: a.title,
             edits: [],
-            edits_total: a.edits.length,
+            edits_omitted: true,
         })),
-        edits_left_out:
-            'too large for a result: pychivalry check --fix applies a safe fix, pychivalry check --json prints every edit',
     };
 }
 
@@ -93,7 +87,7 @@ export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
         code: f.code,
         message: f.message,
         data: f.data,
-        fix: f.fix === null ? null : fixOutput(f.fix),
+        fix: f.fix === null ? null : withSpans(fixOutput(f.fix)),
     };
 }
 
@@ -147,7 +141,7 @@ const FIX: Schema = {
         basis: {
             type: 'string',
             description:
-                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names, windows-1252 or field-order',
+                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names, formatting, windows-1252 or field-order',
         },
         alternatives: {
             type: 'array',
@@ -156,10 +150,10 @@ const FIX: Schema = {
                 properties: {
                     title: { type: 'string' },
                     edits: { type: 'array', items: EDIT },
-                    edits_total: {
-                        ...COUNT,
+                    edits_omitted: {
+                        type: 'boolean',
                         description:
-                            'Given when the edits are left out because the fix is too large for a result: how many it has',
+                            "True when the fix's edits are too long to list: the format tool gives a formatting fix's text (a style/ formatting finding's); pychivalry check --fix applies any safe fix",
                     },
                 },
                 required: ['title', 'edits'],
@@ -169,11 +163,6 @@ const FIX: Schema = {
         alternatives_total: {
             ...COUNT,
             description: 'How many alternatives there are in all, when more than are listed',
-        },
-        edits_left_out: {
-            type: 'string',
-            description:
-                "Given when the fix is too large for a result: its alternatives' edits are left out, and this says how to apply it",
         },
     },
     required: ['safety', 'basis', 'alternatives'],

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-23T16:54:54.481Z",
+    "made_at": "2026-11-24T00:52:03.681Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "84d9c0f0550dd8a48d1c9c244c0d318c283a4858",
+        "commit": "3539184ed5182d9433800924d0f92c7ac1edc508",
         "dirty": false
     },
     "machine": {
@@ -42,14 +42,15 @@
         "Every error is listed and classified in tools/data/mods-classifications.json, matched by mod, file, code and line: real-defect (shown from the mod and game 1.21.0.3), spec-package-fault, pychivalry-fault (fails the run) or unclassified (not shown either way: fails the run). Warnings are listed; information and hints are counted by code.",
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
-        "The load average over one minute was 5.63 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
+        "The load average over one minute was 3.91 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 18716,
-            "peak_rss_kib": 1539496
+            "build_ms": 13651,
+            "peak_rss_kib": 1702652
         },
         "mods": [
             {
@@ -63,11 +64,32 @@
                 ],
                 "by_severity": {
                     "error": 0,
-                    "warning": 0,
+                    "warning": 11,
                     "information": 0,
-                    "hint": 0
+                    "hint": 798
                 },
-                "by_code": [],
+                "by_code": [
+                    {
+                        "code": "style/not-formatted",
+                        "severity": "warning",
+                        "count": 11
+                    },
+                    {
+                        "code": "style/indentation",
+                        "severity": "hint",
+                        "count": 755
+                    },
+                    {
+                        "code": "style/block-layout",
+                        "severity": "hint",
+                        "count": 42
+                    },
+                    {
+                        "code": "style/line-endings",
+                        "severity": "hint",
+                        "count": 1
+                    }
+                ],
                 "errors": 0,
                 "error_list": [],
                 "warnings": 0,
@@ -128,11 +150,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1821,
-                    "check": 151,
-                    "total": 1972
+                    "load_base": 1016,
+                    "check": 114,
+                    "total": 1130
                 },
-                "peak_rss_kib": 762868
+                "peak_rss_kib": 765584
             },
             {
                 "slug": "divine-intervention",
@@ -145,15 +167,55 @@
                 ],
                 "by_severity": {
                     "error": 0,
-                    "warning": 0,
+                    "warning": 429,
                     "information": 3,
-                    "hint": 12
+                    "hint": 101917
                 },
                 "by_code": [
+                    {
+                        "code": "style/not-formatted",
+                        "severity": "warning",
+                        "count": 429
+                    },
                     {
                         "code": "scope/undefined-event-target",
                         "severity": "information",
                         "count": 3
+                    },
+                    {
+                        "code": "style/indentation",
+                        "severity": "hint",
+                        "count": 74375
+                    },
+                    {
+                        "code": "style/block-layout",
+                        "severity": "hint",
+                        "count": 21256
+                    },
+                    {
+                        "code": "style/trailing-whitespace",
+                        "severity": "hint",
+                        "count": 2973
+                    },
+                    {
+                        "code": "style/blank-lines",
+                        "severity": "hint",
+                        "count": 2757
+                    },
+                    {
+                        "code": "style/line-endings",
+                        "severity": "hint",
+                        "count": 395
+                    },
+                    {
+                        "code": "style/spacing",
+                        "severity": "hint",
+                        "count": 124
+                    },
+                    {
+                        "code": "style/comment-spacing",
+                        "severity": "hint",
+                        "count": 25
                     },
                     {
                         "code": "fields/unusual-value",
@@ -173,9 +235,45 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 0,
-                    "dropped": 0,
-                    "dropped_by_code": []
+                    "files": 56,
+                    "dropped": 1104239,
+                    "dropped_by_code": [
+                        {
+                            "code": "style/blank-lines",
+                            "severity": "hint",
+                            "count": 1791
+                        },
+                        {
+                            "code": "style/block-layout",
+                            "severity": "hint",
+                            "count": 195343
+                        },
+                        {
+                            "code": "style/comment-spacing",
+                            "severity": "hint",
+                            "count": 2
+                        },
+                        {
+                            "code": "style/indentation",
+                            "severity": "hint",
+                            "count": 905565
+                        },
+                        {
+                            "code": "style/line-endings",
+                            "severity": "hint",
+                            "count": 1
+                        },
+                        {
+                            "code": "style/spacing",
+                            "severity": "hint",
+                            "count": 12
+                        },
+                        {
+                            "code": "style/trailing-whitespace",
+                            "severity": "hint",
+                            "count": 1525
+                        }
+                    ]
                 },
                 "scope": {
                     "keyword_uses": 526889,
@@ -245,11 +343,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1362,
-                    "check": 12290,
-                    "total": 13651
+                    "load_base": 995,
+                    "check": 16308,
+                    "total": 17303
                 },
-                "peak_rss_kib": 2004708
+                "peak_rss_kib": 3177436
             },
             {
                 "slug": "elf-destiny",
@@ -266,15 +364,20 @@
                 ],
                 "by_severity": {
                     "error": 2,
-                    "warning": 79,
+                    "warning": 952,
                     "information": 443,
-                    "hint": 103
+                    "hint": 65056
                 },
                 "by_code": [
                     {
                         "code": "names/unknown-link",
                         "severity": "error",
                         "count": 2
+                    },
+                    {
+                        "code": "style/not-formatted",
+                        "severity": "warning",
+                        "count": 873
                     },
                     {
                         "code": "fields/unknown-field",
@@ -312,9 +415,49 @@
                         "count": 11
                     },
                     {
+                        "code": "style/indentation",
+                        "severity": "hint",
+                        "count": 28765
+                    },
+                    {
+                        "code": "style/block-layout",
+                        "severity": "hint",
+                        "count": 15816
+                    },
+                    {
+                        "code": "style/spacing",
+                        "severity": "hint",
+                        "count": 12220
+                    },
+                    {
+                        "code": "style/trailing-whitespace",
+                        "severity": "hint",
+                        "count": 5039
+                    },
+                    {
+                        "code": "style/blank-lines",
+                        "severity": "hint",
+                        "count": 1784
+                    },
+                    {
+                        "code": "style/comment-spacing",
+                        "severity": "hint",
+                        "count": 854
+                    },
+                    {
+                        "code": "style/line-endings",
+                        "severity": "hint",
+                        "count": 455
+                    },
+                    {
                         "code": "fields/unusual-value",
                         "severity": "hint",
-                        "count": 103
+                        "count": 102
+                    },
+                    {
+                        "code": "style/byte-order-mark",
+                        "severity": "hint",
+                        "count": 21
                     }
                 ],
                 "errors": 2,
@@ -902,9 +1045,50 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 0,
-                    "dropped": 0,
-                    "dropped_by_code": []
+                    "files": 20,
+                    "dropped": 46672,
+                    "dropped_by_code": [
+                        {
+                            "code": "fields/unusual-value",
+                            "severity": "hint",
+                            "count": 1
+                        },
+                        {
+                            "code": "style/blank-lines",
+                            "severity": "hint",
+                            "count": 222
+                        },
+                        {
+                            "code": "style/block-layout",
+                            "severity": "hint",
+                            "count": 2013
+                        },
+                        {
+                            "code": "style/comment-spacing",
+                            "severity": "hint",
+                            "count": 3
+                        },
+                        {
+                            "code": "style/indentation",
+                            "severity": "hint",
+                            "count": 18194
+                        },
+                        {
+                            "code": "style/line-endings",
+                            "severity": "hint",
+                            "count": 8
+                        },
+                        {
+                            "code": "style/spacing",
+                            "severity": "hint",
+                            "count": 25660
+                        },
+                        {
+                            "code": "style/trailing-whitespace",
+                            "severity": "hint",
+                            "count": 571
+                        }
+                    ]
                 },
                 "scope": {
                     "keyword_uses": 23524,
@@ -990,11 +1174,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1388,
-                    "check": 2418,
-                    "total": 3806
+                    "load_base": 1144,
+                    "check": 2392,
+                    "total": 3536
                 },
-                "peak_rss_kib": 900068
+                "peak_rss_kib": 1023232
             },
             {
                 "slug": "rice",
@@ -1002,9 +1186,9 @@
                 "not_checked": [],
                 "by_severity": {
                     "error": 841,
-                    "warning": 1122,
+                    "warning": 3143,
                     "information": 857,
-                    "hint": 122
+                    "hint": 202418
                 },
                 "by_code": [
                     {
@@ -1026,6 +1210,11 @@
                         "code": "scope/wrong-scope-for-effect",
                         "severity": "error",
                         "count": 27
+                    },
+                    {
+                        "code": "style/not-formatted",
+                        "severity": "warning",
+                        "count": 2021
                     },
                     {
                         "code": "fields/unknown-field",
@@ -1086,6 +1275,46 @@
                         "code": "structure/story-effect-group-chance-above-100",
                         "severity": "information",
                         "count": 1
+                    },
+                    {
+                        "code": "style/indentation",
+                        "severity": "hint",
+                        "count": 67102
+                    },
+                    {
+                        "code": "style/spacing",
+                        "severity": "hint",
+                        "count": 55797
+                    },
+                    {
+                        "code": "style/trailing-whitespace",
+                        "severity": "hint",
+                        "count": 35687
+                    },
+                    {
+                        "code": "style/block-layout",
+                        "severity": "hint",
+                        "count": 31709
+                    },
+                    {
+                        "code": "style/blank-lines",
+                        "severity": "hint",
+                        "count": 9604
+                    },
+                    {
+                        "code": "style/comment-spacing",
+                        "severity": "hint",
+                        "count": 1562
+                    },
+                    {
+                        "code": "style/line-endings",
+                        "severity": "hint",
+                        "count": 651
+                    },
+                    {
+                        "code": "style/byte-order-mark",
+                        "severity": "hint",
+                        "count": 184
                     },
                     {
                         "code": "fields/unusual-value",
@@ -16530,9 +16759,40 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 0,
-                    "dropped": 0,
-                    "dropped_by_code": []
+                    "files": 20,
+                    "dropped": 12707,
+                    "dropped_by_code": [
+                        {
+                            "code": "style/blank-lines",
+                            "severity": "hint",
+                            "count": 669
+                        },
+                        {
+                            "code": "style/block-layout",
+                            "severity": "hint",
+                            "count": 1982
+                        },
+                        {
+                            "code": "style/comment-spacing",
+                            "severity": "hint",
+                            "count": 2
+                        },
+                        {
+                            "code": "style/indentation",
+                            "severity": "hint",
+                            "count": 3997
+                        },
+                        {
+                            "code": "style/spacing",
+                            "severity": "hint",
+                            "count": 5
+                        },
+                        {
+                            "code": "style/trailing-whitespace",
+                            "severity": "hint",
+                            "count": 6052
+                        }
+                    ]
                 },
                 "scope": {
                     "keyword_uses": 74642,
@@ -16614,11 +16874,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 1386,
-                    "check": 4719,
-                    "total": 6105
+                    "load_base": 1010,
+                    "check": 5174,
+                    "total": 6184
                 },
-                "peak_rss_kib": 1064280
+                "peak_rss_kib": 1313524
             },
             {
                 "slug": "viet-events",
@@ -16626,15 +16886,20 @@
                 "not_checked": [],
                 "by_severity": {
                     "error": 1,
-                    "warning": 3,
+                    "warning": 214,
                     "information": 58,
-                    "hint": 0
+                    "hint": 18155
                 },
                 "by_code": [
                     {
                         "code": "names/unknown-effect",
                         "severity": "error",
                         "count": 1
+                    },
+                    {
+                        "code": "style/not-formatted",
+                        "severity": "warning",
+                        "count": 211
                     },
                     {
                         "code": "localization/unbalanced-brackets",
@@ -16655,6 +16920,46 @@
                         "code": "references/unknown-name",
                         "severity": "information",
                         "count": 3
+                    },
+                    {
+                        "code": "style/trailing-whitespace",
+                        "severity": "hint",
+                        "count": 6875
+                    },
+                    {
+                        "code": "style/indentation",
+                        "severity": "hint",
+                        "count": 5973
+                    },
+                    {
+                        "code": "style/block-layout",
+                        "severity": "hint",
+                        "count": 2675
+                    },
+                    {
+                        "code": "style/blank-lines",
+                        "severity": "hint",
+                        "count": 1515
+                    },
+                    {
+                        "code": "style/comment-spacing",
+                        "severity": "hint",
+                        "count": 976
+                    },
+                    {
+                        "code": "style/line-endings",
+                        "severity": "hint",
+                        "count": 103
+                    },
+                    {
+                        "code": "style/spacing",
+                        "severity": "hint",
+                        "count": 37
+                    },
+                    {
+                        "code": "style/byte-order-mark",
+                        "severity": "hint",
+                        "count": 1
                     }
                 ],
                 "errors": 1,
@@ -16701,9 +17006,45 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 0,
-                    "dropped": 0,
-                    "dropped_by_code": []
+                    "files": 7,
+                    "dropped": 5642,
+                    "dropped_by_code": [
+                        {
+                            "code": "style/blank-lines",
+                            "severity": "hint",
+                            "count": 979
+                        },
+                        {
+                            "code": "style/block-layout",
+                            "severity": "hint",
+                            "count": 889
+                        },
+                        {
+                            "code": "style/comment-spacing",
+                            "severity": "hint",
+                            "count": 116
+                        },
+                        {
+                            "code": "style/indentation",
+                            "severity": "hint",
+                            "count": 1136
+                        },
+                        {
+                            "code": "style/line-endings",
+                            "severity": "hint",
+                            "count": 1
+                        },
+                        {
+                            "code": "style/spacing",
+                            "severity": "hint",
+                            "count": 8
+                        },
+                        {
+                            "code": "style/trailing-whitespace",
+                            "severity": "hint",
+                            "count": 2513
+                        }
+                    ]
                 },
                 "scope": {
                     "keyword_uses": 17360,
@@ -16781,11 +17122,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1511,
-                    "check": 1290,
-                    "total": 2802
+                    "load_base": 1001,
+                    "check": 1159,
+                    "total": 2160
                 },
-                "peak_rss_kib": 887344
+                "peak_rss_kib": 892188
             }
         ]
     }

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-23T10:28:18.466Z",
+    "made_at": "2026-11-24T00:20:37.068Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "21b82aef3d3b49b67f27af4eb7982913915cbaab",
+        "commit": "b6d13c0720d5f9765c116054077c687883182798",
         "dirty": false
     },
     "machine": {
@@ -32,14 +32,15 @@
         "The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, \"What the parser reads\").",
         "Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and gets one information note (results.notes).",
         "Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.",
-        "results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md."
+        "results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.",
+        "results.round_trip is the formatter's round trip (docs/PLAN.md item 8.3) over every file parsed, with the rules every surface uses (docs/formatting.md): each is formatted, its output parsed and compared with the input without offsets (the same items in order and nesting, of the same kinds, with the same texts, scalar types, operators, names before keys, closings and chain segments, and comments but for their trailing spaces and tabs), its tokens compared, its comments counted and each checked to keep the tokens around it and its own line or not, and formatted a second time to the same bytes. A file with a parse error is left as it is (results.round_trip.left). by_rule counts the places, files and lines each style/ hint names; width the lines over 120 columns (a tab to the next multiple of four, every code point one column) before formatting, formatted without the 120-column rule and with it, and the files that rule changes on its own. format_ms is formatting alone, in one process. results.round_trip_localization is the same over the game's localization/ .yml files, their reading by the index's localization reader compared."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 5486,
+        "parse_ms": 5500,
         "folders": [
             {
                 "folder": "common",
@@ -50,7 +51,7 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 2494,
+                "parse_ms": 2032,
                 "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
@@ -63,7 +64,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1145,
+                "parse_ms": 1093,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -76,7 +77,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 912,
+                "parse_ms": 1100,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -89,7 +90,7 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 889,
+                "parse_ms": 1247,
                 "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
@@ -107,7 +108,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 41,
+                "parse_ms": 24,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
@@ -151,7 +152,7 @@
                 "bom": 41,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 2,
+                "parse_ms": 1,
                 "why": "The DLC's own files, in the game's layout (dlc/<pack>/music, dlc/<pack>/gfx and so on).",
                 "excluded": []
             },
@@ -177,7 +178,7 @@
                 "bom": 16,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1,
+                "parse_ms": 0,
                 "why": "paths.settings names content_source/map_objects/generators and masks.",
                 "excluded": []
             }
@@ -971,6 +972,230 @@
                     "valid_multibyte_sequences": 0
                 }
             ]
+        },
+        "round_trip": {
+            "rules": "docs/formatting.md: {\"statements\":{\"layout\":\"one-line\",\"maxItems\":1,\"simple\":true},\"lists\":{\"layout\":\"one-line\"},\"empty\":{\"layout\":\"one-line\"},\"values\":\"one-per-line\",\"width\":120,\"blankLines\":1,\"lineEnding\":\"\\r\\n\",\"bom\":\"write\"}",
+            "files": 4854,
+            "formatted": 4851,
+            "left": [
+                {
+                    "file": "common/holding_sprawl_patterns/00_holding_sprawl_patterns.txt",
+                    "id": "syntax/missing-equals-before-block",
+                    "line": 1988
+                },
+                {
+                    "file": "events/dlc/gdp/gdp_visit_holding_decision_event_2.txt",
+                    "id": "syntax/missing-closing-brace",
+                    "line": 3839
+                },
+                {
+                    "file": "history/characters/han/sima_53f8_99ac.txt",
+                    "id": "syntax/missing-equals-before-block",
+                    "line": 1395
+                }
+            ],
+            "changed": 4656,
+            "trees_equal": 4851,
+            "tokens_equal": 4851,
+            "second_format_unchanged": 4851,
+            "comments_before": 502890,
+            "comments_after": 502890,
+            "comments_moved": 0,
+            "lines_before": 8301399,
+            "lines_after": 7844231,
+            "lines_changed": 3280071,
+            "blocks_written_on_one_line_broken": 67600,
+            "blocks": [
+                {
+                    "kind": "one-simple-pair",
+                    "written_one_line_kept": 257936,
+                    "written_one_line_broken": 2529,
+                    "written_several_joined": 335741,
+                    "written_several_kept": 43292
+                },
+                {
+                    "kind": "plain-values",
+                    "written_one_line_kept": 476780,
+                    "written_one_line_broken": 2165,
+                    "written_several_joined": 25983,
+                    "written_several_kept": 6840
+                },
+                {
+                    "kind": "empty",
+                    "written_one_line_kept": 9473,
+                    "written_one_line_broken": 10,
+                    "written_several_joined": 15440,
+                    "written_several_kept": 982
+                },
+                {
+                    "kind": "other",
+                    "written_one_line_kept": 0,
+                    "written_one_line_broken": 62896,
+                    "written_several_joined": 0,
+                    "written_several_kept": 1305550
+                }
+            ],
+            "by_rule": [
+                {
+                    "code": "style/indentation",
+                    "files": 1493,
+                    "places": 196851,
+                    "lines": 196851
+                },
+                {
+                    "code": "style/spacing",
+                    "files": 1609,
+                    "places": 1228925,
+                    "lines": 627606
+                },
+                {
+                    "code": "style/comment-spacing",
+                    "files": 683,
+                    "places": 20209,
+                    "lines": 20209
+                },
+                {
+                    "code": "style/trailing-whitespace",
+                    "files": 2365,
+                    "places": 80413,
+                    "lines": 116714
+                },
+                {
+                    "code": "style/blank-lines",
+                    "files": 2749,
+                    "places": 28394,
+                    "lines": 71876
+                },
+                {
+                    "code": "style/block-layout",
+                    "files": 4073,
+                    "places": 453593,
+                    "lines": 1186126
+                },
+                {
+                    "code": "style/line-endings",
+                    "files": 1551,
+                    "places": 1551,
+                    "lines": 1706059
+                },
+                {
+                    "code": "style/byte-order-mark",
+                    "files": 645,
+                    "places": 645,
+                    "lines": 645
+                }
+            ],
+            "width": {
+                "columns": 120,
+                "tab_columns": 4,
+                "lines_over_before": 26560,
+                "files_with_lines_over_before": 1671,
+                "lines_over_without_width_rule": 17073,
+                "lines_over_after": 9784,
+                "files_changed_by_width_alone": 990
+            },
+            "format_ms": 23207,
+            "largest_file": {
+                "file": "gfx/map/map_object_data/generated/tree_leaf_high_generator_1.txt",
+                "bytes": 13167832,
+                "format_ms": 166
+            },
+            "failures": []
+        },
+        "round_trip_localization": {
+            "rules": "docs/formatting.md: {\"statements\":{\"layout\":\"one-line\",\"maxItems\":1,\"simple\":true},\"lists\":{\"layout\":\"one-line\"},\"empty\":{\"layout\":\"one-line\"},\"values\":\"one-per-line\",\"width\":120,\"blankLines\":1,\"lineEnding\":\"\\r\\n\",\"bom\":\"write\"}",
+            "files": 12171,
+            "formatted": 12171,
+            "left": [],
+            "changed": 12064,
+            "trees_equal": 12171,
+            "tokens_equal": 12171,
+            "second_format_unchanged": 12171,
+            "comments_before": 74238,
+            "comments_after": 74238,
+            "comments_moved": 0,
+            "lines_before": 3214799,
+            "lines_after": 3214004,
+            "lines_changed": 3100719,
+            "blocks_written_on_one_line_broken": 0,
+            "blocks": [
+                {
+                    "kind": "one-simple-pair",
+                    "written_one_line_kept": 0,
+                    "written_one_line_broken": 0,
+                    "written_several_joined": 0,
+                    "written_several_kept": 0
+                },
+                {
+                    "kind": "plain-values",
+                    "written_one_line_kept": 0,
+                    "written_one_line_broken": 0,
+                    "written_several_joined": 0,
+                    "written_several_kept": 0
+                },
+                {
+                    "kind": "empty",
+                    "written_one_line_kept": 0,
+                    "written_one_line_broken": 0,
+                    "written_several_joined": 0,
+                    "written_several_kept": 0
+                },
+                {
+                    "kind": "other",
+                    "written_one_line_kept": 0,
+                    "written_one_line_broken": 0,
+                    "written_several_joined": 0,
+                    "written_several_kept": 0
+                }
+            ],
+            "by_rule": [
+                {
+                    "code": "style/indentation",
+                    "files": 263,
+                    "places": 11543,
+                    "lines": 11543
+                },
+                {
+                    "code": "style/spacing",
+                    "files": 23,
+                    "places": 77,
+                    "lines": 77
+                },
+                {
+                    "code": "style/trailing-whitespace",
+                    "files": 722,
+                    "places": 4794,
+                    "lines": 4794
+                },
+                {
+                    "code": "style/blank-lines",
+                    "files": 375,
+                    "places": 785,
+                    "lines": 966
+                },
+                {
+                    "code": "style/line-endings",
+                    "files": 11793,
+                    "places": 11793,
+                    "lines": 3092445
+                }
+            ],
+            "width": {
+                "columns": 120,
+                "tab_columns": 4,
+                "lines_over_before": 620891,
+                "files_with_lines_over_before": 9994,
+                "lines_over_without_width_rule": 0,
+                "lines_over_after": 620910,
+                "files_changed_by_width_alone": 0
+            },
+            "format_ms": 4100,
+            "largest_file": {
+                "file": "localization/russian/custom_localization/ru_custom_loc_l_russian.yml",
+                "bytes": 1307118,
+                "format_ms": 5
+            },
+            "failures": []
         }
     }
 }

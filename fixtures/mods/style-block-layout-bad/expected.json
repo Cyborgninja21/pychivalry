@@ -1,0 +1,40 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 23,
+            "code": "style/block-layout",
+            "severity": "hint",
+            "message": "Layout: this block goes over several lines, one item a line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 23,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 3 places (layout 3).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 4,
+            "column": 5,
+            "code": "style/block-layout",
+            "severity": "hint",
+            "message": "Layout: a pair's key, operator and value go on one line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 6,
+            "column": 11,
+            "code": "style/block-layout",
+            "severity": "hint",
+            "message": "Layout: this block goes on one line.",
+            "data": {}
+        }
+    ]
+}

@@ -134,13 +134,33 @@ test("the language server answers the agent server's calls with the agent server
     const reply = await askHost(spec.sha256, request, placeIn(cache));
     assert.equal(reply.answered, true);
     const answer = (
-        reply as { answer: { structuredContent: { totals: { by_severity: unknown } } } }
+        reply as {
+            answer: {
+                structuredContent: {
+                    totals: {
+                        by_severity: Record<string, number>;
+                        by_code: Record<string, number>;
+                    };
+                };
+            };
+        }
     ).answer;
-    assert.deepEqual(answer.structuredContent.totals.by_severity, {
+    // The planted defects, and the `style/` family's findings on its files apart: one warning a
+    // file not in pychivalry's format, and hints at each place.
+    const totals = answer.structuredContent.totals;
+    const style = Object.entries(totals.by_code).filter(([code]) => code.startsWith('style/'));
+    const styleWarnings = style
+        .filter(([code]) => code === 'style/not-formatted')
+        .reduce((n, [, count]) => n + count, 0);
+    const styleHints = style
+        .filter(([code]) => code !== 'style/not-formatted')
+        .reduce((n, [, count]) => n + count, 0);
+    assert.ok(styleWarnings > 0 && styleHints > 0);
+    assert.deepEqual(totals.by_severity, {
         error: 26,
-        warning: 7,
+        warning: 7 + styleWarnings,
         information: 0,
-        hint: 0,
+        hint: styleHints,
     });
     const status = await sharing(client);
     assert.equal(status.answered['mcp'], 1);

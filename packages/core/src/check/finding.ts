@@ -17,6 +17,7 @@ import {
 } from '../syntax/findings.js';
 import type { Range } from '../syntax/position.js';
 import { ADVICE_KINDS } from './advice-kinds.js';
+import { FORMATTING_RULES_SOURCE, STYLE_KINDS, type StyleCode } from './style-kinds.js';
 import { BEST_PRACTICE_KINDS, type BestPracticeCode } from './best-practice-kinds.js';
 
 /** The codes the engine checks of this build emit. */
@@ -45,6 +46,7 @@ export type CheckCode =
     | 'localization/unbalanced-brackets'
     | 'localization/unused-key'
     | AdviceCode
+    | StyleCode
     | BestPracticeCode;
 
 /** The codes of the advice checks of item 4.7: information or hints, with no game message. */
@@ -93,7 +95,13 @@ export interface CheckKind {
     /** True for pychivalry's own advice: no game evidence (docs/checks.md, evidence "Advice"). */
     readonly advice?: true;
     /**
-     * True for one of pychivalry's own best-practice rules, the family `style`: no game
+     * True for a formatting row of `style/`: its evidence is pychivalry's own formatting rules
+     * (docs/formatting.md), a kind of warning that rests on no game evidence, by the owner's
+     * decision.
+     */
+    readonly formattingRules?: true;
+    /**
+     * True for one of pychivalry's own best-practice rules of the family `style`: no game
      * evidence, and at the severity the owner set for it (the owner's principle of 2026-11-23:
      * best practice and tidiness come before what a mod's author wrote).
      */
@@ -293,6 +301,7 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         text: "The localization key '%s' is used nowhere in the mod or the base game.",
     },
     ...ADVICE_KINDS,
+    ...STYLE_KINDS,
     ...BEST_PRACTICE_KINDS,
 };
 
@@ -326,6 +335,9 @@ export function evidenceOf(code: CheckCode, catalogue: MessageCatalogue | undefi
     const kind = CHECK_KINDS[code];
     if (kind.advice === true) {
         return { kind: 'advice' };
+    }
+    if (kind.formattingRules === true) {
+        return { kind: 'formatting-rules', source: FORMATTING_RULES_SOURCE };
     }
     if (kind.bestPractice === true) {
         return { kind: 'best-practice' };

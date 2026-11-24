@@ -1,0 +1,85 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 24,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 4 places (trailing whitespace 4).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 24,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 15,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 4,
+            "column": 2,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 9,
+            "column": 31,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 1,
+            "column": 11,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 3 places (trailing whitespace 3).",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 1,
+            "column": 11,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 2,
+            "column": 33,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 3,
+            "column": 14,
+            "code": "style/trailing-whitespace",
+            "severity": "hint",
+            "message": "Spaces or tabs at the end of a line.",
+            "data": {}
+        }
+    ]
+}

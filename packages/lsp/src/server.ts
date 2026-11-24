@@ -23,6 +23,9 @@
  *   own shape (`fileFindings`), for the test that every surface gives the same answers.
  * - **Quick fixes** are the code actions of the findings' fix data (`code-actions.ts`); a fix
  *   that edits another file of the mod reads it as the editor holds it, or from disk.
+ * - **Formatting** (`formatting.ts`): Format Document, Format Selection and on-type formatting
+ *   (Enter, `}` and `=`) of any CK3 script or localization file open, from the core's formatter;
+ *   a file it leaves as it is (a parse error) gets no edit, and the server says why once.
  */
 
 import {
@@ -35,6 +38,8 @@ import {
     decodeScript,
     fileKindOf,
     folderTableFromSpec,
+    formatKindOf,
+    ON_TYPE_TRIGGERS,
     lookup,
     openWorkspace,
     syncMod,
@@ -69,6 +74,10 @@ import {
     type CancellationToken,
     type CodeAction,
     type CodeActionParams,
+    type DocumentFormattingParams,
+    type DocumentOnTypeFormattingParams,
+    type DocumentRangeFormattingParams,
+    type TextEdit,
     type CompletionParams,
     type Connection,
     type DefinitionParams,
@@ -110,6 +119,7 @@ import {
     settingsChange,
     type Settings,
 } from './settings.js';
+import { formatDocument, formatOnType, formatRange, type Formatted } from './formatting.js';
 import { documentSymbols } from './symbols.js';
 import { SERVER_NAME, VERSION } from './version.js';
 
@@ -300,6 +310,8 @@ export class LanguageServer {
     /** Outline rules, snippets, field order and inline hints (docs/PLAN.md item 8.8). */
     private readonly presenting: PresentationFeatures;
     private presentingCaps = { snippets: false, inlayRefresh: false };
+    /** The reason last said for each file the formatter left as it is, so it is said once. */
+    private readonly leftSaid = new Map<string, string>();
 
     constructor(connection: Connection, options: ServerOptions) {
         this.connection = connection;
@@ -366,6 +378,9 @@ export class LanguageServer {
         c.onDocumentSymbol((params) => this.symbols(params));
         c.onCompletion((params) => this.complete(params));
         c.onCodeAction((params) => this.codeActions(params));
+        c.onDocumentFormatting((params) => this.formatDocument(params));
+        c.onDocumentRangeFormatting((params) => this.formatRange(params));
+        c.onDocumentOnTypeFormatting((params) => this.formatOnType(params));
         c.languages.inlayHint.on((params, token) => this.inlay(params, token));
         c.onRequest(FINDINGS_REQUEST, (params: FindingsParams): FindingsResult => {
             const file = this.pathOf(params.uri);
@@ -414,6 +429,12 @@ export class LanguageServer {
                 completionProvider: { resolveProvider: false },
                 codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix, FIX_ALL_KIND] },
                 inlayHintProvider: true,
+                documentFormattingProvider: true,
+                documentRangeFormattingProvider: true,
+                documentOnTypeFormattingProvider: {
+                    firstTriggerCharacter: ON_TYPE_TRIGGERS[0] ?? '\n',
+                    moreTriggerCharacter: ON_TYPE_TRIGGERS.slice(1),
+                },
                 workspace: {
                     workspaceFolders: { supported: true, changeNotifications: true },
                 },
@@ -793,7 +814,7 @@ export class LanguageServer {
         const disk = this.disk(file);
         const same = disk.text === doc.text;
         if (doc.kind === 'script') {
-            return { script: doc.script(), notes: same ? disk.notes : [] };
+            return { script: doc.script(), notes: same ? disk.notes : [], bom: disk.bom };
         }
         return { bytes: same && disk.bytes !== null ? disk.bytes : this.editorBytes(doc) };
     }
@@ -1094,6 +1115,59 @@ export class LanguageServer {
             uriOf: (f) => this.uriOf(f),
             createFiles: this.capabilities.createFiles,
         });
+    }
+
+    // ─── Formatting ────────────────────────────────────────────────────────
+
+    /** The open document of a formatting request, and what it is formatted as. */
+    private formattable(
+        uri: string,
+    ): { doc: OpenDocument; kind: 'script' | 'localization' } | null {
+        const doc = this.docs.get(uri);
+        const kind = formatKindOf(uri);
+        return doc === undefined || kind === undefined ? null : { doc, kind };
+    }
+
+    /** The edits of a formatting request; a file left as it is is said once, then nothing. */
+    private formatted(uri: string, result: Formatted): TextEdit[] {
+        if (result.left === null) {
+            this.leftSaid.delete(uri);
+        } else if (this.leftSaid.get(uri) !== result.left) {
+            this.leftSaid.set(uri, result.left);
+            void this.connection.sendNotification(ShowMessageNotification.type, {
+                type: MessageType.Info,
+                message: `pychivalry did not format this file: ${result.left}`,
+            });
+        }
+        return result.edits;
+    }
+
+    private formatDocument(params: DocumentFormattingParams): TextEdit[] {
+        const target = this.formattable(params.textDocument.uri);
+        if (target === null) {
+            return [];
+        }
+        const { doc, kind } = target;
+        return this.formatted(doc.uri, formatDocument(doc.text, kind, doc.lines));
+    }
+
+    private formatRange(params: DocumentRangeFormattingParams): TextEdit[] {
+        const target = this.formattable(params.textDocument.uri);
+        if (target === null) {
+            return [];
+        }
+        const { doc, kind } = target;
+        return this.formatted(doc.uri, formatRange(doc.text, kind, params.range, doc.lines));
+    }
+
+    private formatOnType(params: DocumentOnTypeFormattingParams): TextEdit[] {
+        const target = this.formattable(params.textDocument.uri);
+        if (target === null) {
+            return [];
+        }
+        const { doc, kind } = target;
+        const offset = doc.lines.offsetAt(params.position);
+        return formatOnType(doc.text, kind, offset, params.ch, doc.lines);
     }
 
     /**

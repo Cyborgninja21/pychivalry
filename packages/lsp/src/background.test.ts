@@ -112,7 +112,8 @@ test('a change to the files cancels the pass under way and starts another over w
     await client.until(() => client.diagnostics.size >= 3, 'the background to begin');
     // Fix the unknown triggers of the last file on disk while the pass runs.
     const last = path.join(mod, 'events', 'big_0149.txt');
-    write(last, 'namespace = big_0149\n');
+    // In pychivalry's format, so that nothing is left to report.
+    write(last, '\ufeffnamespace = big_0149\r\n');
     await client.filesChanged([{ uri: uriOf(last), type: 2 }]);
     const done = await client.settled();
     assert.ok(

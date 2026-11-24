@@ -34,8 +34,8 @@ test('--fix --dry-run prints the edits of the safe fixes and writes nothing', (t
     assert.equal(
         r.stdout,
         [
-            "common/scripted_triggers/fixture_triggers.txt:22:2  names/unknown-trigger  Replace 'has_special_building' with 'has_special_district'",
-            '    common/scripted_triggers/fixture_triggers.txt 22:2-22:22 -> "has_special_district"',
+            "common/scripted_triggers/fixture_triggers.txt:21:30  names/unknown-trigger  Replace 'has_special_building' with 'has_special_district'",
+            '    common/scripted_triggers/fixture_triggers.txt 21:30-21:50 -> "has_special_district"',
             '1 safe fixes in 1 files would be applied (dry run: nothing written)',
             '',
         ].join('\n'),
@@ -65,7 +65,7 @@ test('--fix applies the safe fixes, then checks again and reports what is left',
     assert.match(r.stdout, /\n2 files checked: 4 errors, 0 warnings, 0 other\n$/);
     assert.match(r.stderr, /pychivalry: 1 safe fixes in 1 files applied\n/);
     const text = readFileSync(path.join(mod, TRIGGERS), 'utf8');
-    assert.match(text, /\thas_special_district = yes\n/);
+    assert.match(text, /\{ has_special_district = yes \}\r\n/);
     assert.doesNotMatch(text, /has_special_building/);
     // Nothing safe is left: a second run changes nothing.
     const again = check('--fix', '--json');

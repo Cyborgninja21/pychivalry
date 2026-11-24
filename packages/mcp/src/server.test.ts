@@ -22,6 +22,7 @@ const TOOL_NAMES = [
     'find_references',
     'list_definitions',
     'explain_code',
+    'format',
 ];
 
 interface ListedTool {
@@ -54,7 +55,7 @@ test('the server names itself, its version and its schema version, and says how 
     assert.ok(instructions.includes(dir), 'it names the mod folder it works on');
 });
 
-test('the six tools, each read-only, declaring what it takes and what it returns', async (t) => {
+test('the seven tools, each read-only, declaring what it takes and what it returns', async (t) => {
     const dir = scratch(t);
     const { client } = await connect(t, ['--mod', dir, '--no-vanilla'], path.join(dir, 'cache'));
     const { tools } = (await client.listTools()) as { tools: ListedTool[] };
@@ -80,7 +81,7 @@ test('the six tools, each read-only, declaring what it takes and what it returns
             openWorldHint: false,
         });
     }
-    for (const later of ['call_graph', 'analyze_log', 'format']) {
+    for (const later of ['call_graph', 'analyze_log']) {
         assert.ok(!tools.some((tool) => tool.name === later), `${later} waits for its step`);
     }
 });

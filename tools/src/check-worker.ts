@@ -111,7 +111,11 @@ function describe(run: WorkspaceCheck, measure: ScopeMeasure): CheckWorkerResult
             .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
             .map(([folder, files]) => ({ folder, files })),
         by_code: [...byCode].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)).map(([, row]) => row),
-        listed: run.findings.filter((f) => LISTED.has(f.severity)).map(listed),
+        // The `style/` family is counted by code, not listed: it rests on pychivalry's own
+        // formatting rules, not on the game, and classifies nothing (docs/formatting.md).
+        listed: run.findings
+            .filter((f) => LISTED.has(f.severity) && !f.code.startsWith('style/'))
+            .map(listed),
         capped: cappedFigures(run),
         scope: scopeFigures(measure),
     };

@@ -204,7 +204,7 @@ test('the game read: its build and that its index came from the cache the second
     assert.match(String((without['notes'] as string[])[0]), /without the base game/);
 });
 
-test('a fix too large for a result comes without its edits, with their count', async (t) => {
+test('a fix too large for a result comes without its edits, marked so', async (t) => {
     const mod = path.join(scratch(t), 'mod');
     write(path.join(mod, 'descriptor.mod'), 'name="Fixture"\n');
     // A scripted effect of 400 lines, each with a Windows-1252 letter in a comment.
@@ -225,14 +225,13 @@ test('a fix too large for a result comes without its edits, with their count', a
     const [finding] = out['findings'] as { fix: Record<string, unknown> }[];
     assert.ok(finding !== undefined);
     assert.equal(finding.fix['safety'], 'safe');
-    assert.match(String(finding.fix['edits_left_out']), /check --fix/);
     const [alternative] = finding.fix['alternatives'] as {
         edits: unknown[];
-        edits_total: number;
+        edits_omitted: boolean;
     }[];
     assert.deepEqual(alternative?.edits, []);
+    assert.equal(alternative.edits_omitted, true);
     // The core's fix is whole: one edit for each of the 400 lines, and the byte-order mark.
     const whole = core(mod, game).find((f) => f.code === 'style/not-utf8');
     assert.equal(whole?.fix?.alternatives[0]?.edits.length, 401);
-    assert.equal(alternative.edits_total, 401);
 });

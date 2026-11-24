@@ -1,4 +1,4 @@
-# Keys in trigger blocks: triggers, a structural name, an iterator with its parameter, a
+﻿# Keys in trigger blocks: triggers, a structural name, an iterator with its parameter, a
 # scripted trigger of this mod, a name in another letter case.
 fixture_ready_trigger = {
 	is_adult = yes
@@ -18,6 +18,4 @@ fixture_ready_trigger = {
 	any_courtier = { is_adult = yes }
 }
 
-fixture_district_trigger = {
-	has_special_district = yes
-}
+fixture_district_trigger = { has_special_district = yes }

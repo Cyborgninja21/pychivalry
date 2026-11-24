@@ -6,7 +6,9 @@
 > page is build item 4.1 of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Built so far:
 > every row of step 4 but two that are blocked, and the eleven provisional advice rows item
 > 4.7's re-proof retired: 62 rows are built (five of them in part), 11 retired, 2 blocked, and
-> 3 belong to steps 10 and 11. The last column of each table, **State**, says which, and why
+> 3 belong to steps 10 and 11. On the owner's word of 2026-11-23 (decisions 101 and 103) step 8
+> added a thirteenth family, `style`, whose nine rows are built and rest on pychivalry's own
+> formatting rules ([Formatting](#formatting-the-style-family)). The last column of each table, **State**, says which, and why
 > where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
 > was decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
@@ -143,6 +145,7 @@ The families:
 | `variables` | Variables set and read | 4.7 |
 | `graphics` | Files a script names that do not exist | Step 10 |
 | `log` | Lines of the game's own error log | Step 11 |
+| `style` | Where a file is not in pychivalry's format: its layout, its whitespace, its line breaks and byte-order mark. Added on the owner's word of 2026-11-23 (decision 103); its rows rest on pychivalry's own formatting rules, not on the game | 8.2 |
 
 **Why this shape.**
 
@@ -413,6 +416,34 @@ are its 4 findings on the 1.21.0.3 base game, each an `animation` of a portrait 
 | `events/secret_events/secrets_events.txt` | 5614 | `scheming` |
 | `events/secret_events/secrets_events.txt` | 5664 | `scheming` |
 
+### Formatting: the `style/` family
+
+Added in build step 8 on the owner's word of 2026-11-23 (decisions 101 and 103): best practice
+and cleanliness take precedence over anything a mod author did, so a file that is not in
+pychivalry's format is fixed by the formatter and flagged as issues. These rows are the one kind
+of warning that rests on no game evidence: their evidence is pychivalry's own formatting rules
+([formatting.md](formatting.md)), by the owner's decision (principle 1 of
+[MVP.md](MVP.md#principles)). One warning a file not in the format, whose safe fix formats the
+whole file; one hint at each untidy place, one code a rule, each with a safe fix for that place.
+Every fix is the formatter's own edit: it changes only the whitespace between tokens, and keeps
+the tree (proved on every base-game file, [formatting.md](formatting.md#the-round-trip-on-the-base-game)).
+A file with a parse error has none of them, since the formatter leaves it as it is. They go
+through the one runner, so the editor, the command line and the agent server report them alike;
+the per-file limit bounds them, the warning kept before the hints. The game-file suites count
+them by code and never classify them ([records/README.md](../records/README.md)).
+
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `style/not-formatted` | warning | A file that is not in pychivalry's format: one finding a file, at its first untidy place, saying how many places differ and by which rule | Formatting rules ([formatting.md](formatting.md)), by the owner's decision | new | `style-not-formatted` | 8.2 | none | Built (8.2) | Safe: the whole file formatted. |
+| `style/indentation` | hint | A line indented otherwise than one tab for each enclosing block (script), or one space before an entry or a comment (localization) | Formatting rules, rule 1 and rule 13 | new | `style-indentation` | 8.2 | none | Built (8.2) | Safe: the line indented as the format says. |
+| `style/spacing` | hint | Two tokens on a line not one space apart: around an operator, inside the braces of a block on one line, between values, before a name's block; an empty block's braces with something between them; an entry's key and its text in a localization file | Formatting rules, rules 2 and 3 | new | `style-spacing` | 8.2 | none | Built (8.2) | Safe: one space between the two tokens, or none between the braces of an empty block. |
+| `style/comment-spacing` | hint | A comment at the end of a line not one space after the code before it | Formatting rules, rule 8 | new | `style-comment-spacing` | 8.2 | none | Built (8.2) | Safe: one space before the comment. |
+| `style/trailing-whitespace` | hint | Spaces or tabs at the end of a line, of a comment, or on a blank line | Formatting rules, rule 9 | new | `style-trailing-whitespace` | 8.2 | none | Built (8.2) | Safe: the spaces and tabs removed. |
+| `style/blank-lines` | hint | Blank lines beyond one between two items, or any after `{`, before `}` or at either end of the file | Formatting rules, rule 7 | new | `style-blank-lines` | 8.2 | none | Built (8.2) | Safe: the blank lines the format does not keep removed. |
+| `style/block-layout` | hint | A block laid out otherwise than the format says (on one line when it holds one simple pair, plain values or nothing and fits in 120 columns; otherwise over several lines, one item a line), or a pair's key, operator and value not on one line. One finding a block | Formatting rules, rule 4 | new | `style-block-layout` | 8.2 | none | Built (8.2) | Safe: the block joined onto one line, or one item a line. |
+| `style/line-endings` | hint | Line breaks other than Windows line breaks (`\r\n`), or none at the end of the file. One finding a file | Formatting rules, rule 10 | new | `style-line-endings` | 8.2 | none | Built (8.2) | Safe: every line break written as `\r\n`, and one at the end of the file. |
+| `style/byte-order-mark` | hint | A file that does not start with the UTF-8 byte-order mark. One finding a file | Formatting rules, rule 11 | new | `style-byte-order-mark` | 8.2 | none | Built (8.2) | Safe: the mark added. In the editor the mark is the file's encoding: saving adds it. |
+
 ### Retired codes
 
 A code that is retired stays here and is never emitted again ([How a code stays
@@ -463,6 +494,7 @@ check with the same catalogue entry, is decided in items 11.2 and 11.3 from capt
 | Blocked | 2 | `structure/triggered-desc-other-field` (its message is not in the catalogue), `scope/title-text-reads-scope-saved-late` (the saved-scope form of localization text is not data) |
 | Retired | 11 | The provisional advice rows item 4.7's re-proof found firing on the base game ([Retired codes](#retired-codes)) |
 | Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
+| Built, step 8 | 9 | The `style/` family, added on the owner's word of 2026-11-23 ([Formatting](#formatting-the-style-family)): one warning and eight hints, on pychivalry's own formatting rules |
 
 The tables below are the inventory as item 4.1 proposed it.
 

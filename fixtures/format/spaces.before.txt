@@ -1,0 +1,7 @@
+﻿limit={is_adult=yes}
+age>=16
+color = hsv{ 0.5  0.5 0.5 }
+add_gold = 10			# reward
+empty_effect = { }
+scope:target?={ is_alive = yes }
+test = {a!=b}

@@ -1,0 +1,85 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 2,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 5 places (spacing 5).",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 2,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: 'add_gold ='.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 2,
+            "column": 10,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: '= 10'.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 8,
+            "column": 11,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: '{ is_adult'.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 8,
+            "column": 12,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: 'is_adult ='.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 8,
+            "column": 24,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: 'yes }'.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 2,
+            "column": 22,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 2 places (spacing 2).",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 2,
+            "column": 22,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: 'style_reward_title:0 \"'.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 4,
+            "column": 22,
+            "code": "style/spacing",
+            "severity": "hint",
+            "message": "One space between the tokens: 'style_reward_option: \"'.",
+            "data": {}
+        }
+    ]
+}

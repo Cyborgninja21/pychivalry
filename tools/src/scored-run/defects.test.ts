@@ -47,11 +47,12 @@ test('every error and warning code is planted at least once, and only codes of t
         assert.ok(rows.has(code), `${code} is a code of this build`);
     }
     const planted = new Set(codes);
-    // Every error and warning with the game's evidence; the best-practice rules of the family
-    // `style` (2026-11-23) are pychivalry's own, not what the game rejects, and are not planted.
+    // The `style/` family rests on pychivalry's own rules, its formatting rules and its
+    // best-practice rules (2026-11-23), not on what the game rejects: not planted.
     const severe = [...rows.values()].filter(
         (r) =>
             (r.severity === 'error' || r.severity === 'warning') &&
+            r.evidence.kind !== 'formatting-rules' &&
             r.evidence.kind !== 'best-practice',
     );
     assert.deepEqual(

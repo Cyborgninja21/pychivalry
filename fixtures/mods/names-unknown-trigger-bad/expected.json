@@ -38,8 +38,8 @@
         },
         {
             "file": "common/scripted_triggers/fixture_triggers.txt",
-            "line": 22,
-            "column": 2,
+            "line": 21,
+            "column": 30,
             "code": "names/unknown-trigger",
             "severity": "error",
             "message": "Unknown trigger 'has_special_building'",

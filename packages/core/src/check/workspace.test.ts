@@ -85,10 +85,23 @@ function classOf(code: string): 'evidence' | 'advice' | 'style' {
     return code in CHECK_KINDS && isAdvice(code as CheckCode) ? 'advice' : 'evidence';
 }
 
+/**
+ * True for a finding of the formatter's rows of `style/` (evidence `formatting-rules`): the
+ * runner makes them from the formatter, not the checks, and they have tests of their own.
+ */
+const notFormatting = (f: WorkspaceFinding): boolean =>
+    !(f.code in CHECK_KINDS && CHECK_KINDS[f.code as CheckCode].formattingRules === true);
+
 /** The code a check pair is named for: the code with its `/` written as `-`. */
 function codeOfPair(pair: string): string | undefined {
     const name = pair.replace(/-(bad|good)$/, '');
     return Object.keys(CHECK_KINDS).find((code) => code.replace('/', '-') === name);
+}
+
+/** True for a pair of one of the formatter's codes, which its own tests read. */
+function formatterPair(pair: string): boolean {
+    const code = codeOfPair(pair);
+    return code !== undefined && CHECK_KINDS[code as CheckCode].formattingRules === true;
 }
 
 test("on each check's fixture pair the runner reports what every check reports, and what the pair expects", (t) => {
@@ -97,6 +110,7 @@ test("on each check's fixture pair the runner reports what every check reports, 
     const pairs = readdirSync(MODS).filter(
         (m) =>
             m.endsWith('-bad') &&
+            !formatterPair(m) &&
             existsSync(path.join(MODS, m, 'expected.json')) &&
             'findings' in
                 (JSON.parse(readFileSync(path.join(MODS, m, 'expected.json'), 'utf8')) as object),
@@ -134,7 +148,7 @@ test("on each check's fixture pair the runner reports what every check reports, 
                 cacheDir: null,
                 platform: 'linux',
             });
-            const found = written(run.findings);
+            const found = written(run.findings.filter(notFormatting));
             assert.deepEqual(
                 found,
                 checkFixture(
@@ -184,7 +198,7 @@ test("on each parse fixture the runner reports the parser's findings", (t) => {
 test('only the files the index reads are checked; the others are counted by folder', (t) => {
     const mod = scratch(t);
     write(path.join(mod, 'descriptor.mod'), 'name = "fixture"\n');
-    write(path.join(mod, 'events', 'b.txt'), 'namespace = b\n');
+    write(path.join(mod, 'events', 'b.txt'), '\ufeffnamespace = b\r\n');
     write(path.join(mod, 'events', 'a.txt'), 'namespace = a\n}\n');
     write(path.join(mod, 'notes', 'c.txt'), '} not script at all {\n');
     write(path.join(mod, 'notes', 'd.yml'), 'l_english:\n');
@@ -200,7 +214,8 @@ test('only the files the index reads are checked; the others are counted by fold
     assert.equal(run.gameBuild, null);
 });
 
-const MOD_EVENTS = [
+/** In pychivalry's format, the byte-order mark and Windows line breaks included. */
+const MOD_EVENTS = `\ufeff${[
     'namespace = fixture',
     'fixture.0001 = {',
     '\ttrigger = {',
@@ -209,7 +224,7 @@ const MOD_EVENTS = [
     '\t}',
     '}',
     '',
-].join('\n');
+].join('\r\n')}`;
 
 test('a name the game defines is known; without the game no such name is reported', (t) => {
     const dir = scratch(t);

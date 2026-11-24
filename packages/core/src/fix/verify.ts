@@ -8,6 +8,11 @@
  * Two safe fixes whose edits overlap cannot both be applied: the later is a suggestion.
  *
  * What is checked is the file the finding is in; a safe fix edits no other file.
+ *
+ * The formatter's fixes (basis `formatting`, the `style/` findings) are safe by construction and
+ * not checked again here: they change only the whitespace between tokens and keep the tree, which
+ * the round trip proves on every base-game file (docs/formatting.md). They overlap one another
+ * (the whole file's and each place's), so they are not counted among the edits taken either.
  */
 
 import type { Code } from '../check/inventory.js';
@@ -79,6 +84,9 @@ export function verifySafeFixes(
         const fix = out[i];
         const alternative = fix?.safety === 'safe' ? fix.alternatives[0] : undefined;
         if (fix === null || fix === undefined || alternative === undefined) {
+            continue;
+        }
+        if (fix.basis === 'formatting') {
             continue;
         }
         if (

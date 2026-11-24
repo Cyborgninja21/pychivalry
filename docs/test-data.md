@@ -100,6 +100,17 @@ takes its finding away and brings no other. The language server's use of the pre
 correct server answers for its outline, completion and inline hints. The list is in
 [fixtures/mods/README.md](../fixtures/mods/README.md).
 
+The formatter (items 8.2 to 8.5) added a fixture pair for each of the nine `style/` codes,
+`style-<name>-bad` and `-good`, each the same scripted effects and localization file, the bad
+half breaking one rule of [formatting.md](formatting.md) and the good half in the format
+(`\r\n`, the byte-order mark); their bytes are exact on every platform (`.gitattributes`). And
+a new part, [`fixtures/format/`](../fixtures/format/README.md): the golden files, 21 pairs
+written by hand, `<name>.before.<ext>` and the `<name>.after.<ext>` the formatter must make of
+it, one a rule, byte for byte, on which on-type formatting is also proved. The pair
+`names-unknown-trigger-*` was brought into the format, so that the command line's tests of
+`check` show no `style/` finding; the other fixtures keep the layout they were written in, and
+the tests of other checks leave the `style/` family out.
+
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
@@ -214,6 +225,10 @@ table of what goes where is in
 [PLAN.md](PLAN.md#what-is-carried-over-from-230). In short: 74 parser cases, the engine's 250
 unit tests with 3 golden files and 3 fixture mods, the extension's 485 tests and 77 fixture
 files, the classification rules for real-mod errors, and the plug-in catalogue.
+
+The planted-defect mod is not in pychivalry's format, so the checker reports `style/` findings
+on its files too; it plants none, and its tests and graders leave the family out (a question for
+the owner in [decisions.md](decisions.md#asked-awaiting-the-owner)).
 
 ## What does not exist yet
 

@@ -13,6 +13,17 @@ changes.
 | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252, so their letters show correctly ([what the parser reads](../encoding.md)) |
 | `pychivalry.inlayHints.enabled` | `true` | Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies |
 
+No setting changes how pychivalry formats ([Formatting](formatting.md)). VS Code's own settings
+switch formatting on and off: `editor.formatOnSave` and `editor.formatOnType` (both off by
+default), for the languages `ck3` and `ck3-localization` if you like. The extension sets three of
+VS Code's own settings for CK3 files by default, which you can change like any other:
+
+| Setting | For | Default the extension sets | Why |
+| --- | --- | --- | --- |
+| `editor.insertSpaces` | `[ck3]` | `false` | Indent with tabs, as the format does, so Enter and Tab indent as it does |
+| `files.encoding` | `[ck3]`, `[ck3-localization]` | `utf8bom` | The format's byte-order mark is the file's encoding in VS Code: saving writes it |
+| `files.eol` | `[ck3]`, `[ck3-localization]` | `\r\n` | New files get the format's Windows line breaks; Format Document turns an existing file's `\n` to `\r\n` |
+
 A value of the wrong type is ignored and the default used. Changing the game folder or the
 fallback encoding reads the game again; turning `unusedKeys` on or off checks every file again.
 

@@ -17,6 +17,10 @@
  * - **What is left alone:** a fix whose edits overlap one taken before it (the first in file
  *   order is taken; check again to fix the rest).
  * - **The files** keep their byte-order mark and line breaks; only the edited spans change.
+ * - **Formatting:** a file's `style/not-formatted` fix formats the whole file, which is every
+ *   other formatting fix of the file at once: when it is applied, those are not applied apart.
+ *   The best-practice fixes of `style/` are not formatting: a file's conversion to UTF-8 comes
+ *   first, and one that overlaps the whole file's formatting waits for another run.
  */
 
 import {
@@ -68,6 +72,12 @@ export function applySafeFixes(
             .filter((f) => f.code === 'encoding/not-utf8' || f.code === 'style/not-utf8')
             .map((f) => f.file),
     );
+    // A file formatted whole needs none of its other formatting fixes.
+    const formatted = new Set(
+        findings
+            .filter((f) => f.code === 'style/not-formatted' && f.fix?.safety === 'safe')
+            .map((f) => f.file),
+    );
     const safe = findings.flatMap((finding) => {
         const alternative =
             finding.fix?.safety === 'safe' ? finding.fix.alternatives[0] : undefined;
@@ -84,6 +94,13 @@ export function applySafeFixes(
         }
         if (p.alternative.edits.some((e) => notUtf8.has(e.file) && !converted.has(e.file))) {
             left++;
+            continue;
+        }
+        if (
+            p.finding.evidence.kind === 'formatting-rules' &&
+            p.finding.code !== 'style/not-formatted' &&
+            formatted.has(p.finding.file)
+        ) {
             continue;
         }
         planned.push(p);

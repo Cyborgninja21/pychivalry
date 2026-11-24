@@ -15,7 +15,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import {
@@ -80,6 +80,7 @@ const TOOLS = [
     'find_references',
     'list_definitions',
     'explain_code',
+    'format',
 ];
 
 /** A mod with thousands of findings, definitions and uses, and long names. */
@@ -120,7 +121,13 @@ function bigMod(dir: string): string {
     return mod;
 }
 
-function calls(names: readonly string[], defined: string, used: string, kind: string): Call[] {
+function calls(
+    names: readonly string[],
+    defined: string,
+    used: string,
+    kind: string,
+    formatFile: string,
+): Call[] {
     return [
         ['check', {}],
         ['check', { min_severity: 'hint', limit: 200 }],
@@ -134,6 +141,7 @@ function calls(names: readonly string[], defined: string, used: string, kind: st
         ['list_definitions', { kind: 'localization:l_english', limit: 200 }],
         ['list_definitions', { kind: 'no_such_kind' }],
         ['explain_code', { codes: ['*'] }],
+        ['format', { file: formatFile }],
     ];
 }
 
@@ -171,7 +179,13 @@ test('every tool on a mod of thousands of findings stays under the limit', async
     const largest = await measure(
         t,
         s,
-        calls(BIG_NAMES, 'shared_trigger', 'shared_trigger', 'common/scripted_triggers'),
+        calls(
+            BIG_NAMES,
+            'shared_trigger',
+            'shared_trigger',
+            'common/scripted_triggers',
+            'common/scripted_triggers/big_0.txt',
+        ),
     );
     assert.deepEqual([...largest.keys()].sort(), [...TOOLS].sort(), 'every tool measured');
     const checked = await s.output('check', { min_severity: 'hint', unused_keys: true });
@@ -179,6 +193,14 @@ test('every tool on a mod of thousands of findings stays under the limit', async
     assert.ok((bySeverity['error'] ?? 0) >= 4000, 'thousands of errors');
     assert.ok((bySeverity['hint'] ?? 0) >= 1000, 'and of hints');
 });
+
+/** The largest file of a mod's `common/scripted_effects/`, by its path inside the mod. */
+function largestEffectsFile(mod: string): string {
+    const dir = path.join(mod, 'common', 'scripted_effects');
+    const files = readdirSync(dir).filter((f) => f.endsWith('.txt'));
+    files.sort((a, b) => statSync(path.join(dir, b)).size - statSync(path.join(dir, a)).size);
+    return `common/scripted_effects/${files[0] ?? ''}`;
+}
 
 interface ModRecord {
     readonly slug: string;
@@ -206,7 +228,13 @@ test('every tool on rice, the largest test mod, over the real game, stays under 
     const largest = await measure(
         t,
         s,
-        calls([...BIG_NAMES.slice(0, 19), effect], effect, 'is_ai', 'common/scripted_effects'),
+        calls(
+            [...BIG_NAMES.slice(0, 19), effect],
+            effect,
+            'is_ai',
+            'common/scripted_effects',
+            largestEffectsFile(mod),
+        ),
     );
     assert.deepEqual([...largest.keys()].sort(), [...TOOLS].sort(), 'every tool measured');
     // The same findings as the real-mod suite's record: totals by severity and by code.

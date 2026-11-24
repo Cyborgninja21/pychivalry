@@ -149,7 +149,17 @@ export type Evidence =
       }
     | {
           /**
-           * No game message: one of pychivalry's own best-practice rules, the family `style`
+           * pychivalry's own formatting rules (docs/formatting.md): the evidence of the
+           * formatter's `style/` findings, a kind of warning that rests on no game evidence, by the
+           * owner's decision (principle 1 of docs/MVP.md).
+           */
+          readonly kind: 'formatting-rules';
+          /** Where the rules are written. */
+          readonly source: string;
+      }
+    | {
+          /**
+           * No game message: one of pychivalry's own best-practice rules of the family `style`
            * (the owner's principle of 2026-11-23: best practice and tidiness come before what a
            * mod's author wrote). Each rule says how often the base game follows it.
            */

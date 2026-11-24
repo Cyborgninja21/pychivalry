@@ -44,6 +44,11 @@ export interface FixRow {
     /** What the fix does, or why there is none, in a sentence. */
     readonly what: string;
     readonly fixer?: Fixer;
+    /**
+     * True when the finding is made with its fix, so no fixer runs after: the `style/` findings,
+     * whose fixes are the formatter's own edits (`format/style.ts`).
+     */
+    readonly carried?: true;
 }
 
 const NONE_ADVICE = 'None: the right change is a choice of content the data does not make.';
@@ -264,6 +269,51 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     'structure/story-effect-group-without-effect': { offer: 'none', what: NONE_ADVICE },
     'structure/story-effect-group-chance-above-100': { offer: 'none', what: NONE_ADVICE },
     'structure/story-effect-group-chance-not-positive': { offer: 'none', what: NONE_ADVICE },
+    'style/not-formatted': {
+        offer: 'safe',
+        carried: true,
+        what: 'The whole file formatted: only the whitespace between tokens changes.',
+    },
+    'style/indentation': {
+        offer: 'safe',
+        carried: true,
+        what: 'The line indented as the format says.',
+    },
+    'style/spacing': {
+        offer: 'safe',
+        carried: true,
+        what: 'One space between the two tokens, or none between the braces of an empty block.',
+    },
+    'style/comment-spacing': {
+        offer: 'safe',
+        carried: true,
+        what: 'One space before the comment.',
+    },
+    'style/trailing-whitespace': {
+        offer: 'safe',
+        carried: true,
+        what: 'The spaces and tabs at the end of the line removed.',
+    },
+    'style/blank-lines': {
+        offer: 'safe',
+        carried: true,
+        what: 'The blank lines the format does not keep removed.',
+    },
+    'style/block-layout': {
+        offer: 'safe',
+        carried: true,
+        what: 'The block laid out as the format says: joined onto one line, or one item a line.',
+    },
+    'style/line-endings': {
+        offer: 'safe',
+        carried: true,
+        what: 'Every line break written as \\r\\n, and one at the end of the file.',
+    },
+    'style/byte-order-mark': {
+        offer: 'safe',
+        carried: true,
+        what: 'The UTF-8 byte-order mark added.',
+    },
     'style/empty-block': {
         offer: 'suggestion',
         what: "The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say.",

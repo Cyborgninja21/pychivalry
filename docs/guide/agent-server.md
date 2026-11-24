@@ -87,9 +87,10 @@ count from 1, as an editor shows them.
 | `find_references` | `name`; `limit`; `cursor` | The count by layer, then the places it is written, the mod's first |
 | `list_definitions` | `kind`: the folder that holds the definitions (`common/scripted_effects`, `events`) or a localization language (`localization:l_english`); `limit`; `cursor` | The count by layer, then the definitions, the mod's first, each with whether it is in force |
 | `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default or can be turned off |
+| `format` | `file`: a script or localization file of the mod the game reads; `cursor` | The file formatted by pychivalry's rules ([Formatting](formatting.md)), as a proposal: nothing is written. `formatted` (false for a file with a parse error or not valid UTF-8, with the `reason`), `changed`, `bom` and `line_ending` (`crlf`), `total_lines`, and the `text` from `first_line`, without the byte-order mark, a page at a time with `next_cursor`; no text when nothing changes |
 
-Three more tools come with the steps that build them: `format` (step 8), `call_graph` (step 10)
-and `analyze_log` (step 11).
+Two more tools come with the steps that build them: `call_graph` (step 10) and `analyze_log`
+(step 11). The tools' shapes are schema version 2 since `format` came (step 8).
 
 **Tool names.** The names here, and in the server's own instructions, are the bare ones. A
 client may list them under a prefix of its own: Claude Code lists `check` as
@@ -97,7 +98,13 @@ client may list them under a prefix of its own: Claude Code lists `check` as
 
 `check` is the one to start with. Its totals come first and count every finding of the path,
 whatever the filters keep, so the agent sees the whole picture before the list. Every check runs,
-`localization/unused-key` too: `unused_keys: false` turns that one off.
+`localization/unused-key` too: `unused_keys: false` turns that one off. The `style/` findings
+rest on pychivalry's own rules, not on the game: its formatting rules say where a file is not in
+pychivalry's format, and their fixes, like `format`'s text, change only whitespace; its
+best-practice rules flag a file that is not UTF-8 (a warning, with a fix that converts it), an
+empty block, a block nested too deep and fields in an unusual order. A fix too long for a result
+comes with its edits left out and `edits_omitted`: `format` gives a formatting fix's text, and
+the command line's `check --fix` applies any safe fix.
 
 A finding's `message` is the game's own, as the game writes it; its `data` names what it is
 about and, where pychivalry knows it, what is valid there:

@@ -1,0 +1,40 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 24,
+            "code": "style/line-endings",
+            "severity": "hint",
+            "message": "Line breaks: 11 line breaks are not \\r\\n.",
+            "data": {}
+        },
+        {
+            "file": "common/scripted_effects/style_effects.txt",
+            "line": 1,
+            "column": 24,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 1 place (line breaks 1).",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 4,
+            "column": 30,
+            "code": "style/line-endings",
+            "severity": "hint",
+            "message": "Line breaks: the file does not end with a line break.",
+            "data": {}
+        },
+        {
+            "file": "localization/english/style_l_english.yml",
+            "line": 4,
+            "column": 30,
+            "code": "style/not-formatted",
+            "severity": "warning",
+            "message": "This file is not in pychivalry's format: 1 place (line breaks 1).",
+            "data": {}
+        }
+    ]
+}

@@ -172,8 +172,8 @@ test("JSON: one finding per line with 2.3.0's six fields and the new ones, then 
                     {
                         file: 'common/scripted_triggers/fixture_triggers.txt',
                         range: {
-                            start: { line: 21, character: 1 },
-                            end: { line: 21, character: 21 },
+                            start: { line: 20, character: 29 },
+                            end: { line: 20, character: 49 },
                         },
                         new_text: 'has_special_district',
                     },
@@ -315,7 +315,8 @@ test('notes: a game of another build, and files in folders the game does not rea
     const cache = path.join(dir, 'cache');
     const game = gameStub(path.join(dir, 'install'), {}, '1.20.0.2');
     const mod = path.join(dir, 'mod');
-    write(path.join(mod, 'events', 'a.txt'), 'namespace = a\n');
+    // In pychivalry's format, so that only the notes are printed.
+    write(path.join(mod, 'events', 'a.txt'), '\ufeffnamespace = a\r\n');
     write(path.join(mod, 'event', 'b.txt'), 'namespace = b\n');
     write(path.join(mod, 'event', 'c.txt'), 'namespace = c\n');
     const r = runCli(['check', mod, '--vanilla', game], { cache });
@@ -349,7 +350,8 @@ test('help and version', (t) => {
     assert.equal(help.code, 0);
     assert.match(help.stdout, /^usage: pychivalry <command>/);
     assert.match(help.stdout, /\n {2}check <mod> {2,}Check a mod/);
-    assert.match(help.stdout, /\n {2}explain <code>\.\.\. {2}What a finding's code means/);
+    assert.match(help.stdout, /\n {2}explain <code>\.\.\. +What a finding's code means/);
+    assert.match(help.stdout, /\n {2}format <file\|folder>\.\.\. +Formats a mod's script/);
     const checkHelp = runCli(['check', '--help'], { cache });
     assert.equal(checkHelp.code, 0);
     for (const option of [
@@ -409,5 +411,8 @@ test('text: after the game message, what is valid there, where the finding knows
     const json = jsonLines(
         check(path.join(MODS, 'scope-wrong-scope-for-effect-bad'), '--json').stdout,
     );
-    assert.equal(json[0]?.['message'], 'Wrong scope for effect: character, expected landed_title');
+    assert.equal(
+        json.find((f) => f['code'] === 'scope/wrong-scope-for-effect')?.['message'],
+        'Wrong scope for effect: character, expected landed_title',
+    );
 });
