@@ -1,6 +1,6 @@
 /**
  * The names the manifest and the code share, with no VS Code import so the manifest test reads
- * them too: the extension's id, its agent-server provider, its command, its two languages, its
+ * them too: the extension's id, its agent-server provider, its commands, its two languages, its
  * settings, and the language server's own requests the extension listens to.
  */
 
@@ -12,6 +12,9 @@ export const PROVIDER_ID = 'pychivalry.agentServer';
 
 /** The command "pychivalry: Set up for Claude Code". */
 export const SET_UP_CLAUDE_CODE = 'pychivalry.setUpClaudeCode';
+
+/** The command "pychivalry: Remove from Claude Code". */
+export const REMOVE_FROM_CLAUDE_CODE = 'pychivalry.removeFromClaudeCode';
 
 /** The language of script files and of localization files (`contributes.languages`). */
 export const LANGUAGES = ['ck3', 'ck3-localization'] as const;

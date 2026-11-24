@@ -19,7 +19,7 @@ How far the rebuild has got is in the Progress table of the [build plan](../PLAN
 | --- | --- |
 | [User guide](../guide/README.md) | What pychivalry is for and what it will and will not tell you |
 | [Installing](../guide/install.md) | What to install, on which systems |
-| [Commands](../guide/commands.md) | The extension's commands and the tasks for building from source |
+| [Commands](../guide/commands.md) | The extension's commands, the skills it gives your AI, and the tasks for building from source |
 | [Settings](../guide/settings.md) | Configuration, and how pychivalry finds the game |
 | [References](../references/README.md) | Every source pychivalry draws on and how far each is trusted |
 | [Test data](../test-data.md) | What the tests run on |

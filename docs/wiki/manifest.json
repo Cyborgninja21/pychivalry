@@ -11,6 +11,7 @@
         { "page": "Agent-Server", "source": "docs/guide/agent-server.md" },
         { "page": "Checks", "source": "docs/guide/checks.md" },
         { "page": "By-Hand-Check", "source": "docs/guide/by-hand-check.md" },
+        { "page": "AI-Checklist", "source": "docs/guide/ai-checklist.md" },
         { "page": "References", "source": "docs/references/README.md" },
         { "page": "Reference-Game-Files", "source": "docs/references/game-files.md" },
         { "page": "Reference-Spec-Package", "source": "docs/references/spec-package.md" },
@@ -40,7 +41,8 @@
                 "Formatting",
                 "Agent-Server",
                 "Checks",
-                "By-Hand-Check"
+                "By-Hand-Check",
+                "AI-Checklist"
             ]
         },
         {

@@ -76,7 +76,8 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | --- | --- |
 | `packages/core` | Parse, index, check, lookup, format, fix data. The only package that knows CK3. No runtime dependencies. |
 | `packages/cli`, `packages/mcp`, `packages/lsp` | Thin shells over the core: command line, agent server, language server |
-| `packages/vscode` | The extension: starts the servers, registers the agent server. No CK3 logic. |
+| `packages/vscode` | The extension: starts the servers, registers the agent server, gives VS Code's AI the skills and installs them for Claude Code. No CK3 logic. |
+| `skills` | The three skills an AI harness loads: explain an error, fix an error, write new content. Plain instructions that drive the agent server and the command line; no CK3 vocabulary of their own, which a test holds ([skills/README.md](skills/README.md)) |
 | `tools` | The scripts behind the local tasks: spec and record checks, the game-file suites, the corpus manifest, the 2.3.0 baselines, the scored test of the agent server (`tools/scored-run/`). Never shipped |
 | `spec` | The committed spec package (its override rules are part D1), its companions and schema, the format 4 copy for 2.3.0 in `spec/legacy/` ([spec/README.md](spec/README.md)) |
 | `records` | Committed results of the game-file suites ([records/README.md](records/README.md)) |

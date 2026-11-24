@@ -12,7 +12,7 @@ a document adds its row here.
 | [decisions.md](decisions.md) | Every decision with its date, in the order it was made, and the choices an agent made that the owner has not yet confirmed | Every step that asks or answers one |
 | [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces, its fixture pair and its state (built, blocked, retired); the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Signed off by the owner on 2026-11-21 | Step 4, item 4.1; every step that adds a check |
 | [preview-release.md](preview-release.md) | The first preview's GitHub pre-release (item 7.12), published on the owner's word on 2026-11-23: its tag, title, commit, file and notes as published, and how a preview is made | Step 7 |
-| [preview-release-0.2.0.md](preview-release-0.2.0.md) | The second preview's GitHub pre-release (item 8.10), **drafted, not published**: its tag, title and notes, what is new since 0.1.0, waiting for the owner's word | Step 8 |
+| [preview-release-0.2.0.md](preview-release-0.2.0.md) | The second preview's GitHub pre-release (item 8.10), published on the owner's word on 2026-11-23: its tag, title, commit, file and notes as published, what is new since 0.1.0, and that the by-hand check was not run before it | Step 8; step 9 records the publication |
 | [shared-index.md](shared-index.md) | How the language server, the agent servers and the command line share one copy of the base game's index (decision 87): the options weighed and why one was chosen, how it works, its local channel and the exception to rule 12, what only Windows can show, and the measurements | Step 7, after its pre-release |
 
 ## Sources and test data
@@ -26,7 +26,7 @@ a document adds its row here.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), formatting ([guide/formatting.md](guide/formatting.md), step 8), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), and the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
+| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), formatting ([guide/formatting.md](guide/formatting.md), step 8), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7), and the hand checklist of the skills in VS Code's own AI ([guide/ai-checklist.md](guide/ai-checklist.md), step 9) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
 | [wiki/](wiki/README.md) | How the repository's GitHub wiki is generated from these documents, and its home page | Step 1 |
 
 ## The game's behaviour, as each step establishes it
@@ -59,6 +59,7 @@ These do not exist yet:
 | [../records/README.md](../records/README.md) | The record format of the suites that need game files |
 | [../records/corpus/README.md](../records/corpus/README.md) | The five real mods and their manifest |
 | [../fixtures/README.md](../fixtures/README.md) | The hand-written test mods, the game stubs and the planted-defect mod |
+| [../skills/README.md](../skills/README.md) | The three skills (step 9): what each is for, the one form both AI harnesses load, how VS Code's AI and Claude Code each get them, and the tests that hold them |
 | [../presentation/README.md](../presentation/README.md) | The presentation data (step 8, item 8.8): outline rules, snippets and inline hints, one JSON file per game folder, read by the language server only and never by a check; its schema and what was carried over from the pre-2.0 schema files. The field order it held moved into the core's data (decision 107); the page still says what it is, and in which folders it has no meaning to the game |
 | [../tools/scored-run/README.md](../tools/scored-run/README.md) | The scored test of the agent server (step 6): a developer's test script, never shipped or run by CI, that starts the developer's own Claude Code as separate test sessions with the agent server attached and grades them in code; pychivalry holds no key and makes no model call |
 | [../tools/data/](../tools/data/) | The classifications of the base game's parse errors (`parse-classifications.json`) and check findings (`check-classifications.json`), and of the five mods' check errors (`mods-classifications.json`), read by the game-file suites |

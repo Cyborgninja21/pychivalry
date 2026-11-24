@@ -374,6 +374,46 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   exactly what each exists to test (`packages/core/src/format/fixtures.test.ts`), and one that
   every snippet of the presentation data, expanded as the editor inserts it, is left unchanged by
   the formatter.
+- The second preview, published on the owner's word (decision 116): the GitHub pre-release
+  `v0.2.0`, "pychivalry 0.2.0 (preview)", on commit `5b69ec0`, with `pychivalry-0.2.0.vsix`
+  attached (4,050,490 bytes, SHA-256
+  `cf810a06a9ee2a04783bf26e96323bebf545a35f61bd0e124e2cf95ab0bc4b61`) and the notes as
+  drafted; `docs/preview-release-0.2.0.md` is now the record of what was published, and says
+  that the by-hand check was not run before it. The install guide describes 0.2.0.
+
+- Build step 9, started on the owner's word (decision 118), items 9.1 to 9.3 and 9.7:
+  - `skills/`, three skills in the one form both AI harnesses load, a `SKILL.md` with a `name`
+    and a `description`: `pychivalry-explain-error` (what a finding means, from `explain_code`
+    and `lookup`; changes no file), `pychivalry-fix-error` (check, look up, edit, check again,
+    at most 5 rounds, then format) and `pychivalry-write-content` (events with their
+    localization, decisions, scripted effects and scripted triggers, by item 9.2's rules: look
+    names up before using them, write events with their localization, run the checker, repair
+    from the findings, stop at zero errors or after 5 rounds, never claim success with errors
+    left, and format what it writes, leaving no `style/` warning).
+  - VS Code's own AI has them from the extension's manifest (`contributes.chatSkills`, the
+    bundle's `dist/bundle/skills/`), and VS Code hands them on to its Copilot harness; the
+    `.vsix` holds them.
+  - "Set up for Claude Code" copies them into Claude Code's folder of personal skills
+    (`skills/` of `$CLAUDE_CONFIG_DIR`, or of `~/.claude`), never into the mod; running it again
+    changes nothing; it writes and removes only pychivalry's own copies, known by a record of
+    their SHA-256 in the extension's global storage, and leaves a skill it did not write, or
+    one that was edited, as it is. Activation brings the copies up to the new version after an
+    update. A new command, "pychivalry: Remove from Claude Code", undoes a folder's set-up: the
+    server's entry, the extension's own entry of `.mcp.json` (and the file, when nothing else
+    is left in it), and the skills with the last folder.
+  - Tests (`packages/vscode/src/skill-files.test.ts`, `skills.test.ts`, `setup.test.ts`): each
+    skill is well-formed for both harnesses; names only the agent server's tools and the command
+    line's commands and options that exist, read from `TOOLS` and `COMMANDS`; writes as code
+    only pychivalry's own vocabulary or names the spec package has, and no name outside code;
+    the authoring skill states item 9.2's rules in order. The installation is idempotent and
+    removable, on Linux and Windows path forms, in temporary folders. The editor tests: VS Code
+    lists the three skills (from the extension's folder, and from the packaged `.vsix`'s) and
+    syncs them into its Copilot harness's plugin; the set-up copies them, a second set-up
+    changes nothing, an update brings them to the new version's, and the removal takes them
+    away and leaves another skill alone.
+  - `docs/guide/ai-checklist.md`, the hand checklist for VS Code's own AI (item 9.7): the
+    requests, one of each kind of content, an explanation and a fix, and what to look for in
+    each.
 
 ### Changed
 
@@ -573,8 +613,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 8 is built but for item 8.10, the second preview, which waits for the owner's word
-  (`docs/preview-release-0.2.0.md`, its drafted text).
+- Build step 9's items 9.4 to 9.6 (the request list, the scored authoring run and its judge)
+  are another branch's; 9.8 (the first scored authoring run, from which the owner sets the
+  targets) and 9.9 (the third preview) wait for the owner's word, and the hand checklist has not
+  been run yet (item 9.7's "Done when"). The checklist's requests take the ids of item 9.4's
+  list once it is merged.
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

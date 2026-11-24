@@ -1,24 +1,32 @@
-# The second preview: the pre-release, drafted
+# The second preview: the pre-release, published
 
-Item 8.10 of [PLAN.md](PLAN.md): the second preview build, attached to a GitHub pre-release.
-**This page is a draft. Nothing here is published.** A release is public the moment it is made,
-so it is made only on the owner's word; until then this page holds what it would be. It is made
-the way the first one was ([preview-release.md](preview-release.md#how-a-preview-is-made)): the
-step's pull request merged, public CI green on Linux and Windows for that commit, `task ci` and
-`task vscode:package` on a clean checkout of it, the by-hand check on Linux and Windows with that
-file, then the GitHub pre-release.
+Item 8.10 of [PLAN.md](PLAN.md): the second preview build, attached to a GitHub pre-release. A
+release is public the moment it is made, so it was made only on the owner's word: on
+2026-11-23 the owner published it ([decisions.md](decisions.md), decision 116). This page is the
+record of what was published; it was the draft the owner approved, and its notes went out as
+drafted.
 
-## What it would be
+## What was published
 
 | | |
 | --- | --- |
 | Tag | `v0.2.0` |
 | Title | pychivalry 0.2.0 (preview) |
 | Marked | Pre-release |
-| Commit | The merge of step 8 into `main` (not yet made) |
-| Attached | `pychivalry-0.2.0.vsix`, its SHA-256 written here when it is built from that commit |
+| Commit | `5b69ec06f824e1a70076fe6ba8f1d3dd005c56c2` (`main`, the merge of pull request #150, step 8's last) |
+| Attached | `pychivalry-0.2.0.vsix`, 4,050,490 bytes, SHA-256 `cf810a06a9ee2a04783bf26e96323bebf545a35f61bd0e124e2cf95ab0bc4b61` |
+| Page | [github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0) |
 
-The extension's version is `0.2.0` and its manifest still says `"preview": true`.
+The extension's version is `0.2.0` and its manifest says `"preview": true`.
+
+**The by-hand check was not run before it was published.** The way a preview is made
+([preview-release.md](preview-release.md#how-a-preview-is-made)) has the by-hand check on Linux
+and Windows ([guide/by-hand-check.md](guide/by-hand-check.md)) as its third step, before the
+pre-release; for 0.2.0 it was not done. What 0.2.0 was checked by is what public CI and the
+editor tests show for that commit: `task ci`, and the editor tests in a real VS Code on Linux
+and Windows (the smoke test of the packaged file among them). A signed-in AI harness calling the
+tools, a real Claude Code on Windows and the extension on a desktop with the game were not
+checked for this preview.
 
 ## What is new since 0.1.0
 
@@ -47,7 +55,9 @@ The extension's version is `0.2.0` and its manifest still says `"preview": true`
 - **One copy of the game's index.** The language server lends its index of the game to the agent
   servers and the terminal's `pychivalry`, so the three hold one copy between them.
 
-## The notes, drafted
+## The notes, as published
+
+The release's notes, as drafted here and published unchanged:
 
 > **pychivalry 0.2.0 is the second preview** of the rebuilt pychivalry, a VS Code extension for
 > Crusader Kings III modding: it tells you, and the AI you use, what the game itself would say

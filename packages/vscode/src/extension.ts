@@ -11,9 +11,14 @@
  *   each bound to its folder as the mod and given the game folder the setting
  *   `pychivalry.gamePath` names (`contributes.mcpServerDefinitionProviders`, `vscode.lm.
  *   registerMcpServerDefinitionProvider`, item 7.1);
- * - it offers the command "pychivalry: Set up for Claude Code" (`setup.ts`, item 7.8), remembers
- *   the command line each set-up gave Claude Code, and offers to set it up again when that
- *   command line changes (the game folder setting changed).
+ * - it offers the command "pychivalry: Set up for Claude Code" (`setup.ts`, items 7.8 and 9.3),
+ *   which also copies the skills into Claude Code's skills folder (`skills.ts`); it remembers the
+ *   command line each set-up gave Claude Code, and offers to set it up again when that command
+ *   line changes (the game folder setting changed); on activation it brings the skills it copied
+ *   up to date, as it does its copy of the agent server;
+ * - it offers "pychivalry: Remove from Claude Code", which undoes the set-up of a folder;
+ * - VS Code's own AI reads the skills from the extension's folder, from the manifest's
+ *   `contributes.chatSkills`: nothing to do at run time.
  *
  * The object `activate` returns is the extension's API: the same command line, the same set-up
  * and the language server's own answers, which the editor tests call.
@@ -24,7 +29,13 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import { findClaude, runClaude, type ClaudeCommand } from './claude.js';
-import { GAME_PATH_SETTING, PROVIDER_ID, SET_UP_CLAUDE_CODE, SETTINGS_SECTION } from './ids.js';
+import {
+    GAME_PATH_SETTING,
+    PROVIDER_ID,
+    REMOVE_FROM_CLAUDE_CODE,
+    SET_UP_CLAUDE_CODE,
+    SETTINGS_SECTION,
+} from './ids.js';
 import { installServer, type InstallResult } from './install.js';
 import { startLanguageServer, type LanguageServer } from './language.js';
 import {
@@ -44,13 +55,29 @@ import {
     PROJECT_FILE,
     readSetUps,
     recordOf,
+    removeFromClaudeCode,
     SET_UPS_KEY,
     setUpClaudeCode,
+    withoutSetUp,
     withSetUp,
+    type RemoveOutcome,
     type SetupOutcome,
     type SetUpRecord,
     type SetupUi,
 } from './setup.js';
+import {
+    claudeSkillsDir,
+    installSkills,
+    loadSkillsRecords,
+    readSkills,
+    removeSkills,
+    saveSkillsRecords,
+    SKILLS_FOLDER,
+    SKILLS_RECORD_FILE,
+    withSkillsRecord,
+    type SkillsInstall,
+    type SkillsRecord,
+} from './skills.js';
 import { BIN_FOLDER, writeLauncher } from './terminal.js';
 
 /** The bundled server folder, in the extension's folder: the agent server, the command line, the spec. */
@@ -58,6 +85,9 @@ const BUNDLED_SERVER = path.join('dist', 'bundle', 'server');
 
 /** The bundled language server, in the extension's folder. */
 const BUNDLED_LSP = path.join('dist', 'bundle', LSP_FOLDER, LSP_FILE);
+
+/** The bundled skills, in the extension's folder: VS Code's AI reads them here. */
+const BUNDLED_SKILLS = path.join('dist', 'bundle', SKILLS_FOLDER);
 
 /** The copy's folder, in the extension's global storage folder. */
 const STORED_SERVER = 'agent-server';
@@ -80,6 +110,15 @@ export interface PychivalryApi {
     ) => Promise<SetupOutcome>;
     /** The set-ups whose command line is no longer the one the extension would give. */
     readonly claudeCodeOutOfDate: () => Promise<SetUpRecord[]>;
+    /** "Remove from Claude Code" for `folder`. */
+    readonly removeFromClaudeCode: (
+        folder: string,
+        find?: () => ClaudeCommand | null,
+    ) => Promise<RemoveOutcome>;
+    /** The skills: the extension's own folder of them, and Claude Code's skills folder. */
+    readonly skills: { readonly bundled: string; readonly claudeDir: () => string };
+    /** Bringing the skills copied for Claude Code up to date, as activation does it. */
+    readonly skillsRefreshed: Promise<readonly SkillsInstall[]>;
     /** The language server. */
     readonly language: LanguageServer;
     /** The launcher of the command line, once written; its folder is on the terminal's path. */
@@ -142,18 +181,59 @@ const askInVsCode: SetupUi = {
     },
 };
 
+/** What became of the skills, in one sentence, or null when all is well. */
+function skillsProblem(outcome: SetupOutcome): string | null {
+    if (outcome.kind !== 'claude' && outcome.kind !== 'project-file') {
+        return null;
+    }
+    const { skills } = outcome;
+    if (skills.kind === 'failed') {
+        return `The server is set up, but ${skills.message}.`;
+    }
+    const refused = skills.install.refused;
+    return refused.length === 0
+        ? null
+        : `The server is set up, but ${refused.map((r) => `${r.name} was left as it is: ${r.reason}`).join('; ')}.`;
+}
+
+function logSkills(install: SkillsInstall, log: vscode.LogOutputChannel): void {
+    const parts = [
+        ['written', install.written],
+        ['already there', install.unchanged],
+        ['taken away', install.removed],
+    ] as const;
+    for (const [what, names] of parts) {
+        if (names.length > 0) {
+            log.info(`Skills ${what} in ${install.dir}: ${names.join(', ')}`);
+        }
+    }
+    for (const r of install.refused) {
+        log.warn(`Skill ${r.name} left as it is: ${r.reason}`);
+    }
+}
+
 function report(outcome: SetupOutcome, log: vscode.LogOutputChannel): void {
+    if (outcome.kind === 'claude' || outcome.kind === 'project-file') {
+        if (outcome.skills.kind === 'installed') {
+            logSkills(outcome.skills.install, log);
+        }
+        const problem = skillsProblem(outcome);
+        if (problem !== null) {
+            log.warn(problem);
+            void vscode.window.showWarningMessage(`pychivalry: ${problem}`);
+        }
+    }
     switch (outcome.kind) {
         case 'claude':
             log.info(`Set up for Claude Code in ${outcome.folder} with ${outcome.claude}`);
             void vscode.window.showInformationMessage(
-                `pychivalry is set up for Claude Code in ${outcome.folder}. Start Claude Code in that folder to use it.`,
+                `pychivalry is set up for Claude Code in ${outcome.folder}, with its skills. Start Claude Code in that folder to use it.`,
             );
             return;
         case 'project-file':
             log.info(`Wrote ${outcome.file}`);
             void vscode.window.showInformationMessage(
-                `pychivalry is written into ${outcome.file}. Claude Code asks you to approve it the first time it starts in that folder.`,
+                `pychivalry is written into ${outcome.file}, and its skills into Claude Code's skills folder. Claude Code asks you to approve the server the first time it starts in that folder.`,
             );
             return;
         case 'declined':
@@ -163,6 +243,54 @@ function report(outcome: SetupOutcome, log: vscode.LogOutputChannel): void {
             log.error(outcome.message);
             void vscode.window.showErrorMessage(`pychivalry: ${outcome.message}`);
             return;
+    }
+}
+
+/** What "Remove from Claude Code" did, said to the person. */
+function reportRemoval(outcome: RemoveOutcome, log: vscode.LogOutputChannel): void {
+    const said: string[] = [];
+    const problems: string[] = [];
+    if (outcome.claude !== null) {
+        log.info(`${outcome.claude.file} mcp remove: ${outcome.claude.output}`);
+        if (outcome.claude.removed) {
+            said.push("its server entry removed from Claude Code's configuration");
+        }
+    }
+    const pf = outcome.projectFile;
+    if (pf === 'entry-removed') {
+        said.push(`its entry removed from ${PROJECT_FILE}`);
+    } else if (pf === 'file-removed') {
+        said.push(`${PROJECT_FILE}, which held nothing else, removed`);
+    } else if (pf === 'not-ours') {
+        problems.push(
+            `the pychivalry entry in ${PROJECT_FILE} is not the one pychivalry writes, and was left as it is`,
+        );
+    } else if (typeof pf === 'object') {
+        problems.push(pf.failed);
+    }
+    const { skills } = outcome;
+    if (skills.kind === 'removed') {
+        if (skills.removal.removed.length > 0) {
+            said.push(`the skills removed from ${skills.removal.dir}`);
+        }
+        for (const k of skills.removal.kept) {
+            problems.push(`${k.name} was kept: ${k.reason}`);
+        }
+    } else if (skills.kind === 'kept') {
+        said.push('the skills kept, for the other folders set up for Claude Code');
+    } else {
+        problems.push(`the skills could not be removed: ${skills.message}`);
+    }
+    const text =
+        said.length === 0
+            ? `pychivalry: nothing of pychivalry's was found to remove for ${outcome.folder}.`
+            : `pychivalry is removed from Claude Code for ${outcome.folder}: ${said.join('; ')}.`;
+    log.info(text);
+    if (problems.length > 0) {
+        log.warn(problems.join('; '));
+        void vscode.window.showWarningMessage(`${text} But ${problems.join('; ')}.`);
+    } else {
+        void vscode.window.showInformationMessage(text);
     }
 }
 
@@ -252,18 +380,56 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         );
     };
 
+    // The skills: VS Code's AI reads them from the bundle; Claude Code from its own folder.
+    const bundledSkills = context.asAbsolutePath(BUNDLED_SKILLS);
+    const claudeDir = (): string =>
+        claudeSkillsDir({ env: process.env, platform: process.platform, home: homedir() });
+    const recordFile = path.join(context.globalStorageUri.fsPath, SKILLS_RECORD_FILE);
+    const skillsRecords = (): SkillsRecord[] => loadSkillsRecords(recordFile);
+    const keepSkillsRecord = (record: SkillsRecord): void => {
+        saveSkillsRecords(recordFile, withSkillsRecord(skillsRecords(), record));
+    };
+    const installSkillsFor = (): Promise<SkillsInstall> => {
+        const dir = claudeDir();
+        const done = installSkills(
+            readSkills(bundledSkills),
+            dir,
+            skillsRecords().find((r) => r.dir === dir) ?? null,
+        );
+        keepSkillsRecord(done.record);
+        return Promise.resolve(done);
+    };
+    // After an update, the copies made for Claude Code are brought up to the new version's.
+    const skillsRefreshed = Promise.resolve().then(() => {
+        const done: SkillsInstall[] = [];
+        for (const record of skillsRecords()) {
+            const refreshed = installSkills(readSkills(bundledSkills), record.dir, record, true);
+            keepSkillsRecord(refreshed.record);
+            logSkills(refreshed, log);
+            done.push(refreshed);
+        }
+        return done;
+    });
+    skillsRefreshed.catch((err: unknown) => {
+        log.error(
+            `The skills copied for Claude Code could not be brought up to date: ${String(err)}`,
+        );
+    });
+
     const setUp = async (
         folder: string,
         ui: SetupUi,
         find: () => ClaudeCommand | null = findClaudeHere,
     ): Promise<SetupOutcome> => {
         const launch = await launchFor(folder);
+        await skillsRefreshed.catch(() => undefined);
         const outcome = await setUpClaudeCode({
             folder,
             launch,
             findClaude: find,
             runClaude: (claude, args, cwd) => runClaude(claude, args, cwd, process.env),
             ui,
+            installSkills: installSkillsFor,
         });
         const record = recordOf(outcome, folder, launch);
         if (record !== null) {
@@ -287,6 +453,42 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         }
         return outOfDate(records, (folder) => now.get(folder) ?? null);
     };
+    const removeFor = async (
+        folder: string,
+        find: () => ClaudeCommand | null = findClaudeHere,
+    ): Promise<RemoveOutcome> => {
+        const records = readSetUps(context.globalState.get<unknown>(SET_UPS_KEY));
+        const own = records.filter((r) => sameFolder(r.folder, folder));
+        const left = records.filter((r) => !sameFolder(r.folder, folder));
+        await skillsRefreshed.catch(() => undefined);
+        const outcome = await removeFromClaudeCode({
+            folder,
+            launches: [await launchFor(folder), ...own.map((r) => r.launch)],
+            findClaude: find,
+            runClaude: (claude, args, cwd) => runClaude(claude, args, cwd, process.env),
+            removeSkills:
+                left.length > 0
+                    ? null
+                    : () => {
+                          const dir = claudeDir();
+                          const record = skillsRecords().find((r) => r.dir === dir) ?? {
+                              dir,
+                              names: [],
+                              sha256: [],
+                          };
+                          const removal = removeSkills(record);
+                          keepSkillsRecord(removal.record);
+                          return Promise.resolve(removal);
+                      },
+        });
+        let kept = records;
+        for (const r of own) {
+            kept = withoutSetUp(kept, r.folder);
+        }
+        await context.globalState.update(SET_UPS_KEY, kept);
+        return outcome;
+    };
+
     const offered = new Set<string>();
     const offerUpdates = async (): Promise<void> => {
         for (const record of await claudeCodeOutOfDate()) {
@@ -346,6 +548,31 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
                 return outcome;
             },
         ),
+        vscode.commands.registerCommand(
+            REMOVE_FROM_CLAUDE_CODE,
+            async (target?: vscode.Uri): Promise<RemoveOutcome | undefined> => {
+                let folder = target?.scheme === 'file' ? target.fsPath : undefined;
+                if (folder === undefined) {
+                    const folders = modFolders();
+                    const picked =
+                        folders.length === 1
+                            ? folders[0]
+                            : await vscode.window.showWorkspaceFolderPick({
+                                  placeHolder: 'The mod folder to remove from Claude Code',
+                              });
+                    folder = picked?.uri.fsPath;
+                }
+                if (folder === undefined) {
+                    void vscode.window.showErrorMessage(
+                        'pychivalry: open the mod folder that was set up for Claude Code first.',
+                    );
+                    return undefined;
+                }
+                const outcome = await removeFor(folderPath(folder, process.platform));
+                reportRemoval(outcome, log);
+                return outcome;
+            },
+        ),
     );
 
     void agentServer.then(offerUpdates, () => undefined);
@@ -357,6 +584,9 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         definitions,
         setUpClaudeCode: setUp,
         claudeCodeOutOfDate,
+        removeFromClaudeCode: removeFor,
+        skills: { bundled: bundledSkills, claudeDir },
+        skillsRefreshed,
         language,
         commandLine,
     };

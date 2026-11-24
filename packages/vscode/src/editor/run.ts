@@ -36,6 +36,7 @@
 
 import { downloadAndUnzipVSCode, runTests, runVSCodeCommand } from '@vscode/test-electron';
 import {
+    appendFileSync,
     cpSync,
     existsSync,
     mkdirSync,
@@ -52,9 +53,16 @@ import { fileURLToPath } from 'node:url';
 import { runClaude } from '../claude.js';
 import { EXTENSION_ID } from '../ids.js';
 import { MANIFEST_FILE, parseManifest } from '../install.js';
+import { readSkills, SKILL_FILE, SKILLS_FOLDER } from '../skills.js';
 import { checkThrough } from './agent.js';
 import { readOrNull, virtualDisplay } from './display.js';
-import { asEntry, assertFixtureAnswer, claudeEntryFor, FIXTURE_MOD } from './fixture.js';
+import {
+    asEntry,
+    assertFixtureAnswer,
+    claudeEntryFor,
+    FIXTURE_MOD,
+    SKILL_NOTE,
+} from './fixture.js';
 import { VSCODE_VERSION } from './version.js';
 import { writeVsix } from './vsix.js';
 
@@ -216,8 +224,10 @@ function median(values: readonly number[]): number {
 /**
  * The built extension as an installable file of version `version`: its manifest and its
  * bundles, the server's manifest stating the same version, as a release of that version would.
+ * With `newerSkills`, each skill gains a line naming the version, as a release's changed skills
+ * would differ from the version before (`SKILL_NOTE`).
  */
-function vsixOf(root: string, version: string): string {
+function vsixOf(root: string, version: string, newerSkills = false): string {
     const stage = path.join(root, 'stage', version);
     mkdirSync(stage, { recursive: true });
     const manifest = JSON.parse(readFileSync(path.join(PACKAGE, 'package.json'), 'utf8')) as Record<
@@ -234,6 +244,12 @@ function vsixOf(root: string, version: string): string {
     const server = path.join(stage, 'dist', 'bundle', 'server', MANIFEST_FILE);
     const bundle = parseManifest(readFileSync(server, 'utf8'));
     writeFileSync(server, `${JSON.stringify({ ...bundle, version }, null, 2)}\n`);
+    if (newerSkills) {
+        const skills = path.join(stage, 'dist', 'bundle', SKILLS_FOLDER);
+        for (const skill of readSkills(skills)) {
+            appendFileSync(path.join(skills, skill.name, SKILL_FILE), SKILL_NOTE(version));
+        }
+    }
     const file = path.join(root, 'stage', `pychivalry-${version}.vsix`);
     writeVsix(file, stage);
     return file;
@@ -422,7 +438,7 @@ async function tests(how: Starter, root: string): Promise<void> {
         await install(how, vsixOf(root, v1), update);
         await start(how, 'update-1', update, harness, mod, versions);
 
-        await install(how, vsixOf(root, v2), update);
+        await install(how, vsixOf(root, v2, true), update);
         const first = path.join(update.extensions, `${EXTENSION_ID}-${v1}`);
         process.stdout.write(
             `vscode:test: after installing ${v2}, VS Code ${existsSync(first) ? 'left' : 'removed'} the ${v1} folder\n`,

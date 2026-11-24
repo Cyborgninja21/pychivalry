@@ -18,7 +18,7 @@ test("a zip archive's entries are read from its central directory, names and siz
     );
 });
 
-test('the .vsix may hold the manifest, the README, the licence, the three bundles and the spec only', () => {
+test('the .vsix may hold the manifest, the README, the licence, the three bundles, the spec and the skills only', () => {
     const entry = (name: string) => ({ name, stored: 1, size: 1 });
     const fine = [
         '[Content_Types].xml',
@@ -36,6 +36,7 @@ test('the .vsix may hold the manifest, the README, the licence, the three bundle
         'extension/dist/bundle/server/spec/ck3-spec-1.21.0.3.json.gz',
         'extension/dist/bundle/server/spec/ck3-spec-1.21.0.3.sha256',
         'extension/dist/bundle/server/spec/ck3-spec-1.21.0.3.data_types.json.gz',
+        'extension/dist/bundle/skills/pychivalry-write-content/SKILL.md',
     ];
     assert.deepEqual(unwanted(fine.map(entry)), []);
     const bad = [
@@ -49,6 +50,9 @@ test('the .vsix may hold the manifest, the README, the licence, the three bundle
         'extension/dist/bundle/server/spec/../../../../x',
         'extension/dist/bundle/lsp/presentation/README.md',
         'extension/dist/bundle/lsp/presentation/../../../x.json',
+        'extension/dist/bundle/skills/Not_A_Skill_Name/SKILL.md',
+        'extension/dist/bundle/skills/pychivalry-write-content/notes.txt',
+        'extension/dist/bundle/skills/SKILL.md',
     ];
     assert.deepEqual(unwanted(bad.map(entry)), bad);
 });
