@@ -699,8 +699,10 @@ The authoring skill told every session to format what it wrote and to count
 4. **No terminal.** A trial offers `Read`, `Edit`, `Write`, `Skill` and the server's tools; the
    skill's other way, `pychivalry format <file>` "when pychivalry runs in a terminal you can
    use", was out of reach.
-5. **`check` did say so.** With `min_severity` `warning`, as the skill's rule 3 asks,
-   `style/not-formatted` is listed; every session checked 2 to 7 times and saw it.
+5. **`check` did say so.** Its totals count every finding by code whatever is listed, so
+   `style/not-formatted` is in every answer; with `min_severity` `warning`, as the skill's rule 3
+   asks, it is listed too (by default only errors are). Every session checked 2 to 7 times. The
+   record keeps no tool input, so which sessions asked for warnings is not known.
 
 ### Why two requests had an error in every trial
 
