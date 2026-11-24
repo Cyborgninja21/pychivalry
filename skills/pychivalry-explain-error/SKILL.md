@@ -10,11 +10,15 @@ you the finding, the game's evidence for it and the game's own documentation of 
 it. Explain from what the tools return, never from memory of CK3: what the tools do not say, you
 do not claim.
 
-The tools are named here by their bare names. Your client may list them under a prefix of its
-own (Claude Code lists `check` as `mcp__pychivalry__check`): call each by the name your client
-lists. If no pychivalry tool is offered at all, say so and stop: in VS Code the extension
-registers the agent server by itself; for Claude Code, the person runs "pychivalry: Set up for
-Claude Code" in VS Code once for the mod's folder.
+**Call each tool by the name your client lists.** The tools are written here by their short names,
+such as `check`, but Claude Code, for one, lists them under longer names, and only a listed name
+can be called: a call of a short name reaches nothing, and Claude Code answers that there is no
+such tool. In Claude Code the names are `mcp__pychivalry__check`, `mcp__pychivalry__explain_code`,
+`mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`. Call each by the name your client
+lists, never by the short name alone; if a call finds no such tool, call the same tool again by
+its listed name. If no pychivalry tool is offered at all, say so and stop: in VS Code the
+extension registers the agent server by itself; for Claude Code, the person runs "pychivalry: Set
+up for Claude Code" in VS Code once for the mod's folder.
 
 ## Steps
 

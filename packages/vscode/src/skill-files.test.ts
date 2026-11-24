@@ -302,6 +302,25 @@ test("each skill names only the agent server's tools and the command line's comm
     assert.equal(commandLineProblem('pychivalry format <file>'), null);
 });
 
+test("each skill gives Claude Code's name of every tool it drives, and what a call of the short name does", () => {
+    // Both scored authoring runs had sessions call a server tool by the short name the skills
+    // write (10 calls in the first, 13 in the second), which Claude Code answers with no such
+    // tool: the skills say what to call instead, for every tool they drive.
+    for (const skill of skills) {
+        const { body } = parse(skill.name, textOf(skill));
+        const named = new Set(spans(body));
+        for (const tool of DRIVES[skill.name] ?? []) {
+            assert.ok(
+                named.has(`mcp__pychivalry__${tool}`),
+                `${skill.name} names mcp__pychivalry__${tool}`,
+            );
+        }
+        const prose = body.replace(/\s+/g, ' ');
+        assert.match(prose, /a call of a short name reaches nothing/, skill.name);
+        assert.match(prose, /call the same tool again by its listed name/, skill.name);
+    }
+});
+
 test("everything a skill writes as code is pychivalry's own or a name the spec package has", () => {
     const spec = openSpec(path.join(REPO, 'spec'));
     assert.deepEqual(Object.fromEntries(unbacked(spec)), {});

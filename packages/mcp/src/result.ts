@@ -113,9 +113,13 @@ export function encodeCursor(offset: number, key: string): string {
 
 /**
  * Where the page a cursor names starts: 0 without a cursor. A cursor this server did not give,
- * or gave for another question, is bad input.
+ * or gave for another question, is bad input. Its text says that a cursor only continues the
+ * call it came from, repeated with that call's arguments, and that any other question leaves it
+ * out: `arguments` names them in the tool's own words (lookup's: its names and language), since
+ * the sessions of the second scored authoring run gave lookup the cursor of an earlier lookup
+ * together with other names.
  */
-export function readCursor(cursor: string | undefined, key: string): number {
+export function readCursor(cursor: string | undefined, key: string, args = 'arguments'): number {
     if (cursor === undefined) {
         return 0;
     }
@@ -128,7 +132,7 @@ export function readCursor(cursor: string | undefined, key: string): number {
     }
     if (match[2] !== key) {
         throw new BadInput(
-            'cursor: it was given for other arguments; repeat the arguments of the call that gave it, or leave it out to start from the first',
+            `cursor: it was given for other ${args}. A cursor only continues the answer of the call that gave it, repeated with exactly the same ${args}; to ask anything else, call again without cursor`,
         );
     }
     return Number(match[1]);

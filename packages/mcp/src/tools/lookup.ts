@@ -200,7 +200,7 @@ export const lookupTool: Tool<LookupArgs> = {
     description: [
         "What each name is: every reading the spec package has of it (trigger, effect, scope link, modifier, on-action, field of a folder...), with the game's own description, the scopes it is valid in and what it takes;",
         'where the base game and the mod define and use it, and which definition is in force; for a name nothing knows, the names close to it.',
-        'Use it before writing a keyword, and to understand a finding. A long answer continues on the next page: give next_cursor with the same names.',
+        'Use it before writing a keyword, and to understand a finding. Most answers fit in one result, with next_cursor null; when one does not, call lookup again with exactly the same names and language and that next_cursor for the rest. A lookup of other names never takes a cursor.',
     ].join(' '),
     input: {
         type: 'object',
@@ -220,7 +220,7 @@ export const lookupTool: Tool<LookupArgs> = {
             cursor: {
                 type: 'string',
                 description:
-                    'The next_cursor of the previous result, with the same names and language, for the rest of the answer',
+                    'Only for the rest of one answer: the next_cursor that answer gave, with exactly the same names and language. Leave it out to look up other names',
             },
         },
         required: ['names'],
@@ -239,7 +239,7 @@ export const lookupTool: Tool<LookupArgs> = {
         const names = [...new Set(args.names)];
         const language = args.language ?? null;
         const key = questionKey('lookup', { names, language });
-        const offset = readCursor(args.cursor, key);
+        const offset = readCursor(args.cursor, key, 'names or language');
         const workspace = session.workspace();
         if (language !== null) {
             const languages = languagesOf(workspace.index);

@@ -124,7 +124,7 @@ export function pagedInput(
         cursor: {
             type: 'string',
             description:
-                'The next_cursor of the previous result, for the next page of the same question; leave it out for the first page',
+                'Only for the next page of one answer: the next_cursor that answer gave, with exactly the same arguments as the call that gave it. Leave it out for the first page and for any other question',
         },
     };
 }
@@ -132,7 +132,8 @@ export function pagedInput(
 /** The cursor of a paged result. */
 export const NEXT_CURSOR: Schema = {
     type: ['string', 'null'],
-    description: 'Give it as cursor, with the same arguments, for the next page; null on the last',
+    description:
+        'Give it as cursor, with exactly the same arguments, for the next page of this answer only; null on the last',
 };
 
 /** The notes about the run: no game found, a game of another build. */
