@@ -479,6 +479,13 @@ the game: by the owner's decision, the one kind of warning that rests on pychiva
   the hints). `check --fix` applies the warning's fix, which stands for the file's hints. The
   game-file suites count them by code and never classify them; the base game, not written in the
   format, has a warning in nearly every file.
+- **What they cost.** Each file is laid out once more when it is checked. The base game's
+  `game:check` (17,302 files, the install's `clausewitz/`, `jomini/` and DLC included) took 95
+  seconds and 3.7 GB at its peak, against 56 s and 2.9 GB before; it reports 17,009 `style/`
+  warnings and 808,526 hints (1,202,986 more hints dropped by the per-file limit). Each fix is
+  kept small: edits less than 2,048 characters apart are merged into one (`MERGE_GAP`), and the
+  agent server lists a formatting fix of more than 2,000 characters without its edits, marked,
+  and points to its `format` tool for the text.
 
 ## What the formatter guarantees
 
@@ -534,10 +541,16 @@ By rule (the style hints of each file; "lines" are the lines their edits touch):
 | `style/line-endings` | 1,551 | 1,551 | 1,706,059 | 11,793 | 11,793 |
 | `style/byte-order-mark` | 645 | 645 | 645 | 0 | 0 |
 
-**Speed.** Formatting the whole base game's 4,854 script files takes about 19 seconds on the
-machine of the record, in one process; the largest file,
-`gfx/map/map_object_data/generated/tree_leaf_high_generator_1.txt` (13.2 MB), about 0.2 seconds.
-The localization files take about 3.5 seconds.
+**Speed.** Timed on the machine of the record (16 logical CPUs, one process), under the shared
+lock: formatting the whole base game's 4,854 script files takes 18.6 seconds (the median of five
+runs after a first of 17.5 s); its largest file,
+`gfx/map/map_object_data/generated/tree_leaf_high_generator_1.txt` (13.2 MB), 0.10 seconds (0.15
+s the first time). Its 12,171 localization files take about 4 seconds.
+
+**On the five test mods.** The same round trip, run but not committed, over every file the index
+reads: 2,206 script files and 1,497 localization files, every one formatted (none has a parse
+error), every tree and reading the same, every second format unchanged, 149,240 and 17,515
+comments kept and none moved; the formatter changes 2,154 and 1,391 of them.
 
 ## On-type formatting
 

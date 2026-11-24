@@ -1241,7 +1241,10 @@ blank lines. It had no golden files and no written rules, and its settings were 
   2,365, spacing 1,609, line breaks 1,551, indentation 1,493, comment spacing 683, the mark 645).
   12,171 localization files, all formatted, readings the same, 74,238 comments kept, 12,064
   changed. The 120-column rule: 26,560 lines over it before, 9,784 after (nothing left to break),
-  990 files changed by it alone. On the five corpus mods (not committed): MODS_ROUND_TRIP.
+  990 files changed by it alone. On the five corpus mods (run, not committed): 2,206 script files and 1,497 localization
+  files the index reads, every one formatted (none with a parse error), every tree and reading
+  the same, every second format unchanged, 149,240 and 17,515 comments kept, none moved; 2,154
+  and 1,391 files changed.
 - 8.4 Golden files for each rule; formatting twice changes nothing.
 
   *Built:* `fixtures/format/`, 21 pairs written by hand, one a rule (and the files left as they
@@ -1312,7 +1315,9 @@ blank lines. It had no golden files and no written rules, and its settings were 
   and turns a document's `\n` to `\r\n` with Format Document. The same-answers test covers
   formatting: on the planted-defect mod each file formatted by the editor, the command line in a
   terminal and the agent server, with the shared index on and off, gives the same text. Speed:
-  SPEED_TEXT
+  formatting the whole base game's 4,854 script files takes 18.6 s (the median of five runs
+  after a first of 17.5 s), its largest file (13.2 MB) 0.10 s; the `style/` findings make the
+  base game's `game:check` 95 s and 3.7 GB at its peak (56 s and 2.9 GB before).
 - 8.10 The second preview build.
 
   *Open: waits for the owner's word.* The text is drafted in
