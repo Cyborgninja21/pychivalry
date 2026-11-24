@@ -2,12 +2,12 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-24T01:32:05.034Z",
+    "made_at": "2026-11-24T03:10:46.227Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "de9b0d7e3c0366596691315063ec9ad9d0477944",
-        "dirty": true
+        "commit": "3cad807073faaacd0e72b60dbf5ee1d4fda76b1d",
+        "dirty": false
     },
     "machine": {
         "os": "linux",
@@ -43,14 +43,14 @@
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 3.10 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 1.71 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 16811,
-            "peak_rss_kib": 1392924
+            "build_ms": 14647,
+            "peak_rss_kib": 1547168
         },
         "mods": [
             {
@@ -160,11 +160,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1900,
-                    "check": 143,
-                    "total": 2043
+                    "load_base": 1067,
+                    "check": 150,
+                    "total": 1218
                 },
-                "peak_rss_kib": 747840
+                "peak_rss_kib": 760388
             },
             {
                 "slug": "divine-intervention",
@@ -266,7 +266,7 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 62,
-                    "dropped": 1114741,
+                    "dropped": 1114746,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
@@ -317,6 +317,11 @@
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
                             "count": 1534
+                        },
+                        {
+                            "code": "style/unusual-field-order",
+                            "severity": "hint",
+                            "count": 5
                         }
                     ]
                 },
@@ -388,11 +393,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1267,
-                    "check": 21403,
-                    "total": 22669
+                    "load_base": 1115,
+                    "check": 19215,
+                    "total": 20330
                 },
-                "peak_rss_kib": 3157664
+                "peak_rss_kib": 3152860
             },
             {
                 "slug": "elf-destiny",
@@ -411,7 +416,7 @@
                     "error": 2,
                     "warning": 952,
                     "information": 443,
-                    "hint": 70555
+                    "hint": 70607
                 },
                 "by_code": [
                     {
@@ -510,19 +515,24 @@
                         "count": 324
                     },
                     {
+                        "code": "style/unusual-field-order",
+                        "severity": "hint",
+                        "count": 128
+                    },
+                    {
                         "code": "fields/unusual-value",
                         "severity": "hint",
                         "count": 102
                     },
                     {
-                        "code": "style/unusual-field-order",
-                        "severity": "hint",
-                        "count": 94
-                    },
-                    {
                         "code": "style/byte-order-mark",
                         "severity": "hint",
                         "count": 21
+                    },
+                    {
+                        "code": "style/localization-key-characters",
+                        "severity": "hint",
+                        "count": 18
                     }
                 ],
                 "errors": 2,
@@ -1254,11 +1264,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1351,
-                    "check": 3696,
-                    "total": 5048
+                    "load_base": 1045,
+                    "check": 2592,
+                    "total": 3637
                 },
-                "peak_rss_kib": 1051312
+                "peak_rss_kib": 1053524
             },
             {
                 "slug": "rice",
@@ -1268,7 +1278,7 @@
                     "error": 841,
                     "warning": 3143,
                     "information": 857,
-                    "hint": 337126
+                    "hint": 338560
                 },
                 "by_code": [
                     {
@@ -1359,12 +1369,12 @@
                     {
                         "code": "localization/unused-key",
                         "severity": "hint",
-                        "count": 135775
+                        "count": 135772
                     },
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 65875
+                        "count": 65874
                     },
                     {
                         "code": "style/spacing",
@@ -1392,6 +1402,11 @@
                         "count": 1562
                     },
                     {
+                        "code": "style/localization-key-characters",
+                        "severity": "hint",
+                        "count": 1159
+                    },
+                    {
                         "code": "style/empty-block",
                         "severity": "hint",
                         "count": 903
@@ -1407,6 +1422,11 @@
                         "count": 651
                     },
                     {
+                        "code": "style/unusual-field-order",
+                        "severity": "hint",
+                        "count": 304
+                    },
+                    {
                         "code": "style/byte-order-mark",
                         "severity": "hint",
                         "count": 184
@@ -1415,11 +1435,6 @@
                         "code": "fields/unusual-value",
                         "severity": "hint",
                         "count": 122
-                    },
-                    {
-                        "code": "style/unusual-field-order",
-                        "severity": "hint",
-                        "count": 25
                     }
                 ],
                 "errors": 841,
@@ -16860,12 +16875,12 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 26,
-                    "dropped": 21191,
+                    "dropped": 21202,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
                             "severity": "hint",
-                            "count": 5590
+                            "count": 5593
                         },
                         {
                             "code": "style/blank-lines",
@@ -16895,7 +16910,12 @@
                         {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 5224
+                            "count": 5225
+                        },
+                        {
+                            "code": "style/localization-key-characters",
+                            "severity": "hint",
+                            "count": 7
                         },
                         {
                             "code": "style/spacing",
@@ -16989,11 +17009,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 1808,
-                    "check": 20250,
-                    "total": 22059
+                    "load_base": 1255,
+                    "check": 19673,
+                    "total": 20928
                 },
-                "peak_rss_kib": 1690432
+                "peak_rss_kib": 1828952
             },
             {
                 "slug": "viet-events",
@@ -17003,7 +17023,7 @@
                     "error": 1,
                     "warning": 214,
                     "information": 58,
-                    "hint": 36697
+                    "hint": 36719
                 },
                 "by_code": [
                     {
@@ -17089,7 +17109,7 @@
                     {
                         "code": "style/unusual-field-order",
                         "severity": "hint",
-                        "count": 14
+                        "count": 36
                     },
                     {
                         "code": "style/byte-order-mark",
@@ -17277,11 +17297,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1418,
-                    "check": 4222,
-                    "total": 5640
+                    "load_base": 1330,
+                    "check": 3995,
+                    "total": 5325
                 },
-                "peak_rss_kib": 916140
+                "peak_rss_kib": 906552
             }
         ]
     }

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-24T00:20:37.068Z",
+    "made_at": "2026-11-24T03:11:55.507Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "b6d13c0720d5f9765c116054077c687883182798",
+        "commit": "3cad807073faaacd0e72b60dbf5ee1d4fda76b1d",
         "dirty": false
     },
     "machine": {
@@ -30,7 +30,7 @@
     "corpus": null,
     "notes": [
         "The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, \"What the parser reads\").",
-        "Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and gets one information note (results.notes).",
+        "Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and counted (not_utf8 in results.folders); the parse gives no finding for it (its information note, encoding/not-utf8, was retired on 2026-11-23: the warning style/not-utf8 of the check suite reports such a file).",
         "Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.",
         "results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.",
         "results.round_trip is the formatter's round trip (docs/PLAN.md item 8.3) over every file parsed, with the rules every surface uses (docs/formatting.md): each is formatted, its output parsed and compared with the input without offsets (the same items in order and nesting, of the same kinds, with the same texts, scalar types, operators, names before keys, closings and chain segments, and comments but for their trailing spaces and tabs), its tokens compared, its comments counted and each checked to keep the tokens around it and its own line or not, and formatted a second time to the same bytes. A file with a parse error is left as it is (results.round_trip.left). by_rule counts the places, files and lines each style/ hint names; width the lines over 120 columns (a tab to the next multiple of four, every code point one column) before formatting, formatted without the 120-column rule and with it, and the files that rule changes on its own. format_ms is formatting alone, in one process. results.round_trip_localization is the same over the game's localization/ .yml files, their reading by the index's localization reader compared."
@@ -40,7 +40,7 @@
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 5500,
+        "parse_ms": 4660,
         "folders": [
             {
                 "folder": "common",
@@ -51,7 +51,7 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 2032,
+                "parse_ms": 1635,
                 "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
@@ -64,7 +64,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1093,
+                "parse_ms": 934,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -77,7 +77,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 1100,
+                "parse_ms": 936,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -90,7 +90,7 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1247,
+                "parse_ms": 1139,
                 "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
@@ -108,7 +108,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 24,
+                "parse_ms": 13,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
@@ -121,7 +121,7 @@
                 "bom": 3,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1,
+                "parse_ms": 0,
                 "why": "In the spec; paths.settings names music/music_player_categories.",
                 "excluded": []
             },
@@ -215,190 +215,7 @@
                 "reason": "A dated entry of a character's history is written '296.1.1 { add_spouse = ... }', without its '='; every other entry has one. The same defect that release 2.3.0 recorded in history/characters/japanese.txt on game 1.20, which 1.21.0.3 no longer has."
             }
         ],
-        "notes": [
-            {
-                "file": "history/titles/k_amdo.txt",
-                "line": 3367,
-                "column": 8,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_bashkiria.txt",
-                "line": 374,
-                "column": 32,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (14 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_brittany.txt",
-                "line": 3,
-                "column": 26,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (57 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_castille.txt",
-                "line": 10,
-                "column": 35,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (226 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_esthonia.txt",
-                "line": 120,
-                "column": 22,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (16 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_finland.txt",
-                "line": 68,
-                "column": 49,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (25 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_ghana.txt",
-                "line": 1334,
-                "column": 7,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_guge.txt",
-                "line": 1588,
-                "column": 7,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (2 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_ireland.txt",
-                "line": 7,
-                "column": 22,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (369 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_khakassia.txt",
-                "line": 607,
-                "column": 34,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_kham.txt",
-                "line": 729,
-                "column": 6,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (13 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_leon.txt",
-                "line": 11,
-                "column": 24,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (223 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_lhomon.txt",
-                "line": 1274,
-                "column": 8,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_lithuania.txt",
-                "line": 68,
-                "column": 19,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (48 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_maghreb.txt",
-                "line": 2236,
-                "column": 34,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (1 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_maryul.txt",
-                "line": 1276,
-                "column": 16,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_mordvinia.txt",
-                "line": 942,
-                "column": 32,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_navarra.txt",
-                "line": 7,
-                "column": 20,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (127 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_norway.txt",
-                "line": 54,
-                "column": 33,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (173 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_romagna.txt",
-                "line": 546,
-                "column": 61,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (7 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_scotland.txt",
-                "line": 3054,
-                "column": 23,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (28 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_tsang.txt",
-                "line": 19,
-                "column": 10,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (5 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_tuva.txt",
-                "line": 87,
-                "column": 40,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_volga_bulgaria.txt",
-                "line": 1299,
-                "column": 34,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (2 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "history/titles/k_zhetysu.txt",
-                "line": 77,
-                "column": 23,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (13 invalid bytes); it was read as UTF-8 with replacement characters."
-            },
-            {
-                "file": "map_data/positions.txt",
-                "line": 417,
-                "column": 3,
-                "id": "encoding/not-utf8",
-                "message": "This file is not valid UTF-8 (84 invalid bytes); it was read as UTF-8 with replacement characters."
-            }
-        ],
+        "notes": [],
         "not_read": [
             {
                 "what": "gui/**/*.gui",
@@ -1094,11 +911,11 @@
                 "lines_over_after": 9784,
                 "files_changed_by_width_alone": 990
             },
-            "format_ms": 23207,
+            "format_ms": 19606,
             "largest_file": {
                 "file": "gfx/map/map_object_data/generated/tree_leaf_high_generator_1.txt",
                 "bytes": 13167832,
-                "format_ms": 166
+                "format_ms": 152
             },
             "failures": []
         },
@@ -1189,7 +1006,7 @@
                 "lines_over_after": 620910,
                 "files_changed_by_width_alone": 0
             },
-            "format_ms": 4100,
+            "format_ms": 2974,
             "largest_file": {
                 "file": "localization/russian/custom_localization/ru_custom_loc_l_russian.yml",
                 "bytes": 1307118,

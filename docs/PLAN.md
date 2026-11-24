@@ -1359,7 +1359,7 @@ blank lines. It had no golden files and no written rules, and its settings were 
   blocked: part D4 gives `always` and the logical operators no role, so the check would have to
   name them. A file not UTF-8 shows one finding, `style/not-utf8`, whose message and data say
   how it was read; the note `encoding/not-utf8` is retired. The style findings' cost is accepted
-  as it is (the base game's `game:check` now 89 s and 3.9 GB at its peak).
+  as it is (the base game's `game:check` now 90 s and 3.9 GB at its peak).
 - 8.10 The second preview build.
 
   *Open: waits for the owner's word.* The text is drafted in
