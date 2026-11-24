@@ -363,6 +363,18 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   with their rate and by folder. The decoder records each stretch of a file that is not valid
   UTF-8 on its note.
 
+- `style/localization-key-characters` (decision 112), release 2.3.0's LOC-001 brought back as a
+  best-practice hint: a localization key that starts with a digit or holds a character other than
+  a letter, a digit, `_` or `.`; no fix. The base game: 15,406 of its 3,100,662 keys (0.50%),
+  1,675 of its 340,445 English ones. A fixture pair, `style-localization-key-characters-bad` and
+  `-good`. Its 2.3.0 sibling CK3872 is the row `style/redundant-condition`, blocked: part D4 of
+  the spec package gives `always` and the logical operators no role, so the check would have to
+  name them.
+- A test that every fixture mod and the planted-defect mod are in pychivalry's format, but for
+  exactly what each exists to test (`packages/core/src/format/fixtures.test.ts`), and one that
+  every snippet of the presentation data, expanded as the editor inserts it, is left unchanged by
+  the formatter.
+
 ### Changed
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
@@ -517,6 +529,29 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The agent server's instructions say that a client may list its tools under a prefix of its
   own (`mcp__pychivalry__check` in Claude Code) and that the names in them are the bare ones.
 
+- `style/unusual-field-order` judges `common/decisions` and `common/character_interactions` too
+  (decision 109), each with the order of its fields in the folder's own `.info` file: the base
+  game writes 398 of 587 decisions and 492 of 650 interactions in another order; the rule as a
+  whole fires on 2,096 of 12,528 base-game records (was 1,206 of 11,291). Completion offers a
+  decision's and an interaction's fields in that order. `style/empty-block` and
+  `style/deep-nesting` judge every folder, none left out.
+- Every fixture mod and the planted-defect mod are in pychivalry's format (decision 110): Windows
+  line breaks, the byte-order mark, the formatter's layout, but for what each fixture exists to
+  test (files with a parse error or not valid UTF-8, the bad half of each `style/` pair, three
+  localization files without the mark), kept byte for byte. Each fixture's other findings are
+  the same; only their lines and columns moved, and the expected outputs with them.
+- The planted-defect mod plants the `style/` family: a line indented with spaces
+  (`style/not-formatted` and `style/indentation`) and a file not valid UTF-8 (`style/not-utf8`),
+  35 defects in all (26 errors, 9 warnings and a hint on `mod/`, nothing on `reference/`), in 17
+  files and 539 lines; the graders and the rule that every error and warning code is planted
+  count the family instead of leaving it out.
+- The presentation data's 111 snippets are written in the format (decision 111), so what
+  completion inserts is formatted already: a block of one simple pair on one line, an empty block
+  `{}`; 81 changed.
+- A file that is not valid UTF-8 shows one finding, the warning `style/not-utf8`, which now says
+  how the file was read (`read_as` in its data). The parse note `encoding/not-utf8` is retired
+  (decision 113): no surface emits it, and the code is never reused.
+
 ### Fixed
 
 - The command line's cache test compared the wall-clock times of two runs and failed once on a
@@ -540,8 +575,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
 - Build step 8 is built but for item 8.10, the second preview, which waits for the owner's word
   (`docs/preview-release-0.2.0.md`, its drafted text).
-- The planted-defect mod, the fixture mods but `names-unknown-trigger-*` and the presentation
-  data's snippets are not in pychivalry's format; questions for the owner (`docs/decisions.md`).
+- `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
+  package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its

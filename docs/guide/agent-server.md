@@ -101,8 +101,9 @@ whatever the filters keep, so the agent sees the whole picture before the list. 
 `localization/unused-key` too: `unused_keys: false` turns that one off. The `style/` findings
 rest on pychivalry's own rules, not on the game: its formatting rules say where a file is not in
 pychivalry's format, and their fixes, like `format`'s text, change only whitespace; its
-best-practice rules flag a file that is not UTF-8 (a warning, with a fix that converts it), an
-empty block, a block nested too deep and fields in an unusual order. A fix too long for a result
+best-practice rules flag a file that is not UTF-8 (a warning, which says how the file was read,
+with a fix that converts it), an empty block, a block nested too deep, fields in an unusual order
+and a localization key with a character other than a letter, a digit, `_` or `.`. A fix too long for a result
 comes with its edits left out and `edits_omitted`: `format` gives a formatting fix's text, and
 the command line's `check --fix` applies any safe fix.
 

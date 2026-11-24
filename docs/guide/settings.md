@@ -50,11 +50,11 @@ The command line in the terminal does not read settings: it searches Steam's lib
 - **Background work.** There is a limit on how many files pychivalry checks in the background,
   so the editor stays responsive on a large mod.
 - **Files that are not UTF-8.** pychivalry reads a script file that is not valid UTF-8 in
-  full, shows each byte it cannot read as the replacement character, and says once, as
-  information, how it read the file; it is never an error, because the game ships and loads
-  such files itself. Beside that note, the best-practice rule `style/not-utf8` gives one
-  warning per file (a localization file too), with a fix that converts the file to UTF-8 with a
-  byte-order mark, its other bytes read as Windows-1252. A setting lets you name Windows-1252 as
+  full and shows each byte it cannot read as the replacement character; it is never an error,
+  because the game ships and loads such files itself. The best-practice rule `style/not-utf8`
+  gives one warning per file (a localization file too), which says how the file was read, with
+  a fix that converts the file to UTF-8 with a byte-order mark, its other bytes read as
+  Windows-1252; it is the one finding about the file's encoding. A setting lets you name Windows-1252 as
   the encoding to read those bytes with, so their letters show correctly before you convert
   it; the rest of the file is still read as UTF-8. It is off by default:
   `pychivalry.encoding.fallback`, above ([what the parser reads](../encoding.md)).

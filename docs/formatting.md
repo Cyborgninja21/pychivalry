@@ -489,10 +489,11 @@ rules (principle 1 of [MVP.md](MVP.md#principles)); the other is the family's be
   kept small: edits less than 2,048 characters apart are merged into one (`MERGE_GAP`), and the
   agent server lists a formatting fix of more than 2,000 characters without its edits, marked,
   and points to its `format` tool for the text.
-- **The best-practice rows of the same family** (decisions 105 to 107,
+- **The best-practice rows of the same family** (decisions 105 to 107, 109 and 112,
   [checks.md](checks.md#best-practice-the-style-familys-best-practice-rules)) are not about
-  layout: `style/not-utf8` (a warning, with a fix converting the file to UTF-8 with the mark),
-  `style/empty-block`, `style/deep-nesting` and `style/unusual-field-order` (hints). Their fixes
+  layout: `style/not-utf8` (a warning, the one finding about a file not valid UTF-8, with a fix
+  converting it to UTF-8 with the mark), `style/empty-block`, `style/deep-nesting`,
+  `style/unusual-field-order` and `style/localization-key-characters` (hints). Their fixes
   agree with the format: each fixture pair of theirs is written in the format, and after their
   fixes the formatter finds nothing to change (tested). The field-order fix moves whole lines and
   keeps each field's comments with it; the empty-block fix takes a block's line away; the

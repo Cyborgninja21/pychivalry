@@ -29,17 +29,21 @@ The extension's version is `0.2.0` and its manifest still says `"preview": true`
   it is.
 - **Formatting findings.** A file not in the format is a `style/` warning, each untidy place a
   hint, each with a safe fix.
-- **Best-practice findings.** A file that is not UTF-8 is a `style/not-utf8` warning, whose fix
-  converts it to UTF-8 with the byte-order mark (its other bytes read as Windows-1252); fields
-  written in an unusual order are a hint with a fix that reorders them, where the order has no
-  meaning to the game; an empty block and a block nested more than six deep are hints.
+- **Best-practice findings.** A file that is not UTF-8 is a `style/not-utf8` warning, the one
+  finding about such a file (it says how the file was read; the information note of 0.1.0 is
+  retired), whose fix converts it to UTF-8 with the byte-order mark (its other bytes read as
+  Windows-1252); fields written in an unusual order are a hint with a fix that reorders them,
+  where the order has no meaning to the game (decisions and interactions in the order of
+  Paradox's own documentation); an empty block, a block nested more than six deep and a
+  localization key with a dash or a leading digit are hints.
 - **Unused localization keys on by default.** A hint on each key nothing uses, unless turned off
   (`pychivalry.localization.unusedKeys`, `check --no-unused-keys`).
 - **Quick fixes and fix data.** Every finding carries its mechanical fix, if it has one: quick
   fixes in the editor ("fix every safe ... in the file", Fix All), `pychivalry check --fix`, and
   the fixes in the agent server's `check`.
 - **Inline hints and presentation data.** An event's title and an option's text beside their keys,
-  the scope type after a link; snippets and field order in completion; the outline of 27 folders.
+  the scope type after a link; snippets, already formatted, and field order in completion; the
+  outline of 27 folders.
 - **One copy of the game's index.** The language server lends its index of the game to the agent
   servers and the terminal's `pychivalry`, so the three hold one copy between them.
 
@@ -62,11 +66,14 @@ The extension's version is `0.2.0` and its manifest still says `"preview": true`
 > - **Formatting findings.** A file that is not formatted shows a warning, and each place that
 >   differs a hint, each with a quick fix. These rest on pychivalry's own formatting rules, not
 >   on the game: the game does not care.
-> - **Best-practice findings.** A file that is not UTF-8 shows a warning, with a fix that
->   converts it to UTF-8 with the byte-order mark (its other bytes read as Windows-1252); fields
->   written in an unusual order show a hint, with a fix that reorders them, where the order means
->   nothing to the game; an empty block, and a block nested more than six deep, show a hint.
->   These rest on pychivalry's own best-practice rules, each one the game's own files follow.
+> - **Best-practice findings.** A file that is not UTF-8 shows one warning, which says how it was
+>   read, with a fix that converts it to UTF-8 with the byte-order mark (its other bytes read as
+>   Windows-1252); 0.1.0's information note about such a file is gone. Fields written in an
+>   unusual order show a hint, with a fix that reorders them, where the order means nothing to the
+>   game (a decision's and an interaction's in the order of Paradox's own documentation); an
+>   empty block, a block nested more than six deep and a localization key with a dash or a
+>   leading digit show a hint. These rest on pychivalry's own best-practice rules, which the
+>   game's own files mostly follow.
 > - **Unused localization keys** now show a hint by default (0.1.0 reported them only when
 >   asked): turn them off with `pychivalry.localization.unusedKeys` or `check --no-unused-keys`.
 > - **Quick fixes.** A finding with a mechanical fix offers it: a misspelled keyword with its one
@@ -74,12 +81,13 @@ The extension's version is `0.2.0` and its manifest still says `"preview": true`
 >   localization key's stub, and more; Fix All applies every safe fix of a file, and
 >   `pychivalry check --fix` every safe fix of the mod.
 > - **Inline hints** beside an event's key (its title) and an option's (its text), and after a
->   link (the scope it leads to); snippets and field order in completion; a richer outline.
+>   link (the scope it leads to); snippets, already formatted, and field order in completion; a
+>   richer outline.
 > - **Less memory.** With VS Code open, the agent servers and the terminal's `pychivalry` use the
 >   language server's copy of the game's index instead of loading their own.
 >
 > **Not yet.** Skills for writing content, GUI files, the call graph, the game's error log and
-> the CK3 Explorer views come with later steps; two checks wait on the spec package. Linux and
+> the CK3 Explorer views come with later steps; three checks wait on the spec package. Linux and
 > Windows are tested, macOS is not; the game must be on the same computer.
 >
 > **Installing.** Download `pychivalry-0.2.0.vsix` below. In VS Code 1.146 or later: Extensions
