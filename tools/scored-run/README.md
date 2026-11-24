@@ -21,7 +21,8 @@ among them, name no key and no model library, reach no network, and start no pro
 Claude Code the run names).
 
 This page describes three scored scripts: the agent-use test (below), the scored authoring test
-and the judge's calibration ([further down](#the-scored-authoring-test)).
+and the judge's calibration ([further down](#the-scored-authoring-test)), and one reading of a
+record that starts no session, `task scored:targets` ([The targets](#the-targets-item-98)).
 
 A scored run tests whether an AI agent can really use pychivalry's agent server (docs/MVP.md,
 "AI tests"; docs/PLAN.md, items 6.8 to 6.11). Each trial is one test session. A model's output is
@@ -46,6 +47,7 @@ sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed i
 | `tools/src/scored-run/requests.ts`, `expectations.ts` | The request list, read and checked, and its expectations held against a result |
 | `tools/src/scored-run/judge.ts` | The judge: its prompt filled, its session, its answer parsed |
 | `tools/src/scored-run/authoring-record.ts` | The authoring record's shape, its measures and its consistency checks |
+| `tools/src/scored-run/authoring-targets.ts` | The owner's targets, read from an authoring record's measures |
 | `tools/src/scored-run/calibration.ts` | The judge's calibration against hand grades, and its record |
 | [../../fixtures/requests/](../../fixtures/requests/README.md) | The content requests, their base mods and an example result of each |
 
@@ -599,21 +601,62 @@ limits, time limits and arguments, the agent server; per trial what the agent-us
 the session, its validity, its expectations and the judge's state and answers; and per request
 and over all, how many trials held and, of those, how many had no error, no warning, were in the
 format, met every expectation, and how the judge answered each dimension. No figure about the
-session's use of the developer's plan is kept, and there is no target: the owner sets the targets
-from the first run (item 9.8). `task records:check` holds the record to its schema and its figures
-to each other.
+session's use of the developer's plan is kept, and no target: the record states measures only,
+and the owner's targets are read from them ([below](#the-targets-item-98)). `task records:check`
+holds the record to its schema and its figures to each other.
+
+Each run writes `records/scored/authoring.json`, the latest run. When a run replaces it, the
+record it replaces is kept beside it, unchanged, as `authoring-run-<n>.json`, `<n>` its run's
+number: the first run's is `records/scored/authoring-run-1.json`, so that its measures stay
+readable without git's history.
 
 ### Tests
 
 `requests.test.ts`, `expectations.test.ts`, `judge.test.ts`, `authoring.test.ts`,
-`calibration.test.ts` and `no-model-call.test.ts` run in public CI with no model, key, network or
-display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
+`authoring-targets.test.ts`, `calibration.test.ts` and `no-model-call.test.ts` run in public CI
+with no model, key, network or display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
 it copies a request's example result into the trial's mod (or nothing, or a broken result) and
 plays back a stream in the shape Claude Code 2.1.330 writes; as a judge it reads its prompt from
 standard input and plays back an answer. They show a correct result graded valid with every
 expectation met and the judge's answers recorded; an empty result and a broken one measured three
 ways; a malformed judge recorded as such; an unconfined authoring session and an unconfined judge
 each stopping the run; both places of the skills; the continued run; and the record's checks.
+`authoring-targets.test.ts` reads the targets at their thresholds (95% met by 57 of 60 and 19 of
+20, not by 56 of 60 or 18 of 20; every result means every one), from the committed first run's
+record, and refuses a record whose figures disagree.
+
+### The targets (item 9.8)
+
+Set by the owner on 2026-11-24 from the first run's record (docs/decisions.md, decision 127).
+They are strict, and they hold before any release:
+
+| Target | Measure | Needs |
+| --- | --- | --- |
+| No error | Results with no error | 100% |
+| No warning, in the format | Results with no warning, and results in pychivalry's format (no `style/` warning) | 100% each |
+| Every expectation | Results meeting every expectation checked in code | at least 95% |
+| Judged | Each judged dimension: its yes over every question of it the judge was asked | at least 95% each |
+
+Every rate is over the trials whose harness held, as every measure of the record is. A judged
+dimension's no, cannot tell, malformed or missing answer counts against it, and a target with
+nothing to measure is not met. A run before a release is 10 trials of each request (docs/MVP.md,
+"Repetitions"); a run of 5 is a development run, read against the same targets.
+
+**The record holds measures only.** The targets are never written into it, so a record made before
+they were set and one made after are read the same way (`authoring-targets.ts`). The run prints
+the reading when it ends, each target met or not. `task scored:targets` reads it from a record
+without starting any session: the committed `records/scored/authoring.json`, or the one
+`SCORED_RECORD` names; it exits 1 when a target is not met.
+
+```sh
+task scored:targets
+SCORED_RECORD=records/scored/authoring-run-1.json task scored:targets
+```
+
+| Run | No error | No warning, in the format | Every expectation | Judged (lowest dimension) | Targets met |
+| --- | --- | --- | --- | --- | --- |
+| First, 2026-11-24 (`authoring-run-1.json`) | 50 of 60 (83.3%): not met | 0 of 60, 0 of 60: not met | 58 of 60 (96.7%): met | 100%: met | 2 of 4 |
+| Second, 2026-11-24 (`authoring.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 100%: met | 4 of 4 |
 
 ## The first scored authoring run (item 9.8)
 
@@ -623,8 +666,9 @@ the main clone at the merge of #152:
 with Claude Code 2.1.330 (the copy VS Code's Claude Code extension installed) and the base game
 1.21.0.3. Every request, 5 trials each: 60 authoring test sessions of Opus 5.5 and 60 judge test
 sessions of Fable 5.2, **120 test sessions**, each with session limit 3. No harness problem
-stopped it. The record is [`records/scored/authoring.json`](../../records/scored/authoring.json),
-as the run wrote it; the run kept no trial's files (`SCORED_KEEP` was not set).
+stopped it. Its record, as the run wrote it, is kept since the second run as
+[`records/scored/authoring-run-1.json`](../../records/scored/authoring-run-1.json); the run kept
+no trial's files (`SCORED_KEEP` was not set).
 
 ### The results
 
@@ -752,7 +796,8 @@ record's measures are left as the run made them:
    as `pychivalry format <file>` does ([docs/guide/agent-server.md](../../docs/guide/agent-server.md#the-tools)),
    and the write-content and fix-error skills run it on each file they wrote or changed instead
    of writing `format`'s text back. It is the server's one tool that writes, declared not
-   read-only: a choice awaiting the owner's confirmation, since the server wrote nothing before.
+   read-only: a choice the owner confirmed on 2026-11-24 (decision 126), since the server wrote
+   nothing before.
 2. **A clean base.** `decision-hold-feast` and `trigger-feast-guest` are retired and replaced by
    `decision-hold-banquet` and `trigger-banquet-guest`, the same requests on a base `banquet`
    whose names the game does not have; a retired id is never used again
@@ -772,13 +817,100 @@ Not changed, as findings for the owner: every session met every expectation it c
 two above) in about half a minute, much as item 6.11's first planted mod was fixed too easily;
 the requests may need to be harder before their rates tell a better server from a worse one.
 
-### A second run
+## The second scored authoring run (item 9.8)
 
-The record's format and validity measures say nothing yet about the fixes: the skills now
-format with `apply_format`, and two requests are new. A second run measures them, on the
-owner's word: the same command, every request, **120 test sessions** (60 authoring, 60 judge),
-each with session limit 3; with `SCORED_KEEP=true` it also keeps the results a calibration on
-real results needs. It replaces this record; git keeps this one.
+Made on the owner's word of 2026-11-24 (docs/decisions.md, decision 128), the whole run at once,
+to measure the first run's fixes, from the main clone at the merge of #153:
+`SCORED_KEEP=true SCORED_MODEL=claude-opus-5-5 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring`,
+with Claude Code 2.1.330 and the base game 1.21.0.3. Every request of the corrected list, 5 trials
+each: 60 authoring test sessions of Opus 5.5 and 60 judge test sessions of Fable 5.2, **120 test
+sessions**, each with session limit 3. No harness problem stopped it. The record is
+[`records/scored/authoring.json`](../../records/scored/authoring.json), as the run wrote it (its
+last note still says no target is set: it was made at the commit before the targets). The run
+kept every trial's files; one result of each request is committed for the calibration
+([below](#calibrating-the-judge-item-96)), and nothing else of them.
+
+### The results
+
+| Request | Type | Difficulty | Held | No error | No warning | In the format | Every expectation | Judge: yes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `event-merchant-debt` | event | easy | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `event-sleepless-night` | event | medium | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `event-letter-from-spouse` | event | hard | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-give-alms` | decision | easy | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `decision-night-vigil` | decision | medium | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `decision-hold-banquet` | decision | hard | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-reward` | scripted effect | easy | 5 of 5 | 5 | 5 | 5 | 5 | 10 of 10 |
+| `effect-war-chest` | scripted effect | medium | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `effect-children-gift` | scripted effect | hard | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `trigger-can-host` | scripted trigger | easy | 5 of 5 | 5 | 5 | 5 | 5 | 10 of 10 |
+| `trigger-family-ready` | scripted trigger | medium | 5 of 5 | 5 | 5 | 5 | 5 | 10 of 10 |
+| `trigger-banquet-guest` | scripted trigger | hard | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| **All** | | | **60 of 60** | **60** | **60** | **60** | **60** | **180 of 180** |
+
+Against the owner's targets, every one is met, as a development run of 5 trials a request
+([The targets](#the-targets-item-98)). The judge answered every question of every trial, none
+malformed, never `no` or `cannot-tell`. Nine trials, all of decision requests, ended with advice
+the targets do not count: 8 hints and 4 information findings in all.
+
+### What the kept trials show
+
+Read from the record and from the trials the run kept (each session's output stream), with no
+model; the trials' files are not committed beyond the twelve results of the calibration.
+
+1. **`apply_format` did what the first run could not.** Every session called it, 110 times in
+   all (1 to 4 a session): 104 calls wrote a file in the format and 6 found the file already in
+   it; none was refused. `format`, the read-only proposal, was not called once (59 times in the
+   first run), and no `Edit` was refused (31 in the first run, each trying to write `format`'s
+   text back). Every result is in the format.
+2. **Every session checked, and no check after writing found an error or a warning.** `check`
+   146 times, 1 to 4 a session; 59 sessions checked the base mod once before writing anything,
+   and every session checked again after writing, 1 to 3 times. No check a session made after
+   writing reported an error or a warning, in any of the 60.
+3. **Rounds, against the five-round stop rule:** no session needed a round of repair for an error
+   or a warning. Four (`decision-hold-banquet` 2 and 3, `decision-night-vigil` 2 and 4) rewrote
+   their decision once after the hint `style/unusual-field-order` and checked again; the others
+   wrote once. The stop rule was never approached, so this run does not show the skill's repair
+   loop at work on an error.
+4. **Tool errors: 17, none a fault of the server.** 13 calls of a server tool by
+   its bare name (`check` 4, `lookup` 4, `find_definition` 5), all in 4 of the 5
+   `trigger-banquet-guest` sessions, which Claude Code answered "No such tool available" without
+   reaching the server; and 4 `lookup` calls given a cursor with other arguments (one in each of
+   `effect-war-chest` 5, `trigger-can-host` 4 and 5, `trigger-family-ready` 3), which the server
+   refused, saying to repeat the arguments of the call that gave it or to leave it out. **No
+   permission denial** in any session.
+5. **The calls.** `Skill` 60 (once each), `Write` 105, `apply_format` 110, `check` 146, `lookup`
+   95, `find_definition` 61, `find_references` 1, `Read` 8, `Edit` 6. Every session ended by
+   itself, in 8 to 18 turns and 10 to 29 seconds (the first run: 11 to 23 turns, 19 to 42
+   seconds); every judge session in one turn, 2 to 6 seconds.
+
+### What it does and does not show
+
+Every measure is at its ceiling, on the coded side and the judged side, and every target is met.
+What that shows: the first run's three faults are fixed as far as these requests can tell (no
+result out of the format, no clash in a base, the on-action expectation as the game documents
+it), and on these twelve requests, Opus 5.5 with the skills and the agent server writes content
+the checker finds nothing in, meeting every expectation, every time it was asked.
+
+What it does not show:
+
+1. **That the test can tell a better server or skill from a worse one.** A measure at its ceiling
+   has no room to show either getting worse or better. The requests are twelve, written for this
+   test by the same work that wrote the skill, each naming every name the result must define;
+   nothing harder was tried. The first run's sessions met every expectation they could too (bar
+   the two the corrected expectation failed): the faults it found were pychivalry's own, not the
+   model's.
+2. **More than one model.** Opus 5.5 wrote every result and Fable 5.2 judged every one; the
+   results say nothing of another model, of VS Code's AI (the hand checklist's to see), or of the
+   game loading the content (step 11's third measure).
+3. **That the judge can say no.** It said yes to all 180 questions here, as to all 180 in the
+   first run. Nothing found a result wrong for it to say no to; only results graded by hand,
+   wrong ones among them, can show the difference: the calibration (item 9.6).
+4. **The repair loop.** No session had an error or a warning to repair (above).
+5. **A release run.** 5 trials of each request, not the 10 of a run before a release.
+
+Whether harder requests should be added before the third preview is the owner's question
+(docs/decisions.md, "Asked, awaiting the owner").
 
 ## Calibrating the judge (item 9.6)
 
@@ -787,8 +919,29 @@ The judge is calibrated once against results graded by hand, and the agreement i
 and only on the owner's word:
 
 ```sh
-SCORED_SESSION_LIMIT=3 SCORED_GRADES=<grades file> task scored:calibrate
+SCORED_SESSION_LIMIT=3 SCORED_GRADES=<grades file> SCORED_RECORD=records/scored/<record>.json task scored:calibrate
 ```
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `SCORED_GRADES` | The hand grades, from the repository root | none: it must be given |
+| `SCORED_RECORD` | Where the record is written: a `.json` file directly in `records/scored/`, from the repository root, so that each sheet's calibration has a record of its own; anywhere else is refused before any session | `records/scored/calibration.json` |
+
+`SCORED_SESSION_LIMIT`, `SCORED_CLAUDE`, `SCORED_JUDGE_MODEL`, `SCORED_JUDGE_TIMEOUT_MINUTES` and
+`SCORED_KEEP` apply as in the authoring run.
+
+**Two sheets wait for the owner** ([docs/guide/judge-calibration.md](../../docs/guide/judge-calibration.md),
+which gives the command of each):
+
+1. `fixtures/requests/calibration/grades.json`: ten **hand-made** results of six requests, some
+   right, some deliberately wrong and some not answerable from their files (26 answers, 10 judge
+   test sessions, record `records/scored/calibration-hand-made.json`). Graded first: it is the
+   only sheet whose right answers include no and cannot tell by design.
+2. `fixtures/requests/calibration/run-2/grades.json`: twelve **real** results of the second run,
+   trial 1 of each request, taken by number and not picked (36 answers, 12 judge test sessions,
+   record `records/scored/calibration-run-2.json`). Each is the trial's mod with the skills
+   folder taken out; a test holds each to the mod's own files, its base whole, in the format and
+   holding nothing of the machine the run was made on.
 
 **The hand grades** are one JSON file a person writes (`grades_format` 1): `about` (where the
 results came from, how they were chosen), and `items`, each a `request` (its id), a `result` (the
@@ -820,7 +973,8 @@ closed set. Nothing in it names the person who graded.
 3. Run the command above. It checks the grades file against the requests before any session,
    then runs the judge once per result.
 
-**The record**, `records/scored/calibration.json`, suite `scored:calibration`: the grades file by
+**The record**, `records/scored/calibration.json` or the file `SCORED_RECORD` names, suite
+`scored:calibration`: the grades file by
 its hash, the judge's prompt, schema, model, session limit and arguments, each item's hand grades
 and the judge's answers with whether each agrees, and per dimension and over all: the grades, those
 the judge answered, those it agreed with, the agreement (agreed over answered), how often the

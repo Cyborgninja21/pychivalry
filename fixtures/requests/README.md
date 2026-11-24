@@ -17,9 +17,13 @@ fixtures/requests/
   examples/       one correct result per request, for the tests only; never shown to a session
   calibration/    ten hand-made results and a sheet for grading them by hand, for the judge's
                   calibration (docs/guide/judge-calibration.md); never shown to a session
+    run-2/        twelve real results of the second scored run, trial 1 of each request, and
+                  their sheet: each the trial's mod, its skills folder taken out
 ```
 
-Nothing here is copied from the game or from a published mod. The script and localization files
+Nothing here is copied from the game or from a published mod. The real results of
+`calibration/run-2/` were written by test sessions over the base game, using its names as the
+requests ask; they hold no file of the game's. The script and localization files
 of `bases/` and `examples/` are in pychivalry's format (Windows line breaks, the byte-order mark,
 the formatter's layout), and `.gitattributes` keeps their bytes exact.
 

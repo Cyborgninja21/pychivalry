@@ -462,6 +462,26 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   - The judge's calibration can be run now: ten hand-made results, labelled as such, some right
     and some deliberately wrong, with a sheet in the grades format for the owner to fill in, and
     a page of the guide on grading them (`docs/guide/judge-calibration.md`).
+- Build step 9, item 9.8, the second scored authoring run, made on the owner's word of
+  2026-11-24 with its results kept, from the merge of #153: every request of the corrected list,
+  5 trials each, 120 test sessions of Claude Code 2.1.330, Opus 5.5 writing and Fable 5.2
+  judging, each with session limit 3. Committed as `records/scored/authoring.json`, as the run
+  wrote it: 60 of 60 trials held, and all 60 had no error, no warning, were in the format and met
+  every expectation; the judge answered yes to all 180 of its questions. The first run's record
+  is kept beside it, unchanged, as `records/scored/authoring-run-1.json`, so that both runs'
+  measures stay readable (`records/README.md`). What the kept trials show, and what the run does
+  and does not show, is in `tools/scored-run/README.md`, "The second scored authoring run".
+- The owner's targets for the scored authoring test (decision 127), read from a record's measures
+  and never written into one (`tools/src/scored-run/authoring-targets.ts`): every result with no
+  error; every result with no warning and in the format; at least 95% meeting every expectation;
+  no judged dimension below 95% yes. The authoring run prints each target met or not when it
+  ends, and `task scored:targets` reads them from the committed record, or the one
+  `SCORED_RECORD` names, starting no session: the second run meets all four, the first two.
+- A second calibration sheet, of real results: trial 1 of each of the twelve requests of the
+  second run, taken by number and not picked, each the trial's mod with its skills folder taken
+  out (`fixtures/requests/calibration/run-2/`, 36 answers left for the owner); the hand-made
+  sheet stays and is graded first. `task scored:calibrate` takes `SCORED_RECORD`, a file of
+  `records/scored/`, so that each sheet's calibration writes a record of its own.
 
 ### Changed
 
@@ -650,8 +670,16 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   that and failed the expectation as it was; their recorded measures stay as the run made them.
 - The hand checklist for VS Code's AI uses the banquet request and `apply_format`, and says that
   it cannot be run on preview 0.2.0, which has neither the skills nor `apply_format`.
+- The hand checklist says how to build the extension file from `main`, install it over preview
+  0.2.0 (`code --install-extension <file> --force`, checked on VS Code 1.147.0's command line)
+  and tell which of the two is installed, since both read version 0.2.0: only the build from
+  `main` has the command "pychivalry: Remove from Claude Code", the skills and their folder.
+- `apply_format` is the owner's confirmed choice (decision 126): the agent server writes nothing
+  but the file `apply_format` is given, in the format.
+- The guide's page on the judge's calibration names both sheets, which to grade first, their
+  answers (26 and 36), where to save them, the one command of each and its judge test sessions
+  (10 and 12).
 
-### Fixed
 ### Fixed
 
 - The command line's cache test compared the wall-clock times of two runs and failed once on a
@@ -673,10 +701,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 9: the owner sets the authoring targets from the first run's record; the judge's
-  calibration (item 9.6) and the hand checklist on VS Code's AI (item 9.7) are the owner's to
-  run, after the test, and the third preview (9.9) waits for both. A second authoring run, to
-  measure the fixes of the first (at most 120 test sessions), waits for the owner's word.
+- Build step 9: the judge's calibration (item 9.6), on its two sheets, and the hand checklist on
+  VS Code's AI (item 9.7), on an extension file built from `main`, are the owner's to run, and
+  the third preview (9.9) waits for both. Whether to add harder requests before the third
+  preview is asked of the owner: the second run is at the ceiling on every measure.
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

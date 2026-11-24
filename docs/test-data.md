@@ -8,7 +8,7 @@ uses it. A step that adds test data adds it here.
 | Hand-written mods | [`fixtures/mods/`](../fixtures/mods/README.md) | Yes | Every package's tests | Yes |
 | Game stubs | [`fixtures/game/`](../fixtures/game/README.md) | Yes | Tests that need a base game: the index's override fixtures, the checks that are silent without one, lookup, the planted-defect mod | Yes |
 | The planted-defect mod | [`fixtures/defects/`](../fixtures/defects/README.md) | Yes | The scored agent-use test's test sessions; its graders' own tests; the built agent server's `check` on it; the extension's smoke test and same-answers test (`task vscode:test`) | The tests, yes; the test sessions never |
-| Content requests | [`fixtures/requests/`](../fixtures/requests/README.md): twelve requests (two more retired after the first run), two base mods, an example result of each; ten hand-made results for the judge's calibration, with a sheet for grading them (`calibration/`) | Yes | The scored authoring test's test sessions; its tests (the requests' names against the spec package, the expectations on the examples, the run against a stand-in, the calibration sheet); the hand checklist's authoring requests; the owner's hand grading | The tests, yes; the test sessions never |
+| Content requests | [`fixtures/requests/`](../fixtures/requests/README.md): twelve requests (two more retired after the first run), two base mods, an example result of each; for the judge's calibration, ten hand-made results with a sheet for grading them (`calibration/`) and twelve real results of the second scored run, trial 1 of each request, with a sheet of their own (`calibration/run-2/`) | Yes | The scored authoring test's test sessions; its tests (the requests' names against the spec package, the expectations on the examples, the run against a stand-in, both calibration sheets, the real results holding only the mod's own files); the hand checklist's authoring requests; the owner's hand grading | The tests, yes; the test sessions never |
 | Captured game logs | `fixtures/logs/` (step 11) | Yes | Game-log analysis | Yes |
 | The five real mods | Outside the repository, in the folder `CK3_CORPUS` names; pinned by [`records/corpus/MANIFEST.tsv`](../records/corpus/README.md) | The manifest only | `task game:index`, `task game:mods`, `task game:bench`, `task vscode:corpus`, the 2.3.0 baselines | No |
 | A real VS Code | Downloaded by `@vscode/test-electron` into `.vscode-test/` (the release `packages/vscode/src/editor/version.ts` pins, 1.147.0), cached by CI | Never | The extension's editor tests, `task vscode:test` and `task vscode:corpus`; on Linux only on a virtual display | Yes, in a job of its own (`vscode-test`), not in `task ci` |
@@ -252,7 +252,10 @@ like any other (decision 110).
 
 - **A real game error log.** Release 2.3.0's log fixture is hand-written and its format is
   unverified. Build step 11 starts by capturing real ones.
-- **Results of a test session graded by hand.** The first scored authoring run (2026-11-24)
-  kept none of its results; ten hand-made results stand in for the judge's calibration until a
-  run made with `SCORED_KEEP=true` keeps real ones
-  ([guide/judge-calibration.md](guide/judge-calibration.md)).
+- **Results of a test session graded by hand.** Real results exist since the second scored
+  authoring run (2026-11-24), which kept its trials: twelve of them, one of each request, are
+  committed with a sheet (`fixtures/requests/calibration/run-2/`), beside the ten hand-made ones;
+  neither sheet is graded yet ([guide/judge-calibration.md](guide/judge-calibration.md)).
+- **Content requests harder than the twelve.** Both scored authoring runs met every expectation
+  they could on them, the second at the ceiling on every measure; whether to add harder ones is
+  the owner's question ([decisions.md](decisions.md#asked-awaiting-the-owner)).
