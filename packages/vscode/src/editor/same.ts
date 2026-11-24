@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
-import { formattingFixTooLong, type WorkspaceFinding } from '@pychivalry/core';
+import { formatKindOf, formattingFixTooLong, type WorkspaceFinding } from '@pychivalry/core';
 import type { PychivalryApi } from '../extension.js';
 import { checkAll, formatAll } from './agent.js';
 import {
@@ -387,29 +387,19 @@ export interface SameFormattingReport {
 }
 
 /**
- * A text with VS Code's edits applied, as the editor would apply them: each edit's text at its
- * place, then a set end of line (`TextEdit.setEndOfLine`) over every line break.
+ * Format Document on one file, the way a person runs it: the file shown in an editor, the
+ * command run, the formatted text read back, then the file reverted and closed so nothing is
+ * saved. The real command is used, not `vscode.executeFormatDocumentProvider`: that API command
+ * cannot hand back an edit that sets the end of line (VS Code gives it a line of -1), and setting
+ * `\r\n` on a file with `\n` breaks is part of what is being tested.
  */
-function appliedInEditor(document: vscode.TextDocument, edits: readonly vscode.TextEdit[]): string {
-    let text = document.getText();
-    const placed = edits
-        .filter((e) => e.newEol === undefined)
-        .map((e) => ({
-            start: document.offsetAt(e.range.start),
-            end: document.offsetAt(e.range.end),
-            text: e.newText.replace(
-                /\r?\n/g,
-                document.eol === vscode.EndOfLine.CRLF ? '\r\n' : '\n',
-            ),
-        }))
-        .sort((a, b) => b.start - a.start);
-    for (const e of placed) {
-        text = text.slice(0, e.start) + e.text + text.slice(e.end);
-    }
-    const eol = edits.find((e) => e.newEol !== undefined)?.newEol;
-    if (eol === vscode.EndOfLine.CRLF) {
-        text = text.replace(/\r?\n/g, '\r\n');
-    }
+async function formattedInEditor(uri: vscode.Uri): Promise<string> {
+    const document = await vscode.workspace.openTextDocument(uri);
+    await vscode.window.showTextDocument(document, { preview: false });
+    await vscode.commands.executeCommand('editor.action.formatDocument');
+    const text = document.getText();
+    await vscode.commands.executeCommand('workbench.action.files.revert');
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     return text;
 }
 
@@ -425,29 +415,36 @@ export async function assertSameFormatting(
     mod: string,
     work: string,
 ): Promise<SameFormattingReport> {
+    // The files the language server checks that are script or localization files: the
+    // descriptor is checked but not formatted, by any of the three.
     const files: string[] = [];
+    const notFormatted: string[] = [];
     for (const rel of filesUnder(mod)) {
         const result = await api.language.findings(
             vscode.Uri.file(path.join(mod, ...rel.split('/'))),
         );
         if (result.file !== null) {
-            files.push(rel);
+            (formatKindOf(rel) === undefined ? notFormatted : files).push(rel);
         }
     }
     assert.ok(files.length > 0, 'the mod has files to format');
+    for (const rel of notFormatted) {
+        const file = path.join(mod, ...rel.split('/'));
+        const original = readFileSync(file, 'utf8').replace(/^\uFEFF/, '');
+        assert.equal(
+            await formattedInEditor(vscode.Uri.file(file)),
+            original,
+            `Format Document leaves ${rel} as it is`,
+        );
+    }
 
-    // The editor: Format Document on each file, its edits applied as VS Code applies them.
+    // The editor: Format Document on each file, in an editor, then reverted.
     const editor = new Map<string, string>();
     for (const rel of files) {
-        const uri = vscode.Uri.file(path.join(mod, ...rel.split('/')));
-        const document = await vscode.workspace.openTextDocument(uri);
-        const edits =
-            (await vscode.commands.executeCommand<vscode.TextEdit[] | undefined>(
-                'vscode.executeFormatDocumentProvider',
-                uri,
-                { tabSize: 4, insertSpaces: true },
-            )) ?? [];
-        editor.set(rel, appliedInEditor(document, edits));
+        editor.set(
+            rel,
+            await formattedInEditor(vscode.Uri.file(path.join(mod, ...rel.split('/')))),
+        );
     }
 
     // The command line, on a copy of the mod, from the terminal's path.

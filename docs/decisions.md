@@ -358,6 +358,7 @@ until the owner changes it.
 | 8.6 | The planted-defect mod plants no `style/` finding, and its tests and graders leave the family out; it is not brought into the format. | Bringing it into the format would move the lines its manifest counts; the owner's question below. |
 | 8.4 | The fixture pair `names-unknown-trigger-bad` and `-good` is brought into the format (its one block of a simple pair joined, `\r\n`, the mark; its expected line moved), so that the command line's tests stay about `check`; the other fixtures are left as written, and the tests about other checks leave the `style/` family out. | The fewest fixtures changed; each check's own pair is tested without the style family. |
 | 8.8 | The presentation data's snippets are not rewritten in the format; the snippet test leaves the `style/` family out. | A snippet is laid out where it is inserted, and Format Document lays it out; the owner's question below. |
+| 8.9 | The editor's side of the same-answers test runs the real Format Document command on each file shown in an editor, reads the text back and reverts the file; the descriptor, which no surface formats, must come back as it was. | VS Code's API command for a formatter's edits cannot hand back an edit that sets the end of line (it gives it line -1), and turning the planted-defect mod's `\n` files to `\r\n` is part of what is tested. |
 
 ## Asked, awaiting the owner
 

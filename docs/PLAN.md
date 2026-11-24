@@ -1335,7 +1335,8 @@ blank lines. It had no golden files and no written rules, and its settings were 
 2. Every golden file and every fix fixture passes. *Holds:* the 21 golden pairs, the nine
    `style/` pairs, and every fix of every fixture mod (`task ci`).
 3. The same-answers test is extended to formatting and passes. *Holds:* in a real VS Code on the
-   planted-defect mod (`task vscode:test`).
+   planted-defect mod (`task vscode:test`, in CI on Linux and Windows), the editor's side by the
+   real Format Document command, which turns the mod's `\n` files to `\r\n`.
 
 **Not yet known.** Whether a recognised community formatting convention exists beyond "tabs".
 *Answered by item 8.1: beyond one tab per block, none
