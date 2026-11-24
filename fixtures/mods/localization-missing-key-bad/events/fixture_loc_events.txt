@@ -1,24 +1,14 @@
-namespace = fixture_loc
+﻿namespace = fixture_loc
 
 fixture_loc.0001 = {
 	type = character_event
 	title = fixture_loc.0001.t
 	desc = fixture_base_key
-	option = {
-		name = fixture_loc.0001.a
-	}
-	option = {
-		name = fixture_loc_replace_only
-	}
-	option = {
-		name = fixture_loc_no_bom
-	}
-	option = {
-		name = fixture_loc.0001.missing
-	}
-	option = {
-		name = "fixture text with spaces"
-	}
+	option = { name = fixture_loc.0001.a }
+	option = { name = fixture_loc_replace_only }
+	option = { name = fixture_loc_no_bom }
+	option = { name = fixture_loc.0001.missing }
+	option = { name = "fixture text with spaces" }
 }
 
 fixture_loc.0002 = {
@@ -32,7 +22,5 @@ fixture_loc.0002 = {
 			}
 		}
 	}
-	option = {
-		name = fixture_loc.0001.a
-	}
+	option = { name = fixture_loc.0001.a }
 }

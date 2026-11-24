@@ -106,24 +106,32 @@ half breaking one rule of [formatting.md](formatting.md) and the good half in th
 (`\r\n`, the byte-order mark); their bytes are exact on every platform (`.gitattributes`). And
 a new part, [`fixtures/format/`](../fixtures/format/README.md): the golden files, 21 pairs
 written by hand, `<name>.before.<ext>` and the `<name>.after.<ext>` the formatter must make of
-it, one a rule, byte for byte, on which on-type formatting is also proved. The pair
-`names-unknown-trigger-*` was brought into the format, so that the command line's tests of
-`check` show no `style/` finding; the other fixtures keep the layout they were written in, and
-the tests of other checks leave the `style/` family out.
+it, one a rule, byte for byte, on which on-type formatting is also proved. At first only the
+pair `names-unknown-trigger-*` was brought into the format; since the owner's word of
+2026-11-23 (decision 110) every fixture mod is in the format, but for exactly what it exists to
+test, kept byte for byte: a file with a parse error, a file not valid UTF-8, the bad half of a
+`style/` pair, three localization files written without the byte-order mark. Each fixture's
+findings outside the `style/` family were the same before and after (same codes and counts,
+each on the same text with the same data; only lines and columns moved), and the expected
+outputs that moved were made again; `packages/core/src/format/fixtures.test.ts` holds every
+fixture in the format but those. The tests of other checks still leave the `style/` family out.
 
-The best-practice rules of `style/` (#148) added four pairs: `style-not-utf8`, `style-empty-block`,
-`style-deep-nesting` and `style-unusual-field-order`, each in the format but for what it tests
+The best-practice rules of `style/` (#148, decision 112) added five pairs: `style-not-utf8`,
+`style-empty-block`, `style-deep-nesting`, `style-unusual-field-order` and
+`style-localization-key-characters`, each in the format but for what it tests
 (`style-not-utf8-bad` holds Windows-1252 bytes and its scripted effect lacks the mark; its bytes
 are exact), so that a test can apply each rule's fixes and find the formatter has nothing left to
 change. The existing `encoding-windows-1252` also tests the conversion: its four bytes convert
-safely.
+safely; since decision 113 it shows one finding, the warning `style/not-utf8`, and no note.
 
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
 to 6.9) and made harder after the first test sessions (decision 83): a "Harvest Festival" mod,
-`mod/`, of 17 files and 591 lines, with 32 planted defects, every check code of this build that
-is an error or a warning at least once (21 errors and 6 warnings; four codes twice), and 29
+`mod/`, of 17 files and 539 lines, in pychivalry's format but for its defects, with 35 planted
+defects, every check code of this build that is an error or a warning at least once (21 errors
+and 8 warnings, the `style/` family's two among them; four codes twice; and the hint of the
+planted formatting defect), and 29
 lines that look wrong and are not; `manifest.json`, which gives each defect's code, the line the
 checker reports it at, the text of that line and the lines a fix may change, and each
 look-alike with why it is right; and `reference/`, the same mod with every defect fixed. Some
@@ -133,8 +141,8 @@ are fixed away from the line the finding points at. It is checked over its own g
 the scripted effect the mod uses and does not define itself, so CI needs no game.
 
 On `mod/` the checker reports exactly the planted defects (26 errors, the clash at both of its
-definitions, and 7 warnings); on `reference/`, nothing
-(`tools/src/scored-run/defects.test.ts`). The built agent server gives the same 33 findings
+definitions, 9 warnings and 1 hint); on `reference/`, nothing
+(`tools/src/scored-run/defects.test.ts`). The built agent server gives the same 36 findings
 (`tools/src/scored-run/server.test.ts`). It is what the scored agent-use test is graded on: in
 each test session of the developer's own Claude Code an agent is asked to fix a fresh copy, and
 the trial passes when the checker reports no errors, every planted defect is gone, nothing else
@@ -158,8 +166,11 @@ configuration folders, on copies of committed test data written into a temporary
 - `smoke`: the packaged `.vsix`, installed by VS Code's own installer, on a copy of the
   planted-defect mod in a folder whose name holds a space, with `pychivalry.gamePath` naming its
   game stub. Its same-answers test compares the editor's, the command line's (typed into a
-  terminal of that VS Code) and the agent server's findings: 33, the same 26 errors and 7
-  warnings as above, in its 16 checked files.
+  terminal of that VS Code) and the agent server's findings: 38 in its 16 checked files, 26
+  errors, 10 warnings and 2 hints. The mod being in pychivalry's format, the copy writes one
+  file, `events/harvest_faith_events.txt`, with `\n` line breaks, so that the same-formatting
+  test still proves Format Document turns a document's `\n` into `\r\n`; that file adds the
+  formatter's warning and hint to the planted defects' 36.
 - `update-1`, `update-2`: two versions of the extension written by test code as installable
   files, on the same fixture mod copy.
 
@@ -233,9 +244,9 @@ table of what goes where is in
 unit tests with 3 golden files and 3 fixture mods, the extension's 485 tests and 77 fixture
 files, the classification rules for real-mod errors, and the plug-in catalogue.
 
-The planted-defect mod is not in pychivalry's format, so the checker reports `style/` findings
-on its files too; it plants none, and its tests and graders leave the family out (a question for
-the owner in [decisions.md](decisions.md#asked-awaiting-the-owner)).
+The planted-defect mod is in pychivalry's format but for its defects, and plants the `style/`
+family too: a formatting defect and a file not valid UTF-8, which its tests and graders count
+like any other (decision 110).
 
 ## What does not exist yet
 

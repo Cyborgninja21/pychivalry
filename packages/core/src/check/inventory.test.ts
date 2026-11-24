@@ -125,8 +125,9 @@ test('a pattern is a code, a family with /*, or *', () => {
     assert.ok(codeMatches('names/*', 'names/unknown-effect'));
     assert.ok(!codeMatches('names/*', 'syntax/missing-value'));
     assert.ok(!codeMatches('name/*', 'names/unknown-effect'));
-    assert.ok(codeMatches('*', 'encoding/not-utf8'));
-    assert.deepEqual(codesMatching('encoding/*'), ['encoding/not-utf8']);
+    assert.ok(codeMatches('*', 'style/not-utf8'));
+    // The family encoding/ held one code, retired on 2026-11-23: no code of this build is in it.
+    assert.deepEqual(codesMatching('encoding/*'), []);
     assert.deepEqual(codesMatching('names/no-such-check'), []);
     assert.ok(codesMatching('syntax/*').every((c) => familyOf(c) === 'syntax'));
     assert.equal(codesMatching('*').length, inventoryRows().length);

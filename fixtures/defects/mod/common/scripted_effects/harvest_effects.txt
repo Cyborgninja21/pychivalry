@@ -1,4 +1,4 @@
-# Effects run by the festival's events and decisions.
+﻿# Effects run by the festival's events and decisions.
 harvest_feast_effect = {
 	if = {
 		limit { is_adult = yes }
@@ -9,21 +9,15 @@ harvest_feast_effect = {
 		add_gold = -5
 	}
 	random_list = {
-		60 = {
-			add_gold = 25
-		}
-		= {
-			add_piety = 15
-		}
+		60 = { add_gold = 25 }
+		= { add_piety = 15 }
 	}
 	add_piety =
 }
 
 # The host takes the tithe.
 harvest_tithe_effect = {
-	ROOT = {
-		add_gold = 25
-	}
+	ROOT = { add_gold = 25 }
 }
 
 # Gives alms to the poor of the capital.

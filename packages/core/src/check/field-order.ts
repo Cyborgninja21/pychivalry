@@ -9,10 +9,15 @@
  * the owner's word of 2026-11-23, when a check came to need it: the presentation data is the
  * language server's alone and no check may be handed it, so the field order became data of
  * the core, which every surface (the command line, the agent server, the language server, the
- * game-file suites) runs, and they all judge with the one copy. The entries are those the
- * presentation data had: the pre-2.0 schema files' sets, ranked by the base game's majority
- * order. Every field it names is a field of its folder's record schema in the committed spec
- * package, which a test holds (`field-order.test.ts`); it adds no name to the vocabulary.
+ * game-file suites) runs, and they all judge with the one copy. The sets of fields are those the
+ * presentation data had, the pre-2.0 schema files'. Six orders are ranked by the base game's
+ * majority order; the two folders of `from_info` (`common/decisions` and
+ * `common/character_interactions`) take the order their fields have in the folder's own `.info`
+ * file, Paradox's documentation (the spec package's companion `info_docs`), on the owner's word
+ * of 2026-11-23: the evidence first, the base game's habit only where no `.info` file orders the
+ * fields. Every field it names is a field of its folder's record schema in the committed spec
+ * package, and each `from_info` order is the `.info` file's, which tests hold
+ * (`style-unusual-field-order.test.ts`); it adds no name to the vocabulary.
  */
 
 import data from './field-order.json' with { type: 'json' };
@@ -55,13 +60,13 @@ function read(value: unknown): ReadonlyMap<string, readonly FieldOrder[]> {
     return out;
 }
 
-function judged(value: unknown): ReadonlySet<string> {
+function folderList(value: unknown, key: 'judged' | 'from_info'): ReadonlySet<string> {
     const list =
         typeof value === 'object' && value !== null
-            ? (value as Record<string, unknown>)['judged']
+            ? (value as Record<string, unknown>)[key]
             : undefined;
     if (!Array.isArray(list) || !list.every((f) => typeof f === 'string')) {
-        throw new Error('field-order.json: judged is not a list of folders');
+        throw new Error(`field-order.json: ${key} is not a list of folders`);
     }
     return new Set(list);
 }
@@ -70,13 +75,17 @@ function judged(value: unknown): ReadonlySet<string> {
 export const FIELD_ORDERS: ReadonlyMap<string, readonly FieldOrder[]> = read(data);
 
 /**
- * The folders whose record bodies `style/unusual-field-order` judges: of the folders with an
- * order, those whose base-game records follow it more often than they break it (counted on
- * 1.21.0.3 by `pychivalry-tools advice proof`). A folder the base game breaks it in more often
- * is left out until the owner says otherwise: `common/decisions` (321 of 587 records in another
- * order) and `common/character_interactions` (401 of 650).
+ * The folders whose record bodies `style/unusual-field-order` judges: every folder with an order,
+ * on the owner's word of 2026-11-23 (best practice over what the base game writes). Each folder's
+ * base-game rate is counted on 1.21.0.3 by `pychivalry-tools advice proof`.
  */
-export const JUDGED_FOLDERS: ReadonlySet<string> = judged(data);
+export const JUDGED_FOLDERS: ReadonlySet<string> = folderList(data, 'judged');
+
+/**
+ * The folders whose order is the order of their fields in the folder's own `.info` file (the
+ * spec package's companion `info_docs`), not the base game's majority order.
+ */
+export const INFO_ORDER_FOLDERS: ReadonlySet<string> = folderList(data, 'from_info');
 
 /** The order of the fields of a folder's record bodies, or undefined when it has none. */
 export function bodyFieldOrder(folder: string): readonly string[] | undefined {

@@ -37,21 +37,21 @@
             "description": "The conditions for the scheme to be started",
             "at": "field",
             "field": "allow",
-            "body": ["allow = {", "\t$0", "}"]
+            "body": ["allow = {$0}"]
         },
         {
             "label": "valid",
             "description": "The conditions for the scheme to go on",
             "at": "field",
             "field": "valid",
-            "body": ["valid = {", "\t$0", "}"]
+            "body": ["valid = {$0}"]
         },
         {
             "label": "on_start",
             "description": "What happens when the scheme starts",
             "at": "field",
             "field": "on_start",
-            "body": ["on_start = {", "\t$0", "}"]
+            "body": ["on_start = {$0}"]
         },
         {
             "label": "base_progress_goal",

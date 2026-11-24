@@ -99,11 +99,15 @@ with its own kind, which the game reads by name):
 
 A copy of a field written more than once keeps its place among the copies; a field the order does
 not name keeps its place. The base game's own rate of records in another order, per folder, is
-counted by `pychivalry-tools advice proof`. Six folders are judged (the data file's `judged`):
-two, `common/decisions` and `common/character_interactions`, are not, because the 1.21.0.3 base
-game writes more of their records in another order than in this one (321 of 587 decisions, 401
-of 650 interactions); a style rule the base game breaks more often than it follows ships only on
-the owner's word.
+counted by `pychivalry-tools advice proof`. All eight folders are judged (the data file's
+`judged`), on the owner's word of 2026-11-23. Each order comes from evidence: the order of its
+fields in the folder's own `.info` file first, the base game's most common relative order only
+where no `.info` file orders them. `common/decisions` and `common/character_interactions` take
+their `.info` files' order (the data file's `from_info`; a test holds it to the spec package's
+companion `info_docs`), although the 1.21.0.3 base game writes most of their records in another
+order (398 of 587 decisions, 492 of 650 interactions); the six others keep the base game's
+majority order, which their records follow (a `.info` order there would flag most of them: 90.93%
+of the base game's events).
 
 ### Snippets
 
@@ -113,7 +117,7 @@ the owner's word.
     "description": "An option the player can choose, with its localization key",
     "at": "field",
     "field": "option",
-    "body": ["option = {", "\tname = ${1:my_namespace.1.a}", "\t$0", "}"]
+    "body": ["option = { name = ${1:my_namespace.1.a}$0 }"]
 }
 ```
 
@@ -123,6 +127,12 @@ the folder (an events file's `namespace`), and `record`, a new record, both at t
 a file; `field`, the field `field` in the block `block` (the record's body when absent), offered
 only where completion offers that field, that is where the spec says it may be written.
 Snippets are offered to an editor that says it takes them.
+
+Every snippet is written in pychivalry's format, so that what completion inserts is already
+formatted (the owner's word of 2026-11-23): expanded as the editor inserts it (each placeholder
+its text, each choice its first option, every other tab stop empty), the formatter leaves it as
+it is, which a test holds (`packages/lsp/src/snippets.test.ts`). A tab stop left empty sits at
+the end of the token before it: an empty block is `{$0}`.
 
 Every snippet must produce script pychivalry's own checks accept with no error and no warning:
 a test writes each as a file of its folder (a field snippet inside the folder's first record
@@ -152,4 +162,4 @@ turns them off.
   This is presentation data about real names, not a vocabulary.
 - A folder with no record schema in the spec, or a field the 1.21 base game no longer has, is
   left out rather than kept.
-- Every snippet passes the snippet test above.
+- Every snippet passes the two snippet tests above: in the format, and accepted by the checks.

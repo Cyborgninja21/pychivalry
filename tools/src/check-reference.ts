@@ -59,7 +59,7 @@ export function evidenceCell(row: InventoryRow): string {
         case 'advice':
             return "Advice: pychivalry's own, with no game message";
         case 'best-practice':
-            return "Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it";
+            return "Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each, over all its files, more often than it breaks it";
         case 'formatting-rules':
             return `pychivalry's own formatting rules (${e.source}), not the game: by the owner's decision, the one kind of warning that rests on them`;
     }

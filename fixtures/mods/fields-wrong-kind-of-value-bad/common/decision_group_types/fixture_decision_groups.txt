@@ -1,4 +1,4 @@
-fixture_first_group = {
+﻿fixture_first_group = {
 	sort_order = ten
 	important_decision_group = maybe
 }

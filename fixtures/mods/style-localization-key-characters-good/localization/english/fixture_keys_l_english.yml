@@ -1,0 +1,4 @@
+﻿l_english:
+ fixture_key_with_dash:0 "A tooltip whose key joins its words with a dash"
+ fixture_leading_digit:0 "A tooltip whose key starts with a digit"
+ fixture_good_key.tooltip:0 "A tooltip whose key holds letters, digits, underscores and a dot"

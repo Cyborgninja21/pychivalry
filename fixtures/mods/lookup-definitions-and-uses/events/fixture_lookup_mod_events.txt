@@ -1,14 +1,10 @@
-namespace = fixture_lookup_mod
+﻿namespace = fixture_lookup_mod
 
 fixture_lookup_mod.1 = {
 	type = character_event
-	trigger = {
-		fixture_scripted_trigger = yes
-	}
+	trigger = { fixture_scripted_trigger = yes }
 	immediate = {
-		every_fixture_list = {
-			add_fixture_lifestyle_xp = 10
-		}
+		every_fixture_list = { add_fixture_lifestyle_xp = 10 }
 	}
 	option = {
 		trigger = { fixture_scripted_trigger = yes }

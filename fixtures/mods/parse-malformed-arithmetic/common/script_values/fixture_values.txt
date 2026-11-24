@@ -1,4 +1,4 @@
-@base = 10
+﻿@base = 10
 
 fixture_value = {
 	value = @[ base * 2 ]

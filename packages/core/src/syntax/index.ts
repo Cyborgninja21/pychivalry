@@ -9,6 +9,7 @@ export {
     decodeScript,
     decodeWindows1252,
     invalidUtf8,
+    readingOf,
     type Decoded,
     type DecodeOptions,
     type FallbackEncoding,

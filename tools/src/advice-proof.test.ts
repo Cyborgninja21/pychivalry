@@ -41,7 +41,10 @@ test('every advice check has a row, with what it judged and what it found', (t) 
     const proof = adviceProof(spec, game, 'linux');
     assert.deepEqual(
         proof.rows.map((r) => r.code),
-        [...ADVICE_CHECKS, ...BEST_PRACTICE_CHECKS].map((c) => c.code),
+        [
+            ...[...ADVICE_CHECKS, ...BEST_PRACTICE_CHECKS].map((c) => c.code),
+            'style/localization-key-characters',
+        ],
     );
     const empty = proof.rows.find((r) => r.code === 'structure/event-empty');
     assert.equal(empty?.applies, 13);

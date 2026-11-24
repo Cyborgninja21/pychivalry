@@ -1,2 +1,2 @@
-@fixture_constant = 6
+﻿@fixture_constant = 6
 fixture_value = 7

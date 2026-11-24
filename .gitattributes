@@ -22,5 +22,10 @@ fixtures/mods/encoding-windows-1252/history/** -text
 # are exact on every platform (the style/ pairs, the golden files of fixtures/format/).
 fixtures/mods/style-*/** -text
 fixtures/format/** -text
-# Fixtures in the format, whose tests are about other things: their Windows line breaks kept.
-fixtures/mods/names-unknown-trigger-*/** -text
+# Every fixture mod and the planted-defect mod are in pychivalry's format (Windows line breaks and
+# the byte-order mark), but for what a fixture exists to test (fixtures/README.md): the bytes of
+# their script and localization files are exact on every platform.
+fixtures/mods/**/*.txt -text
+fixtures/mods/**/*.yml -text
+fixtures/defects/**/*.txt -text
+fixtures/defects/**/*.yml -text

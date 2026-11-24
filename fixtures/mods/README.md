@@ -70,11 +70,20 @@ that report nothing without a base game (`scope/undefined-event-target`,
 game folder at all, to show that no finding then depends on a name the base game might define
 (`packages/core/src/check/limits.test.ts`).
 
-The `style/` pairs (item 8.2) are the formatter's: their `expected.json` lists the `style/`
-findings of the bad half alone, read with no base game (`packages/core/src/check/style.test.ts`),
-and the good half has none. The other pairs keep the layout they were written in, so they carry
-`style/` findings too; the tests of every other check leave the family out. A pair's files are
-in pychivalry's format where its README says so, their bytes kept exact by `.gitattributes`.
+The `style/` pairs (item 8.2) are the formatter's and the best-practice rules': their
+`expected.json` lists the `style/` findings of the bad half alone, read with no base game
+(`packages/core/src/check/style.test.ts` and each best-practice rule's own test), and the good half
+has none. The tests of every other check leave the family out.
+
+**Every mod here is in pychivalry's format** (Windows line breaks, the UTF-8 byte-order mark, the
+formatter's layout; the owner's word of 2026-11-23), but for exactly what a mod exists to test,
+which it keeps byte for byte: a file with a parse error (the `parse-*` mods, which the formatter
+leaves as they are), a file not valid UTF-8 (`encoding-windows-1252`, `style-not-utf8-bad`), the
+bad half of each `style/` pair, and the three localization files written without the byte-order
+mark (in `localization-missing-key-bad`, `-good` and `override-rules`), which are in the format
+but for the mark. `packages/core/src/format/fixtures.test.ts` holds it; `.gitattributes` keeps the
+bytes of every script and localization file exact. `descriptor.mod`, the READMEs and the
+`expected.json` files are not CK3 script and keep their `\n` line breaks.
 
 ## Carried over from release 2.3.0
 
@@ -137,6 +146,7 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | [style-comment-spacing-bad](style-comment-spacing-bad/README.md), [-good](style-comment-spacing-good/README.md) | Comments at the end of a line after two tabs and after no space | Item 8.2 |
 | [style-deep-nesting-bad](style-deep-nesting-bad/README.md), [-good](style-deep-nesting-good/README.md) | A scripted effect whose `limit` is seven blocks deep, one past the limit; in the format | Step 8 (#148) |
 | [style-empty-block-bad](style-empty-block-bad/README.md), [-good](style-empty-block-good/README.md) | An empty `limit` (a suggestion takes it away) and an `else` holding only a comment; in the format | Step 8 (#148) |
+| [style-localization-key-characters-bad](style-localization-key-characters-bad/README.md), [-good](style-localization-key-characters-good/README.md) | Two localization keys that break the key rule of release 2.3.0's LOC-001 (a dash, a leading digit) beside one that keeps it, each shown by a `custom_tooltip` | Step 8 (decision 112) |
 | [style-indentation-bad](style-indentation-bad/README.md), [-good](style-indentation-good/README.md) | Lines indented with spaces, too many tabs, a space at the top level; localization lines with a tab, nothing, three spaces | Item 8.2 |
 | [style-line-endings-bad](style-line-endings-bad/README.md), [-good](style-line-endings-good/README.md) | A script file with `\n` line breaks, and a localization file with no line break at its end | Item 8.2 |
 | [style-not-formatted-bad](style-not-formatted-bad/README.md), [-good](style-not-formatted-good/README.md) | A file of scripted effects written without the format's layout, line breaks and mark: the warning and its hints | Item 8.2 |

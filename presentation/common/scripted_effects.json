@@ -7,7 +7,7 @@
             "label": "scripted effect",
             "description": "A new scripted effect, called as `name = yes`",
             "at": "record",
-            "body": ["${1:my_effect} = {", "\t$0", "}"]
+            "body": ["${1:my_effect} = {$0}"]
         }
     ]
 }

@@ -88,7 +88,7 @@
             "container": null,
             "prefix": null,
             "file": "events/fixture_events.txt",
-            "line": 5,
+            "line": 3,
             "column": 1
         },
         {
@@ -128,8 +128,8 @@
             "container": "NFixture",
             "prefix": null,
             "file": "common/defines/fixture_defines.txt",
-            "line": 2,
-            "column": 2
+            "line": 1,
+            "column": 14
         },
         {
             "name": "colors",
@@ -215,7 +215,7 @@
         "fixture_effect": [
             {
                 "file": "events/fixture_events.txt",
-                "line": 15,
+                "line": 13,
                 "column": 3
             }
         ],
@@ -229,8 +229,8 @@
         "fixture_trait": [
             {
                 "file": "common/scripted_effects/fixture_effects.txt",
-                "line": 8,
-                "column": 14
+                "line": 7,
+                "column": 38
             },
             {
                 "file": "common/traits/fixture_traits.txt",
@@ -239,12 +239,12 @@
             },
             {
                 "file": "events/fixture_events.txt",
-                "line": 3,
-                "column": 14
+                "line": 2,
+                "column": 57
             },
             {
                 "file": "events/fixture_events.txt",
-                "line": 11,
+                "line": 9,
                 "column": 18
             },
             {
@@ -275,21 +275,21 @@
         "fixture_scaled_value": [
             {
                 "file": "events/fixture_events.txt",
-                "line": 17,
+                "line": 15,
                 "column": 20
             }
         ],
         "fixture_inline_trigger": [
             {
                 "file": "events/fixture_events.txt",
-                "line": 10,
+                "line": 8,
                 "column": 3
             }
         ],
         "fixture.1": [
             {
                 "file": "events/fixture_events.txt",
-                "line": 16,
+                "line": 14,
                 "column": 19
             }
         ],
@@ -318,7 +318,7 @@
         "fixture.1.t": [
             {
                 "file": "events/fixture_events.txt",
-                "line": 7,
+                "line": 5,
                 "column": 10
             },
             {
@@ -330,7 +330,7 @@
         "fixture.1.desc": [
             {
                 "file": "events/fixture_events.txt",
-                "line": 8,
+                "line": 6,
                 "column": 10
             }
         ],
@@ -338,7 +338,7 @@
             {
                 "file": "events/fixture_events.txt",
                 "line": 21,
-                "column": 10
+                "column": 20
             }
         ]
     }

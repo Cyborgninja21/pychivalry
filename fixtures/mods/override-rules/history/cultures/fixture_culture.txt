@@ -1,3 +1,1 @@
-1100.1.1 = {
-	discover_innovation = fixture_innovation
-}
+﻿1100.1.1 = { discover_innovation = fixture_innovation }

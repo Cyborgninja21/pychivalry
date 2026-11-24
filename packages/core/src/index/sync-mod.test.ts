@@ -69,18 +69,18 @@ test('nameAt: the definition or use written at a place, its end included', () =>
     const index = stubIndex('lookup');
     indexMod(index, repoPath('fixtures/mods/lookup-definitions-and-uses'));
     const file = 'events/fixture_lookup_mod_events.txt';
-    // Line 6 (from 0: 5) is `\t\tfixture_scripted_trigger = yes`.
-    const use = index.nameAt('mod', file, { line: 5, character: 2 });
+    // Line 5 (from 0: 4) is `\ttrigger = { fixture_scripted_trigger = yes }`.
+    const use = index.nameAt('mod', file, { line: 4, character: 13 });
     assert.deepEqual(use, {
         name: 'fixture_scripted_trigger',
         kind: 'use',
-        range: { start: { line: 5, character: 2 }, end: { line: 5, character: 26 } },
+        range: { start: { line: 4, character: 13 }, end: { line: 4, character: 37 } },
     });
     assert.equal(
-        index.nameAt('mod', file, { line: 5, character: 26 })?.name,
+        index.nameAt('mod', file, { line: 4, character: 37 })?.name,
         'fixture_scripted_trigger',
     );
-    assert.equal(index.nameAt('mod', file, { line: 5, character: 0 }), undefined, 'the tabs');
+    assert.equal(index.nameAt('mod', file, { line: 4, character: 0 }), undefined, 'the tab');
     assert.equal(index.nameAt('mod', file, { line: 99, character: 0 }), undefined, 'past the end');
     assert.equal(
         index.nameAt('mod', 'events/no_such_file.txt', { line: 0, character: 0 }),

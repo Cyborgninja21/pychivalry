@@ -1,4 +1,4 @@
-fixture_cb = {
+﻿fixture_cb = {
 	group = fixture_group
 	war_name = fixture_cb_war_name
 	on_invalidated_desc = fixture_cb_invalidated

@@ -1,4 +1,4 @@
-namespace = harvest
+﻿namespace = harvest
 
 # The faith blesses the fields.
 harvest.0010 = {
@@ -7,17 +7,11 @@ harvest.0010 = {
 	title = harvest.0010.t
 	desc = harvest.0010.desc
 
-	trigger = {
-		fervor <= 90
-	}
+	trigger = { fervor <= 90 }
 
-	immediate = {
-		change_fervor = 3
-	}
+	immediate = { change_fervor = 3 }
 
-	option = {
-		name = harvest.0010.a
-	}
+	option = { name = harvest.0010.a }
 }
 
 # The faithful give thanks for the harvest.
@@ -33,9 +27,7 @@ harvest.0011 = {
 	option = {
 		name = harvest.0011.a
 		add_piety = 20
-		faith = {
-			change_fervor = 2
-		}
+		faith = { change_fervor = 2 }
 	}
 	option = {
 		name = harvest.0011.b

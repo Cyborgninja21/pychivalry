@@ -1,5 +1,3 @@
-k_fixture = {
-	900.1.1 = {
-		holder = 0
-	}
+﻿k_fixture = {
+	900.1.1 = { holder = 0 }
 }

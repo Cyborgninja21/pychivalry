@@ -7,13 +7,7 @@
             "label": "trait",
             "description": "A new personality trait: its opposite traits and what it gives",
             "at": "record",
-            "body": [
-                "${1:my_trait} = {",
-                "\tcategory = personality",
-                "\tdiplomacy = ${2:1}",
-                "\t$0",
-                "}"
-            ]
+            "body": ["${1:my_trait} = {", "\tcategory = personality", "\tdiplomacy = ${2:1}$0", "}"]
         }
     ]
 }

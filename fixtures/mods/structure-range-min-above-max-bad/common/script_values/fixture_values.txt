@@ -1,4 +1,4 @@
-fixture_range_value = { 10 1 }
+﻿fixture_range_value = { 10 1 }
 
 fixture_formula_value = {
 	value = { 8 2 }

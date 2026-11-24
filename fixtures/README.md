@@ -9,7 +9,7 @@ them, are described in [docs/test-data.md](../docs/test-data.md).
 | [mods/](mods/README.md) | Small mods, one behaviour each: the parser's broken inputs, the index's override cases, and a pair for every check (51 pairs by the end of build step 4) | Build step 2 |
 | [game/](game/README.md) | Stubs of a base game, for tests that look names up in the game: the override rules, the checks that need a base game, lookup, and `planted-defects`, the base game of the planted-defect mod | Build step 3 |
 | [format/](format/README.md) | The formatter's golden files: for each rule of `docs/formatting.md` a file written to break it and what the formatter makes of it, byte for byte | Build step 8 |
-| [defects/](defects/README.md) | The planted-defect mod of the scored agent-use test: 32 planted defects, every error and warning code at least once, and 29 look-alike lines, with its manifest and its fixed reference copy, read over the game stub `planted-defects` | Build step 6 (made harder after item 6.11) |
+| [defects/](defects/README.md) | The planted-defect mod of the scored agent-use test: 35 planted defects, every error and warning code at least once (the `style/` family's two warnings among them), and 29 look-alike lines, with its manifest and its fixed reference copy, read over the game stub `planted-defects` | Build step 6 (made harder after item 6.11; in the format, with `style/` defects, in step 8) |
 
 Two more parts arrive later: `requests/`, the content requests of the scored authoring test
 (step 9), and `logs/`, captured game error logs (step 11).
@@ -32,12 +32,18 @@ classifications of what it raises live beside the suites, in `tools/data/`
    `missing-localization-key`, not `test3`.
 6. **Explained.** Each fixture mod has a `README.md` of a few lines: what it shows, and what a
    correct tool reports on it.
-7. **LF line endings and UTF-8,** except where the fixture exists to test another encoding or
-   line ending, or is in pychivalry's format (`\r\n` and the byte-order mark: the `style/`
-   pairs, the golden files of `format/`, `names-unknown-trigger-*`), which its README says and
-   `.gitattributes` protects. Localization files start
-   with the byte-order mark, as the game asks for, and Prettier leaves them alone; a file that
-   leaves it out shows what the game does without it, and its README says so.
+7. **In pychivalry's format.** Every script and localization file of a fixture mod and of the
+   planted-defect mod is in the format: Windows line breaks (`\r\n`), the UTF-8 byte-order
+   mark, the formatter's layout (the owner's word of 2026-11-23). The exceptions are exactly what
+   a fixture exists to test, kept byte for byte and said in its README: a file with a parse
+   error, a file not valid UTF-8, a file written to break a formatting rule (the bad half of a
+   `style/` pair, the planted mod's formatting defect), and a localization file left without
+   the byte-order mark to show what the game does without it. A test holds this
+   (`packages/core/src/format/fixtures.test.ts`), and `.gitattributes` keeps those files'
+   bytes exact on every platform. The golden files of `format/` hold what each formatting rule
+   is tested on. Everything else is LF and UTF-8: the READMEs, `descriptor.mod` and
+   `expected.json` files, and the game stubs under `game/`, which stand for the base game, not
+   for a mod (their localization files start with the mark, as the game asks for).
 8. **No two paths that differ only in letter case in one folder tree.** Windows cannot check
    them out side by side; a fixture about letter case puts the other spelling in a mod of its
    own.

@@ -1,9 +1,7 @@
-1001 = {
+﻿1001 = {
 	name = "Fixture"
 	trait = fixture_trait
 	father = 1002
 	867.1.1 = { birth = yes }
 }
-1002 = {
-	name = "Father"
-}
+1002 = { name = "Father" }

@@ -19,7 +19,7 @@
             "description": "What the building gives its county",
             "at": "field",
             "field": "county_modifier",
-            "body": ["county_modifier = {", "\t$0", "}"]
+            "body": ["county_modifier = {$0}"]
         }
     ]
 }

@@ -1,4 +1,4 @@
-fixture_unused_effect = {
+﻿fixture_unused_effect = {
 	custom_tooltip = fixture_unused_in_script
 	custom_tooltip = fixture_unused_holder
 	custom_tooltip = fixture_unused.written_as_a_chain

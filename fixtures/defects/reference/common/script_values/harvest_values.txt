@@ -1,4 +1,4 @@
-@harvest_tithe = 25
+﻿@harvest_tithe = 25
 @harvest_bonus = 10
 
 # How much grain a good harvest yields, at random within a range.

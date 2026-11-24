@@ -1,2 +1,1 @@
-fixture_group = {
-}
+﻿fixture_group = {}

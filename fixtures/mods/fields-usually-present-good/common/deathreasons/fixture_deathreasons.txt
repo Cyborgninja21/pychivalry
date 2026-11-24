@@ -1,4 +1,4 @@
-death_fixture = {
+﻿death_fixture = {
 	public_knowledge = yes
 	icon = "death_fixture.dds"
 }

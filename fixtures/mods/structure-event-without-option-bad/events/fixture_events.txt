@@ -1,4 +1,4 @@
-namespace = fixture
+﻿namespace = fixture
 
 fixture.0001 = {
 	type = character_event

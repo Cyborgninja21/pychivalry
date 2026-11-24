@@ -202,7 +202,9 @@ export function smokeCases(): readonly EditorCase[] {
             run: async () => {
                 const report = await assertSameFormatting(theExt().exports, mod, work);
                 console.log(`  same formatting: ${JSON.stringify(report)}`);
-                assert.ok(report.changed > 0, 'files the formatter changes');
+                // The planted mod is in the format but for its formatting defect; the copy's one
+                // file written with `\n` breaks (run.ts) is the other file each surface changes.
+                assert.ok(report.changed >= 2, 'files the formatter changes');
                 assert.ok(report.left > 0, 'files with a parse error, left as they are');
             },
         },

@@ -2,7 +2,7 @@
     "findings": [
         {
             "file": "common/scripted_effects/fixture_effects.txt",
-            "line": 26,
+            "line": 22,
             "column": 2,
             "code": "names/unknown-effect",
             "severity": "error",
@@ -13,7 +13,7 @@
         },
         {
             "file": "common/scripted_effects/fixture_effects.txt",
-            "line": 27,
+            "line": 23,
             "column": 2,
             "code": "names/unknown-effect",
             "severity": "error",
@@ -25,7 +25,7 @@
         },
         {
             "file": "common/scripted_effects/fixture_effects.txt",
-            "line": 28,
+            "line": 24,
             "column": 2,
             "code": "names/unknown-effect",
             "severity": "error",
@@ -38,8 +38,8 @@
         },
         {
             "file": "common/scripted_effects/fixture_effects.txt",
-            "line": 32,
-            "column": 2,
+            "line": 27,
+            "column": 25,
             "code": "names/unknown-effect",
             "severity": "error",
             "message": "Unknown effect 'add_special_building_slot'",

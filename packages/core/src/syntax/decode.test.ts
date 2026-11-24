@@ -2,8 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { decodeScript, decodeWindows1252, invalidUtf8 } from './decode.js';
-import { findingMessage } from './findings.js';
+import { decodeScript, decodeWindows1252, invalidUtf8, readingOf } from './decode.js';
 import { readScript } from './read.js';
 import { fixtureMods, summary } from './testing.js';
 
@@ -19,7 +18,7 @@ test('valid UTF-8 is read as it is, with no finding', () => {
     assert.equal(decoded.encoding, 'utf-8');
     assert.equal(decoded.validUtf8, true);
     assert.equal(decoded.invalidBytes, 0);
-    assert.deepEqual(decoded.findings, []);
+    assert.deepEqual(decoded.invalid, []);
 });
 
 test('the byte-order mark is removed and reported, and is not part of the text', () => {
@@ -43,21 +42,18 @@ test('a file that is not valid UTF-8 is read in full, each bad byte a replacemen
     );
 });
 
-test('one information note per file says it is not valid UTF-8, at the first bad byte', () => {
+test('decoding gives no finding; it records each invalid stretch, the first at the first bad byte', () => {
+    // The information note encoding/not-utf8 is retired (2026-11-23): the one finding about
+    // such a file is the warning style/not-utf8, which reads what the decoder records.
     const file = readScript(fixture);
-    assert.equal(file.allFindings.length, 1);
-    const [note] = file.allFindings;
-    assert.ok(note !== undefined);
-    assert.equal(note.id, 'encoding/not-utf8');
-    assert.equal(note.severity, 'information');
-    assert.deepEqual(note.evidence, { kind: 'advice' });
-    assert.deepEqual(note.args, ['4', 'UTF-8 with replacement characters']);
-    assert.deepEqual(note.range.start, { line: 2, character: 35 });
-    assert.equal(file.text.charAt(note.start), '\uFFFD');
-    assert.equal(
-        findingMessage(note),
-        'This file is not valid UTF-8 (4 invalid bytes); it was read as UTF-8 with replacement characters.',
-    );
+    assert.deepEqual(file.findings, []);
+    assert.equal(file.invalid.length, 4);
+    const first = file.invalid[0];
+    assert.ok(first !== undefined);
+    assert.deepEqual(file.lines.positionAt(first.start), { line: 2, character: 35 });
+    assert.equal(file.text.charAt(first.start), '\uFFFD');
+    assert.equal(decodeScript(fixture).invalidBytes, 4);
+    assert.equal(readingOf(file.encoding), 'UTF-8 with replacement characters');
 });
 
 test('with the Windows-1252 fallback such a file reads its letters correctly', () => {
@@ -69,10 +65,8 @@ test('with the Windows-1252 fallback such a file reads its letters correctly', (
         summary(file.file.items),
         '(# Title history for a fixture title; its holders are named in comments.) k_fixture = { 1066.1.1 = { holder = 1001 } (# René the Elder) 1100.1.1 = { holder = 1002 } (# René the Younger, son of René) 1150.1.1 = { holder = 1003 name = "Geréon" } }',
     );
-    const [note] = file.allFindings;
-    assert.equal(note?.id, 'encoding/not-utf8');
-    assert.deepEqual(note.args, ['4', 'UTF-8, with its invalid bytes read as Windows-1252']);
-    assert.equal(file.text.charAt(note.start), 'é');
+    assert.equal(readingOf(file.encoding), 'UTF-8, with its invalid bytes read as Windows-1252');
+    assert.equal(file.text.charAt(file.invalid[0]?.start ?? -1), 'é');
 });
 
 test('the fallback is off by default, and valid UTF-8 never uses it', () => {
@@ -119,7 +113,7 @@ test('the fallback reads only the invalid bytes: valid UTF-8 letters in the same
     const file = decodeScript(bytes, { fallbackEncoding: 'windows-1252' });
     assert.equal(file.text, '# Niccolò and René\na = "€€"');
     assert.equal(file.invalidBytes, 2);
-    assert.equal(file.text.charAt(file.findings[0]?.start ?? -1), 'é');
+    assert.equal(file.text.charAt(file.invalid[0]?.start ?? -1), 'é');
     // A sequence cut short is invalid together with the bytes of it that were read.
     const cut = decodeScript(new Uint8Array([0x61, 0xe2, 0x82, 0x62]), {
         fallbackEncoding: 'windows-1252',
@@ -149,11 +143,11 @@ test('invalid UTF-8 is counted in bytes, by the WHATWG rules', () => {
     }
 });
 
-test('a UTF-16 file is read as UTF-8 like any other, with the note', () => {
+test('a UTF-16 file is read as UTF-8 like any other, its invalid bytes recorded', () => {
     const utf16 = new Uint8Array([0xff, 0xfe, 0x61, 0x00, 0x3d, 0x00, 0x62, 0x00]);
     const file = readScript(utf16);
     assert.equal(file.validUtf8, false);
-    assert.equal(file.allFindings[0]?.id, 'encoding/not-utf8');
+    assert.ok(file.invalid.length > 0);
     assert.equal(file.file.kind, 'file');
 });
 
@@ -177,7 +171,6 @@ test('each invalid stretch is recorded with its place in the text and its Window
             assert.equal(other?.windows1252, stretch.windows1252);
             assert.equal(fallback.text.slice(other.start, other.end), stretch.windows1252);
         });
-        assert.deepEqual(plain.findings[0]?.invalid, plain.invalid);
     }
     const file = decodeScript(fixture);
     assert.deepEqual(

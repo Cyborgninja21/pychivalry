@@ -1,8 +1,6 @@
-# The host's spouse shares the rewards.
+﻿# The host's spouse shares the rewards.
 harvest_spouse_reward_effect = {
-	primary_spouse ?= {
-		add_prestige = 10
-	}
+	primary_spouse ?= { add_prestige = 10 }
 }
 
 # The rewards for hosting the festival.

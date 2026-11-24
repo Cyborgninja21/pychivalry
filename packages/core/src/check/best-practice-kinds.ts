@@ -11,7 +11,11 @@ import type { CheckKind } from './finding.js';
 
 /** The codes of the best-practice rules of this file. */
 export type BestPracticeCode =
-    'style/empty-block' | 'style/deep-nesting' | 'style/not-utf8' | 'style/unusual-field-order';
+    | 'style/empty-block'
+    | 'style/deep-nesting'
+    | 'style/not-utf8'
+    | 'style/unusual-field-order'
+    | 'style/localization-key-characters';
 
 function style(
     severity: 'warning' | 'information' | 'hint',
@@ -45,14 +49,20 @@ export const BEST_PRACTICE_KINDS: Readonly<Record<BestPracticeCode, CheckKind>> 
     ),
     'style/not-utf8': style(
         'warning',
-        1,
-        'A file that is not valid UTF-8; its fix converts it to UTF-8 with a byte-order mark, reading the bytes that are not as Windows-1252.',
-        'This file is not UTF-8: %s of its bytes are not. Convert it to UTF-8 with a byte-order mark.',
+        2,
+        'A file that is not valid UTF-8, and how it was read; its fix converts it to UTF-8 with a byte-order mark, reading the bytes that are not as Windows-1252.',
+        'This file is not UTF-8: %s of its bytes are not; it was read as %s. Convert it to UTF-8 with a byte-order mark.',
     ),
     'style/unusual-field-order': style(
         'hint',
         3,
         "A record whose fields are written in another order than its folder's usual one, in a folder whose records' fields the game reads by name.",
         "'%s' is written after '%s', against the usual order of the fields of %s.",
+    ),
+    'style/localization-key-characters': style(
+        'hint',
+        2,
+        "A localization key that starts with a digit or holds a character other than a letter, a digit, '_' or '.': release 2.3.0's LOC-001.",
+        "The localization key '%s' %s; a key starts with a letter or '_' and holds only letters, digits, '_' and '.'.",
     ),
 };

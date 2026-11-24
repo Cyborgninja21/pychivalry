@@ -1,4 +1,4 @@
-# Saves read by the events of this mod.
+﻿# Saves read by the events of this mod.
 fixture_target_save_effect = {
 	save_scope_as = fixture_target_saved_elsewhere
 	save_scope_value_as = {

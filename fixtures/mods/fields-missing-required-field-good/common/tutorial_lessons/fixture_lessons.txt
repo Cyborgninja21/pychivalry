@@ -1,4 +1,4 @@
-fixture_lesson = {
+﻿fixture_lesson = {
 	chain = fixture_chain
 	delay = 5
 }

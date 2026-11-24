@@ -1,19 +1,13 @@
-tradition_harvest_feasts = {
+﻿tradition_harvest_feasts = {
 	category = societal
 	layers = {
 		0 = steward
 		1 = western
 		4 = harvest.dds
 	}
-	is_shown = {
-		always = yes
-	}
-	can_pick = {
-		always = yes
-	}
-	parameters = {
-		harvest_feasts_bonus = yes
-	}
+	is_shown = { always = yes }
+	can_pick = { always = yes }
+	parameters = { harvest_feasts_bonus = yes }
 	character_modifier = {
 		monthly_prestige_gain_multi = 0.1
 		bowmen_damage_mult = 0.05
@@ -23,12 +17,8 @@ tradition_harvest_feasts = {
 		levy_size = 0.05
 		monthly_piety = 0.1
 	}
-	cost = {
-		prestige = 500
-	}
-	ai_will_do = {
-		value = 50
-	}
+	cost = { prestige = 500 }
+	ai_will_do = { value = 50 }
 }
 
 tradition_harvest_markets = {
@@ -38,25 +28,11 @@ tradition_harvest_markets = {
 		1 = western
 		4 = harvest.dds
 	}
-	is_shown = {
-		always = yes
-	}
-	can_pick = {
-		always = yes
-	}
-	parameters = {
-		harvest_markets_bonus = yes
-	}
-	character_modifier = {
-		monthly_income_mult = 0.05
-	}
-	province_modifier = {
-		supply_limit_mult = 0.1
-	}
-	cost = {
-		prestige = 400
-	}
-	ai_will_do = {
-		value = 25
-	}
+	is_shown = { always = yes }
+	can_pick = { always = yes }
+	parameters = { harvest_markets_bonus = yes }
+	character_modifier = { monthly_income_mult = 0.05 }
+	province_modifier = { supply_limit_mult = 0.1 }
+	cost = { prestige = 400 }
+	ai_will_do = { value = 25 }
 }

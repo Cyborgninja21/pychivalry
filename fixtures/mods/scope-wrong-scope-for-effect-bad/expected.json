@@ -65,8 +65,8 @@
         },
         {
             "file": "events/fixture_events.txt",
-            "line": 30,
-            "column": 4,
+            "line": 25,
+            "column": 24,
             "code": "scope/wrong-scope-for-effect",
             "severity": "error",
             "message": "Wrong scope for effect: province, expected character",

@@ -8,10 +8,12 @@
 > 4.7's re-proof retired: 62 rows are built (five of them in part), 11 retired, 2 blocked, and
 > 3 belong to steps 10 and 11. On the owner's word of 2026-11-23 (decisions 101 and 103) step 8
 > added a thirteenth family, `style`, whose nine formatting rows are built and rest on
-> pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)); four more rows
-> of it rest on pychivalry's own best-practice rules (decisions 105 to 107,
-> [Best practice](#best-practice-the-style-familys-best-practice-rules)), and
-> `localization/unused-key` is on by default (decision 108). The last column of each table, **State**, says which, and why
+> pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)); six more rows
+> of it rest on pychivalry's own best-practice rules (decisions 105 to 107, 109 and 112,
+> [Best practice](#best-practice-the-style-familys-best-practice-rules)), five built and one
+> blocked, and `localization/unused-key` is on by default (decision 108). Since decision 113 a
+> file not valid UTF-8 shows one finding, `style/not-utf8`: the parse note `encoding/not-utf8`
+> is retired ([Retired codes](#retired-codes)). The last column of each table, **State**, says which, and why
 > where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
 > was decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
@@ -228,7 +230,9 @@ values of `code` change.
 
 ### Step 2 (built): the parse findings
 
-Built in `packages/core/src/syntax/findings.ts`; the identifier is the code.
+Built in `packages/core/src/syntax/findings.ts`; the identifier is the code. The eleventh,
+`encoding/not-utf8`, was retired on 2026-11-23 (decision 113,
+[Retired codes](#retired-codes)): a file not valid UTF-8 is the warning `style/not-utf8`.
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -242,7 +246,6 @@ Built in `packages/core/src/syntax/findings.ts`; the identifier is the code.
 | `syntax/null-safe-operator-after-value` | error | `?=` after a number, date, constant or quoted text | Catalogue `unexpected_token_X_found_at_X_expected` | `unexpected_token_X_found_at_X_expected` | `parse-null-safe-after-value` | 2 | clean catalogue | Built (step 2) | Safe or a suggestion: A quoted name or scope chain written without its quotes (safe); otherwise '?=' written as '='. |
 | `syntax/unterminated-string` | information | Quoted text without its closing quote | Advice ([why](#the-step-2-findings)) | `PYCH-P001` (error) | `parse-unterminated-string` | 2 | none | Built (step 2) | None: where the text ends is a choice, and closing it at the end of its line can make a key of text cut off mid-edit. |
 | `syntax/malformed-arithmetic` | information | `@[ ... ]` that is not well formed, or has no `]` | Advice; a candidate message was found ([why](#the-step-2-findings)) | `PYCH-P002` (error) | `parse-malformed-arithmetic` | 2 | clean catalogue, to settle the candidate | Built (step 2) | None: what the expression should compute is a choice. |
-| `encoding/not-utf8` | information | A file that is not valid UTF-8 | Advice ([why](#the-step-2-findings)) | new | `encoding-windows-1252` | 2 | none | Built (step 2) | None: which encoding the file was written in is not known. |
 
 ### 4.2: unknown names
 
@@ -452,33 +455,39 @@ them by code and never classify them ([records/README.md](../records/README.md))
 
 ### Best practice: the `style/` family's best-practice rules
 
-Added in build step 8 on the owner's word of 2026-11-23 (decisions 101 and 105 to 107): best
-practice and cleanliness take precedence over anything a mod author did. These rows rest on
-pychivalry's own best-practice rules (evidence `best-practice`), not on the game: the zero
-exceptions of decision 46 are for advice that claims something about the game, so the base game
-breaking one of these does not retire it, but none ships that the base game breaks more often
-than it follows. Each row gives the base game's own rate on 1.21.0.3, counted by
+Added in build step 8 on the owner's word of 2026-11-23 (decisions 101, 105 to 107, 109 and
+112): best practice and cleanliness take precedence over anything a mod author did. These rows
+rest on pychivalry's own best-practice rules (evidence `best-practice`), not on the game: the
+zero exceptions of decision 46 are for advice that claims something about the game, so the base
+game breaking one of these does not retire it. A rule the base game breaks more often than it
+follows ships only on the owner's word, as `style/unusual-field-order` does in two folders
+(decision 109). Each row gives the base game's own rate on 1.21.0.3, counted by
 `pychivalry-tools advice proof`, which counts them beside the advice rows. Release 2.3.0's other
 style hints are the formatter's (above), and three of its other hints were measured and are not
-restored ([below](#the-plug-in-catalogue-85)). They go through the one runner; a fix of theirs
+restored ([below](#the-plug-in-catalogue-85)); two of its information-level content rules came
+back on the owner's word (decision 112), LOC-001 built and CK3872 blocked. They go through the one runner; a fix of theirs
 that is safe is checked by checking the file again, and after it the formatter finds nothing new
 (a test applies each fix to its bad fixture, which is in the format). The game-file suites count
-them by code and never classify them.
+them by code and never classify them. `style/empty-block` and `style/deep-nesting` judge every
+folder, with none left out (decision 109).
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `style/empty-block` | hint | A block inside a record with nothing in it, or nothing but comments; a record's own body is not judged | Best practice: pychivalry's own best-practice rules. The base game follows it: 24,274 of the 2,321,663 blocks inside its records are empty (1.05%) | `CK3314` | `style-empty-block` | 8.2 | none | Built (step 8) | Suggestion: The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. |
 | `style/deep-nesting` | hint | A record with a block nested more than six blocks deep, its body the first; one finding a record, at the first such block, with how many places | Best practice: pychivalry's own best-practice rules. The base game follows it: 8,561 of its 223,429 records go past the limit (3.83%) | `CK3317` | `style-deep-nesting` | 8.2 | none | Built (step 8) | None: how to restructure deep script is a choice. |
-| `style/not-utf8` | warning | A file, script or localization, that is not valid UTF-8; beside the note `encoding/not-utf8`, which says how the file was read | Best practice: pychivalry's own best-practice rules. The base game follows it: 25 of the 17,282 script and localization files it reads are not UTF-8 (0.14%), all in `history/titles`, each fix safe | new | `style-not-utf8` | 8.2 | none | Built (step 8) | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
-| `style/unusual-field-order` | hint | A record whose fields are written in another order than its folder's usual one (the core's field-order data), in a folder whose record fields the game reads by name and whose base-game records follow the order | Best practice: pychivalry's own best-practice rules. The base game follows it: 1,206 of the 11,291 records it judges are in another order (10.68%): events 1,047 of 10,378, `common/on_action` 48 of 497, `common/casus_belli_types` 52 of 138, `common/court_positions/types` 11 of 87, `common/schemes/scheme_types` 46 of 136, `common/story_cycles` 2 of 55. Not judged, the base game breaking the order more often: `common/decisions` (321 of 587) and `common/character_interactions` (401 of 650) | new | `style-unusual-field-order` | 8.2 | none | Built (step 8) | Safe: The record's fields written in the usual order, comments with their field; none where a comment's field is not clear. |
+| `style/not-utf8` | warning | A file, script or localization, that is not valid UTF-8, and how it was read (as UTF-8 with replacement characters, or with the Windows-1252 fallback): the one finding about such a file (decision 113) | Best practice: pychivalry's own best-practice rules. The base game follows it: 25 of the 17,282 script and localization files it reads are not UTF-8 (0.14%), all in `history/titles`, each fix safe | new | `style-not-utf8` | 8.2 | none | Built (step 8) | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
+| `style/unusual-field-order` | hint | A record whose fields are written in another order than its folder's usual one (the core's field-order data), in a folder whose record fields the game reads by name: eight folders, `common/decisions` and `common/character_interactions` with the order of their `.info` files (decision 109) | Best practice: pychivalry's own best-practice rules. The base game follows it: 2,096 of the 12,528 records it judges are in another order (16.73%): events 1,047 of 10,378, `common/on_action` 48 of 497, `common/casus_belli_types` 52 of 138, `common/court_positions/types` 11 of 87, `common/schemes/scheme_types` 46 of 136, `common/story_cycles` 2 of 55; and, judged on the owner's word though the base game breaks their order more often than it follows it, `common/decisions` 398 of 587 and `common/character_interactions` 492 of 650 | new | `style-unusual-field-order` | 8.2 | none | Built (step 8) | Safe: The record's fields written in the usual order, comments with their field; none where a comment's field is not clear. |
+| `style/localization-key-characters` | hint | A localization key that starts with a digit (or `.`) or holds a character other than a letter, a digit, `_` or `.`; one finding a key | Best practice: pychivalry's own best-practice rules. The base game follows it: 15,406 of the 3,100,662 keys of its localization files are such keys (0.50%); 1,675 of its 340,445 English keys (0.49%), mostly a dash (`innovation_men-at-arms`) | `LOC-001` | `style-localization-key-characters` | 8.2 | none | Built (step 8) | None: a key's name is the author's, and renaming it means renaming every use of it. |
+| `style/redundant-condition` | hint | A condition that always holds where it changes nothing: release 2.3.0's `always = yes` in a block whose conditions must all hold | Best practice: pychivalry's own best-practice rules (the base game: 375 `trigger = { always = yes }`, a one-off count of item 4.1) | `CK3872` | `style-redundant-condition` | 8.2 | keyword roles: a part D4 role for a condition that always holds (`always`, with the value that makes it hold), and roles saying which logical operators need all their conditions to hold (`AND`, `NOT`, `NOR`, `NAND` and `OR` have none today) | Blocked: it cannot be built without naming `always` and the logical operators in code (decision 54); part D4 gives `always` no role and the logical operators none (decision 112) | Not built |
 
 ### Retired codes
 
 A code that is retired stays here and is never emitted again ([How a code stays
-permanent](#how-a-code-stays-permanent)). The eleven below are provisional advice rows that item
+permanent](#how-a-code-stays-permanent)). Eleven below are provisional advice rows that item
 4.7's re-proof found firing on the 1.21.0.3 base game; each was retired on the terms of
 decisions 46 and 53 before it shipped. The counts come from a one-off script over the built core
-and the base game's index, not committed.
+and the base game's index, not committed. The twelfth, `encoding/not-utf8`, a step 2 parse note,
+was retired on the owner's word (decision 113), its family `encoding` with it.
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | Retired |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -493,6 +502,7 @@ and the base game's index, not committed.
 | `variables/read-in-other-namespace` | information | A variable read as one of `var`, `local_var`, `global_var` and set only as another | Advice | `CK3703` | `variables-read-in-other-namespace` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 35,327, fires on 2 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
 | `variables/list-and-value` | information | A variable used both as a list and as a value in one file | Advice | `CK3705` | `variables-list-and-value` | 4.7 | as above | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 599, fires on 18 (decision 46: an advice row ships only when it fires on none); counted by a name heuristic, as the package has no table of the keywords that set and read variables |
 | `structure/event-redundant-override-background` | information | An untriggered `override_background` equal to the background its theme shows first | Advice | `CK3433` | `structure-event-redundant-override-background` | 4.7 | keyword roles | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 3,511, fires on 206 (decision 46: an advice row ships only when it fires on none) |
+| `encoding/not-utf8` | information | A file that is not valid UTF-8 | Advice ([why](#the-step-2-findings)) | new | `encoding-windows-1252` | 2 | none | 2026-11-23, on the owner's word (decision 113): a file not valid UTF-8 shows one finding, the warning `style/not-utf8`, whose message and data now say what this note said, how the file was read |
 
 ### Step 10: graphics
 
@@ -517,12 +527,13 @@ check with the same catalogue entry, is decided in items 11.2 and 11.3 from capt
 
 | State | Rows | Which |
 | --- | ---: | --- |
-| Built | 57 | Step 2's 11; 4.2's 4 others; 4.4's 3; 4.5's 9 others; 4.6's 3 others; 4.7's 27 others |
+| Built | 56 | Step 2's 10 (its eleventh retired); 4.2's 4 others; 4.4's 3; 4.5's 9 others; 4.6's 3 others; 4.7's 27 others |
 | Built in part | 5 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `localization/unbalanced-brackets` (an opener left open waits on the catalogue), `references/unknown-name` (the game-concept half is blocked) |
 | Blocked | 2 | `structure/triggered-desc-other-field` (its message is not in the catalogue), `scope/title-text-reads-scope-saved-late` (the saved-scope form of localization text is not data) |
-| Retired | 11 | The provisional advice rows item 4.7's re-proof found firing on the base game ([Retired codes](#retired-codes)) |
+| Retired | 12 | The provisional advice rows item 4.7's re-proof found firing on the base game, and `encoding/not-utf8` (decision 113) ([Retired codes](#retired-codes)) |
 | Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
-| Built, step 8 | 13 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; four on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and three hints |
+| Built, step 8 | 14 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; five on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and four hints |
+| Blocked, step 8 | 1 | `style/redundant-condition` (release 2.3.0's CK3872): part D4 gives `always` and the logical operators no role (decision 112) |
 
 The tables below are the inventory as item 4.1 proposed it.
 
@@ -574,7 +585,7 @@ three at information**:
 | --- | --- | --- | --- |
 | `syntax/unterminated-string` | `unterminat`, `quot`, `end of file`, `eof`, `unclosed`, `unmatched`, `string` | Catalogue: nothing about script text. Executable: `UnterminatedString`, a token name beside the `pdx_ast` parser's own grammar messages; "Unreadable String" beside the script reader (`pdx_persistent_reader.cpp`), not in the catalogue and with no condition in its words | Keep information. Neither text says the game reports quoted text left open in a script file |
 | `syntax/malformed-arithmetic` | `@[`, `inline`, `math`, `arithmetic`, `formula`, `parse`, the `Expected: <...>` family | Catalogue: `failed_to_parse_advanced_statement_arithmetic_expression` ("Failed to parse advanced statement arithmetic expression") and `invalid_character_X_in_advanced_statement`. The executable keeps both inside the script reader, between the messages for `@` variables ("Unknown variable '{}'", "Invalid variable name ..."). The `Expected: <@[>`, `Expected: <]>`, `Expected: <math-scalar>` family belongs to the separate `pdx_ast` parser | Keep information until "advanced statement" is shown to mean `@[ ... ]`: by the cleaned catalogue marking the message script-facing, or by the planted-defect capture of item 11.1. Then raise it to an error with `failed_to_parse_advanced_statement_arithmetic_expression` as its evidence. The alternative, raising it now on the text alone, is question 5 |
-| `encoding/not-utf8` | `utf`, `unicode`, `ansi`, `encod`, `bom`, `byte`, `invalid char` | Catalogue: only "Failed to read culture history / title history, not a valid date at: {} (check encoding, should be ansi)", about history dates. Executable: "File '%s' should be in utf8-bom encoding (will try to use it anyways)" beside the script lexer, "Missing UTF8 BOM in '%s'", "Failed conversion of utf8 string: %s"; none in the catalogue, and none says what happens to an invalid byte | Keep information. The game ships and loads 27 files that are not valid UTF-8 ([encoding.md](encoding.md)), so it does not refuse them |
+| `encoding/not-utf8` (retired 2026-11-23, decision 113) | `utf`, `unicode`, `ansi`, `encod`, `bom`, `byte`, `invalid char` | Catalogue: only "Failed to read culture history / title history, not a valid date at: {} (check encoding, should be ansi)", about history dates. Executable: "File '%s' should be in utf8-bom encoding (will try to use it anyways)" beside the script lexer, "Missing UTF8 BOM in '%s'", "Failed conversion of utf8 string: %s"; none in the catalogue, and none says what happens to an invalid byte | Keep information. The game ships and loads 27 files that are not valid UTF-8 ([encoding.md](encoding.md)), so it does not refuse them |
 
 ## Where the executable keeps each message
 
@@ -703,7 +714,7 @@ for required fields, and its six package-local ids.
 | `CK3767` | information | `structure/event-empty` | information | Holds: 0 |
 | `CK3768` | information | `structure/event-several-immediate` | information | Holds: 0 |
 | `CK3769` | information | not carried over | — | 980 shown base-game events have no portrait |
-| `CK3872` | information | not carried over | — | The base game writes `trigger = { always = yes }` 375 times |
+| `CK3872` | information | `style/redundant-condition` (blocked) | **hint** | The base game writes `trigger = { always = yes }` 375 times. Since 2026-11-23 (decision 112) to return as `style/redundant-condition`, hint, a best-practice rule; blocked: part D4 gives `always` and the logical operators no role |
 | `CK3873` | hint | not carried over | — | The base game writes `trigger = { always = no }` 222 times, on purpose. Measured again for decision 105 (223 of 84,772 trigger blocks) and not restored: it is the deliberate way to switch content off, which release 2.3.0's own text says |
 | `CK3875` | information | not carried over | — | 1,717 of the base game's 10,128 `random_` iterators have no `limit` |
 | `CK3977` | information | not carried over | — | 3,425 of its 10,369 `every_` iterators have no `limit` |
@@ -724,7 +735,7 @@ for required fields, and its six package-local ids.
 | `SWITCH-002` | information | `structure/switch-without-branches` | information | Holds: 0 of 1,007 |
 | `SWITCH-003` | warning | folded into `names/unknown-trigger` | **error** | The game reports a switch trigger that is no trigger with the unknown-trigger message, which the engine already raised as an error |
 | `GFX001` | warning | `graphics/missing-file` | warning | Same finding |
-| `LOC-001` | information | not carried over | — | 1,675 of the base game's 340,445 English keys break 2.3.0's rule (a dash, a leading digit: `innovation_men-at-arms`), and the base game ships them |
+| `LOC-001` | information | `style/localization-key-characters` | **hint** | 1,675 of the base game's 340,445 English keys break 2.3.0's rule (a dash, a leading digit: `innovation_men-at-arms`), and the base game ships them. Since 2026-11-23 (decision 112) restored as `style/localization-key-characters`, hint, a best-practice rule: 2.3.0's reason, that its own index could not read such a key, is no claim about the game |
 | `LOC-002` | information | not carried over | — | Judged against a hand-made list of functions. Returns only as a new row when the spec carries the game's data-types dump |
 | `LOC-003` | information | not carried over | — | Judged against a hand-made list of formatting codes |
 | `LOC-004` | information | not carried over | — | Judged against incomplete extracted icon data |
@@ -858,7 +869,7 @@ The severity is the one the seed file states, or "—" where it states none.
 | 50 | CK3870 | generic_rules | No effect in a trigger block (error) | — | — | Covered: `names/unknown-trigger` |
 | 51 | CK3871 | generic_rules | No effect in `limit` (error) | — | — | Covered: `names/unknown-trigger` |
 | 52 | CK3872 | generic_rules | No trigger in an effect block (warning; switched off in the file) | — | — | Covered: `names/unknown-effect` |
-| 53 | CK3872 | generic_rules | `trigger = { always = yes }` is redundant (warning) | — | 375 | Dropped |
+| 53 | CK3872 | generic_rules | `trigger = { always = yes }` is redundant (warning) | — | 375 | Dropped; since 2026-11-23 the blocked row `style/redundant-condition` (decision 112) |
 | 54 | CK3873 | generic_rules | `trigger = { always = no }` means the code never runs (error) | — | 222 | Dropped: the base game switches content off this way on purpose |
 | 55 | CK3875 | generic_rules | A `random_` iterator needs `limit` (warning) | 10,128 | 1,717 | Dropped |
 | 56 | CK3976 | generic_rules | No effect in an `any_` iterator (warning) | — | — | Covered: `names/unknown-trigger` |

@@ -12,7 +12,7 @@
             "description": "The struggle's phases",
             "at": "field",
             "field": "phase_list",
-            "body": ["phase_list = {", "\t${1:my_phase} = {", "\t\t$0", "\t}", "}"]
+            "body": ["phase_list = {", "\t${1:my_phase} = {$0}", "}"]
         }
     ]
 }

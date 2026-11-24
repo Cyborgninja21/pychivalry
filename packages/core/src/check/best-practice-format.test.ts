@@ -40,11 +40,16 @@ for (const [pair, code] of [
     });
 }
 
-test('style-deep-nesting-bad has no fix, and the formatter finds nothing in it', () => {
-    const run = checkFixtureMod(path.join(MODS, 'style-deep-nesting-bad'));
-    assert.ok(run.findings.some((f) => f.code === 'style/deep-nesting' && f.fix === null));
-    assert.deepEqual(
-        run.findings.filter((f) => formatting(f.code)),
-        [],
-    );
-});
+for (const [pair, code] of [
+    ['style-deep-nesting-bad', 'style/deep-nesting'],
+    ['style-localization-key-characters-bad', 'style/localization-key-characters'],
+] as const) {
+    test(`${pair} has no fix, and the formatter finds nothing in it`, () => {
+        const run = checkFixtureMod(path.join(MODS, pair));
+        assert.ok(run.findings.some((f) => f.code === code && f.fix === null));
+        assert.deepEqual(
+            run.findings.filter((f) => formatting(f.code)),
+            [],
+        );
+    });
+}

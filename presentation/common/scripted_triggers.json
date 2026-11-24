@@ -7,7 +7,7 @@
             "label": "scripted trigger",
             "description": "A new scripted trigger, called as `name = yes`",
             "at": "record",
-            "body": ["${1:my_trigger} = {", "\t$0", "}"]
+            "body": ["${1:my_trigger} = {$0}"]
         }
     ]
 }

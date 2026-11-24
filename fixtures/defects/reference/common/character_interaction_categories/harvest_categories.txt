@@ -1,4 +1,4 @@
-# The festival's interactions, shown together.
+﻿# The festival's interactions, shown together.
 interaction_category_harvest = {
 	index = 16
 	icon = harvest_icon

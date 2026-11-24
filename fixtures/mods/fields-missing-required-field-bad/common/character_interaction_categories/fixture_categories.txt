@@ -1,4 +1,4 @@
-fixture_category = {
+﻿fixture_category = {
 	icon = fixture_icon
 	color = { 0.5 0.5 0.5 1 }
 }

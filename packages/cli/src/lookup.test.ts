@@ -33,8 +33,8 @@ test('lookup as text: readings, definitions with the one in force, uses', (t) =>
             '    game events/fixture_lookup_events.txt:6:3',
             '    game events/fixture_lookup_events.txt:7:11',
             '    game events/fixture_lookup_events.txt:11:14',
-            '    mod events/fixture_lookup_mod_events.txt:6:3',
-            '    mod events/fixture_lookup_mod_events.txt:14:15',
+            '    mod events/fixture_lookup_mod_events.txt:5:14',
+            '    mod events/fixture_lookup_mod_events.txt:10:15',
         ].join('\n'),
     );
     assert.match(

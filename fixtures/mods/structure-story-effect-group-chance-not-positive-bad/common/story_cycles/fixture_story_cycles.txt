@@ -1,15 +1,11 @@
-fixture_story = {
+﻿fixture_story = {
 	effect_group = {
 		days = 30
 		chance = 0
 		triggered_effect = {
-			trigger = {
-				is_adult = yes
-			}
+			trigger = { is_adult = yes }
 			effect = {
-				story_owner = {
-					add_gold = 10
-				}
+				story_owner = { add_gold = 10 }
 			}
 		}
 	}

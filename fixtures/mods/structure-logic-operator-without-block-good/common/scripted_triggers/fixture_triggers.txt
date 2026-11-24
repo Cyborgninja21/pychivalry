@@ -1,5 +1,3 @@
-fixture_child_trigger = {
-	NOT = {
-		is_adult = yes
-	}
+﻿fixture_child_trigger = {
+	NOT = { is_adult = yes }
 }

@@ -65,8 +65,8 @@
         },
         {
             "file": "common/decisions/fixture_decisions.txt",
-            "line": 13,
-            "column": 4,
+            "line": 10,
+            "column": 22,
             "code": "scope/wrong-scope-for-trigger",
             "severity": "error",
             "message": "Wrong scope for trigger: landed_title, expected character",
@@ -86,8 +86,8 @@
         },
         {
             "file": "common/decisions/fixture_decisions.txt",
-            "line": 21,
-            "column": 4,
+            "line": 14,
+            "column": 24,
             "code": "scope/wrong-scope-for-trigger",
             "severity": "error",
             "message": "Wrong scope for trigger: province, expected landed_title",
@@ -100,8 +100,8 @@
         },
         {
             "file": "events/fixture_events.txt",
-            "line": 8,
-            "column": 3,
+            "line": 7,
+            "column": 14,
             "code": "scope/wrong-scope-for-trigger",
             "severity": "error",
             "message": "Wrong scope for trigger: province, expected character",

@@ -1,4 +1,4 @@
-NFixture = {
+﻿NFixture = {
 	FIXTURE_B = 3
 	FIXTURE_C = 4
 	FIXTURE_D = 5

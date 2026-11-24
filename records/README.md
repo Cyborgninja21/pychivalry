@@ -187,7 +187,7 @@ of folders and extensions, and measures the encoding of every text file of the g
 | `files`, `trees`, `parse_ms` | Script files read, files that yielded a tree, and the time to decode and parse them all, in one process |
 | `folders` | Per folder and extension: `expected_files` and `files`, `trees`, `bom`, `not_utf8`, `errors`, `parse_ms`, `why` (the evidence it holds script), and the `excluded` files with why |
 | `errors` | Every parse error: `file`, `line` and `column` (from 1), the finding's `id`, its `catalogue` entry, the `message`, and its `classification` (`game-defect`, `pychivalry-fault` or `unclassified`) with the `reason` |
-| `notes` | Every information finding, such as a file that is not valid UTF-8 |
+| `notes` | Every information finding of the parse, such as quoted text left open (a file that is not valid UTF-8 is counted in `folders`, `not_utf8`, and gives no finding since the note `encoding/not-utf8` was retired on 2026-11-23) |
 | `not_read` | The text files the suite does not parse, and why |
 | `encoding` | Over every text file of the game: `files`, `bom`, `utf16_bom`, `not_utf8`, `line_endings`, the same `by_folder`, and per file that is not valid UTF-8 its `invalid_bytes`, `first_line`, where the bytes sit (`in_comments`, `in_strings`, `elsewhere`) and its `valid_multibyte_sequences` |
 | `round_trip` | The formatter's round trip over every file parsed (build step 8, item 8.3; [docs/formatting.md](../docs/formatting.md)): the `rules` used; `files`, `formatted`, `left` (each with a parse error: `file`, `id`, `line`), `changed`; `trees_equal`, `tokens_equal`, `second_format_unchanged`; `comments_before`, `comments_after`, `comments_moved`; `lines_before`, `lines_after`, `lines_changed` (the lines its edits touch); `blocks_written_on_one_line_broken` and `blocks` (by kind: one simple pair, plain values, empty, other; written on one line or several, laid out on one or several); `by_rule` (each `style/` hint's `files`, `places` and `lines`); `width` (the 120-column rule: lines over it before, formatted without it and with it, and the files it changes alone); `format_ms` and the `largest_file`; its `failures` |
@@ -261,7 +261,7 @@ folder), `by_severity`, `by_code`, `errors` and `error_list` (each classified, f
 indexing and checking the mod; `total`) with the process's `peak_rss_kib`.
 
 The `style/` family (build step 8, [docs/formatting.md](../docs/formatting.md)) rests on
-pychivalry's own formatting rules, not on the game: its findings are counted in `by_severity` and
+pychivalry's own formatting and best-practice rules, not on the game: its findings are counted in `by_severity` and
 `by_code` and never listed or classified; `warnings` and `warning_list` are the other warnings,
 so `warnings` is `by_severity.warning` less the `style/` warnings.
 

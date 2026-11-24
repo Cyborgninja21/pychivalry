@@ -1,3 +1,1 @@
-fixture_tradition = {
-	category = societal
-}
+﻿fixture_tradition = { category = societal }

@@ -1,5 +1,3 @@
-fixture_story = {
-	effect_group = {
-		days = 30
-	}
+﻿fixture_story = {
+	effect_group = { days = 30 }
 }

@@ -67,7 +67,7 @@ test('from bytes, from parsed text or from read text, a file has the runner’s 
                         ? { localization: readLocalization(bytes) }
                         : {
                               script: parse(decoded.text, { catalogue }),
-                              notes: decoded.findings,
+                              decoded: { invalid: decoded.invalid, encoding: decoded.encoding },
                               // The file's mark, which text without it does not show.
                               bom: decoded.bom,
                           },

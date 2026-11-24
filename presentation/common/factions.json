@@ -12,7 +12,7 @@
             "description": "What the faction's demand does",
             "at": "field",
             "field": "demand",
-            "body": ["demand = {", "\t$0", "}"]
+            "body": ["demand = {$0}"]
         }
     ]
 }

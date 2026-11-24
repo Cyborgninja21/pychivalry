@@ -1,2 +1,1 @@
-fixture_idle = {
-}
+﻿fixture_idle = {}

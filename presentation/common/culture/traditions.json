@@ -20,7 +20,7 @@
             "description": "The conditions for a culture to pick the tradition",
             "at": "field",
             "field": "can_pick",
-            "body": ["can_pick = {", "\t$0", "}"]
+            "body": ["can_pick = {$0}"]
         }
     ]
 }

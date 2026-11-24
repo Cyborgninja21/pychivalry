@@ -8,7 +8,7 @@ import { checkFixtureMod } from '../fix/testing.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { parse } from '../syntax/parser.js';
 import type { Pair } from '../syntax/tree.js';
-import { bodyFieldOrder, FIELD_ORDERS, JUDGED_FOLDERS } from './field-order.js';
+import { bodyFieldOrder, FIELD_ORDERS, INFO_ORDER_FOLDERS, JUDGED_FOLDERS } from './field-order.js';
 import { CHECK_KINDS } from './finding.js';
 import { CODE, fieldsReadByName, firstOutOfOrder } from './style-unusual-field-order.js';
 import { checkText, expectedFindings, styleFixture } from './testing.js';
@@ -88,13 +88,11 @@ test('the field-order data names only fields of its folders, each once; the judg
             }
         }
     }
-    assert.deepEqual([...JUDGED_FOLDERS].sort(), [
-        'common/casus_belli_types',
-        'common/court_positions/types',
-        'common/on_action',
-        'common/schemes/scheme_types',
-        'common/story_cycles',
-        'events',
+    // Every folder of the data is judged (the owner's word of 2026-11-23).
+    assert.deepEqual([...JUDGED_FOLDERS].sort(), [...FIELD_ORDERS.keys()].sort());
+    assert.deepEqual([...INFO_ORDER_FOLDERS].sort(), [
+        'common/character_interactions',
+        'common/decisions',
     ]);
     // A folder whose records are effects, triggers or script values is never read by name.
     for (const folder of [
@@ -106,7 +104,7 @@ test('the field-order data names only fields of its folders, each once; the judg
     }
 });
 
-test(`${CODE} leaves alone a record that holds anything but fields, and two folders the base game does not follow`, () => {
+test(`${CODE} leaves alone a record that holds anything but fields, and judges every folder of the data`, () => {
     const found = (file: string, text: string): number =>
         checkText(file, text, {}, {}, { style: true }).filter((f) => f.code === CODE).length;
     const onAction = (body: string): number => found(FILE, `x = { ${body} }\n`);
@@ -118,15 +116,63 @@ test(`${CODE} leaves alone a record that holds anything but fields, and two fold
     assert.equal(onAction('effect = { add_gold = 1 } $T$ = { is_adult = yes }'), 0);
     // A field the order does not name keeps its place and does not count.
     assert.equal(onAction('effect = { add_gold = 1 } fallback = x'), 0);
-    // common/decisions has an order, but the base game breaks it more often than it follows it.
+    // common/decisions and common/character_interactions are judged too, on their .info order.
     assert.ok(bodyFieldOrder('common/decisions') !== undefined);
     assert.equal(
         found(
             'common/decisions/x.txt',
-            'd = { effect = { add_gold = 1 } is_shown = { always = yes } }\n',
+            'd = { effect = { add_gold = 1 } is_shown = { is_adult = yes } }\n',
+        ),
+        1,
+    );
+    assert.equal(
+        found(
+            'common/decisions/x.txt',
+            'd = { is_shown = { is_adult = yes } effect = { add_gold = 1 } }\n',
         ),
         0,
     );
+    assert.equal(
+        found(
+            'common/character_interactions/x.txt',
+            'i = { category = interaction_category_friendly interface_priority = 10 }\n',
+        ),
+        1,
+    );
+});
+
+/** The record-body fields of a folder's `.info` file(s), in the order each is first documented. */
+function infoOrder(folder: string): string[] {
+    const directories = spec.companion('info_docs').data['directories'] as Record<
+        string,
+        { files: Record<string, { facts: { fields: { name: string; path: string[] }[] } }> }
+    >;
+    const out: string[] = [];
+    for (const file of Object.values(directories[folder]?.files ?? {})) {
+        for (const field of file.facts.fields) {
+            if (field.path.length === 2 && !out.includes(field.name)) {
+                out.push(field.name);
+            }
+        }
+    }
+    return out;
+}
+
+test("the orders taken from Paradox's .info files are the .info files' own order", () => {
+    for (const folder of INFO_ORDER_FOLDERS) {
+        const order = bodyFieldOrder(folder);
+        assert.ok(order !== undefined, folder);
+        const documented = infoOrder(folder);
+        assert.ok(
+            order.every((f) => documented.includes(f)),
+            `${folder}: every field documented`,
+        );
+        assert.deepEqual(
+            order,
+            [...order].sort((a, b) => documented.indexOf(a) - documented.indexOf(b)),
+            folder,
+        );
+    }
 });
 
 function pairsOf(text: string): Pair[] {

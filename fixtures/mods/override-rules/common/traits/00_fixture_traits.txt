@@ -1,14 +1,11 @@
-# Replaces the game's file at the same path, whole (docs/overrides.md, rule 1).
-fixture_shy = {
-	category = personality
-}
+﻿# Replaces the game's file at the same path, whole (docs/overrides.md, rule 1).
+fixture_shy = { category = personality }
 # A track is known by its trait (part D3: scope_parent record): two traits, two tracks.
 fixture_tracked = {
 	category = lifestyle
 	tracks = {
 		fixture_track = {
-			50 = {
-			}
+			50 = {}
 		}
 	}
 }
@@ -16,8 +13,7 @@ fixture_tracked_too = {
 	category = lifestyle
 	tracks = {
 		fixture_track = {
-			50 = {
-			}
+			50 = {}
 		}
 	}
 }

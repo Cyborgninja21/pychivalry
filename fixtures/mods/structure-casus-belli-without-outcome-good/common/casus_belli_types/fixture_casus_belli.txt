@@ -1,4 +1,4 @@
-fixture_cb = {
+﻿fixture_cb = {
 	group = fixture_group
 	war_name = fixture_cb_war_name
 	on_invalidated_desc = fixture_cb_invalidated
@@ -6,18 +6,12 @@ fixture_cb = {
 	on_defeat_desc = fixture_cb_defeat
 	on_white_peace_desc = fixture_cb_white_peace
 	on_victory = {
-		scope:attacker = {
-			add_prestige = 100
-		}
+		scope:attacker = { add_prestige = 100 }
 	}
 	on_defeat = {
-		scope:attacker = {
-			add_prestige = -100
-		}
+		scope:attacker = { add_prestige = -100 }
 	}
 	on_white_peace = {
-		scope:attacker = {
-			add_prestige = 10
-		}
+		scope:attacker = { add_prestige = 10 }
 	}
 }

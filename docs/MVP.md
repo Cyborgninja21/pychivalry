@@ -76,7 +76,7 @@ lives unchanged in `legacy/`.
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
 | CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
 | Formatting | Best practice and cleanliness take precedence over anything a mod author did (decision 101): a poorly laid out, unformatted mod is fixed by the formatter and flagged as issues. One formatting, by the rules of [formatting.md](formatting.md), for every surface and with no setting: the formatter decides the layout, joins and splits lines, writes Windows line breaks and the UTF-8 byte-order mark in every file, and never changes a token or loses or moves a comment; a file not in the format is a `style/` warning, each untidy place a hint, each with a safe fix (decisions 102 and 103). |
-| Encoding | A script file that is not valid UTF-8 is read and parsed in full, each bad byte the replacement character, with one information note per file saying how it was read. A fallback encoding (Windows-1252, off by default) can be named to decode the bad bytes of such a file, and only those. Beside the note, a file not valid UTF-8 (script or localization) is the best-practice warning `style/not-utf8`, whose fix converts it to UTF-8 with the byte-order mark, its bad bytes read as Windows-1252 (decision 106). Written in [encoding.md](encoding.md). |
+| Encoding | A script file that is not valid UTF-8 is read and parsed in full, each bad byte the replacement character. A fallback encoding (Windows-1252, off by default) can be named to decode the bad bytes of such a file, and only those. A file not valid UTF-8 (script or localization) shows one finding, the best-practice warning `style/not-utf8`, which says how the file was read and whose fix converts it to UTF-8 with the byte-order mark, its bad bytes read as Windows-1252 (decisions 106 and 113; the information note `encoding/not-utf8` is retired). Written in [encoding.md](encoding.md). |
 
 ## Principles
 
@@ -84,7 +84,7 @@ lives unchanged in `legacy/`.
    game raises it: a message in the spec's error catalogue, a required schema field, the game's
    `script_docs` output, or a reproduced in-game error. Anything else pychivalry says is its own
    advice, shown as information or a hint and labelled as advice, never as an error. The one
-   exception, by the owner's decision (decisions 103 and 105 to 107): the `style/` findings,
+   exception, by the owner's decision (decisions 103, 105 to 107 and 112): the `style/` findings,
    whose evidence is pychivalry's own formatting rules ([formatting.md](formatting.md)) or its
    own best-practice rules, not the game; a file not in the format is a warning, and so is a
    file not valid UTF-8. They are labelled as such, and the game-file suites never count them as
@@ -551,8 +551,8 @@ rate, because a model's output is not repeatable.
 - **Agent use.** A test mod with planted defects, every error and warning code at least once,
   plus lines that look wrong and are not; hard enough that the pass rate tells a better agent
   server from a worse one: defects whose fix needs a lookup, defects that interact, defects
-  fixed in another file than the finding (built: 32 defects and 29 look-alikes in 17 files, in
-  `fixtures/defects/`). A trial passes when the checker reports zero errors, every planted
+  fixed in another file than the finding (built: 35 defects and 29 look-alikes in 17 files, in
+  `fixtures/defects/`, the `style/` family's warnings among them since decision 110). A trial passes when the checker reports zero errors, every planted
   defect is gone, nothing outside the planted lines changed, the look-alikes are untouched and
   nothing was deleted. The graders judge by the checker and the manifest's fix ranges, so any
   fix the checker accepts inside those ranges passes, not only the reference copy's.

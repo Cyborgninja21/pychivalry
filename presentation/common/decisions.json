@@ -35,27 +35,15 @@
             "at": "record",
             "body": [
                 "${1:my_decision} = {",
-                "\tpicture = {",
-                "\t\treference = \"${2:gfx/interface/illustrations/decisions/decision_misc.dds}\"",
-                "\t}",
+                "\tpicture = { reference = \"${2:gfx/interface/illustrations/decisions/decision_misc.dds}\" }",
                 "\tdesc = ${1:my_decision}_desc",
                 "\tselection_tooltip = ${1:my_decision}_tooltip",
                 "\tai_check_interval = ${3:120}",
-                "\tis_shown = {",
-                "\t\t${4:is_ruler = yes}",
-                "\t}",
-                "\tis_valid = {",
-                "\t\t${5:is_adult = yes}",
-                "\t}",
-                "\teffect = {",
-                "\t\t$0",
-                "\t}",
-                "\tai_potential = {",
-                "\t\talways = yes",
-                "\t}",
-                "\tai_will_do = {",
-                "\t\tbase = ${6:0}",
-                "\t}",
+                "\tis_shown = { ${4:is_ruler = yes} }",
+                "\tis_valid = { ${5:is_adult = yes} }",
+                "\teffect = {$0}",
+                "\tai_potential = { always = yes }",
+                "\tai_will_do = { base = ${6:0} }",
                 "}"
             ]
         },
@@ -71,35 +59,35 @@
             "description": "The conditions for the decision to be shown",
             "at": "field",
             "field": "is_shown",
-            "body": ["is_shown = {", "\t$0", "}"]
+            "body": ["is_shown = {$0}"]
         },
         {
             "label": "is_valid",
             "description": "The conditions for the decision to be taken",
             "at": "field",
             "field": "is_valid",
-            "body": ["is_valid = {", "\t$0", "}"]
+            "body": ["is_valid = {$0}"]
         },
         {
             "label": "effect",
             "description": "What taking the decision does",
             "at": "field",
             "field": "effect",
-            "body": ["effect = {", "\t$0", "}"]
+            "body": ["effect = {$0}"]
         },
         {
             "label": "cost",
             "description": "What taking the decision costs",
             "at": "field",
             "field": "cost",
-            "body": ["cost = {", "\tgold = ${1:100}", "}"]
+            "body": ["cost = { gold = ${1:100} }"]
         },
         {
             "label": "ai_will_do",
             "description": "How much the AI wants to take the decision",
             "at": "field",
             "field": "ai_will_do",
-            "body": ["ai_will_do = {", "\tbase = ${1:50}", "}"]
+            "body": ["ai_will_do = { base = ${1:50} }"]
         }
     ],
     "hints": [

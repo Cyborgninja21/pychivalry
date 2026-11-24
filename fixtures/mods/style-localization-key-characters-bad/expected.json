@@ -1,0 +1,30 @@
+{
+    "findings": [
+        {
+            "file": "localization/english/fixture_keys_l_english.yml",
+            "line": 2,
+            "column": 2,
+            "code": "style/localization-key-characters",
+            "severity": "hint",
+            "message": "The localization key 'fixture_key_with-dash' holds '-'; a key starts with a letter or '_' and holds only letters, digits, '_' and '.'.",
+            "data": {
+                "key": "fixture_key_with-dash",
+                "starts_with": "",
+                "characters": ["-"]
+            }
+        },
+        {
+            "file": "localization/english/fixture_keys_l_english.yml",
+            "line": 3,
+            "column": 2,
+            "code": "style/localization-key-characters",
+            "severity": "hint",
+            "message": "The localization key '1fixture_leading_digit' starts with a digit; a key starts with a letter or '_' and holds only letters, digits, '_' and '.'.",
+            "data": {
+                "key": "1fixture_leading_digit",
+                "starts_with": "1",
+                "characters": []
+            }
+        }
+    ]
+}

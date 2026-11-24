@@ -1,3 +1,1 @@
-presentation_effect = {
-	add_gold = 1
-}
+﻿presentation_effect = { add_gold = 1 }

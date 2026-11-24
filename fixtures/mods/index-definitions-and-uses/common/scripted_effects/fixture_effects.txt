@@ -1,9 +1,7 @@
-@fixture_cost = 5
+﻿@fixture_cost = 5
 # fixture_trait in a comment is not a use
 fixture_effect = {
 	add_gold = @fixture_cost
 	fixture_other_effect = yes
 }
-fixture_other_effect = {
-	add_trait = fixture_trait
-}
+fixture_other_effect = { add_trait = fixture_trait }

@@ -1,4 +1,4 @@
-namespace = harvest_market
+﻿namespace = harvest_market
 
 # The harvest market opens in the capital.
 harvest_market.0001 = {
@@ -18,7 +18,10 @@ harvest_market.0001 = {
 			modifier = harvest_bounty_modifier
 			years = 1
 		}
-		trigger_event = { id = harvest_market.0002 days = 30 }
+		trigger_event = {
+			id = harvest_market.0002
+			days = 30
+		}
 	}
 	option = {
 		name = harvest_market.0001.b
@@ -30,7 +33,5 @@ harvest_market.0001 = {
 harvest_market.0002 = {
 	type = character_event
 	hidden = yes
-	immediate = {
-		remove_character_modifier = harvest_bounty_modifier
-	}
+	immediate = { remove_character_modifier = harvest_bounty_modifier }
 }

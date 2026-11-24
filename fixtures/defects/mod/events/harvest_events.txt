@@ -1,4 +1,4 @@
-namespace = harvest
+﻿namespace = harvest
 
 # The harvest is in: the ruler decides how to celebrate it.
 harvest.0001 = {
@@ -24,7 +24,10 @@ harvest.0001 = {
 		name = harvest.0001.a
 		add_gold = 50
 		add_prestige = 25
-		trigger_event = { id = harvest.0002 days = 3 }
+		trigger_event = {
+			id = harvest.0002
+			days = 3
+		}
 	}
 	option = {
 		name = harvest.0001.b
@@ -80,9 +83,7 @@ harvest.0003 = {
 			limit = { gold >= 50 }
 			add_gold = -25
 		}
-		else = {
-			add_stress = 10
-		}
+		else = { add_stress = 10 }
 	}
 
 	option = {

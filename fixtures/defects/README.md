@@ -4,11 +4,12 @@ The mod the scored agent-use test is graded on (docs/PLAN.md, items 6.7 to 6.9;
 [tools/scored-run/README.md](../../tools/scored-run/README.md)). Written by hand: a "Harvest
 Festival" mod with events in four files, two decisions, scripted effects and triggers, script
 values, two traditions, on-actions, two modifiers, two interaction categories and their
-localization: 17 files and 591 lines.
+localization: 17 files and 539 lines, in pychivalry's format (Windows line breaks, the
+byte-order mark, the formatter's layout) but for its planted defects.
 
 ```text
 fixtures/defects/
-  mod/             the mod as an agent receives it: 32 defects, every error and warning code
+  mod/             the mod as an agent receives it: 35 defects, every error and warning code
                    at least once, and 29 lines that look wrong and are not
   reference/       the same mod with every defect fixed; it passes every grader
   manifest.json    each planted defect: the check code, where the checker reports it, the text
@@ -26,12 +27,17 @@ Neither `mod/` nor `reference/` holds a README of its own: everything in `mod/` 
 agent, and this page would tell it where the defects are.
 
 
-**The `style/` family is not planted.** The mod is not in pychivalry's format, so the checker
-reports `style/` findings on its files beside the planted defects (build step 8,
-[docs/formatting.md](../../docs/formatting.md)); they rest on pychivalry's own formatting rules,
-not on the game, and the manifest, the graders and the mod's tests leave them out. Whether the mod
-and its reference copy should be brought into the format is a question for the owner
-([docs/decisions.md](../../docs/decisions.md#asked-awaiting-the-owner)).
+**The `style/` family is planted too** (the owner's word of 2026-11-23). The mod and its
+reference copy are in pychivalry's format, so the checker reports no `style/` finding on them but
+the planted ones: a line indented with spaces (`style/not-formatted`, a warning, at the file's one
+untidy place, and its rule's hint `style/indentation`), and a file that is not valid UTF-8 (a
+comment holding the Windows-1252 byte of a curly apostrophe, `style/not-utf8`, a warning). The
+graders count the family like any other: a result whose file form is not the format's (Windows
+line breaks turned to `\n`, a block left over lines where the format puts it on one) fails
+`defects-gone`, since `style/not-formatted` is a planted code. The files with a parse error,
+which the formatter leaves as they are, are laid out as their formatted reference, each defect
+written back as it was. Before step 8's cleanups the mod was not in the format and the family
+was left out (docs/decisions.md, decision 110).
 
 ## Why it is this hard
 
@@ -74,53 +80,58 @@ or a brace lands outside the lines its fix may change (`only-planted-lines`). Te
 ## What the checker reports
 
 On `mod/`, over the stub: exactly the planted defects, one finding each and two for the clash
-(one at each definition), at every severity: 26 errors and 7 warnings, no information, no hint.
+(one at each definition), at every severity: 26 errors, 9 warnings and 1 hint, no information.
 On `reference/`: nothing at all. It is the same with unused keys on (`localization/unused-key`,
 off by default in the runner and in the agent server's `check`): the mod has none. A test holds
-all of it (`tools/src/scored-run/defects.test.ts`), and another gets the same 33 findings from
+all of it (`tools/src/scored-run/defects.test.ts`), and another gets the same 36 findings from
 the built agent server's `check`, with the data that says what is valid at the scope and field
 findings (`tools/src/scored-run/server.test.ts`).
 
 ## The defects
 
 Every check code this build has that is an error or a warning is planted at least once, 21
-errors and 6 warnings; `names/unknown-effect` three times, `names/unknown-trigger`,
-`references/unknown-key` and `scope/wrong-scope-for-effect` twice. No advice code is planted.
+errors and 8 warnings (the `style/` family's two among them); `names/unknown-effect` three times,
+`names/unknown-trigger`, `references/unknown-key` and `scope/wrong-scope-for-effect` twice; and
+one hint, `style/indentation`, which the planted formatting defect raises with its warning. No
+advice code is planted.
 
 | Code | Reported at | The defect |
 | --- | --- | --- |
-| `definitions/clash` | `events/harvest_events.txt:45`, `events/harvest_court_events.txt:34` | Two events share the id harvest.0002. The second, for the court, is the one the on-action names harvest.0012 and whose keys say harvest.0012. |
+| `definitions/clash` | `events/harvest_events.txt:48`, `events/harvest_court_events.txt:34` | Two events share the id harvest.0002. The second, for the court, is the one the on-action names harvest.0012 and whose keys say harvest.0012. |
 | `fields/bare-value-in-record` | `common/decision_group_types/harvest_groups.txt:4` | important_decision_group is written without "= yes"; the game reports it at the token after it. |
 | `fields/missing-required-field` | `common/character_interaction_categories/harvest_categories.txt:9` | An interaction category without its required index; the base game's categories use 0 to 15 and the mod's other one 16. A fix may rewrite the record. |
-| `fields/unknown-field` | `common/decisions/harvest_decisions.txt:7` | ai_check_interval misspelled. |
+| `fields/unknown-field` | `common/decisions/harvest_decisions.txt:5` | ai_check_interval misspelled. |
 | `localization/missing-key` | `events/harvest_court_events.txt:48` | The description key harvest.0013.desc is defined in no localization file: the fix is a line added to the localization file, or the field changed to a key that exists. |
 | `localization/unbalanced-brackets` | `localization/english/harvest_l_english.yml:3` | A [ without its ]. |
-| `names/modifier-outside-use-area` | `common/culture/traditions/harvest_traditions.txt:24` | monthly_piety, a character modifier, in the county_modifier block; it belongs in the character_modifier block above. |
+| `names/modifier-outside-use-area` | `common/culture/traditions/harvest_traditions.txt:18` | monthly_piety, a character modifier, in the county_modifier block; it belongs in the character_modifier block above. |
 | `names/unknown-effect` | `common/scripted_effects/harvest_cleanup_effects.txt:4` | The scripted effect the cleanup calls has no definition: the block below it lost its name, which this call gives. |
-| `names/unknown-effect` | `events/harvest_events.txt:34` | The scripted effect harvest_alms_giving_effect, defined in another file, called by another name. |
-| `names/unknown-effect` | `events/harvest_events.txt:39` | add_piety_experience misspelled. |
-| `names/unknown-link` | `events/harvest_events.txt:52` | The link primary_spouse misspelled. |
-| `names/unknown-modifier` | `common/culture/traditions/harvest_traditions.txt:18` | monthly_prestige_gain_mult misspelled. |
-| `names/unknown-on-action` | `common/on_action/harvest_on_actions.txt:30` | The mod's own on-action harvest_festival_pulse_late misspelled; harvest_festival_pulse, above it, is right. |
+| `names/unknown-effect` | `events/harvest_events.txt:37` | The scripted effect harvest_alms_giving_effect, defined in another file, called by another name. |
+| `names/unknown-effect` | `events/harvest_events.txt:42` | add_piety_experience misspelled. |
+| `names/unknown-link` | `events/harvest_events.txt:55` | The link primary_spouse misspelled. |
+| `names/unknown-modifier` | `common/culture/traditions/harvest_traditions.txt:12` | monthly_prestige_gain_mult misspelled. |
+| `names/unknown-on-action` | `common/on_action/harvest_on_actions.txt:26` | The mod's own on-action harvest_festival_pulse_late misspelled; harvest_festival_pulse, above it, is right. |
 | `names/unknown-trigger` | `events/harvest_events.txt:11` | is_imprisoned misspelled. |
-| `names/unknown-trigger` | `events/harvest_events.txt:74` | The scripted trigger harvest_can_attend_trigger, defined in another file, called by another name. |
-| `references/unknown-key` | `common/decisions/harvest_decisions.txt:25` | trigger_event names harvest_markt.0001; the event is harvest_market.0001, in another file. |
+| `names/unknown-trigger` | `events/harvest_events.txt:77` | The scripted trigger harvest_can_attend_trigger, defined in another file, called by another name. |
+| `references/unknown-key` | `common/decisions/harvest_decisions.txt:23` | trigger_event names harvest_markt.0001; the event is harvest_market.0001, in another file. |
 | `references/unknown-key` | `common/on_action/harvest_on_actions.txt:6` | The on-action names harvest.0012, which no file defines: the court event that should have it is written harvest.0002 (the clash above). Renaming that event fixes both; another free id fixes the clash, and then this line must follow it. |
-| `scope/link-on-wrong-scope` | `common/decisions/harvest_decisions.txt:18` | holder, a link from a title, used in the character scope of a decision; liege is meant, and any link to a title before it (primary_title.holder) is also valid. A fix may rewrite the is_valid block. |
+| `scope/link-on-wrong-scope` | `common/decisions/harvest_decisions.txt:15` | holder, a link from a title, used in the character scope of a decision; liege is meant, and any link to a title before it (primary_title.holder) is also valid. A fix may rewrite the is_valid block. |
 | `scope/wrong-scope-for-effect` | `events/harvest_events.txt:17` | add_county_modifier, an effect of titles, run in the character scope of the event; the modifier holds county modifiers, so it belongs in a county, such as capital_county. A fix may rewrite the block. |
-| `scope/wrong-scope-for-effect` | `events/harvest_faith_events.txt:35` | change_fervor, an effect of faiths, run in the character scope of an option; the link faith leads there. |
-| `scope/wrong-scope-for-trigger` | `common/decisions/harvest_decisions.txt:12` | tier, a trigger of titles, tested in the character scope of a decision; highest_held_title_tier, or tier inside primary_title, tests it. |
+| `scope/wrong-scope-for-effect` | `events/harvest_faith_events.txt:29` | change_fervor, an effect of faiths, run in the character scope of an option; the link faith leads there. |
+| `scope/wrong-scope-for-trigger` | `common/decisions/harvest_decisions.txt:9` | tier, a trigger of titles, tested in the character scope of a decision; highest_held_title_tier, or tier inside primary_title, tests it. |
 | `structure/event-non-character-shown` | `events/harvest_faith_events.txt:4` | An event in the faith scope that is neither hidden nor major. The fix is a line that hides it; removing its scope = faith would leave its faith effects in a character scope. |
-| `structure/event-undeclared-namespace` | `events/harvest_events.txt:102` | The namespace harvest misspelled in the id of the hidden event. harvest.0004 is taken (the court event), so the obvious fix makes a clash; the event needs a free id, and the on-action that names it must follow. |
+| `structure/event-undeclared-namespace` | `events/harvest_events.txt:103` | The namespace harvest misspelled in the id of the hidden event. harvest.0004 is taken (the court event), so the obvious fix makes a clash; the event needs a free id, and the on-action that names it must follow. |
 | `structure/range-min-above-max` | `common/script_values/harvest_values.txt:5` | A range written high first. |
+| `style/indentation` | `events/harvest_market_events.txt:28` | The same line, indented with eight spaces where its two enclosing blocks call for two tabs: the hint of the rule it breaks. |
+| `style/not-formatted` | `events/harvest_market_events.txt:28` | The file is not in pychivalry's format at one place: a line indented with spaces. Formatting the line, or the whole file, fixes it; nothing else in the file changes. |
+| `style/not-utf8` | `common/modifiers/harvest_modifiers.txt:8` | The file is not UTF-8: a comment holds a right single quotation mark written as the one Windows-1252 byte 0x92. Converting the file to UTF-8 (the mark it has kept) changes that line only. |
 | `syntax/block-without-key` | `common/scripted_effects/harvest_cleanup_effects.txt:8` | A scripted effect whose name was left out; the call above names it harvest_remove_bounty_effect. |
-| `syntax/missing-closing-brace` | `common/scripted_effects/harvest_reward_effects.txt:9` | The add_character_modifier block is never closed, so the last block of the file is not either; the game reports it at that block's opening brace. The } belongs after years = 2, not at the end of the file. |
+| `syntax/missing-closing-brace` | `common/scripted_effects/harvest_reward_effects.txt:7` | The add_character_modifier block is never closed, so the last block of the file is not either; the game reports it at that block's opening brace. The } belongs after years = 2, not at the end of the file. |
 | `syntax/missing-equals-before-block` | `common/scripted_effects/harvest_effects.txt:4` | limit written without its =. |
 | `syntax/missing-operator` | `common/script_values/harvest_values.txt:2` | A script constant written without its =. |
-| `syntax/missing-value` | `common/scripted_effects/harvest_effects.txt:20` | add_piety with no amount; the game reports it at the token after the =. |
+| `syntax/missing-value` | `common/scripted_effects/harvest_effects.txt:16` | add_piety with no amount; the game reports it at the token after the =. |
 | `syntax/null-safe-operator-after-value` | `common/scripted_triggers/harvest_triggers.txt:5` | A saved scope written in quotes before ?=. |
-| `syntax/operator-without-key` | `common/scripted_effects/harvest_effects.txt:15` | A branch of a random list without its weight. |
-| `syntax/unexpected-closing-brace` | `common/scripted_triggers/harvest_triggers.txt:24` | One closing brace too many at the end of the file. |
+| `syntax/operator-without-key` | `common/scripted_effects/harvest_effects.txt:13` | A branch of a random list without its weight. |
+| `syntax/unexpected-closing-brace` | `common/scripted_triggers/harvest_triggers.txt:19` | One closing brace too many at the end of the file. |
 
 ## The look-alikes
 
@@ -130,34 +141,34 @@ category), where only the `look-alikes-untouched` grader protects them.
 
 | Line | Text | Why it is right |
 | --- | --- | --- |
-| `events/harvest_events.txt:32` | `add_gold = -10` | A negative amount in an add effect is how gold is taken away. |
-| `events/harvest_events.txt:33` | `ruler_feast_gift_effect = yes` | A scripted effect the base game defines, not the mod. |
-| `events/harvest_events.txt:40` | `faith = { change_fervor = 5 }` | change_fervor in the faith scope, reached by the link faith: right, where the same effect in the faith event file is not. |
-| `events/harvest_events.txt:51` | `exists = root.primary_spouse` | The link primary_spouse, spelled right, in a value. |
-| `events/harvest_events.txt:53` | `scope:harvest_host = root` | "=" between two scopes compares them; it assigns nothing. |
-| `events/harvest_events.txt:75` | `NOT = { harvest_famine_trigger = yes }` | A scripted trigger the mod defines, called by its own name. |
+| `events/harvest_events.txt:35` | `add_gold = -10` | A negative amount in an add effect is how gold is taken away. |
+| `events/harvest_events.txt:36` | `ruler_feast_gift_effect = yes` | A scripted effect the base game defines, not the mod. |
+| `events/harvest_events.txt:43` | `faith = { change_fervor = 5 }` | change_fervor in the faith scope, reached by the link faith: right, where the same effect in the faith event file is not. |
+| `events/harvest_events.txt:54` | `exists = root.primary_spouse` | The link primary_spouse, spelled right, in a value. |
+| `events/harvest_events.txt:56` | `scope:harvest_host = root` | "=" between two scopes compares them; it assigns nothing. |
+| `events/harvest_events.txt:78` | `NOT = { harvest_famine_trigger = yes }` | A scripted trigger the mod defines, called by its own name. |
 | `events/harvest_court_events.txt:56` | `capital_county = { change_county_control = 5 }` | A county effect inside capital_county: the right scope. |
 | `events/harvest_faith_events.txt:5` | `scope = faith` | The event runs in the faith scope on purpose: its trigger and immediate test and change the faith. |
-| `events/harvest_faith_events.txt:14` | `change_fervor = 3` | change_fervor in the faith scope of the faith event: right. |
-| `common/decisions/harvest_decisions.txt:16` | `this = root` | "this = root" compares two scopes. |
-| `common/decisions/harvest_decisions.txt:48` | `primary_title = { tier >= 3 }` | tier inside primary_title: a title trigger in a title scope. |
-| `common/decisions/harvest_decisions.txt:53` | `liege = { is_adult = yes }` | liege, a link from a character, in a character scope. |
-| `common/decisions/harvest_decisions.txt:59` | `trigger_event = { id = harvest_market.0002 days = 7 }` | An event of the harvest_market namespace, spelled right. |
-| `common/decisions/harvest_decisions.txt:44` | `ai_check_interval = 60` | The field ai_check_interval, spelled right. |
-| `common/decisions/harvest_decisions.txt:58` | `harvest_alms_giving_effect = yes` | The scripted effect the mod defines, called by its own name. |
-| `common/scripted_triggers/harvest_triggers.txt:19` | `always = no` | A trigger that is never true, on purpose, as its comment says. |
-| `common/scripted_triggers/harvest_triggers.txt:23` | `has_cultural_tradition = tradition_agrarian` | A cultural tradition the base game defines, not the mod. |
-| `common/scripted_triggers/harvest_triggers.txt:14` | `scope:harvest_host ?= { is_ai = no }` | A saved scope written bare before ?=: the null-safe form, right. |
+| `events/harvest_faith_events.txt:11` | `immediate = { change_fervor = 3 }` | change_fervor in the faith scope of the faith event: right. |
+| `common/decisions/harvest_decisions.txt:13` | `this = root` | "this = root" compares two scopes. |
+| `common/decisions/harvest_decisions.txt:42` | `primary_title = { tier >= 3 }` | tier inside primary_title: a title trigger in a title scope. |
+| `common/decisions/harvest_decisions.txt:47` | `liege = { is_adult = yes }` | liege, a link from a character, in a character scope. |
+| `common/decisions/harvest_decisions.txt:54` | `id = harvest_market.0002` | An event of the harvest_market namespace, spelled right. |
+| `common/decisions/harvest_decisions.txt:38` | `ai_check_interval = 60` | The field ai_check_interval, spelled right. |
+| `common/decisions/harvest_decisions.txt:52` | `harvest_alms_giving_effect = yes` | The scripted effect the mod defines, called by its own name. |
+| `common/scripted_triggers/harvest_triggers.txt:16` | `harvest_famine_trigger = { always = no }` | A trigger that is never true, on purpose, as its comment says. |
+| `common/scripted_triggers/harvest_triggers.txt:18` | `harvest_agrarian_trigger = { has_cultural_tradition = tradition_agrarian }` | A cultural tradition the base game defines, not the mod. |
+| `common/scripted_triggers/harvest_triggers.txt:12` | `scope:harvest_host ?= { is_ai = no }` | A saved scope written bare before ?=: the null-safe form, right. |
 | `common/character_interaction_categories/harvest_categories.txt:5` | `color = hsv { 0.12 0.7 0.8 }` | A colour in HSV: "hsv" before the block names the colour space; no "=" is missing. |
 | `common/character_interaction_categories/harvest_categories.txt:11` | `color = { 0.8 0.6 0.2 }` | A colour in RGB, with no prefix: right as it is. |
-| `common/culture/traditions/harvest_traditions.txt:19` | `bowmen_damage_mult = 0.05` | A modifier no list names, which a template (<men-at-arms type>_damage_mult) makes. |
-| `common/culture/traditions/harvest_traditions.txt:23` | `levy_size = 0.05` | A modifier whose use areas include counties: right in the county_modifier block. |
-| `common/scripted_effects/harvest_effects.txt:24` | `ROOT = {` | Upper-case ROOT is the same scope as root. |
-| `common/scripted_effects/harvest_effects.txt:12` | `60 = {` | A branch of the random list with its weight. |
+| `common/culture/traditions/harvest_traditions.txt:13` | `bowmen_damage_mult = 0.05` | A modifier no list names, which a template (<men-at-arms type>_damage_mult) makes. |
+| `common/culture/traditions/harvest_traditions.txt:17` | `levy_size = 0.05` | A modifier whose use areas include counties: right in the county_modifier block. |
+| `common/scripted_effects/harvest_effects.txt:20` | `ROOT = { add_gold = 25 }` | Upper-case ROOT is the same scope as root. |
+| `common/scripted_effects/harvest_effects.txt:12` | `60 = { add_gold = 25 }` | A branch of the random list with its weight. |
 | `common/script_values/harvest_values.txt:1` | `@harvest_tithe = 25` | A script constant with its =. |
 | `common/script_values/harvest_values.txt:8` | `harvest_loss_value = { -10 -5 }` | A range of negative numbers, low first: right. |
-| `common/on_action/harvest_on_actions.txt:29` | `harvest_festival_pulse` | The on-action harvest_festival_pulse, spelled right. |
-| `common/scripted_effects/harvest_reward_effects.txt:3` | `primary_spouse ?= {` | The link primary_spouse with ?=: null-safe, right. |
+| `common/on_action/harvest_on_actions.txt:24` | `harvest_festival_pulse` | The on-action harvest_festival_pulse, spelled right. |
+| `common/scripted_effects/harvest_reward_effects.txt:3` | `primary_spouse ?= { add_prestige = 10 }` | The link primary_spouse with ?=: null-safe, right. |
 | `localization/english/harvest_l_english.yml:5` | `harvest.0001.b:0 "Give #P 10#! gold to the poor."` | #P and #! format the text; they are not brackets. |
 
 ## How it is used

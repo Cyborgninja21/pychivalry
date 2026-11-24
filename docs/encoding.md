@@ -53,19 +53,23 @@ a Western system is Windows-1252.
 
 ### The policy
 
-Decided by the owner on 2026-11-21 ([decision 38](decisions.md#log)).
+Decided by the owner on 2026-11-21 ([decision 38](decisions.md#log)); point 3 changed on
+2026-11-23 ([decision 113](decisions.md#log)).
 
 1. **UTF-8, with or without the byte-order mark,** is what a script file is.
 2. **A file that is not valid UTF-8 is still read, and parsed in full.** Each invalid sequence
    becomes U+FFFD, the replacement character. The game itself ships such files and loads them,
    so this is never an error or a warning.
-3. **One information note per file** says it is not valid UTF-8: how many bytes are invalid,
-   and how the file was read. It is placed at the first invalid byte. Its identifier is
-   `encoding/not-utf8`.
+3. **One finding per file** says it is not valid UTF-8: the warning `style/not-utf8` (below),
+   which says how many bytes are invalid and how the file was read, at the first invalid byte.
+   Until 2026-11-23 an information note, `encoding/not-utf8`, said that much beside the warning;
+   it is retired, and the decoder gives no finding of its own: it records where each invalid
+   stretch is and how it read it, which the warning reports.
 4. **A fallback encoding** can be named by the caller: Windows-1252, off by default. The
    invalid bytes of a file that is not valid UTF-8, and only those, are then decoded with it,
    so its letters read correctly. Everything that is valid UTF-8 stays as it is, in that file
-   and in every other. The note is still given.
+   and in every other. The warning is still given, and says the bytes were read as
+   Windows-1252.
 
 Where it lives today: the core's decoding function, `decodeScript(bytes, options)`, and
 `readScript`, which decodes and parses, take `fallbackEncoding: 'windows-1252'`. Both paths
@@ -86,20 +90,23 @@ What follows from it:
   `NiccolÃ²`).
 - **Invalid is what the WHATWG Encoding Standard says it is,** the UTF-8 decoder built into
   Node and every browser (`TextDecoder`): a byte that cannot start a sequence, or a sequence
-  cut short, together with the bytes of it that were read, is one U+FFFD. The note counts
+  cut short, together with the bytes of it that were read, is one U+FFFD. The warning counts
   invalid bytes.
 - **UTF-16 is not detected.** No game file uses it; a file that does is read as UTF-8, like any
-  other, and gets the note.
+  other, and gets the warning.
 
 ### The best-practice warning and its conversion (2026-11-23)
 
 On the owner's word of 2026-11-23 (best practice and tidiness come before what a mod's author
-wrote), a file that is not valid UTF-8 is also an actionable warning, `style/not-utf8`, of the
-family `style`: pychivalry's own best-practice rules, not the game's evidence. The note
-`encoding/not-utf8` above is unchanged, as signed off: information, saying how the file was
-read. The two sit at the same place, the first invalid byte, and say different things: the note
-how the file was read, the warning what to do; converting the file takes both away. The warning
-is given on localization files too, which have no note.
+wrote), a file that is not valid UTF-8 is an actionable warning, `style/not-utf8`, of the
+family `style`: pychivalry's own best-practice rules, not the game's evidence. It is the one
+finding about such a file ([decision 113](decisions.md#log)), on script and localization files
+alike: its message says how many bytes are invalid, how the file was read ("as UTF-8 with
+replacement characters", or "as UTF-8, with its invalid bytes read as Windows-1252"), and what
+to do; its data gives the same (`invalid_bytes`, `stretches`, `read_as`, and the Windows-1252
+letters the bytes stand for). As first built it stood beside the information note
+`encoding/not-utf8`, which said how the file was read; that note is retired, never to be given
+again ([checks.md](checks.md#retired-codes)).
 
 - **The fix** writes the file as UTF-8 with the byte-order mark, each invalid stretch read as
   Windows-1252 (the "ansi" the game's own title-history message asks for). Its edits are against
@@ -207,7 +214,9 @@ There are three parse errors, each a defect in the game's own files and classifi
 | `events/dlc/gdp/gdp_visit_holding_decision_event_2.txt` | 3839 | `Expected } after arguments` | The file ends inside its last event |
 | `history/characters/han/sima_53f8_99ac.txt` | 1395 | `Expected '=' between block name and body` | A dated entry written `296.1.1 {`, the defect 2.3.0 found in `japanese.txt` on 1.20 |
 
-The other 26 findings are the information notes of the 26 files read that are not valid UTF-8.
+Until 2026-11-23 the parse also gave 26 information notes, one for each of the 26 files read
+that are not valid UTF-8; since the note was retired (decision 113) it gives none, and the
+record counts those files by folder (`not_utf8`).
 
 ## The syntax the parser accepts
 
@@ -250,9 +259,10 @@ code. Where it holds none, the finding is pychivalry's own advice and is informa
 | `syntax/null-safe-operator-after-value` | error | `unexpected_token_X_found_at_X_expected` | `?=` after a number, date, constant or quoted text |
 | `syntax/unterminated-string` | information | none | Quoted text without its closing quote |
 | `syntax/malformed-arithmetic` | information | none | `@[ ... ]` that is not well formed, or has no `]` |
-| `encoding/not-utf8` | information | none | A file that is not valid UTF-8 |
 
 The identifiers are stable, but they are not the public diagnostic codes: those are fixed with
-the check inventory, item 4.1, which gives each identifier its permanent code. Each recovery is
+the check inventory, item 4.1, which gives each identifier its permanent code. An eleventh,
+`encoding/not-utf8`, an information note on a file not valid UTF-8, was retired on 2026-11-23
+(decision 113): the decoder gives no finding, and such a file is the warning `style/not-utf8`. Each recovery is
 tested on a fixture mod under [fixtures/mods/](../fixtures/mods/README.md), whose name starts
 with `parse-`.

@@ -1,4 +1,4 @@
-namespace = fixture
+﻿namespace = fixture
 
 fixture.0001 = {
 	type = character_event
@@ -7,18 +7,12 @@ fixture.0001 = {
 		desc = fixture.0001.intro
 		switch = {
 			trigger = scope:fixture_mood
-			flag:happy = {
-				desc = fixture.0001.happy
-			}
-			fallback = {
-				desc = fixture.0001.plain
-			}
+			flag:happy = { desc = fixture.0001.happy }
+			fallback = { desc = fixture.0001.plain }
 		}
 	}
 	option = {
 		name = fixture.0001.a
-		random_courtier = {
-			save_scope_as = fixture_mood
-		}
+		random_courtier = { save_scope_as = fixture_mood }
 	}
 }

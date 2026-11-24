@@ -12,7 +12,7 @@ import { rulesFromSpec } from '../index/rules.js';
 import { stubIndex } from '../index/testing.js';
 import { WorkspaceIndex } from '../index/workspace.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
-import { catalogueFromSpec, findingMessage, type MessageCatalogue } from '../syntax/findings.js';
+import { catalogueFromSpec, type MessageCatalogue } from '../syntax/findings.js';
 import { parse } from '../syntax/parser.js';
 import { readScript } from '../syntax/read.js';
 import {
@@ -115,21 +115,9 @@ export function checkFixture(
                   names,
                   catalogue: messages,
                   index: { workspace: index, layer: 'mod' },
-                  invalid:
-                      script?.allFindings.find((n) => n.id === 'encoding/not-utf8')?.invalid ?? [],
+                  invalid: script?.invalid ?? [],
+                  encoding: script?.encoding,
               });
-        // The decoder's note on a file that is not valid UTF-8, as the runner reports it.
-        for (const note of script?.allFindings.filter((n) => n.id === 'encoding/not-utf8') ?? []) {
-            out.push({
-                file: file.path,
-                line: note.range.start.line + 1,
-                column: note.range.start.character + 1,
-                code: note.id,
-                severity: note.severity,
-                message: findingMessage(note, { file: file.path }),
-                data: {},
-            });
-        }
         for (const f of found.filter((x) => options.style === true || !isStyle(x.code))) {
             out.push({
                 file: file.path,

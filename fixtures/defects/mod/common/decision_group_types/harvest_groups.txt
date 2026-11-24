@@ -1,4 +1,4 @@
-harvest_group = {
+﻿harvest_group = {
 	sort_order = 50
 	important_decision_group
 }

@@ -1,3 +1,1 @@
-fixture.9 = {
-	fixture_effect = yes
-}
+﻿fixture.9 = { fixture_effect = yes }

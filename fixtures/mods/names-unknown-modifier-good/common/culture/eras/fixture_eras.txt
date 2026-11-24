@@ -1,4 +1,4 @@
-# A modifier block (an era's character_modifier holds modifiers): modifiers, a modifier
+﻿# A modifier block (an era's character_modifier holds modifiers): modifiers, a modifier
 # template, and a name only a marked template fills, which is neither proved nor refuted.
 culture_era_fixture = {
 	year = 1100

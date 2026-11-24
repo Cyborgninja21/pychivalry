@@ -37,12 +37,8 @@
                 "${1:my_interaction} = {",
                 "\tcategory = ${2|interaction_category_friendly,interaction_category_hostile,interaction_category_diplomacy|}",
                 "\tdesc = ${1:my_interaction}_desc",
-                "\tis_shown = {",
-                "\t\t${3:is_adult = yes}",
-                "\t}",
-                "\ton_accept = {",
-                "\t\t$0",
-                "\t}",
+                "\tis_shown = { ${3:is_adult = yes} }",
+                "\ton_accept = {$0}",
                 "\tauto_accept = yes",
                 "}"
             ]
@@ -61,42 +57,42 @@
             "description": "The conditions for the interaction to be shown",
             "at": "field",
             "field": "is_shown",
-            "body": ["is_shown = {", "\t$0", "}"]
+            "body": ["is_shown = {$0}"]
         },
         {
             "label": "can_send",
             "description": "The conditions for the interaction to be sent",
             "at": "field",
             "field": "can_send",
-            "body": ["can_send = {", "\t$0", "}"]
+            "body": ["can_send = {$0}"]
         },
         {
             "label": "on_accept",
             "description": "What happens when the recipient accepts",
             "at": "field",
             "field": "on_accept",
-            "body": ["on_accept = {", "\t$0", "}"]
+            "body": ["on_accept = {$0}"]
         },
         {
             "label": "on_decline",
             "description": "What happens when the recipient declines",
             "at": "field",
             "field": "on_decline",
-            "body": ["on_decline = {", "\t$0", "}"]
+            "body": ["on_decline = {$0}"]
         },
         {
             "label": "ai_accept",
             "description": "How much the AI wants to accept",
             "at": "field",
             "field": "ai_accept",
-            "body": ["ai_accept = {", "\tbase = ${1:0}", "}"]
+            "body": ["ai_accept = { base = ${1:0} }"]
         },
         {
             "label": "ai_will_do",
             "description": "How much the AI wants to send the interaction",
             "at": "field",
             "field": "ai_will_do",
-            "body": ["ai_will_do = {", "\tbase = ${1:10}", "}"]
+            "body": ["ai_will_do = { base = ${1:10} }"]
         }
     ],
     "hints": [

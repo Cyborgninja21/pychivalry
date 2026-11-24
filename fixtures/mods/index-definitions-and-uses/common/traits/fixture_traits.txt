@@ -1,4 +1,4 @@
-fixture_trait = {
+﻿fixture_trait = {
 	opposites = { fixture_trait_opposite }
 }
 fixture_trait_opposite = {

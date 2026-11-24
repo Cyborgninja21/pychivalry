@@ -496,7 +496,7 @@ export function runParseSuite(
             let parsed: ReturnType<typeof readScript>;
             try {
                 const file = readScript(bytes, { catalogue: options.catalogue });
-                findings = file.allFindings;
+                findings = file.findings;
                 row.trees++;
                 parsed = file;
                 if (file.bom) {

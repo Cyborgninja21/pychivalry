@@ -48,7 +48,7 @@ import {
     extensionOf,
     type CheckSource,
     type DefinedNames,
-    type Finding,
+    type NotUtf8Reading,
     type FolderTable,
     type GameIndex,
     type MessageCatalogue,
@@ -201,8 +201,8 @@ interface OnDisk {
     readonly bytes: Uint8Array | null;
     readonly text: string | null;
     readonly bom: boolean;
-    /** The decoder's note, when the file is not valid UTF-8. */
-    readonly notes: readonly Finding[];
+    /** What the decoder read where the file is not valid UTF-8 (`style/not-utf8`). */
+    readonly decoded: NotUtf8Reading;
 }
 
 /** What the server has open: the mod over the base game. */
@@ -779,13 +779,23 @@ export class LanguageServer {
             }
         }
         if (bytes === null) {
-            return { bytes: null, text: null, bom: false, notes: [] };
+            return {
+                bytes: null,
+                text: null,
+                bom: false,
+                decoded: { invalid: [], encoding: 'utf-8' },
+            };
         }
         const decoded = decodeScript(bytes, {
             catalogue: this.catalogue,
             fallbackEncoding: this.settings.fallbackEncoding ?? undefined,
         });
-        return { bytes, text: decoded.text, bom: decoded.bom, notes: decoded.findings };
+        return {
+            bytes,
+            text: decoded.text,
+            bom: decoded.bom,
+            decoded: { invalid: decoded.invalid, encoding: decoded.encoding },
+        };
     }
 
     private disk(file: string): OnDisk {
@@ -814,7 +824,11 @@ export class LanguageServer {
         const disk = this.disk(file);
         const same = disk.text === doc.text;
         if (doc.kind === 'script') {
-            return { script: doc.script(), notes: same ? disk.notes : [], bom: disk.bom };
+            return {
+                script: doc.script(),
+                decoded: same ? disk.decoded : undefined,
+                bom: disk.bom,
+            };
         }
         return { bytes: same && disk.bytes !== null ? disk.bytes : this.editorBytes(doc) };
     }

@@ -47,13 +47,8 @@
                 "\t\tcharacter = root",
                 "\t\tanimation = ${5:idle}",
                 "\t}",
-                "\timmediate = {",
-                "\t\t$6",
-                "\t}",
-                "\toption = {",
-                "\t\tname = ${1:my_namespace}.${2:1}.a",
-                "\t\t$0",
-                "\t}",
+                "\timmediate = {$6}",
+                "\toption = { name = ${1:my_namespace}.${2:1}.a$0 }",
                 "}"
             ]
         },
@@ -61,14 +56,7 @@
             "label": "hidden event",
             "description": "A new hidden event: no window, no option, its effects run at once",
             "at": "record",
-            "body": [
-                "${1:my_namespace}.${2:1} = {",
-                "\thidden = yes",
-                "\timmediate = {",
-                "\t\t$0",
-                "\t}",
-                "}"
-            ]
+            "body": ["${1:my_namespace}.${2:1} = {", "\thidden = yes", "\timmediate = {$0}", "}"]
         },
         {
             "label": "type",
@@ -117,28 +105,28 @@
             "description": "The conditions for the event to fire",
             "at": "field",
             "field": "trigger",
-            "body": ["trigger = {", "\t$0", "}"]
+            "body": ["trigger = {$0}"]
         },
         {
             "label": "immediate",
             "description": "Effects run when the event fires, before its window shows",
             "at": "field",
             "field": "immediate",
-            "body": ["immediate = {", "\t$0", "}"]
+            "body": ["immediate = {$0}"]
         },
         {
             "label": "after",
             "description": "Effects run after an option is chosen",
             "at": "field",
             "field": "after",
-            "body": ["after = {", "\t$0", "}"]
+            "body": ["after = {$0}"]
         },
         {
             "label": "option",
             "description": "An option the player can choose, with its localization key",
             "at": "field",
             "field": "option",
-            "body": ["option = {", "\tname = ${1:my_namespace.1.a}", "\t$0", "}"]
+            "body": ["option = { name = ${1:my_namespace.1.a}$0 }"]
         },
         {
             "label": "left_portrait",

@@ -1,4 +1,4 @@
-namespace = harvest
+﻿namespace = harvest
 
 # The court gathers for the festival.
 harvest.0004 = {

@@ -37,9 +37,11 @@ sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed i
 
 ## The agent-use task
 
-The agent gets a copy of the planted-defect mod, `fixtures/defects/mod/`: 32 defects, every
-check code that is an error or a warning at least once, and 29 lines that look wrong and are not,
-in 17 files. Some defects need a lookup to fix, some interact (the obvious fix of one makes
+The agent gets a copy of the planted-defect mod, `fixtures/defects/mod/`: 35 defects, every
+check code that is an error or a warning at least once (the `style/` family's two warnings among
+them since decision 110: a file not in pychivalry's format and a file not UTF-8, which the graders
+count like the others), and 29 lines that look wrong and are not, in 17 files in pychivalry's
+format but for the defects. Some defects need a lookup to fix, some interact (the obvious fix of one makes
 another), and some are fixed away from the line the finding points at
 ([fixtures/defects/README.md](../../fixtures/defects/README.md#why-it-is-this-hard)); the mod
 was made harder after item 6.11's first test sessions, which fixed the first one too easily to
