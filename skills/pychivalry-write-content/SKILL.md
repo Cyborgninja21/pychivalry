@@ -28,8 +28,8 @@ These hold for every request, whatever else it asks.
    names close to it that `lookup` offers are candidates, each looked up in turn. A name the mod
    or the game defines (an event, a trait, a scripted effect) is checked with `find_definition`.
 2. **Write events with their localization.** The texts an event shows are written in its script
-   as localization keys, and every key you write is defined in the mod's localization, with
-   real text, in the same change. A `localization/missing-key` finding means this rule is not
+   as localization keys (`lookup` of a field says whether it holds one), and every key you
+   write is defined in the mod's localization, with real text, in the same change. A `localization/missing-key` finding means this rule is not
    met: its fix names the file and the line to add (and creates the file when the mod has
    none); write the real text instead of the key the stub repeats. The same holds for the keys
    of a decision.
@@ -60,7 +60,8 @@ These hold for every request, whatever else it asks.
 | A scripted effect | A file in `common/scripted_effects` |
 | A scripted trigger | A file in `common/scripted_triggers` |
 
-Ask for anything else to be done another way: these four are what this skill covers.
+Content of another kind is outside this skill: say so, and check whatever you write all the
+same.
 
 ## Steps
 
@@ -70,9 +71,9 @@ Ask for anything else to be done another way: these four are what this skill cov
 2. **Learn the folder from the game.** `list_definitions` with `kind` the folder (`events`,
    `common/decisions`, ...) lists what the mod and the base game define there. `lookup` each
    field you mean to write: a reading that is a field of that folder gives Paradox's own
-   documentation of it, its value type and the values the base game writes. Run `check` on the
-   mod once before you start: what it already reports is not yours to fix unless asked, and
-   you will not mistake it for your own.
+   documentation of it, its value type, whether it holds a localization key and, where they are
+   few, the values the base game writes. Run `check` on the mod once before you start: what it
+   already reports is not yours to fix unless asked, and you will not mistake it for your own.
 3. **Name things so they clash with nothing.** Give everything you define a name of the mod's
    own, with a prefix the mod already uses if it has one. `find_definition` on each new name
    must find nothing: a definition of the same name replaces the base game's or another file's.
