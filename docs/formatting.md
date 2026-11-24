@@ -407,7 +407,9 @@ The command line writes it with the file.
   token is kept as written and the file is formatted.
 - **A file that is not valid UTF-8** is left unchanged by the command line and the agent server,
   which could not write its bytes back as they were. In the editor the formatter formats the text
-  the editor holds.
+  the editor holds. The best-practice warning `style/not-utf8` converts such a file to UTF-8 with
+  the byte-order mark (decision 106; [encoding.md](encoding.md)); `check --fix` converts it
+  first, and once converted it is formatted like any other.
 - **Other files** are not formatted: GUI files, `.info`, `.asset`, `.shader`, `.gfx`, `.settings`,
   and anything that is neither a script file nor a localization file of a folder the game reads.
 
@@ -461,8 +463,9 @@ which a user can change: `editor.insertSpaces` false (tabs) for script files, an
 
 A file not in the format is flagged, as the owner decided (decisions 101 and 103): the `style/`
 family of [checks.md](checks.md#formatting-the-style-family). Their evidence is these rules, not
-the game: by the owner's decision, the one kind of warning that rests on pychivalry's own rules
-(principle 1 of [MVP.md](MVP.md#principles)).
+the game: by the owner's decision, one of the two kinds of warning that rest on pychivalry's own
+rules (principle 1 of [MVP.md](MVP.md#principles)); the other is the family's best-practice rows
+(below).
 
 - **`style/not-formatted`**, a warning, once for each file not in the format, at its first
   untidy place, saying how many places differ and by which rule. Its safe fix formats the whole
@@ -486,6 +489,14 @@ the game: by the owner's decision, the one kind of warning that rests on pychiva
   kept small: edits less than 2,048 characters apart are merged into one (`MERGE_GAP`), and the
   agent server lists a formatting fix of more than 2,000 characters without its edits, marked,
   and points to its `format` tool for the text.
+- **The best-practice rows of the same family** (decisions 105 to 107,
+  [checks.md](checks.md#best-practice-the-style-familys-best-practice-rules)) are not about
+  layout: `style/not-utf8` (a warning, with a fix converting the file to UTF-8 with the mark),
+  `style/empty-block`, `style/deep-nesting` and `style/unusual-field-order` (hints). Their fixes
+  agree with the format: each fixture pair of theirs is written in the format, and after their
+  fixes the formatter finds nothing to change (tested). The field-order fix moves whole lines and
+  keeps each field's comments with it; the empty-block fix takes a block's line away; the
+  conversion adds the mark, which the formatter would add too, and the two insertions are one.
 
 ## What the formatter guarantees
 

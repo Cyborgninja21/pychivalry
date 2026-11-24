@@ -2,12 +2,12 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-24T00:52:03.681Z",
+    "made_at": "2026-11-24T01:32:05.034Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "3539184ed5182d9433800924d0f92c7ac1edc508",
-        "dirty": false
+        "commit": "de9b0d7e3c0366596691315063ec9ad9d0477944",
+        "dirty": true
     },
     "machine": {
         "os": "linux",
@@ -43,14 +43,14 @@
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 3.91 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 3.10 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 13651,
-            "peak_rss_kib": 1702652
+            "build_ms": 16811,
+            "peak_rss_kib": 1392924
         },
         "mods": [
             {
@@ -66,7 +66,7 @@
                     "error": 0,
                     "warning": 11,
                     "information": 0,
-                    "hint": 798
+                    "hint": 904
                 },
                 "by_code": [
                     {
@@ -80,9 +80,19 @@
                         "count": 755
                     },
                     {
+                        "code": "localization/unused-key",
+                        "severity": "hint",
+                        "count": 105
+                    },
+                    {
                         "code": "style/block-layout",
                         "severity": "hint",
                         "count": 42
+                    },
+                    {
+                        "code": "style/deep-nesting",
+                        "severity": "hint",
+                        "count": 1
                     },
                     {
                         "code": "style/line-endings",
@@ -150,11 +160,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1016,
-                    "check": 114,
-                    "total": 1130
+                    "load_base": 1900,
+                    "check": 143,
+                    "total": 2043
                 },
-                "peak_rss_kib": 765584
+                "peak_rss_kib": 747840
             },
             {
                 "slug": "divine-intervention",
@@ -169,7 +179,7 @@
                     "error": 0,
                     "warning": 429,
                     "information": 3,
-                    "hint": 101917
+                    "hint": 107258
                 },
                 "by_code": [
                     {
@@ -185,27 +195,42 @@
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 74375
+                        "count": 71661
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 21256
+                        "count": 20357
+                    },
+                    {
+                        "code": "style/empty-block",
+                        "severity": "hint",
+                        "count": 5459
+                    },
+                    {
+                        "code": "localization/unused-key",
+                        "severity": "hint",
+                        "count": 3467
                     },
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 2973
+                        "count": 2964
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 2757
+                        "count": 2616
                     },
                     {
                         "code": "style/line-endings",
                         "severity": "hint",
                         "count": 395
+                    },
+                    {
+                        "code": "style/deep-nesting",
+                        "severity": "hint",
+                        "count": 175
                     },
                     {
                         "code": "style/spacing",
@@ -221,6 +246,11 @@
                         "code": "fields/unusual-value",
                         "severity": "hint",
                         "count": 12
+                    },
+                    {
+                        "code": "style/unusual-field-order",
+                        "severity": "hint",
+                        "count": 3
                     }
                 ],
                 "errors": 0,
@@ -235,18 +265,23 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 56,
-                    "dropped": 1104239,
+                    "files": 62,
+                    "dropped": 1114741,
                     "dropped_by_code": [
+                        {
+                            "code": "localization/unused-key",
+                            "severity": "hint",
+                            "count": 232
+                        },
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 1791
+                            "count": 1932
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 195343
+                            "count": 196242
                         },
                         {
                             "code": "style/comment-spacing",
@@ -254,9 +289,19 @@
                             "count": 2
                         },
                         {
+                            "code": "style/deep-nesting",
+                            "severity": "hint",
+                            "count": 4085
+                        },
+                        {
+                            "code": "style/empty-block",
+                            "severity": "hint",
+                            "count": 2422
+                        },
+                        {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 905565
+                            "count": 908279
                         },
                         {
                             "code": "style/line-endings",
@@ -271,7 +316,7 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 1525
+                            "count": 1534
                         }
                     ]
                 },
@@ -343,11 +388,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 995,
-                    "check": 16308,
-                    "total": 17303
+                    "load_base": 1267,
+                    "check": 21403,
+                    "total": 22669
                 },
-                "peak_rss_kib": 3177436
+                "peak_rss_kib": 3157664
             },
             {
                 "slug": "elf-destiny",
@@ -366,7 +411,7 @@
                     "error": 2,
                     "warning": 952,
                     "information": 443,
-                    "hint": 65056
+                    "hint": 70555
                 },
                 "by_code": [
                     {
@@ -417,12 +462,12 @@
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 28765
+                        "count": 28741
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 15816
+                        "count": 15784
                     },
                     {
                         "code": "style/spacing",
@@ -432,7 +477,17 @@
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 5039
+                        "count": 5037
+                    },
+                    {
+                        "code": "style/empty-block",
+                        "severity": "hint",
+                        "count": 2695
+                    },
+                    {
+                        "code": "localization/unused-key",
+                        "severity": "hint",
+                        "count": 2444
                     },
                     {
                         "code": "style/blank-lines",
@@ -450,9 +505,19 @@
                         "count": 455
                     },
                     {
+                        "code": "style/deep-nesting",
+                        "severity": "hint",
+                        "count": 324
+                    },
+                    {
                         "code": "fields/unusual-value",
                         "severity": "hint",
                         "count": 102
+                    },
+                    {
+                        "code": "style/unusual-field-order",
+                        "severity": "hint",
+                        "count": 94
                     },
                     {
                         "code": "style/byte-order-mark",
@@ -1045,8 +1110,8 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 20,
-                    "dropped": 46672,
+                    "files": 21,
+                    "dropped": 47920,
                     "dropped_by_code": [
                         {
                             "code": "fields/unusual-value",
@@ -1061,7 +1126,7 @@
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 2013
+                            "count": 2045
                         },
                         {
                             "code": "style/comment-spacing",
@@ -1069,9 +1134,19 @@
                             "count": 3
                         },
                         {
+                            "code": "style/deep-nesting",
+                            "severity": "hint",
+                            "count": 7
+                        },
+                        {
+                            "code": "style/empty-block",
+                            "severity": "hint",
+                            "count": 1160
+                        },
+                        {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 18194
+                            "count": 18218
                         },
                         {
                             "code": "style/line-endings",
@@ -1086,7 +1161,12 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 571
+                            "count": 573
+                        },
+                        {
+                            "code": "style/unusual-field-order",
+                            "severity": "hint",
+                            "count": 23
                         }
                     ]
                 },
@@ -1174,11 +1254,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1144,
-                    "check": 2392,
-                    "total": 3536
+                    "load_base": 1351,
+                    "check": 3696,
+                    "total": 5048
                 },
-                "peak_rss_kib": 1023232
+                "peak_rss_kib": 1051312
             },
             {
                 "slug": "rice",
@@ -1188,7 +1268,7 @@
                     "error": 841,
                     "warning": 3143,
                     "information": 857,
-                    "hint": 202418
+                    "hint": 337126
                 },
                 "by_code": [
                     {
@@ -1277,9 +1357,14 @@
                         "count": 1
                     },
                     {
+                        "code": "localization/unused-key",
+                        "severity": "hint",
+                        "count": 135775
+                    },
+                    {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 67102
+                        "count": 65875
                     },
                     {
                         "code": "style/spacing",
@@ -1289,22 +1374,32 @@
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 35687
+                        "count": 34275
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 31709
+                        "count": 31591
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 9604
+                        "count": 9565
                     },
                     {
                         "code": "style/comment-spacing",
                         "severity": "hint",
                         "count": 1562
+                    },
+                    {
+                        "code": "style/empty-block",
+                        "severity": "hint",
+                        "count": 903
+                    },
+                    {
+                        "code": "style/deep-nesting",
+                        "severity": "hint",
+                        "count": 801
                     },
                     {
                         "code": "style/line-endings",
@@ -1320,6 +1415,11 @@
                         "code": "fields/unusual-value",
                         "severity": "hint",
                         "count": 122
+                    },
+                    {
+                        "code": "style/unusual-field-order",
+                        "severity": "hint",
+                        "count": 25
                     }
                 ],
                 "errors": 841,
@@ -16759,18 +16859,23 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 20,
-                    "dropped": 12707,
+                    "files": 26,
+                    "dropped": 21191,
                     "dropped_by_code": [
+                        {
+                            "code": "localization/unused-key",
+                            "severity": "hint",
+                            "count": 5590
+                        },
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 669
+                            "count": 708
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 1982
+                            "count": 2100
                         },
                         {
                             "code": "style/comment-spacing",
@@ -16778,9 +16883,19 @@
                             "count": 2
                         },
                         {
+                            "code": "style/deep-nesting",
+                            "severity": "hint",
+                            "count": 93
+                        },
+                        {
+                            "code": "style/empty-block",
+                            "severity": "hint",
+                            "count": 5
+                        },
+                        {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 3997
+                            "count": 5224
                         },
                         {
                             "code": "style/spacing",
@@ -16790,7 +16905,7 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 6052
+                            "count": 7464
                         }
                     ]
                 },
@@ -16874,11 +16989,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 1010,
-                    "check": 5174,
-                    "total": 6184
+                    "load_base": 1808,
+                    "check": 20250,
+                    "total": 22059
                 },
-                "peak_rss_kib": 1313524
+                "peak_rss_kib": 1690432
             },
             {
                 "slug": "viet-events",
@@ -16888,7 +17003,7 @@
                     "error": 1,
                     "warning": 214,
                     "information": 58,
-                    "hint": 18155
+                    "hint": 36697
                 },
                 "by_code": [
                     {
@@ -16922,24 +17037,29 @@
                         "count": 3
                     },
                     {
+                        "code": "localization/unused-key",
+                        "severity": "hint",
+                        "count": 18647
+                    },
+                    {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 6875
+                        "count": 6833
                     },
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 5973
+                        "count": 5554
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 2675
+                        "count": 2658
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 1515
+                        "count": 1507
                     },
                     {
                         "code": "style/comment-spacing",
@@ -16947,14 +17067,29 @@
                         "count": 976
                     },
                     {
+                        "code": "style/empty-block",
+                        "severity": "hint",
+                        "count": 285
+                    },
+                    {
                         "code": "style/line-endings",
                         "severity": "hint",
                         "count": 103
                     },
                     {
+                        "code": "style/deep-nesting",
+                        "severity": "hint",
+                        "count": 82
+                    },
+                    {
                         "code": "style/spacing",
                         "severity": "hint",
                         "count": 37
+                    },
+                    {
+                        "code": "style/unusual-field-order",
+                        "severity": "hint",
+                        "count": 14
                     },
                     {
                         "code": "style/byte-order-mark",
@@ -17006,18 +17141,23 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 7,
-                    "dropped": 5642,
+                    "files": 14,
+                    "dropped": 9106,
                     "dropped_by_code": [
+                        {
+                            "code": "localization/unused-key",
+                            "severity": "hint",
+                            "count": 2945
+                        },
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 979
+                            "count": 987
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 889
+                            "count": 906
                         },
                         {
                             "code": "style/comment-spacing",
@@ -17025,9 +17165,19 @@
                             "count": 116
                         },
                         {
+                            "code": "style/deep-nesting",
+                            "severity": "hint",
+                            "count": 28
+                        },
+                        {
+                            "code": "style/empty-block",
+                            "severity": "hint",
+                            "count": 3
+                        },
+                        {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 1136
+                            "count": 1555
                         },
                         {
                             "code": "style/line-endings",
@@ -17042,7 +17192,12 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 2513
+                            "count": 2555
+                        },
+                        {
+                            "code": "style/unusual-field-order",
+                            "severity": "hint",
+                            "count": 2
                         }
                     ]
                 },
@@ -17122,11 +17277,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1001,
-                    "check": 1159,
-                    "total": 2160
+                    "load_base": 1418,
+                    "check": 4222,
+                    "total": 5640
                 },
-                "peak_rss_kib": 892188
+                "peak_rss_kib": 916140
             }
         ]
     }

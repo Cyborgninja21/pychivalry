@@ -8,21 +8,26 @@ it finds and the game's evidence for it, with the game's own message as the spec
 catalogue for game 1.21.0.3 gives it. `pychivalry explain <code>` prints the same for one
 code ([Commands](commands.md)).
 
-71 codes: 21 errors, 7 warnings, 33 information and 10 hints. 28 rest on the game's own evidence; 34 are advice; 9 rest on pychivalry's own formatting rules.
+75 codes: 21 errors, 8 warnings, 33 information and 13 hints. 28 rest on the game's own evidence; 34 are advice; 9 rest on pychivalry's own formatting rules; 4 on its own best-practice rules.
 
 - An **error** or a **warning** is something the game itself rejects or complains about, and
   rests on the game's own evidence: a message of the game, the game's own output, or a
-  field the spec package marks required with the game's message for it.
+  field the spec package marks required with the game's message for it. The exception is
+  the family `style`, below.
 - **Information** and **hints** without such evidence are advice: usually right, not
   something the game enforces.
-- The **`style/`** findings rest on pychivalry's own formatting rules
-  ([formatting rules](../formatting.md)), not on the game: by the owner's decision, a file
-  that is not in that format is a warning, and each place that differs a hint, each with a
-  safe fix. A file with a parse error has none.
+- The **`style/`** findings rest on pychivalry's own rules, not on the game, by the owner's
+  decision. Its formatting rules ([formatting rules](../formatting.md)): a file that is not
+  in that format is a warning, and each place that differs a hint, each with a safe fix; a
+  file with a parse error has none. Its best-practice rules: a file that is not UTF-8 is a
+  warning, with a fix that converts it; an empty block, a block nested too deep and fields in
+  an unusual order are hints. Each best-practice rule is one the base game follows more
+  often than it breaks.
 - A file reports at most 1,000 findings, its most severe first; the command line says how
   many it left out.
-- A check marked **off by default** reports only when asked: the command line's
-  `check --unused-keys`, the agent server's `check` with `unused_keys`.
+- A check marked **on by default** can be turned off: the command line's
+  `check --no-unused-keys`, the agent server's `check` with `unused_keys: false`, the
+  editor's setting `pychivalry.localization.unusedKeys`.
 - A finding with a mechanical **fix** carries it as data: **safe**, the one outcome that
   can be right, which `pychivalry check --fix` and the editor's "fix all" apply; or a
   **suggestion**, alternatives to choose from, which nothing applies by itself. The editor
@@ -62,7 +67,7 @@ check each replaces and how each was proved on the base game, is the
 | --- | --- | --- | --- | --- |
 | `localization/missing-key` | warning | A localization key, in a field that holds one or that a record has by its name, defined in no localization file. | The game's message `unknown_loc_key_X`: "Unknown loc key &lt;key&gt;" | Suggestion: A stub entry for the key in the mod's localization file of each language it has (one is made when it has none). |
 | `localization/unbalanced-brackets` | warning | Localization text with an extra `[` or `]`. | The game's message `loc_key_X_unexpected_extra_at_position_X_file_X`: "Loc key `<key>`: Unexpected extra `[` at position &lt;column&gt; - file `<file>`" | Suggestion: The statement left open closed after its command, or the extra bracket taken away; offered only where the entry is then balanced. |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **Off by default:** `pychivalry check --unused-keys` turns it on. | Advice: pychivalry's own, with no game message | None: removing a key deletes text that may be wanted. |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **On by default:** `pychivalry check --no-unused-keys` turns it off. | Advice: pychivalry's own, with no game message | None: removing a key deletes text that may be wanted. |
 
 ## names
 
@@ -129,14 +134,18 @@ check each replaces and how each was proved on the base game, is the
 | Code | Severity | What it finds | Evidence | Fix |
 | --- | --- | --- | --- | --- |
 | `style/not-formatted` | warning | A file that is not in pychivalry's format: one finding a file, whose fix formats the whole file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The whole file formatted: only the whitespace between tokens changes. |
+| `style/not-utf8` | warning | A file that is not valid UTF-8; its fix converts it to UTF-8 with a byte-order mark, reading the bytes that are not as Windows-1252. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
 | `style/blank-lines` | hint | Blank lines beyond one between two items, or any after '{', before '}' or at either end of the file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The blank lines the format does not keep removed. |
 | `style/block-layout` | hint | A block laid out otherwise than the format says: on one line when it holds one simple pair, plain values or nothing and fits in 120 columns, otherwise over several lines, one item a line; a pair on one line. One finding a block. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The block laid out as the format says: joined onto one line, or one item a line. |
 | `style/byte-order-mark` | hint | A file that does not start with the UTF-8 byte-order mark. One finding a file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The UTF-8 byte-order mark added. |
 | `style/comment-spacing` | hint | A comment at the end of a line not one space after the code before it. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: One space before the comment. |
+| `style/deep-nesting` | hint | A record with a block nested more than six blocks deep, its body the first: one finding a record, at the first such block; release 2.3.0's CK3317. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | None: how to restructure deep script is a choice. |
+| `style/empty-block` | hint | A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | Suggestion: The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. |
 | `style/indentation` | hint | A line indented otherwise than the format says: one tab for each enclosing block in a script file, one space before an entry or a comment in a localization file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The line indented as the format says. |
 | `style/line-endings` | hint | Line breaks other than Windows line breaks (\r\n), or none at the end of the file. One finding a file. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: Every line break written as \r\n, and one at the end of the file. |
 | `style/spacing` | hint | Two tokens on a line not one space apart (around an operator, inside the braces of a block on one line, between values; an empty block's braces with nothing between them), or an entry's key and its text not one space apart. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: One space between the two tokens, or none between the braces of an empty block. |
 | `style/trailing-whitespace` | hint | Spaces or tabs at the end of a line, or on a blank line. | pychivalry's own formatting rules (docs/formatting.md), not the game: by the owner's decision, the one kind of warning that rests on them | Safe: The spaces and tabs at the end of the line removed. |
+| `style/unusual-field-order` | hint | A record whose fields are written in another order than its folder's usual one, in a folder whose records' fields the game reads by name. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | Safe: The record's fields written in the usual order, comments with their field; none where a comment's field is not clear. |
 
 ## syntax
 

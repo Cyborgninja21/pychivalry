@@ -115,8 +115,9 @@ is given on localization files too, which have no note.
   text, so no byte is lost; a file whose conversion is not applied is left alone, as before.
 - **On the base game** the warning fires on the 25 of the 27 files that the checks read (the 25
   in `history/titles/`; `map_data/positions.txt` and `licenses/software/FTL.txt` are in no
-  folder the index reads), and its fix is safe on every one: each invalid byte is a printable
-  letter in a comment.
+  folder the index reads; `records/game/check.json` counts the 25). Measured once on 1.21.0.3 by
+  a one-off script that is not committed, the conversion is safe on all 27: each invalid byte is
+  a printable letter in a comment, the tree unchanged; 2 to 259 edits a file, 1,201 in all.
 
 ## The byte-order mark
 

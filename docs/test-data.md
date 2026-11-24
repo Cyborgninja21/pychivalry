@@ -111,6 +111,13 @@ it, one a rule, byte for byte, on which on-type formatting is also proved. The p
 `check` show no `style/` finding; the other fixtures keep the layout they were written in, and
 the tests of other checks leave the `style/` family out.
 
+The best-practice rules of `style/` (#148) added four pairs: `style-not-utf8`, `style-empty-block`,
+`style-deep-nesting` and `style-unusual-field-order`, each in the format but for what it tests
+(`style-not-utf8-bad` holds Windows-1252 bytes and its scripted effect lacks the mark; its bytes
+are exact), so that a test can apply each rule's fixes and find the formatter has nothing left to
+change. The existing `encoding-windows-1252` also tests the conversion: its four bytes convert
+safely.
+
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
