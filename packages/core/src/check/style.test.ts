@@ -71,7 +71,13 @@ test('one warning a file not in the format; every other style finding is a hint'
             assert.equal(kind.severity, 'hint', code);
         }
     }
-    const pairs = readdirSync(MODS).filter((m) => m.startsWith('style-') && m.endsWith('-bad'));
+    // The formatter's pairs: those of its own codes (the best-practice rules of `style/` have
+    // theirs, tested with their checks).
+    const pairs = readdirSync(MODS).filter(
+        (m) =>
+            m.endsWith('-bad') &&
+            Object.keys(STYLE_KINDS).some((code) => `${code.replace('/', '-')}-bad` === m),
+    );
     assert.equal(pairs.length, Object.keys(STYLE_KINDS).length);
     for (const pair of pairs) {
         const found = styleOf(path.join(MODS, pair));

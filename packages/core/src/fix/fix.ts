@@ -50,6 +50,10 @@ export const MAX_FIX_ALTERNATIVES = 5;
  * - `declared-names`: the names the file declares (an event's namespace).
  * - `formatting`: pychivalry's formatting rules (docs/formatting.md): the formatter's own edits,
  *   which change only the whitespace between tokens and keep the tree.
+ * - `windows-1252`: the bytes of a file that are not valid UTF-8, read as Windows-1252, the
+ *   code page the game's own message for title history asks for ("ansi").
+ * - `field-order`: the usual order of a folder's record fields, from the core's field-order data, in
+ *   a folder whose record fields the game reads by name.
  */
 export type FixBasis =
     | 'retired'
@@ -62,7 +66,9 @@ export type FixBasis =
     | 'observed-values'
     | 'range'
     | 'declared-names'
-    | 'formatting';
+    | 'formatting'
+    | 'windows-1252'
+    | 'field-order';
 
 /** One edit: a span of a file replaced with new text. */
 export interface FixEdit {
@@ -108,6 +114,21 @@ export const FORMATTING_FIX_CHARS = 2000;
 /** True for a formatting fix too long to list in full where results have a budget. */
 export function formattingFixTooLong(fix: FindingFix): boolean {
     return fix.basis === 'formatting' && JSON.stringify(fix).length > FORMATTING_FIX_CHARS;
+}
+
+/**
+ * The most characters of any other fix's JSON that a surface with a budget for each result lists
+ * in full: a third of the agent server's budget. Few fixes come near it; a file of hundreds of
+ * lines converted to UTF-8 (`style/not-utf8`) can pass it, and `check --fix` applies it whole.
+ */
+export const LISTED_FIX_CHARS = 4500;
+
+/**
+ * True for a fix too long to list in full where results have a budget: a formatting fix past
+ * `FORMATTING_FIX_CHARS`, any other past `LISTED_FIX_CHARS`. Every other surface gives it whole.
+ */
+export function fixTooLongToList(fix: FindingFix): boolean {
+    return formattingFixTooLong(fix) || JSON.stringify(fix).length > LISTED_FIX_CHARS;
 }
 
 /** A safe fix: one alternative. */

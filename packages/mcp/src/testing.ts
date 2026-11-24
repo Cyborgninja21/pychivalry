@@ -32,7 +32,7 @@ export function scratch(t: TestContext): string {
     return dir;
 }
 
-export function write(file: string, text: string): void {
+export function write(file: string, text: string | Uint8Array): void {
     mkdirSync(path.dirname(file), { recursive: true });
     writeFileSync(file, text);
 }

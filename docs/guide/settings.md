@@ -9,7 +9,7 @@ changes.
 | --- | --- | --- |
 | `pychivalry.gamePath` | empty | The game's `game` folder, the one holding `common/`. Empty: the game is looked for in every Steam library on Linux and Windows. When none is found, pychivalry says so once and judges no name the game defines |
 | `pychivalry.background.fileLimit` | `3000` | The most files of the mod checked in the background; `0`: none. Files open in the editor are always checked |
-| `pychivalry.localization.unusedKeys` | `false` | Report `localization/unused-key`, a hint for each localization key nothing uses; off by default, as in the command line and the agent server |
+| `pychivalry.localization.unusedKeys` | `true` | Report `localization/unused-key`, a hint for each localization key nothing uses; on by default, as in the command line and the agent server; `false` turns it off |
 | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252, so their letters show correctly ([what the parser reads](../encoding.md)) |
 | `pychivalry.inlayHints.enabled` | `true` | Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies |
 
@@ -51,11 +51,13 @@ The command line in the terminal does not read settings: it searches Steam's lib
   so the editor stays responsive on a large mod.
 - **Files that are not UTF-8.** pychivalry reads a script file that is not valid UTF-8 in
   full, shows each byte it cannot read as the replacement character, and says once, as
-  information, that the file is not valid UTF-8; it is never an error, because the game ships
-  and loads such files itself. A setting lets you name Windows-1252 as the encoding to
-  read those bytes with, so their letters show correctly; the rest of the file is still read
-  as UTF-8. It is off by default: `pychivalry.encoding.fallback`, above
-  ([what the parser reads](../encoding.md)).
+  information, how it read the file; it is never an error, because the game ships and loads
+  such files itself. Beside that note, the best-practice rule `style/not-utf8` gives one
+  warning per file (a localization file too), with a fix that converts the file to UTF-8 with a
+  byte-order mark, its other bytes read as Windows-1252. A setting lets you name Windows-1252 as
+  the encoding to read those bytes with, so their letters show correctly before you convert
+  it; the rest of the file is still read as UTF-8. It is off by default:
+  `pychivalry.encoding.fallback`, above ([what the parser reads](../encoding.md)).
 - **Where pychivalry keeps its index of the game.** pychivalry reads your installed game once
   and saves what it found, about 250 MB for game 1.21, in your own cache folder: on Windows
   `%LOCALAPPDATA%\pychivalry\Cache\index`, on Linux `~/.cache/pychivalry/index` (or under

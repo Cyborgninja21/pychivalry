@@ -26,28 +26,6 @@
             }
         ]
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": [
-                "type",
-                "title",
-                "desc",
-                "theme",
-                "left_portrait",
-                "right_portrait",
-                "sender",
-                "lower_left_portrait",
-                "lower_center_portrait",
-                "lower_right_portrait",
-                "widgets",
-                "trigger",
-                "immediate",
-                "option",
-                "after"
-            ]
-        }
-    ],
     "snippets": [
         {
             "label": "namespace",

@@ -91,6 +91,7 @@ test('explain --json: one object per code, an unknown code marked unknown, exit 
             },
             message: "Unknown effect '<effect>'",
             off_by_default: false,
+            can_turn_off: false,
         },
         { code: 'names/no-such-check', known: false },
     ]);

@@ -26,8 +26,9 @@
  *   then warnings, information, hints; by position within a severity), and what the cap drops
  *   is counted, by code (`WorkspaceCheck.capped`), never lost without a word.
  * - **Each finding** carries its rendered message, so every surface shows the same text.
- * - **Off by default:** `localization/unused-key` runs only with `unusedKeys` (docs/decisions.md,
- *   decision 76); every other check always runs.
+ * - **Every check runs:** `localization/unused-key` too, by default since the owner's word of
+ *   2026-11-23 (replacing docs/decisions.md, decision 76); `unusedKeys: false` turns it off,
+ *   and the cap below keeps a file full of its hints bounded.
  * - **Each finding** carries its fix as data, or null (`fix/`): the same on every surface. A
  *   fix that edits another file of the mod (a localization stub) reads that file's text with
  *   `modText`, the runner's from disk; a safe fix is checked by checking the file again with
@@ -330,6 +331,8 @@ function parsedScriptFindings(
     const { folders, catalogue } = specContext(input.spec);
     const out: Omit<WorkspaceFinding, 'fix'>[] = [];
     const layer = input.index?.layer ?? MOD_LAYER;
+    // The stretches that are not valid UTF-8 travel on the decoder's note (`style/not-utf8`).
+    const invalid = syntax.find((f) => f.id === 'encoding/not-utf8')?.invalid ?? [];
     for (const f of syntax) {
         out.push({
             file: input.file,
@@ -353,6 +356,7 @@ function parsedScriptFindings(
         catalogue,
         index: input.index,
         measure: input.measure,
+        invalid,
     })) {
         out.push({
             file: input.file,
@@ -381,6 +385,7 @@ function parsedScriptFindings(
             index: input.index?.workspace,
             source: { script: parsed },
             modText: input.modText,
+            invalid,
         },
         (text) => {
             // Checked again only to prove a fix: nothing of it is counted.
@@ -408,7 +413,7 @@ export interface LocalizationInput {
     readonly bytes: Uint8Array;
     readonly names: DefinedNames & Partial<WorkspaceNames>;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
-    /** Run `localization/unused-key`, off by default. */
+    /** Run `localization/unused-key`: on unless `false`. */
     readonly unusedKeys?: boolean | undefined;
     /** The workspace index that holds the file, for the fixes that read it. */
     readonly index?: WorkspaceIndex | undefined;
@@ -465,6 +470,7 @@ function parsedLocalizationFindings(
             index: input.index,
             source: { localization: parsed },
             modText: input.modText,
+            invalid: parsed.invalid,
         },
         (text) => parsedLocalizationFindings(input, parseLocalization(text), false),
     );
@@ -574,8 +580,8 @@ export interface WorkspaceCheckOptions extends WorkspaceOptions {
     /** The most findings a file reports; `MAX_FINDINGS_PER_FILE` by default. */
     readonly maxFindingsPerFile?: number | undefined;
     /**
-     * Also run the checks that are off by default: `localization/unused-key` (docs/decisions.md,
-     * decision 76). False by default.
+     * Run `localization/unused-key`: true by default since the owner's word of 2026-11-23
+     * (replacing docs/decisions.md, decision 76); `false` turns it off.
      */
     readonly unusedKeys?: boolean | undefined;
     /**
@@ -654,7 +660,7 @@ export interface FileCheckInput {
     /** The workspace index that holds the file. */
     readonly index: WorkspaceIndex;
     readonly fallbackEncoding?: FallbackEncoding | undefined;
-    /** Run the checks that are off by default (`WorkspaceCheckOptions.unusedKeys`). */
+    /** Run `localization/unused-key`: on unless `false` (`WorkspaceCheckOptions.unusedKeys`). */
     readonly unusedKeys?: boolean | undefined;
     readonly measure?: ScopeMeasure | undefined;
     /** The most findings the file reports; `MAX_FINDINGS_PER_FILE` by default. */

@@ -14,7 +14,9 @@ export { applyEdits, applyFixes, joinBom, splitBom, type FileText } from './appl
 export {
     asSuggestion,
     FORMATTING_FIX_CHARS,
+    fixTooLongToList,
     formattingFixTooLong,
+    LISTED_FIX_CHARS,
     MAX_FIX_ALTERNATIVES,
     overlapsAny,
     rangesOverlap,

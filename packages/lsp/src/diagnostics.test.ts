@@ -112,9 +112,9 @@ test("on every fixture mod, each file's diagnostics are the one runner's finding
     ]);
     let files = 0;
     for (const [game, list] of groups) {
-        // `localization/unused-key` is off by default; the group of its pair turns it on.
-        const unusedKeys = list.some((m) => path.basename(m).startsWith('localization-unused-key'));
-        const { client } = spawnServer(t, { gamePath: game, localization: { unusedKeys } });
+        // `localization/unused-key` is on by default (2026-11-23); every group runs the default.
+        const unusedKeys = true;
+        const { client } = spawnServer(t, { gamePath: game });
         let previous: string | null = null;
         for (const mod of list) {
             const after = client.done.length;

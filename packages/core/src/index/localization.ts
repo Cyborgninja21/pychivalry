@@ -12,6 +12,7 @@
  */
 
 import { decodeScript, type DecodeOptions } from '../syntax/decode.js';
+import type { InvalidStretch } from '../syntax/findings.js';
 import { LineIndex } from '../syntax/position.js';
 
 /** One entry: `key:version "text"`. Offsets are into the decoded text, without the mark. */
@@ -49,6 +50,11 @@ export interface LocalizationFile {
     readonly text: string;
     readonly bom: boolean;
     readonly validUtf8: boolean;
+    /**
+     * The stretches of the file that are not valid UTF-8, as the decoder read them; empty for
+     * text given already decoded (`parseLocalization`).
+     */
+    readonly invalid: readonly InvalidStretch[];
     readonly lines: LineIndex;
     readonly headers: readonly LocalizationHeader[];
     readonly entries: readonly LocalizationEntry[];
@@ -153,12 +159,12 @@ export function parseLocalization(source: string): LocalizationFile {
         });
         usesIn(text.slice(open + 1, textEnd), open + 1, uses);
     }
-    return { text, bom, validUtf8: true, lines, headers, entries, uses, unread };
+    return { text, bom, validUtf8: true, invalid: [], lines, headers, entries, uses, unread };
 }
 
 /** Decode a localization file's bytes (docs/encoding.md) and read it. */
 export function readLocalization(bytes: Uint8Array, options: DecodeOptions = {}): LocalizationFile {
     const decoded = decodeScript(bytes, options);
     const file = parseLocalization(decoded.text);
-    return { ...file, bom: decoded.bom, validUtf8: decoded.validUtf8 };
+    return { ...file, bom: decoded.bom, validUtf8: decoded.validUtf8, invalid: decoded.invalid };
 }

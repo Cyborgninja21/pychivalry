@@ -1,0 +1,19 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 12,
+            "column": 7,
+            "code": "style/deep-nesting",
+            "severity": "hint",
+            "message": "The block 'limit' is 7 blocks deep, past the style rule's limit of 6; places in this record past it: 1.",
+            "data": {
+                "record": "fixture_deep_effect",
+                "block": "limit",
+                "depth": "7",
+                "max_depth": "6",
+                "places": "1"
+            }
+        }
+    ]
+}

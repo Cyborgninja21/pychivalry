@@ -61,8 +61,8 @@ Options of `check`:
 | `--severity <severity>` | Keep only findings of these severities: `error`, `warning`, `information`, `hint`. Several are written with commas or by giving the option again |
 | `--code <code>` | Keep only findings of these codes: a code, a family (`names/*`) or `*`. Several as for `--severity` |
 | `--limit <n>` | Show at most `n` findings. The summary still counts all of them |
-| `--unused-keys` | Also report localization keys nothing in the mod or the base game uses (`localization/unused-key`). Off by default: a large mod has a hint for nearly every key it defines |
-| `--fix` | Apply the safe fixes of the findings kept (the filters choose them), then check again and print what is left. A safe fix is one whose finding has one outcome that can be right; a suggestion is never applied. A fix whose edits overlap one applied before it waits for another run, and a file that is not valid UTF-8 is left as it is. A file's `style/not-formatted` fix formats the whole file and stands for its other `style/` fixes |
+| `--no-unused-keys` | Do not report localization keys nothing in the mod or the base game uses (`localization/unused-key`), which is on by default; a large mod has a hint for nearly every key it defines |
+| `--fix` | Apply the safe fixes of the findings kept (the filters choose them), then check again and print what is left. A safe fix is one whose finding has one outcome that can be right; a suggestion is never applied. A fix whose edits overlap one applied before it waits for another run. A file that is not valid UTF-8 is converted to UTF-8 with a byte-order mark first, when its `style/not-utf8` fix is safe and kept, and its other safe fixes then apply; otherwise it is left as it is. A file's `style/not-formatted` fix formats the whole file and stands for its other formatting fixes |
 | `--dry-run` | With `--fix`: write nothing, and print each safe fix and its edits instead (with `--json`, one `{"fix": ...}` line each, then the summary) |
 
 Options of `format`:

@@ -28,29 +28,6 @@
             }
         ]
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": [
-                "category",
-                "icon",
-                "interface_priority",
-                "cooldown",
-                "redirect",
-                "is_shown",
-                "is_highlighted",
-                "can_send",
-                "on_auto_accept",
-                "ai_frequency",
-                "ai_potential",
-                "on_accept",
-                "on_decline",
-                "ai_accept",
-                "ai_targets",
-                "ai_will_do"
-            ]
-        }
-    ],
     "snippets": [
         {
             "label": "character interaction",

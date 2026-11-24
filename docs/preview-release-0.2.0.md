@@ -29,6 +29,12 @@ The extension's version is `0.2.0` and its manifest still says `"preview": true`
   it is.
 - **Formatting findings.** A file not in the format is a `style/` warning, each untidy place a
   hint, each with a safe fix.
+- **Best-practice findings.** A file that is not UTF-8 is a `style/not-utf8` warning, whose fix
+  converts it to UTF-8 with the byte-order mark (its other bytes read as Windows-1252); fields
+  written in an unusual order are a hint with a fix that reorders them, where the order has no
+  meaning to the game; an empty block and a block nested more than six deep are hints.
+- **Unused localization keys on by default.** A hint on each key nothing uses, unless turned off
+  (`pychivalry.localization.unusedKeys`, `check --no-unused-keys`).
 - **Quick fixes and fix data.** Every finding carries its mechanical fix, if it has one: quick
   fixes in the editor ("fix every safe ... in the file", Fix All), `pychivalry check --fix`, and
   the fixes in the agent server's `check`.
@@ -56,6 +62,13 @@ The extension's version is `0.2.0` and its manifest still says `"preview": true`
 > - **Formatting findings.** A file that is not formatted shows a warning, and each place that
 >   differs a hint, each with a quick fix. These rest on pychivalry's own formatting rules, not
 >   on the game: the game does not care.
+> - **Best-practice findings.** A file that is not UTF-8 shows a warning, with a fix that
+>   converts it to UTF-8 with the byte-order mark (its other bytes read as Windows-1252); fields
+>   written in an unusual order show a hint, with a fix that reorders them, where the order means
+>   nothing to the game; an empty block, and a block nested more than six deep, show a hint.
+>   These rest on pychivalry's own best-practice rules, each one the game's own files follow.
+> - **Unused localization keys** now show a hint by default (0.1.0 reported them only when
+>   asked): turn them off with `pychivalry.localization.unusedKeys` or `check --no-unused-keys`.
 > - **Quick fixes.** A finding with a mechanical fix offers it: a misspelled keyword with its one
 >   valid name, a removed keyword with its documented replacement, a missing `=`, a missing
 >   localization key's stub, and more; Fix All applies every safe fix of a file, and

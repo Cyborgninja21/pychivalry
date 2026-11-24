@@ -156,3 +156,33 @@ test('a UTF-16 file is read as UTF-8 like any other, with the note', () => {
     assert.equal(file.allFindings[0]?.id, 'encoding/not-utf8');
     assert.equal(file.file.kind, 'file');
 });
+
+test('each invalid stretch is recorded with its place in the text and its Windows-1252 letters', () => {
+    const cases: number[][] = [
+        [0x61, 0xe9, 0x62, 0xe9],
+        [0xe2, 0x82, 0x61, 0xc3],
+        [0xc0, 0x80, 0x61, 0xf4, 0x90, 0x80, 0x80],
+        [0xc3, 0xa9, 0x20, 0xe9, 0x20, 0xf0, 0x9f, 0x98, 0x80, 0x81],
+    ];
+    for (const bytes of cases) {
+        const input = new Uint8Array(bytes);
+        const plain = decodeScript(input);
+        // Read as UTF-8 the text is what the WHATWG decoder gives, one U+FFFD a stretch.
+        assert.equal(plain.text, new TextDecoder('utf-8').decode(input), bytes.join());
+        const fallback = decodeScript(input, { fallbackEncoding: 'windows-1252' });
+        assert.equal(plain.invalid.length, fallback.invalid.length);
+        plain.invalid.forEach((stretch, i) => {
+            assert.equal(plain.text.slice(stretch.start, stretch.end), '�');
+            const other = fallback.invalid[i];
+            assert.equal(other?.windows1252, stretch.windows1252);
+            assert.equal(fallback.text.slice(other.start, other.end), stretch.windows1252);
+        });
+        assert.deepEqual(plain.findings[0]?.invalid, plain.invalid);
+    }
+    const file = decodeScript(fixture);
+    assert.deepEqual(
+        file.invalid.map((s) => s.windows1252),
+        ['é', 'é', 'é', 'é'],
+    );
+    assert.deepEqual(decodeScript(encoder.encode('a = b')).invalid, []);
+});

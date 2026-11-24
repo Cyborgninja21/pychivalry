@@ -1,0 +1,17 @@
+﻿# On-actions whose fields are written in the usual order.
+fixture_on_action = {
+	trigger = { is_adult = yes } # Only adults.
+	# What it does.
+	effect = {
+		add_gold = 10
+		add_prestige = 10
+	}
+	on_actions = { fixture_unclear }
+}
+
+fixture_unclear = {
+	trigger = { is_adult = yes }
+	# Which field is this about?
+
+	effect = { add_gold = 1 }
+}

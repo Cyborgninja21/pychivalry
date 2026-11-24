@@ -350,6 +350,18 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (item 8.4), 21 pairs, and on-type formatting proved against them (item 8.5).
 - The same-answers test covers formatting: each file of the planted-defect mod formatted by the
   editor, the command line and the agent server, with the shared index on and off, is the same.
+- Four best-practice rules in the `style/` family (decisions 105 to 107), new rows of
+  `docs/checks.md` on pychivalry's own best-practice rules (evidence `best-practice`), each with
+  the base game's own rate and a fixture pair: `style/not-utf8`, a warning on a script or
+  localization file that is not valid UTF-8, whose fix converts it to UTF-8 with the byte-order
+  mark, its bad bytes read as Windows-1252 (safe when every such byte is a printable letter and
+  the tree is the same; `check --fix` converts such a file first); `style/empty-block` (release
+  2.3.0's CK3314) and `style/deep-nesting` (CK3317, one finding a record), hints;
+  `style/unusual-field-order`, a hint with a safe fix that reorders a record's fields, comments
+  with them, in the six folders whose records the game reads by name and whose base-game records
+  follow the order. `pychivalry-tools advice proof` counts these rules beside the advice rows,
+  with their rate and by folder. The decoder records each stretch of a file that is not valid
+  UTF-8 on its note.
 
 ### Changed
 
@@ -370,6 +382,16 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `unused_keys`; `explain` and the check reference say so. `task game:mods` runs the default, and
   its record no longer counts those hints (rice: 141,090; viet-events: 19,698), nor what the
   per-file cap dropped of them.
+- `localization/unused-key` is on by default again (decision 108, replacing decision 76): the
+  command line's `--no-unused-keys` (replacing `--unused-keys`), the agent server's
+  `unused_keys: false` and the editor's `pychivalry.localization.unusedKeys` (now `true` by
+  default) turn it off; `explain` and `explain_code` say it can be (`can_turn_off`). The
+  game-file records count its hints again.
+- The field order moved from `presentation/` into data the core reads
+  (`packages/core/src/check/field-order.json`, decision 107): completion reads it there, and the
+  rule `style/unusual-field-order` judges it, so every surface uses one copy.
+- The agent server's `check` leaves out the edits of any fix too long to list (not only a
+  formatting fix), marked `edits_omitted`; two identical edits of two fixes are made once.
 - The scored agent-use test's harness, from item 6.11's first real test sessions: a session's
   end counts as ended by itself only when it is `success` and not an error (Claude Code ends a
   session that never reached the model with `success` and `is_error`); the start event's skills

@@ -24,32 +24,6 @@
             }
         ]
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": [
-                "skill",
-                "desc",
-                "success_desc",
-                "discovery_desc",
-                "icon",
-                "illustration",
-                "target_type",
-                "category",
-                "is_secret",
-                "cooldown",
-                "base_progress_goal",
-                "phases_per_agent_charge",
-                "allow",
-                "valid",
-                "agent_leave_threshold",
-                "on_start",
-                "on_phase_completed",
-                "on_hud_click",
-                "on_monthly"
-            ]
-        }
-    ],
     "snippets": [
         {
             "label": "skill",

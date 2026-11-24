@@ -153,7 +153,7 @@ export function mainCases(): readonly EditorCase[] {
                 assert.deepEqual(defaults, {
                     gamePath: '',
                     'background.fileLimit': 3000,
-                    'localization.unusedKeys': false,
+                    'localization.unusedKeys': true,
                     'encoding.fallback': 'none',
                 });
                 return Promise.resolve();

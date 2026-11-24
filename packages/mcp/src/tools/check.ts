@@ -11,13 +11,15 @@
  * 1, as the tools write places. The server applies nothing (it writes nothing): an agent applies
  * a fix with its own edit tool. A fix's size is bounded in the core (at most five alternatives,
  * each edit only the text it changes), and a page holds as many findings as fit the result's
- * budget, fixes and all, so fixes never push a result over it.
+ * budget, fixes and all, so fixes never push a result over it. A fix too long to list (the core's
+ * `fixTooLongToList`: a formatting fix of a large file, a large file converted to UTF-8) comes
+ * without its edits, marked so (`fixOutput`).
  */
 
 import {
     checkWorkspaceSteps,
     drain,
-    formattingFixTooLong,
+    fixTooLongToList,
     type FindingFix,
     type Severity,
     type Steps,
@@ -50,12 +52,13 @@ export interface CheckArgs {
 }
 
 /**
- * A fix as `check` returns it: whole, but a formatting fix too long for a result
- * (`formattingFixTooLong`, a `style/` finding of a large file), whose edits are left out and
- * marked so; the `format` tool gives the formatted text.
+ * A fix as `check` returns it: whole, but a fix too long for a result (`fixTooLongToList`: a
+ * formatting fix of a large file, or any other fix past a third of the result's budget, such as
+ * a large file converted to UTF-8), whose edits are left out and marked so: the `format` tool
+ * gives a formatting fix's text, and the command line's `check --fix` applies any safe fix.
  */
 export function fixOutput(fix: FindingFix): FindingFix | Record<string, unknown> {
-    if (!formattingFixTooLong(fix)) {
+    if (!fixTooLongToList(fix)) {
         return fix;
     }
     return {
@@ -131,7 +134,7 @@ const FIX: Schema = {
         basis: {
             type: 'string',
             description:
-                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names or formatting',
+                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names, formatting, windows-1252 or field-order',
         },
         alternatives: {
             type: 'array',
@@ -143,7 +146,7 @@ const FIX: Schema = {
                     edits_omitted: {
                         type: 'boolean',
                         description:
-                            "True when the edits of a formatting fix (a style/ finding's) are too long to list: the format tool gives the file's formatted text",
+                            "True when the fix's edits are too long to list: the format tool gives a formatting fix's text (a style/ formatting finding's); pychivalry check --fix applies any safe fix",
                     },
                 },
                 required: ['title', 'edits'],
@@ -212,9 +215,9 @@ export const checkTool: Tool<CheckArgs> = {
             ...pagedInput('findings', DEFAULT_LIMIT, MAX_LIMIT),
             unused_keys: {
                 type: 'boolean',
-                default: false,
+                default: true,
                 description:
-                    'Also run localization/unused-key, which is off by default: a hint for each localization key nothing uses',
+                    'Run localization/unused-key, a hint for each localization key nothing uses; on by default, false turns it off',
             },
         },
         additionalProperties: false,
@@ -283,7 +286,7 @@ function* checkSteps(args: CheckArgs, session: Session): Steps<Record<string, un
     const minSeverity = args.min_severity ?? 'error';
     const codes = args.codes === undefined ? null : codesOf(args.codes, 'codes');
     const target = args.path === undefined ? null : session.modPath(args.path, 'path');
-    const unusedKeys = args.unused_keys ?? false;
+    const unusedKeys = args.unused_keys ?? true;
     const key = questionKey('check', {
         path: target?.relative ?? '',
         min_severity: minSeverity,

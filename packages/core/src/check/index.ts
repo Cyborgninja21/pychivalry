@@ -7,7 +7,7 @@ import type { FolderTable } from '../index/folders.js';
 import type { LocalizationFile } from '../index/localization.js';
 import type { WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
-import type { MessageCatalogue } from '../syntax/findings.js';
+import type { InvalidStretch, MessageCatalogue } from '../syntax/findings.js';
 import type { ParseResult } from '../syntax/parser.js';
 import { adviceFindings } from './advice-checks.js';
 import { readContext, type DefinedNames, type FileReading } from './context.js';
@@ -37,6 +37,8 @@ import { undefinedEventTargets } from './scope-undefined-event-target.js';
 import { judgedSteps, linksOnWrongScope } from './scope-link-on-wrong-scope.js';
 import { wrongScopeEffects } from './scope-wrong-scope-for-effect.js';
 import { wrongScopeTriggers } from './scope-wrong-scope-for-trigger.js';
+import { bestPracticeFindings } from './best-practice-checks.js';
+import { notUtf8Finding } from './style-not-utf8.js';
 
 export {
     fieldFor,
@@ -97,6 +99,16 @@ export { fieldValueData, MAX_VALUES } from './field-values.js';
 export { whatIsValid } from './valid.js';
 export { addToScopeMeasure, newScopeMeasure, type ScopeMeasure } from './measure.js';
 export { ADVICE_CHECKS, adviceFindings, runAdvice } from './advice-checks.js';
+export {
+    runBestPractice,
+    BEST_PRACTICE_CHECKS,
+    bestPracticeFindings,
+} from './best-practice-checks.js';
+export type { BestPracticeCheck, BestPracticeInput } from './best-practice.js';
+export { bodyFieldOrder, FIELD_ORDERS, JUDGED_FOLDERS, type FieldOrder } from './field-order.js';
+export { fieldsReadByName, judgedFields } from './style-unusual-field-order.js';
+export { MAX_DEPTH } from './style-deep-nesting.js';
+export type { BestPracticeCode } from './best-practice-kinds.js';
 export type { AdviceCheck, AdviceInput, AdviceResult } from './advice.js';
 export {
     codeMatches,
@@ -156,6 +168,11 @@ export interface CheckInput {
      * nothing is counted without it.
      */
     readonly measure?: ScopeMeasure | undefined;
+    /**
+     * The stretches of the file that are not valid UTF-8, from the decoder's note
+     * (`style/not-utf8`); none when the file is valid UTF-8 or its bytes are not known.
+     */
+    readonly invalid?: readonly InvalidStretch[] | undefined;
 }
 
 /** Every finding of the engine checks on one file, in the order of where each starts. */
@@ -213,6 +230,15 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             names: input.names,
             context,
         }),
+        ...bestPracticeFindings({
+            spec: input.spec,
+            folders: input.folders,
+            file: input.file,
+            tree: input.parsed.file,
+            names: input.names,
+            context,
+            invalid: input.invalid ?? [],
+        }),
     ].sort(byPlace);
 }
 
@@ -231,21 +257,23 @@ export interface LocalizationCheckInput {
     readonly names: DefinedNames & Partial<WorkspaceNames>;
     readonly catalogue?: MessageCatalogue | undefined;
     /**
-     * Run `localization/unused-key`, which is off by default (docs/decisions.md, decision 76):
-     * a large mod has a hint for nearly every key it defines.
+     * Run `localization/unused-key`: on by default since the owner's word of 2026-11-23
+     * (replacing docs/decisions.md, decision 76); `false` turns it off.
      */
     readonly unusedKeys?: boolean | undefined;
 }
 
 /**
  * Every finding of the engine checks on one localization file, in the order of where each
- * starts; `localization/unused-key` only when asked (`unusedKeys`).
+ * starts; `localization/unused-key` unless turned off (`unusedKeys: false`).
  */
 export function checkLocalizationFile(input: LocalizationCheckInput): CheckFinding[] {
     const context = { lines: input.parsed.lines, catalogue: input.catalogue };
+    const notUtf8 = notUtf8Finding(input.parsed.invalid, context);
     return [
+        ...(notUtf8 === null ? [] : [notUtf8]),
         ...unbalancedBrackets(input.file, input.parsed, context),
-        ...(input.unusedKeys === true
+        ...(input.unusedKeys !== false
             ? unusedKeys(
                   {
                       spec: input.spec,

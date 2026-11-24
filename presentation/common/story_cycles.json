@@ -24,12 +24,6 @@
             }
         ]
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": ["on_setup", "on_end", "on_owner_death", "effect_group"]
-        }
-    ],
     "snippets": [
         {
             "label": "story cycle",

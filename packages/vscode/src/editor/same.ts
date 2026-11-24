@@ -25,7 +25,7 @@ import assert from 'node:assert/strict';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
-import { formatKindOf, formattingFixTooLong, type WorkspaceFinding } from '@pychivalry/core';
+import { formatKindOf, fixTooLongToList, type WorkspaceFinding } from '@pychivalry/core';
 import type { PychivalryApi } from '../extension.js';
 import { checkAll, formatAll } from './agent.js';
 import {
@@ -224,11 +224,11 @@ function assertSame(
 }
 
 /**
- * A finding as the agent server gives it: a formatting fix too long for a result has its edits
- * left out and marked (`formattingFixTooLong`; the agent server's `check`).
+ * A finding as the agent server gives it: a fix too long for a result has its edits left out
+ * and marked (`fixTooLongToList`; the agent server's `check`).
  */
 function asTheAgentGives(f: WorkspaceFinding): WorkspaceFinding {
-    if (f.fix === null || !formattingFixTooLong(f.fix)) {
+    if (f.fix === null || !fixTooLongToList(f.fix)) {
         return f;
     }
     return {

@@ -1,0 +1,19 @@
+﻿# A scripted effect nested deeper than six blocks.
+fixture_deep_effect = {
+	if = {
+		limit = { is_adult = yes }
+		if = {
+			limit = { is_ai = no }
+			if = {
+				limit = { gold > 10 }
+				if = {
+					limit = { prestige > 10 }
+					if = {
+						limit = { piety > 10 }
+						add_gold = 1
+					}
+				}
+			}
+		}
+	}
+}

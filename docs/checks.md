@@ -7,8 +7,11 @@
 > every row of step 4 but two that are blocked, and the eleven provisional advice rows item
 > 4.7's re-proof retired: 62 rows are built (five of them in part), 11 retired, 2 blocked, and
 > 3 belong to steps 10 and 11. On the owner's word of 2026-11-23 (decisions 101 and 103) step 8
-> added a thirteenth family, `style`, whose nine rows are built and rest on pychivalry's own
-> formatting rules ([Formatting](#formatting-the-style-family)). The last column of each table, **State**, says which, and why
+> added a thirteenth family, `style`, whose nine formatting rows are built and rest on
+> pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)); four more rows
+> of it rest on pychivalry's own best-practice rules (decisions 105 to 107,
+> [Best practice](#best-practice-the-style-familys-best-practice-rules)), and
+> `localization/unused-key` is on by default (decision 108). The last column of each table, **State**, says which, and why
 > where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
 > was decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
@@ -56,6 +59,8 @@ Everything else is pychivalry's own advice and is information (semantic advice) 
 | Game output | The game's own output: its documentation dumps or its error log. |
 | Reproduced | An error reproduced in the running game, with its log line. None yet: in-game runs are build step 11. |
 | Advice | No game evidence. Information or a hint, never an error or a warning. |
+| Formatting rules | No game evidence: pychivalry's own formatting rules ([formatting.md](formatting.md)), the `style/` family's formatting rows, by the owner's decision (decision 103). A warning or a hint. |
+| Best practice | No game evidence: pychivalry's own best-practice rules, the `style/` family's other rows, by the owner's decision (decisions 105 to 107), each with the base game's own rate. A warning or a hint. |
 
 **Replaces.** The release 2.3.0 code the row carries over, or "new". The full mapping, every
 2.3.0 code in both directions, is [below](#release-230s-codes-one-by-one).
@@ -145,7 +150,7 @@ The families:
 | `variables` | Variables set and read | 4.7 |
 | `graphics` | Files a script names that do not exist | Step 10 |
 | `log` | Lines of the game's own error log | Step 11 |
-| `style` | Where a file is not in pychivalry's format: its layout, its whitespace, its line breaks and byte-order mark. Added on the owner's word of 2026-11-23 (decision 103); its rows rest on pychivalry's own formatting rules, not on the game | 8.2 |
+| `style` | Where a file is not in pychivalry's format: its layout, its whitespace, its line breaks and byte-order mark; and where it breaks pychivalry's best practice: an encoding other than UTF-8, an empty block, a block nested too deep, fields in an unusual order. Added on the owner's word of 2026-11-23 (decisions 103 and 105 to 107); its rows rest on pychivalry's own formatting rules or its own best-practice rules, not on the game | 8.2 |
 
 **Why this shape.**
 
@@ -329,16 +334,16 @@ own copies replace.
 | `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game | Catalogue `undefined_event_target_X`. Information by the MVP's decision: the base game alone has 10,523 (2.3.0's record on 1.20) | same id | `scope-undefined-event-target` | 4.6 | tables (the effects that save a scope) | Built (4.6); the package's `save_keys` lacks the effects that save a value, so a name is reported only when no file writes it but as `scope:name` | None: the name may be saved where the index cannot see, and which save is meant is a choice. |
 | `localization/missing-key` | warning | A localization key, in a field that holds one, defined in no localization file of the mod, the base game or a DLC. Literal text with spaces in such a field is this finding too: the game reads it as a key | Catalogue `unknown_loc_key_X` ("Unknown loc key %s"); for `title`, `desc` and option `name`, the 1.21 executable's "Unrecognized loc key %s. Near %s" beside the dynamic-description reader; `events/_events.info`: "Missing localization keys are logged as errors" | `CK4100`, `CK4101`, `CK4102` | `localization-missing-key` | 4.6 | loc fields; implicit keys (not in the plan); clean catalogue | Built (4.6) | Suggestion: A stub entry for the key in the mod's localization file of each language it has (one is made when it has none). |
 | `localization/unbalanced-brackets` | warning | Localization text with an extra or unclosed `[`, `]`, `(`, `'` or `$`. The base game's English has no unbalanced `[ ]`: 0 of 340,445 entries | Catalogue `loc_key_X_unexpected_extra_at_position_X_file_X` and `_2`; the 1.21 executable's "Unterminated '[' ...", "Unterminated '(' ...", "Unterminated `'` ..." and "Unterminated '$' ..." messages beside the localization reader | `LOC-005`; the `$` part of `LOC-007` | `localization-unbalanced-brackets` | 4.6 | clean catalogue (the 1.21 messages) | Built in part (4.6): an extra `[` or `]`; an opener left open waits on the 1.21 "Unterminated" messages in the catalogue | Suggestion: The statement left open closed after its command, or the extra bracket taken away; offered only where the entry is then balanced. |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) | Built (4.6); off by default, reported only when asked: `check --unused-keys`, the agent server's `unused_keys` (decision 76) | None: removing a key deletes text that may be wanted. |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) | Built (4.6); on by default since 2026-11-23 (decision 108, replacing decision 76), turned off by `check --no-unused-keys`, the agent server's `unused_keys: false` or the editor's `pychivalry.localization.unusedKeys` | None: removing a key deletes text that may be wanted. |
 
 **Built** (item 4.6): all four rows, each with its fixture pair; `localization/unbalanced-brackets`
 reports an extra `[` or `]` only, as the 1.21 "Unterminated ..." messages are not in the committed
 catalogue. On the base game: 5,969 `scope/undefined-event-target` (76 names; `duel_value` alone
 4,716), 151 `localization/missing-key` warnings on 104 keys no localization file of the install
 defines (each a defect of the game's files, `tools/data/check-classifications.json`), no
-unbalanced brackets, no unused key. `localization/unused-key` is off by default (decision 76): on
-rice it gives 141,090 hints, about one for every key the mod defines, so a check reports it only
-when asked.
+unbalanced brackets, no unused key. `localization/unused-key` was off by default from decision 76
+(on rice it gives 141,090 hints, about one for every key the mod defines); since decision 108 it
+is on by default again and can be turned off, the per-file limit bounding a file full of them.
 
 ### 4.7: advice that holds on 1.21
 
@@ -420,8 +425,9 @@ are its 4 findings on the 1.21.0.3 base game, each an `animation` of a portrait 
 
 Added in build step 8 on the owner's word of 2026-11-23 (decisions 101 and 103): best practice
 and cleanliness take precedence over anything a mod author did, so a file that is not in
-pychivalry's format is fixed by the formatter and flagged as issues. These rows are the one kind
-of warning that rests on no game evidence: their evidence is pychivalry's own formatting rules
+pychivalry's format is fixed by the formatter and flagged as issues. These rows are one of the two
+kinds of warning that rest on no game evidence (the other is the best-practice rows below): their
+evidence is pychivalry's own formatting rules
 ([formatting.md](formatting.md)), by the owner's decision (principle 1 of
 [MVP.md](MVP.md#principles)). One warning a file not in the format, whose safe fix formats the
 whole file; one hint at each untidy place, one code a rule, each with a safe fix for that place.
@@ -443,6 +449,28 @@ them by code and never classify them ([records/README.md](../records/README.md))
 | `style/block-layout` | hint | A block laid out otherwise than the format says (on one line when it holds one simple pair, plain values or nothing and fits in 120 columns; otherwise over several lines, one item a line), or a pair's key, operator and value not on one line. One finding a block | Formatting rules, rule 4 | new | `style-block-layout` | 8.2 | none | Built (8.2) | Safe: the block joined onto one line, or one item a line. |
 | `style/line-endings` | hint | Line breaks other than Windows line breaks (`\r\n`), or none at the end of the file. One finding a file | Formatting rules, rule 10 | new | `style-line-endings` | 8.2 | none | Built (8.2) | Safe: every line break written as `\r\n`, and one at the end of the file. |
 | `style/byte-order-mark` | hint | A file that does not start with the UTF-8 byte-order mark. One finding a file | Formatting rules, rule 11 | new | `style-byte-order-mark` | 8.2 | none | Built (8.2) | Safe: the mark added. In the editor the mark is the file's encoding: saving adds it. |
+
+### Best practice: the `style/` family's best-practice rules
+
+Added in build step 8 on the owner's word of 2026-11-23 (decisions 101 and 105 to 107): best
+practice and cleanliness take precedence over anything a mod author did. These rows rest on
+pychivalry's own best-practice rules (evidence `best-practice`), not on the game: the zero
+exceptions of decision 46 are for advice that claims something about the game, so the base game
+breaking one of these does not retire it, but none ships that the base game breaks more often
+than it follows. Each row gives the base game's own rate on 1.21.0.3, counted by
+`pychivalry-tools advice proof`, which counts them beside the advice rows. Release 2.3.0's other
+style hints are the formatter's (above), and three of its other hints were measured and are not
+restored ([below](#the-plug-in-catalogue-85)). They go through the one runner; a fix of theirs
+that is safe is checked by checking the file again, and after it the formatter finds nothing new
+(a test applies each fix to its bad fixture, which is in the format). The game-file suites count
+them by code and never classify them.
+
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `style/empty-block` | hint | A block inside a record with nothing in it, or nothing but comments; a record's own body is not judged | Best practice: pychivalry's own best-practice rules. The base game follows it: 24,274 of the 2,321,663 blocks inside its records are empty (1.05%) | `CK3314` | `style-empty-block` | 8.2 | none | Built (step 8) | Suggestion: The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. |
+| `style/deep-nesting` | hint | A record with a block nested more than six blocks deep, its body the first; one finding a record, at the first such block, with how many places | Best practice: pychivalry's own best-practice rules. The base game follows it: 8,561 of its 223,429 records go past the limit (3.83%) | `CK3317` | `style-deep-nesting` | 8.2 | none | Built (step 8) | None: how to restructure deep script is a choice. |
+| `style/not-utf8` | warning | A file, script or localization, that is not valid UTF-8; beside the note `encoding/not-utf8`, which says how the file was read | Best practice: pychivalry's own best-practice rules. The base game follows it: 25 of the 17,282 script and localization files it reads are not UTF-8 (0.14%), all in `history/titles`, each fix safe | new | `style-not-utf8` | 8.2 | none | Built (step 8) | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
+| `style/unusual-field-order` | hint | A record whose fields are written in another order than its folder's usual one (the core's field-order data), in a folder whose record fields the game reads by name and whose base-game records follow the order | Best practice: pychivalry's own best-practice rules. The base game follows it: 1,206 of the 11,291 records it judges are in another order (10.68%): events 1,047 of 10,378, `common/on_action` 48 of 497, `common/casus_belli_types` 52 of 138, `common/court_positions/types` 11 of 87, `common/schemes/scheme_types` 46 of 136, `common/story_cycles` 2 of 55. Not judged, the base game breaking the order more often: `common/decisions` (321 of 587) and `common/character_interactions` (401 of 650) | new | `style-unusual-field-order` | 8.2 | none | Built (step 8) | Safe: The record's fields written in the usual order, comments with their field; none where a comment's field is not clear. |
 
 ### Retired codes
 
@@ -494,7 +522,7 @@ check with the same catalogue entry, is decided in items 11.2 and 11.3 from capt
 | Blocked | 2 | `structure/triggered-desc-other-field` (its message is not in the catalogue), `scope/title-text-reads-scope-saved-late` (the saved-scope form of localization text is not data) |
 | Retired | 11 | The provisional advice rows item 4.7's re-proof found firing on the base game ([Retired codes](#retired-codes)) |
 | Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
-| Built, step 8 | 9 | The `style/` family, added on the owner's word of 2026-11-23 ([Formatting](#formatting-the-style-family)): one warning and eight hints, on pychivalry's own formatting rules |
+| Built, step 8 | 13 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; four on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and three hints |
 
 The tables below are the inventory as item 4.1 proposed it.
 
@@ -630,9 +658,9 @@ for required fields, and its six package-local ids.
 | `CK3303` | hint | not carried over | — | Style; 158,788 base-game lines have spaces in their indentation |
 | `CK3304` | hint | not carried over | — | Style; 41,284 base-game lines end in whitespace |
 | `CK3306` | hint | not carried over | — | Style; about 165,000 base-game lines have an `=` without a space beside it |
-| `CK3314` | hint | not carried over | — | The base game writes 25,874 empty blocks on purpose |
-| `CK3316` | hint | not carried over | — | Style; 15,746 base-game lines are longer than 120 characters |
-| `CK3317` | hint | not carried over | — | Style; 116,096 base-game blocks are nested deeper than six |
+| `CK3314` | hint | not carried over | — | The base game writes 25,874 empty blocks on purpose. Since 2026-11-23 (decision 105) restored as `style/empty-block`, hint, a best-practice rule: the base game breaks it in 1.05% of its blocks |
+| `CK3316` | hint | not carried over | — | Style; 15,746 base-game lines are longer than 120 characters. Since 2026-11-23 the formatter's 120-column rule (decision 102, `style/block-layout`) |
+| `CK3317` | hint | not carried over | — | Style; 116,096 base-game blocks are nested deeper than six. Since 2026-11-23 (decision 105) restored as `style/deep-nesting`, hint, one finding a record: the base game breaks it in 3.83% of its records |
 | `CK3330` | information | not carried over | — | A guess at the line of a missing `}`, beside the parse error that already reports it |
 | `CK3331` | information | not carried over | — | The same for an extra `}` |
 | `COND-001` | information | not carried over | — | The base game writes 12 of its 89,641 `if`-like blocks without `limit` |
@@ -660,11 +688,11 @@ for required fields, and its six package-local ids.
 | `CK3511` | information | not carried over | — | 34 base-game blocks hold several `trigger_else` |
 | `CK3520` | information | not carried over | — | 2 of the base game's 1,274 hidden events have `after` |
 | `CK3521` | information | `structure/event-after-without-option` | information | Holds: 0 of 2,641 |
-| `CK3522` | hint | not carried over | — | 235 base-game `after` blocks only clean up |
+| `CK3522` | hint | not carried over | — | 235 base-game `after` blocks only clean up. Measured again for decision 105 (264 of 2,643 `after` blocks, 9.99%) and not restored: cleaning up is the better practice, so the rule is a claim about the game, and it could be built only from a name pattern (`remove_`, `clear_`) |
 | `CK3610` | information | not carried over | — | 10 base-game `ai_chance` blocks have a negative base |
 | `CK3611` | information | not carried over | — | 1,024 base-game `ai_chance` blocks total zero whatever applies |
 | `CK3612` | information | not carried over | — | 222 of the 9,658 base-game `ai_chance` blocks that can be totalled can go negative |
-| `CK3613` | hint | not carried over | — | 4,305 base-game options of several-option events have neither `ai_chance` nor `ai_will_select` |
+| `CK3613` | hint | not carried over | — | 4,305 base-game options of several-option events have neither `ai_chance` nor `ai_will_select`. Measured again for decision 105 (4,305 of 21,581 options, 19.95%): a best practice the base game follows, but not restored: part D4 has no role for those two keys, and a check may not name them (decision 54); a question for the owner |
 | `CK3614` | information | not carried over | — | 110 base-game `ai_chance` modifiers have no trigger |
 | `CK3656` | information | not carried over | — | The base game writes an inline `opinion` in 8,524 of its 10,724 `add_opinion` blocks |
 | `CK3762` | information | not carried over | — | 12 of the base game's 1,274 hidden events have options |
@@ -676,7 +704,7 @@ for required fields, and its six package-local ids.
 | `CK3768` | information | `structure/event-several-immediate` | information | Holds: 0 |
 | `CK3769` | information | not carried over | — | 980 shown base-game events have no portrait |
 | `CK3872` | information | not carried over | — | The base game writes `trigger = { always = yes }` 375 times |
-| `CK3873` | hint | not carried over | — | The base game writes `trigger = { always = no }` 222 times, on purpose |
+| `CK3873` | hint | not carried over | — | The base game writes `trigger = { always = no }` 222 times, on purpose. Measured again for decision 105 (223 of 84,772 trigger blocks) and not restored: it is the deliberate way to switch content off, which release 2.3.0's own text says |
 | `CK3875` | information | not carried over | — | 1,717 of the base game's 10,128 `random_` iterators have no `limit` |
 | `CK3977` | information | not carried over | — | 3,425 of its 10,369 `every_` iterators have no `limit` |
 | `CK5137` | information | not carried over | — | 3,441 of the base game's 3,517 `is_alive` checks have no `exists` beside them |

@@ -43,6 +43,18 @@ test('edits are applied against the text as it was, insertions at one place in o
     );
 });
 
+test('two edits that are the same are made once: two fixes that each add the byte-order mark', () => {
+    assert.equal(
+        applyEdits('a = b\n', [edit('f', 0, 0, 0, 0, '\ufeff'), edit('f', 0, 0, 0, 0, '\ufeff')]),
+        '\ufeffa = b\n',
+    );
+    // Insertions of other text at one place are each made.
+    assert.equal(
+        applyEdits('a = b\n', [edit('f', 0, 0, 0, 0, 'x'), edit('f', 0, 0, 0, 0, 'y')]),
+        'xya = b\n',
+    );
+});
+
 test('a file keeps its byte-order mark; a created file is its text whole', () => {
     assert.deepEqual(splitBom('\ufeffl_english:\n'), { text: 'l_english:\n', bom: true });
     assert.equal(joinBom({ text: 'x', bom: true }), '\ufeffx');

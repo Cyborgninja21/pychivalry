@@ -26,6 +26,7 @@ export function rowOutput(row: InventoryRow): Record<string, unknown> {
         evidence: row.evidence,
         message: row.message,
         off_by_default: row.offByDefault,
+        can_turn_off: row.canTurnOff,
     };
 }
 
@@ -41,7 +42,7 @@ const ROW: Schema = {
             properties: { kind: { type: 'string' } },
             required: ['kind'],
             description:
-                "The game's evidence that it raises this: its catalogue message (catalogue), its own output (game-output), the message of the place (per-place); advice has none",
+                "The game's evidence that it raises this: its catalogue message (catalogue), its own output (game-output), the message of the place (per-place); advice has none, and neither has a best-practice rule of the family style (best-practice)",
         },
         message: {
             type: ['string', 'null'],
@@ -50,10 +51,24 @@ const ROW: Schema = {
         },
         off_by_default: {
             type: 'boolean',
-            description: "True when check reports it only when asked (check's unused_keys)",
+            description: 'True when check reports it only when asked',
+        },
+        can_turn_off: {
+            type: 'boolean',
+            description:
+                "True when check reports it by default and can be told not to (check's unused_keys: false)",
         },
     },
-    required: ['code', 'family', 'severity', 'finds', 'evidence', 'message', 'off_by_default'],
+    required: [
+        'code',
+        'family',
+        'severity',
+        'finds',
+        'evidence',
+        'message',
+        'off_by_default',
+        'can_turn_off',
+    ],
 };
 
 export const explainTool: Tool<ExplainArgs> = {

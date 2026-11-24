@@ -14,7 +14,7 @@ import type { FolderTable } from '../index/folders.js';
 import type { LocalizationFile } from '../index/localization.js';
 import type { WorkspaceIndex } from '../index/workspace.js';
 import type { Spec } from '../spec/reader.js';
-import type { FindingId } from '../syntax/findings.js';
+import type { FindingId, InvalidStretch } from '../syntax/findings.js';
 import { parse, type ParseResult } from '../syntax/parser.js';
 import type { LineIndex, Range } from '../syntax/position.js';
 import type { Block, FileNode, Item, Pair, Scalar } from '../syntax/tree.js';
@@ -48,6 +48,11 @@ export interface FixFileInput {
      * it, no fix edits another file.
      */
     readonly modText?: ((path: string) => string | null) | undefined;
+    /**
+     * The stretches of the file that are not valid UTF-8, as the decoder read them (the fix of
+     * `style/not-utf8`); none when the file is valid UTF-8 or its bytes are not known.
+     */
+    readonly invalid?: readonly InvalidStretch[] | undefined;
 }
 
 /** One file, as its fixes read it. */

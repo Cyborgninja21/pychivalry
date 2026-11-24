@@ -81,12 +81,12 @@ count from 1, as an editor shows them.
 
 | Tool | Takes | Returns |
 | --- | --- | --- |
-| `check` | `path`: a file or folder of the mod (the whole mod when left out); `min_severity` (`error` by default; `hint` lists everything); `codes`: codes, families (`names/*`) or `*`; `limit` (50 by default, at most 200); `cursor`; `unused_keys` (false by default) | `totals` by severity and by code over every finding of the path, always; `matched`; the `findings` (file, place, severity, code, message, data, fix); `next_cursor`; what the per-file cap left out; the game read; notes |
+| `check` | `path`: a file or folder of the mod (the whole mod when left out); `min_severity` (`error` by default; `hint` lists everything); `codes`: codes, families (`names/*`) or `*`; `limit` (50 by default, at most 200); `cursor`; `unused_keys` (true by default; `false` turns it off) | `totals` by severity and by code over every finding of the path, always; `matched`; the `findings` (file, place, severity, code, message, data, fix); `next_cursor`; what the per-file cap left out; the game read; notes |
 | `lookup` | `names` (at most 20); `language` (`l_english`); `cursor` | For each name, the command line's `lookup --json` answer: every reading of the spec package, with its description, scopes and what it takes; where the mod and the base game define and use it, and which definition is in force; for a name nothing knows, names close to it |
 | `find_definition` | `name`, or `file`, `line` and `column` of a place in the mod | The name written there, and its definitions by kind, the one in force first, with the rule that decides |
 | `find_references` | `name`; `limit`; `cursor` | The count by layer, then the places it is written, the mod's first |
 | `list_definitions` | `kind`: the folder that holds the definitions (`common/scripted_effects`, `events`) or a localization language (`localization:l_english`); `limit`; `cursor` | The count by layer, then the definitions, the mod's first, each with whether it is in force |
-| `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default |
+| `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default or can be turned off |
 | `format` | `file`: a script or localization file of the mod the game reads; `cursor` | The file formatted by pychivalry's rules ([Formatting](formatting.md)), as a proposal: nothing is written. `formatted` (false for a file with a parse error or not valid UTF-8, with the `reason`), `changed`, `bom` and `line_ending` (`crlf`), `total_lines`, and the `text` from `first_line`, without the byte-order mark, a page at a time with `next_cursor`; no text when nothing changes |
 
 Two more tools come with the steps that build them: `call_graph` (step 10) and `analyze_log`
@@ -97,10 +97,14 @@ client may list them under a prefix of its own: Claude Code lists `check` as
 `mcp__pychivalry__check`. An agent calls each tool by the name its client lists.
 
 `check` is the one to start with. Its totals come first and count every finding of the path,
-whatever the filters keep, so the agent sees the whole picture before the list. Every check runs
-except `localization/unused-key`, which is off by default: `unused_keys` turns it on. The
-`style/` findings say where a file is not in pychivalry's format; they rest on its formatting
-rules, not on the game, and their fixes, like `format`'s text, change only whitespace.
+whatever the filters keep, so the agent sees the whole picture before the list. Every check runs,
+`localization/unused-key` too: `unused_keys: false` turns that one off. The `style/` findings
+rest on pychivalry's own rules, not on the game: its formatting rules say where a file is not in
+pychivalry's format, and their fixes, like `format`'s text, change only whitespace; its
+best-practice rules flag a file that is not UTF-8 (a warning, with a fix that converts it), an
+empty block, a block nested too deep and fields in an unusual order. A fix too long for a result
+comes with its edits left out and `edits_omitted`: `format` gives a formatting fix's text, and
+the command line's `check --fix` applies any safe fix.
 
 A finding's `message` is the game's own, as the game writes it; its `data` names what it is
 about and, where pychivalry knows it, what is valid there:

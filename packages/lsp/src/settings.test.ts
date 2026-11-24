@@ -15,7 +15,7 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
     assert.deepEqual(DEFAULT_SETTINGS, {
         gamePath: '',
         fileLimit: 3000,
-        unusedKeys: false,
+        unusedKeys: true,
         fallbackEncoding: null,
         inlayHints: true,
     });
@@ -23,23 +23,26 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
         readSettings({
             gamePath: ' /games/ck3/game ',
             background: { fileLimit: 12.7 },
-            localization: { unusedKeys: true },
+            localization: { unusedKeys: false },
             encoding: { fallback: 'windows-1252' },
             inlayHints: { enabled: false },
         }),
         {
             gamePath: '/games/ck3/game',
             fileLimit: 12,
-            unusedKeys: true,
+            unusedKeys: false,
             fallbackEncoding: 'windows-1252',
             inlayHints: false,
         },
     );
-    assert.deepEqual(readSettings({ 'background.fileLimit': 0, 'localization.unusedKeys': true }), {
-        ...DEFAULT_SETTINGS,
-        fileLimit: 0,
-        unusedKeys: true,
-    });
+    assert.deepEqual(
+        readSettings({ 'background.fileLimit': 0, 'localization.unusedKeys': false }),
+        {
+            ...DEFAULT_SETTINGS,
+            fileLimit: 0,
+            unusedKeys: false,
+        },
+    );
     assert.deepEqual(
         readSettings({
             gamePath: 3,
@@ -62,7 +65,7 @@ test('what a change of settings asks of the server', () => {
         settingsChange(base, { ...base, fallbackEncoding: 'windows-1252' }).reopen,
         true,
     );
-    assert.deepEqual(settingsChange(base, { ...base, unusedKeys: true }), {
+    assert.deepEqual(settingsChange(base, { ...base, unusedKeys: false }), {
         reopen: false,
         recheck: true,
         more: false,

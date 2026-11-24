@@ -35,7 +35,7 @@ Each is written by the step named, from evidence.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports | Step 2 |
+| [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports; and the best-practice warning on a file not UTF-8, with its converting fix (decision 106) | Step 2; step 8 (#148) |
 | [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one. The rules are carried as data in the spec package's part D1 | Step 3, items 3.1 and 3.1a |
 | [formatting.md](formatting.md) | The formatting rules, as the owner decided them (decisions 90 to 103) and as built: the principle, each rule with its base-game evidence and what it changes, the 120-column rule, the `style/` findings, what the formatter guarantees, the round trip on the base game, on-type formatting and Format Selection, what release 2.3.0's formatter did, and the record of what was decided | Step 8, items 8.1 to 8.5 |
 
@@ -59,6 +59,6 @@ These do not exist yet:
 | [../records/README.md](../records/README.md) | The record format of the suites that need game files |
 | [../records/corpus/README.md](../records/corpus/README.md) | The five real mods and their manifest |
 | [../fixtures/README.md](../fixtures/README.md) | The hand-written test mods, the game stubs and the planted-defect mod |
-| [../presentation/README.md](../presentation/README.md) | The presentation data (step 8, item 8.8): outline rules, snippets, field order and inline hints, one JSON file per game folder, read by the language server only and never by a check; its schema and what was carried over from the pre-2.0 schema files |
+| [../presentation/README.md](../presentation/README.md) | The presentation data (step 8, item 8.8): outline rules, snippets and inline hints, one JSON file per game folder, read by the language server only and never by a check; its schema and what was carried over from the pre-2.0 schema files. The field order it held moved into the core's data (decision 107); the page still says what it is, and in which folders it has no meaning to the game |
 | [../tools/scored-run/README.md](../tools/scored-run/README.md) | The scored test of the agent server (step 6): a developer's test script, never shipped or run by CI, that starts the developer's own Claude Code as separate test sessions with the agent server attached and grades them in code; pychivalry holds no key and makes no model call |
 | [../tools/data/](../tools/data/) | The classifications of the base game's parse errors (`parse-classifications.json`) and check findings (`check-classifications.json`), and of the five mods' check errors (`mods-classifications.json`), read by the game-file suites |

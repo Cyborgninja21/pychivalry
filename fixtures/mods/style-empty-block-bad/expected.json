@@ -1,0 +1,28 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 5,
+            "column": 3,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'limit' is empty.",
+            "data": {
+                "block": "limit",
+                "comments": "no"
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 9,
+            "column": 2,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'else' is empty.",
+            "data": {
+                "block": "else",
+                "comments": "yes"
+            }
+        }
+    ]
+}

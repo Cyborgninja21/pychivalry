@@ -22,7 +22,7 @@ import { test, type TestContext } from 'node:test';
 import { syncMod } from '../index/read-game.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import { CHECK_KINDS, isAdvice, type CheckCode } from './finding.js';
-import { checkFixture, expectedFindings, PAIR_GAMES } from './testing.js';
+import { checkFixture, expectedFindings, isStyle, PAIR_GAMES } from './testing.js';
 import {
     checkWorkspace,
     GAME_NOT_LOADED,
@@ -74,16 +74,34 @@ function written(findings: readonly WorkspaceFinding[]): Record<string, unknown>
 
 const isParse = (f: WorkspaceFinding): boolean => /^(syntax|encoding)\//.test(f.code);
 
-/** True for a finding that is not of the `style/` family, which has tests of its own. */
-const notStyle = (f: WorkspaceFinding): boolean => !f.code.startsWith('style/');
+/**
+ * What a finding rests on, for the pair tests: the game's evidence, item 4.7's advice, or a
+ * best-practice rule of the family `style`.
+ */
+function classOf(code: string): 'evidence' | 'advice' | 'style' {
+    if (isStyle(code)) {
+        return 'style';
+    }
+    return code in CHECK_KINDS && isAdvice(code as CheckCode) ? 'advice' : 'evidence';
+}
 
-/** True for a finding of an advice check of item 4.7. */
-const advice = (code: string): boolean => code in CHECK_KINDS && isAdvice(code as CheckCode);
+/**
+ * True for a finding of the formatter's rows of `style/` (evidence `formatting-rules`): the
+ * runner makes them from the formatter, not the checks, and they have tests of their own.
+ */
+const notFormatting = (f: WorkspaceFinding): boolean =>
+    !(f.code in CHECK_KINDS && CHECK_KINDS[f.code as CheckCode].formattingRules === true);
 
 /** The code a check pair is named for: the code with its `/` written as `-`. */
 function codeOfPair(pair: string): string | undefined {
     const name = pair.replace(/-(bad|good)$/, '');
     return Object.keys(CHECK_KINDS).find((code) => code.replace('/', '-') === name);
+}
+
+/** True for a pair of one of the formatter's codes, which its own tests read. */
+function formatterPair(pair: string): boolean {
+    const code = codeOfPair(pair);
+    return code !== undefined && CHECK_KINDS[code as CheckCode].formattingRules === true;
 }
 
 test("on each check's fixture pair the runner reports what every check reports, and what the pair expects", (t) => {
@@ -92,7 +110,7 @@ test("on each check's fixture pair the runner reports what every check reports, 
     const pairs = readdirSync(MODS).filter(
         (m) =>
             m.endsWith('-bad') &&
-            !m.startsWith('style-') &&
+            !formatterPair(m) &&
             existsSync(path.join(MODS, m, 'expected.json')) &&
             'findings' in
                 (JSON.parse(readFileSync(path.join(MODS, m, 'expected.json'), 'utf8')) as object),
@@ -105,15 +123,17 @@ test("on each check's fixture pair the runner reports what every check reports, 
     for (const bad of pairs) {
         const code = codeOfPair(bad);
         assert.ok(code !== undefined, `${bad} is named for a code`);
-        // A pair lists the findings of its own check and of every check that is not advice; the
-        // advice checks of item 4.7 are tested on their own pairs, so a pair of another code
-        // leaves them out, as its own test does (#133).
-        const keep = (f: Record<string, unknown>): boolean =>
-            advice(code) || !advice(String(f['code']));
-        // A pair whose checks need a base game is read over its game stub (item 4.6); a check
-        // off by default is asked for (decision 76).
+        // A pair lists the findings of its own check and of every check with the game's
+        // evidence; the advice checks of item 4.7 and the best-practice rules of the family
+        // `style` are each tested on their own pairs, so a pair of another kind leaves them out,
+        // as its own test does (#133).
+        const keep = (f: Record<string, unknown>): boolean => {
+            const kind = classOf(String(f['code']));
+            return kind === 'evidence' || kind === classOf(code);
+        };
+        // A pair whose checks need a base game is read over its game stub (item 4.6); every
+        // check runs as the runner runs it by default.
         const stub = PAIR_GAMES[bad.replace(/-bad$/, '')];
-        const unusedKeys = CHECK_KINDS[code as CheckCode].offByDefault === true;
         for (const [mod, expected] of [
             [bad, expectedFindings(bad)],
             [bad.replace(/-bad$/, '-good'), []],
@@ -127,12 +147,14 @@ test("on each check's fixture pair the runner reports what every check reports, 
                         : path.join(REPO_ROOT, 'fixtures', 'game', stub, 'game'),
                 cacheDir: null,
                 platform: 'linux',
-                unusedKeys,
             });
-            const found = written(run.findings.filter(notStyle));
+            const found = written(run.findings.filter(notFormatting));
             assert.deepEqual(
                 found,
-                checkFixture(mod, stub === undefined ? { unusedKeys } : { game: stub, unusedKeys }),
+                checkFixture(
+                    mod,
+                    stub === undefined ? { style: true } : { game: stub, style: true },
+                ),
                 `${mod}: the runner is every check`,
             );
             assert.deepEqual(found.filter(keep), expected, `${mod}: what the pair expects`);
@@ -216,7 +238,9 @@ test('a name the game defines is known; without the game no such name is reporte
     // The event has no desc and no option: advice of item 4.7, which is not what this is about.
     const withGame = checkWorkspace({ spec, modDir: mod, gameDir: game, cacheDir: null });
     assert.deepEqual(
-        withGame.findings.filter((f) => !advice(f.code)).map((f) => [f.file, f.code, f.message]),
+        withGame.findings
+            .filter((f) => classOf(f.code) === 'evidence')
+            .map((f) => [f.file, f.code, f.message]),
         [
             [
                 'events/broken.txt',
@@ -233,7 +257,7 @@ test('a name the game defines is known; without the game no such name is reporte
     assert.equal(withGame.gameBuild, spec.version);
     const without = checkWorkspace({ spec, modDir: mod, gameDir: null, cacheDir: null });
     assert.deepEqual(
-        without.findings.filter((f) => !advice(f.code)).map((f) => [f.file, f.code]),
+        without.findings.filter((f) => classOf(f.code) === 'evidence').map((f) => [f.file, f.code]),
         [['events/broken.txt', 'syntax/unexpected-closing-brace']],
     );
     assert.equal(GAME_NOT_LOADED.isDefined('anything', 'common/scripted_triggers'), true);

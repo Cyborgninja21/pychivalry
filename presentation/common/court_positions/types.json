@@ -6,22 +6,6 @@
         "symbol": "Interface",
         "blocks": []
     },
-    "fieldOrder": [
-        {
-            "block": "",
-            "fields": [
-                "opinion",
-                "aptitude",
-                "is_shown",
-                "salary",
-                "scaling_employer_modifiers",
-                "custom_employer_modifier_description",
-                "base_employer_modifier",
-                "modifier",
-                "search_for_courtier"
-            ]
-        }
-    ],
     "snippets": [
         {
             "label": "salary",

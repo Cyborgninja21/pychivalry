@@ -249,10 +249,11 @@ test('explain_code: the rows of the inventory, a family with <family>/*', async 
         'in the order asked',
     );
     assert.deepEqual(out['unknown'], ['nope']);
-    const unused = (out['codes'] as { code: string; off_by_default: boolean }[]).find(
-        (r) => r.code === 'localization/unused-key',
-    );
-    assert.equal(unused?.off_by_default, true);
+    const unused = (
+        out['codes'] as { code: string; off_by_default: boolean; can_turn_off: boolean }[]
+    ).find((r) => r.code === 'localization/unused-key');
+    assert.equal(unused?.off_by_default, false);
+    assert.equal(unused.can_turn_off, true);
     const all = await s.output('explain_code', { codes: ['*'] });
     const shown = (all['codes'] as unknown[]).length + (all['not_shown'] as unknown[]).length;
     assert.equal(shown, rows.length, 'every code, shown or named to ask again');

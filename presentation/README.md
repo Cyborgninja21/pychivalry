@@ -5,6 +5,14 @@ only (docs/PLAN.md, item 8.8). It shapes the outline, completion and the inline 
 raises, changes or silences a finding: the core does not read these files and no check can be
 given them, which a test holds (`packages/lsp/src/presentation.test.ts`).
 
+**The field order is no longer here.** Since 2026-11-23 a check reads it (the best-practice rule
+`style/unusual-field-order`, on the owner's word), and a check may not be handed these files, so
+it moved, unchanged, into data the core reads:
+[`packages/core/src/check/field-order.json`](../packages/core/src/check/field-order.json). The
+language server's completion reads it there, so the editor, the command line and the agent
+server all use the one copy. What it says and how completion uses it is below, under
+[The field order](#the-field-order).
+
 The entries were brought back from the 32 pre-2.0 schema files
 ([the reference](../docs/references/wiki-era-schemas.md)), written by hand in this format and
 checked one by one against the 1.21.0.3 base game and the committed spec package. Some are new.
@@ -26,7 +34,6 @@ A folder file holds, each part optional:
 | `folder` | The game folder, as the spec package writes it |
 | `from` | The pre-2.0 schema files the entries came from; empty for data written new |
 | `outline` | The outline rule |
-| `fieldOrder` | The order fields are conventionally written in |
 | `snippets` | Snippets with tab stops |
 | `hints` | Inline hints |
 
@@ -65,14 +72,38 @@ to the plain outline's. `"children": "blocks"` also lists the field's own keyed 
 
 ### The field order
 
+In the core's data file (above), by folder:
+
 ```json
-"fieldOrder": [{ "block": "", "fields": ["type", "title", "desc", "theme"] }]
+"events": [{ "block": "", "fields": ["type", "title", "desc", "theme"] }]
 ```
 
 `block` is the path of keys from the record's body to the block, joined by `.`; `""` is the
 record's body. In that block, completion lists the fields it offers in this order, ahead of the
 other fields and of everything else, and preselects the first field of the order not yet written
 after the last one written before the cursor. The formatter may later read the same order.
+
+The rule `style/unusual-field-order` reads the order of a record's body, in the folders whose
+records the game reads field by field: the spec package gives the folder a record schema whose
+body is no trigger or effect block and whose records are no script value. All eight folders of
+the data are such folders. The evidence for each, beyond the schema (every key a record field
+with its own kind, which the game reads by name):
+
+| Folder | Evidence the order of its record fields has no meaning to the game |
+| --- | --- |
+| `events` | Part D4 gives the event's fields their roles by name (`trigger` the fire condition, `immediate` runs before the options, `option` an option, `after` after the chosen option); `events/_events.info` documents each field by name; where several copies of a field count in order (`option`, `override_background`: "the first one that fits"), their order is kept |
+| `common/on_action` | Part D1, `on-action-field-outcomes` (the executable, rank 1): the reader takes each field by its token and says what a second copy does |
+| `common/casus_belli_types` | Part D4: `on_victory`, `on_defeat`, `on_white_peace` are outcome effects by name; `_casus_belli.info` |
+| `common/story_cycles` | Part D4: `effect_group` a periodic block by name; `_story_cycles.info` |
+| `common/decisions`, `common/character_interactions`, `common/court_positions/types`, `common/schemes/scheme_types` | The record schema alone, and Paradox's `.info` file of the folder, which documents each field by name |
+
+A copy of a field written more than once keeps its place among the copies; a field the order does
+not name keeps its place. The base game's own rate of records in another order, per folder, is
+counted by `pychivalry-tools advice proof`. Six folders are judged (the data file's `judged`):
+two, `common/decisions` and `common/character_interactions`, are not, because the 1.21.0.3 base
+game writes more of their records in another order than in this one (321 of 587 decisions, 401
+of 650 interactions); a style rule the base game breaks more often than it follows ships only on
+the owner's word.
 
 ### Snippets
 
@@ -115,8 +146,9 @@ turns them off.
 
 ## Rules for the data
 
-- Every field it names (an outline rule's, a field order's, a hint's, a field snippet's) is a
-  field of that folder's record schema in the committed spec package; a test checks every name.
+- Every field it names (an outline rule's, a hint's, a field snippet's, and the core's field
+  order) is a field of that folder's record schema in the committed spec package; a test checks
+  every name.
   This is presentation data about real names, not a vocabulary.
 - A folder with no record schema in the spec, or a field the 1.21 base game no longer has, is
   left out rather than kept.

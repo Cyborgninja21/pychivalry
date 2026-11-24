@@ -84,8 +84,8 @@
                 },
                 "pychivalry.localization.unusedKeys": {
                     "type": "boolean",
-                    "default": false,
-                    "markdownDescription": "Also show a hint on each localization key that nothing in the mod or the game uses (`localization/unused-key`). Off by default: a large mod can have thousands of them."
+                    "default": true,
+                    "markdownDescription": "Show a hint on each localization key that nothing in the mod or the game uses (`localization/unused-key`). On by default; turn it off to hide them (a large mod can have thousands)."
                 },
                 "pychivalry.encoding.fallback": {
                     "type": "string",

@@ -30,14 +30,30 @@ test(`${CODE} is silent when no base game is read`, () => {
     assert.deepEqual(checkFixture('localization-unused-key-bad', { unusedKeys: true }), []);
 });
 
-test(`${CODE} is off by default: silent on its bad fixture unless asked (decision 76)`, () => {
-    assert.deepEqual(checkFixture('localization-unused-key-bad', { game: GAME }), []);
-    assert.equal(CHECK_KINDS[CODE].offByDefault, true);
-    const others = Object.entries(CHECK_KINDS).filter(([, kind]) => kind.offByDefault === true);
+test(`${CODE} is on by default (2026-11-23, replacing decision 76), and can be turned off`, () => {
     assert.deepEqual(
-        others.map(([code]) => code),
+        checkFixture('localization-unused-key-bad', { game: GAME }),
+        expectedFindings('localization-unused-key-bad'),
+    );
+    assert.deepEqual(
+        checkFixture('localization-unused-key-bad', { game: GAME, unusedKeys: false }),
+        [],
+    );
+    assert.equal(CHECK_KINDS[CODE].offByDefault, undefined);
+    assert.equal(CHECK_KINDS[CODE].canTurnOff, true);
+    assert.deepEqual(
+        Object.entries(CHECK_KINDS)
+            .filter(([, kind]) => kind.offByDefault === true)
+            .map(([code]) => code),
+        [],
+        'no check is off by default',
+    );
+    assert.deepEqual(
+        Object.entries(CHECK_KINDS)
+            .filter(([, kind]) => kind.canTurnOff === true)
+            .map(([code]) => code),
         [CODE],
-        'the only check off by default',
+        'the only check that can be turned off',
     );
 });
 

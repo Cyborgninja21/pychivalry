@@ -8,7 +8,7 @@
  * | --- | --- | --- |
  * | `pychivalry.gamePath` | `""` | The game's `game` folder; empty: the game is looked for in every Steam library |
  * | `pychivalry.background.fileLimit` | `3000` | The most files of the mod checked in the background; `0`: none (open files are always checked) |
- * | `pychivalry.localization.unusedKeys` | `false` | Report `localization/unused-key`, off by default (decision 76) |
+ * | `pychivalry.localization.unusedKeys` | `true` | Report `localization/unused-key`: on by default since 2026-11-23 (replacing decision 76); `false` turns it off |
  * | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252 |
  * | `pychivalry.inlayHints.enabled` | `true` | Show the presentation data's inline hints (`inlay-hints.ts`) |
  */
@@ -23,7 +23,7 @@ export interface Settings {
     readonly gamePath: string;
     /** The most files of the mod checked in the background; 0 for none. */
     readonly fileLimit: number;
-    /** Run `localization/unused-key`, which is off by default. */
+    /** Run `localization/unused-key`: on by default; `false` turns it off. */
     readonly unusedKeys: boolean;
     /** How to read the bytes of a file that are not valid UTF-8. */
     readonly fallbackEncoding: FallbackEncoding | null;
@@ -34,7 +34,7 @@ export interface Settings {
 export const DEFAULT_SETTINGS: Settings = {
     gamePath: '',
     fileLimit: 3000,
-    unusedKeys: false,
+    unusedKeys: true,
     fallbackEncoding: null,
     inlayHints: true,
 };

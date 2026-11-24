@@ -58,6 +58,8 @@ export function evidenceCell(row: InventoryRow): string {
             return `The game's message for the missing field ${e.field}`;
         case 'advice':
             return "Advice: pychivalry's own, with no game message";
+        case 'best-practice':
+            return "Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it";
         case 'formatting-rules':
             return `pychivalry's own formatting rules (${e.source}), not the game: by the owner's decision, the one kind of warning that rests on them`;
     }
@@ -83,6 +85,7 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
     const count = (s: Severity): number => rows.filter((r) => r.severity === s).length;
     const advice = rows.filter((r) => r.evidence.kind === 'advice').length;
     const style = rows.filter((r) => r.evidence.kind === 'formatting-rules').length;
+    const practice = rows.filter((r) => r.evidence.kind === 'best-practice').length;
     const lines = [
         '# Checks',
         '',
@@ -94,21 +97,26 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
         `catalogue for game ${specVersion} gives it. \`pychivalry explain <code>\` prints the same for one`,
         'code ([Commands](commands.md)).',
         '',
-        `${String(rows.length)} codes: ${String(count('error'))} errors, ${String(count('warning'))} warnings, ${String(count('information'))} information and ${String(count('hint'))} hints. ${String(rows.length - advice - style)} rest on the game's own evidence; ${String(advice)} are advice; ${String(style)} rest on pychivalry's own formatting rules.`,
+        `${String(rows.length)} codes: ${String(count('error'))} errors, ${String(count('warning'))} warnings, ${String(count('information'))} information and ${String(count('hint'))} hints. ${String(rows.length - advice - style - practice)} rest on the game's own evidence; ${String(advice)} are advice; ${String(style)} rest on pychivalry's own formatting rules; ${String(practice)} on its own best-practice rules.`,
         '',
         '- An **error** or a **warning** is something the game itself rejects or complains about, and',
         "  rests on the game's own evidence: a message of the game, the game's own output, or a",
-        "  field the spec package marks required with the game's message for it.",
+        "  field the spec package marks required with the game's message for it. The exception is",
+        '  the family `style`, below.',
         '- **Information** and **hints** without such evidence are advice: usually right, not',
         '  something the game enforces.',
-        "- The **`style/`** findings rest on pychivalry's own formatting rules",
-        "  ([formatting rules](../formatting.md)), not on the game: by the owner's decision, a file",
-        '  that is not in that format is a warning, and each place that differs a hint, each with a',
-        '  safe fix. A file with a parse error has none.',
+        "- The **`style/`** findings rest on pychivalry's own rules, not on the game, by the owner's",
+        '  decision. Its formatting rules ([formatting rules](../formatting.md)): a file that is not',
+        '  in that format is a warning, and each place that differs a hint, each with a safe fix; a',
+        '  file with a parse error has none. Its best-practice rules: a file that is not UTF-8 is a',
+        '  warning, with a fix that converts it; an empty block, a block nested too deep and fields in',
+        '  an unusual order are hints. Each best-practice rule is one the base game follows more',
+        '  often than it breaks.',
         `- A file reports at most ${MAX_FINDINGS_PER_FILE.toLocaleString('en-US')} findings, its most severe first; the command line says how`,
         '  many it left out.',
-        "- A check marked **off by default** reports only when asked: the command line's",
-        "  `check --unused-keys`, the agent server's `check` with `unused_keys`.",
+        "- A check marked **on by default** can be turned off: the command line's",
+        "  `check --no-unused-keys`, the agent server's `check` with `unused_keys: false`, the",
+        "  editor's setting `pychivalry.localization.unusedKeys`.",
         '- A finding with a mechanical **fix** carries it as data: **safe**, the one outcome that',
         '  can be right, which `pychivalry check --fix` and the editor\'s "fix all" apply; or a',
         '  **suggestion**, alternatives to choose from, which nothing applies by itself. The editor',
@@ -124,8 +132,10 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
         lines.push('| --- | --- | --- | --- | --- |');
         for (const row of rows.filter((r) => r.family === family)) {
             const off = row.offByDefault
-                ? ' **Off by default:** `pychivalry check --unused-keys` turns it on.'
-                : '';
+                ? ' **Off by default:** `pychivalry check` reports it only when asked.'
+                : row.canTurnOff
+                  ? ' **On by default:** `pychivalry check --no-unused-keys` turns it off.'
+                  : '';
             lines.push(
                 `| \`${row.code}\` | ${row.severity} | ${cell(row.finds)}${off} | ${cell(evidenceCell(row))} | ${cell(fixCell(row))} |`,
             );

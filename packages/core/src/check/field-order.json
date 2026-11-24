@@ -1,0 +1,154 @@
+{
+    "$comment": "The order the fields of each folder's records are conventionally written in: completion follows it (the language server) and the best-practice rule style/unusual-field-order judges it (the core). Moved here from the language server's presentation data on 2026-11-23 so that every surface reads the one copy; see packages/core/src/check/field-order.ts. 'judged' lists the folders the rule judges: those whose records the game reads field by field and whose base-game records follow the order more often than they break it (1.21.0.3, pychivalry-tools advice proof). common/decisions (321 of 587 records in another order) and common/character_interactions (401 of 650) are left out until the owner says otherwise.",
+    "folders": {
+        "common/casus_belli_types": [
+            {
+                "block": "",
+                "fields": [
+                    "icon",
+                    "group",
+                    "valid_to_start",
+                    "should_invalidate",
+                    "on_invalidated",
+                    "cost",
+                    "on_victory",
+                    "on_white_peace",
+                    "on_defeat",
+                    "ai_score"
+                ]
+            }
+        ],
+        "common/character_interactions": [
+            {
+                "block": "",
+                "fields": [
+                    "category",
+                    "icon",
+                    "interface_priority",
+                    "cooldown",
+                    "redirect",
+                    "is_shown",
+                    "is_highlighted",
+                    "can_send",
+                    "on_auto_accept",
+                    "ai_frequency",
+                    "ai_potential",
+                    "on_accept",
+                    "on_decline",
+                    "ai_accept",
+                    "ai_targets",
+                    "ai_will_do"
+                ]
+            }
+        ],
+        "common/court_positions/types": [
+            {
+                "block": "",
+                "fields": [
+                    "opinion",
+                    "aptitude",
+                    "is_shown",
+                    "salary",
+                    "scaling_employer_modifiers",
+                    "custom_employer_modifier_description",
+                    "base_employer_modifier",
+                    "modifier",
+                    "search_for_courtier"
+                ]
+            }
+        ],
+        "common/decisions": [
+            {
+                "block": "",
+                "fields": [
+                    "picture",
+                    "cooldown",
+                    "ai_check_interval",
+                    "is_shown",
+                    "is_valid",
+                    "is_valid_showing_failures_only",
+                    "cost",
+                    "widget",
+                    "effect",
+                    "ai_potential",
+                    "ai_will_do"
+                ]
+            }
+        ],
+        "common/on_action": [
+            {
+                "block": "",
+                "fields": [
+                    "trigger",
+                    "events",
+                    "first_valid",
+                    "effect",
+                    "on_actions",
+                    "random_events"
+                ]
+            }
+        ],
+        "common/schemes/scheme_types": [
+            {
+                "block": "",
+                "fields": [
+                    "skill",
+                    "desc",
+                    "success_desc",
+                    "discovery_desc",
+                    "icon",
+                    "illustration",
+                    "target_type",
+                    "category",
+                    "is_secret",
+                    "cooldown",
+                    "base_progress_goal",
+                    "phases_per_agent_charge",
+                    "allow",
+                    "valid",
+                    "agent_leave_threshold",
+                    "on_start",
+                    "on_phase_completed",
+                    "on_hud_click",
+                    "on_monthly"
+                ]
+            }
+        ],
+        "common/story_cycles": [
+            {
+                "block": "",
+                "fields": ["on_setup", "on_end", "on_owner_death", "effect_group"]
+            }
+        ],
+        "events": [
+            {
+                "block": "",
+                "fields": [
+                    "type",
+                    "title",
+                    "desc",
+                    "theme",
+                    "left_portrait",
+                    "right_portrait",
+                    "sender",
+                    "lower_left_portrait",
+                    "lower_center_portrait",
+                    "lower_right_portrait",
+                    "widgets",
+                    "trigger",
+                    "immediate",
+                    "option",
+                    "after"
+                ]
+            }
+        ]
+    },
+    "judged": [
+        "common/casus_belli_types",
+        "common/court_positions/types",
+        "common/on_action",
+        "common/schemes/scheme_types",
+        "common/story_cycles",
+        "events"
+    ]
+}

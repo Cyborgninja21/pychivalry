@@ -7,8 +7,8 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
-import { ADVICE_CHECKS, openSpec } from '@pychivalry/core';
-import { adviceProof, MIN_APPLIES, proofText, verdictOf } from './advice-proof.js';
+import { ADVICE_CHECKS, openSpec, BEST_PRACTICE_CHECKS } from '@pychivalry/core';
+import { adviceProof, MIN_APPLIES, proofText, styleVerdictOf, verdictOf } from './advice-proof.js';
 import { fixtureGame, tempDir, writeTree } from './testing.js';
 import { repoRoot } from './util.js';
 
@@ -18,6 +18,12 @@ test('a row holds when it applies to at least 10 and fires on none', () => {
     assert.equal(verdictOf(MIN_APPLIES, 0), 'holds');
     assert.equal(verdictOf(MIN_APPLIES - 1, 0), 'too-few');
     assert.equal(verdictOf(500, 1), 'fires');
+});
+
+test('a style rule follows when the base game breaks it at most as often as it follows it', () => {
+    assert.equal(styleVerdictOf(10, 5), 'follows');
+    assert.equal(styleVerdictOf(10, 6), 'broken');
+    assert.equal(styleVerdictOf(0, 0), 'follows');
 });
 
 test('every advice check has a row, with what it judged and what it found', (t) => {
@@ -35,7 +41,7 @@ test('every advice check has a row, with what it judged and what it found', (t) 
     const proof = adviceProof(spec, game, 'linux');
     assert.deepEqual(
         proof.rows.map((r) => r.code),
-        ADVICE_CHECKS.map((c) => c.code),
+        [...ADVICE_CHECKS, ...BEST_PRACTICE_CHECKS].map((c) => c.code),
     );
     const empty = proof.rows.find((r) => r.code === 'structure/event-empty');
     assert.equal(empty?.applies, 13);
@@ -54,7 +60,18 @@ test('every advice check has a row, with what it judged and what it found', (t) 
     const orphan = proof.rows.find((r) => r.code === 'structure/else-without-if');
     assert.equal(orphan?.applies, 1);
     assert.equal(orphan.verdict, 'too-few');
+    // The best-practice rules, with their rate and their counts by folder.
+    const empty2 = proof.rows.find((r) => r.code === 'style/empty-block');
+    assert.equal(empty2?.kind, 'style');
+    assert.equal(empty2.applies, 2);
+    assert.equal(empty2.fires, 2);
+    assert.equal(empty2.verdict, 'broken');
+    assert.deepEqual(empty2.byFolder, [
+        { folder: 'common/scripted_effects', applies: 2, fires: 2 },
+    ]);
     const text = proofText(proof);
     assert.match(text, /^structure\/event-empty: applies to 13, fires on 1: fires$/m);
+    assert.match(text, /^style\/empty-block: applies to 2, fires on 2 \(100\.00%\): broken$/m);
+    assert.match(text, /^ {2}common\/scripted_effects: applies to 2, fires on 2 \(100\.00%\)$/m);
     assert.match(text, /^ {2}events\/stub_events\.txt:14: The event 'stub\.13' is empty\.$/m);
 });

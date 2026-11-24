@@ -12,7 +12,13 @@
  */
 
 import { LineIndex } from './position.js';
-import { toFinding, type Finding, type MessageCatalogue, type RawFinding } from './findings.js';
+import {
+    toFinding,
+    type Finding,
+    type InvalidStretch,
+    type MessageCatalogue,
+    type RawFinding,
+} from './findings.js';
 
 /** The encodings a caller can name for files that are not valid UTF-8. */
 export type FallbackEncoding = 'windows-1252';
@@ -35,11 +41,12 @@ export interface Decoded {
     readonly validUtf8: boolean;
     /** Bytes that are not part of a valid UTF-8 sequence; 0 when the bytes are valid. */
     readonly invalidBytes: number;
+    /** Each stretch that is not valid UTF-8, where its text is and what it reads as in Windows-1252. */
+    readonly invalid: readonly InvalidStretch[];
     /** The note that the file is not valid UTF-8, or nothing. */
     readonly findings: readonly Finding[];
 }
 
-const utf8 = new TextDecoder('utf-8', { ignoreBOM: true });
 const utf8Strict = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 /**
@@ -156,7 +163,15 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
     const body = bom ? bytes.subarray(3) : bytes;
     try {
         const text = utf8Strict.decode(body);
-        return { text, bom, encoding: 'utf-8', validUtf8: true, invalidBytes: 0, findings: [] };
+        return {
+            text,
+            bom,
+            encoding: 'utf-8',
+            validUtf8: true,
+            invalidBytes: 0,
+            invalid: [],
+            findings: [],
+        };
     } catch {
         // Not valid UTF-8: read it anyway, below.
     }
@@ -168,20 +183,21 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
     const fallback = options.fallbackEncoding;
     // The note sits at the first invalid byte: the length of the valid text before it.
     const at = utf8Strict.decode(body.subarray(0, invalid.first)).length;
-    let text: string;
-    if (fallback === 'windows-1252') {
-        // Valid UTF-8 stays UTF-8; only the invalid stretches are read as Windows-1252.
-        text = '';
-        let from = 0;
-        for (const range of ranges) {
-            text += utf8Strict.decode(body.subarray(from, range.start));
-            text += decodeWindows1252(body.subarray(range.start, range.end));
-            from = range.end;
-        }
-        text += utf8Strict.decode(body.subarray(from));
-    } else {
-        text = utf8.decode(body);
+    // Valid UTF-8 stays UTF-8; each invalid stretch becomes one U+FFFD, or, with the fallback,
+    // its bytes read as Windows-1252. Built stretch by stretch, so where each stretch's text is
+    // is known; read as UTF-8 the result is what `TextDecoder` gives (a test holds the two).
+    let text = '';
+    let from = 0;
+    const invalidStretches: InvalidStretch[] = [];
+    for (const range of ranges) {
+        text += utf8Strict.decode(body.subarray(from, range.start));
+        const windows1252 = decodeWindows1252(body.subarray(range.start, range.end));
+        const start = text.length;
+        text += fallback === 'windows-1252' ? windows1252 : '\ufffd';
+        invalidStretches.push({ start, end: text.length, windows1252 });
+        from = range.end;
     }
+    text += utf8Strict.decode(body.subarray(from));
     const encoding = fallback ?? 'utf-8';
     const raw: RawFinding = {
         id: 'encoding/not-utf8',
@@ -200,6 +216,12 @@ export function decodeScript(bytes: Uint8Array, options: DecodeOptions = {}): De
         encoding,
         validUtf8: false,
         invalidBytes: invalid.bytes,
-        findings: [toFinding(raw, new LineIndex(text), options.catalogue)],
+        invalid: invalidStretches,
+        findings: [
+            {
+                ...toFinding(raw, new LineIndex(text), options.catalogue),
+                invalid: invalidStretches,
+            },
+        ],
     };
 }
