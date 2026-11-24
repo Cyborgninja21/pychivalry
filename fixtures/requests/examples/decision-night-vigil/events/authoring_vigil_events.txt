@@ -1,0 +1,13 @@
+﻿namespace = authoring_vigil
+
+# The vigil ends at dawn.
+authoring_vigil.0001 = {
+	type = character_event
+	title = authoring_vigil.0001.t
+	desc = authoring_vigil.0001.desc
+
+	option = {
+		name = authoring_vigil.0001.a
+		add_piety = 25
+	}
+}

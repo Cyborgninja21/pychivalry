@@ -1,0 +1,8 @@
+﻿l_english:
+ authoring_letter.0001.t:0 "A Letter from Home"
+ authoring_letter.0001.desc:0 "A letter arrives from [ROOT.Char.GetFirstName]'s spouse, full of news from home."
+ authoring_letter.0001.a:0 "Read it twice."
+ authoring_letter.0002.t:0 "An Answer"
+ authoring_letter.0002.desc:0 "[ROOT.Char.GetFirstName] sits down to answer the letter."
+ authoring_letter.0002.a:0 "Praise my spouse before the court."
+ authoring_letter.0002.b:0 "Write a long, warm reply."

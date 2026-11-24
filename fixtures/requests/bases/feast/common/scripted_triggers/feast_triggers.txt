@@ -1,0 +1,5 @@
+﻿# Who can host a feast.
+feast_can_host_trigger = {
+	is_ruler = yes
+	is_adult = yes
+}

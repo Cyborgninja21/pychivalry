@@ -1,0 +1,36 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/Cyborgninja21/pychivalry/blob/main/tools/scored-run/judge.schema.json",
+    "title": "The judge's answer",
+    "description": "What a judge test session of the scored authoring test answers about one result (tools/scored-run/README.md, \"The judge\"). judge.ts parses the session's last words against it; an answer that is not this shape, names another request, or does not answer exactly the request's questions is recorded as malformed, never guessed.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["request", "answers"],
+    "properties": {
+        "request": {
+            "description": "The id of the request the answer is about, as the prompt gave it.",
+            "type": "string",
+            "minLength": 1
+        },
+        "answers": {
+            "description": "One entry per question id the prompt asked, and no other.",
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["answer", "reason"],
+                "properties": {
+                    "answer": {
+                        "description": "yes: the result does what the question asks; no: it does not; cannot-tell: the files do not let the judge decide.",
+                        "enum": ["yes", "no", "cannot-tell"]
+                    },
+                    "reason": {
+                        "description": "One sentence, for the person running the test; never recorded.",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+﻿namespace = authoring_sleep
+
+# A character who cannot sleep.
+authoring_sleep.0001 = {
+	type = character_event
+	title = authoring_sleep.0001.t
+	desc = authoring_sleep.0001.desc
+
+	trigger = {
+		is_adult = yes
+		is_imprisoned = no
+		stress >= 50
+	}
+
+	option = {
+		name = authoring_sleep.0001.a
+		add_stress = -20
+		add_gold = -25
+	}
+	option = {
+		name = authoring_sleep.0001.b
+		add_piety = 25
+		add_stress = -10
+	}
+	option = {
+		name = authoring_sleep.0001.c
+		trigger = { prestige >= 100 }
+		add_stress = -30
+		add_prestige = -50
+	}
+}

@@ -32,7 +32,9 @@
                 "game:bench",
                 "baseline:speed",
                 "baseline:results",
-                "scored:agent-use"
+                "scored:agent-use",
+                "scored:authoring",
+                "scored:calibration"
             ]
         },
         "command": {
@@ -47,7 +49,10 @@
         },
         "tool": { "$ref": "#/$defs/tool" },
         "machine": { "$ref": "#/$defs/machine" },
-        "game": { "$ref": "#/$defs/game" },
+        "game": {
+            "description": "The installed game the run read; null for the judge's calibration (scored:calibration), which reads no game.",
+            "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/game" }]
+        },
         "spec": { "$ref": "#/$defs/spec" },
         "corpus": {
             "description": "The mod corpus the run read, or null for a suite that reads no mods.",
@@ -64,6 +69,14 @@
         }
     },
     "allOf": [
+        {
+            "if": {
+                "properties": { "suite": { "const": "scored:calibration" } },
+                "required": ["suite"]
+            },
+            "then": { "properties": { "game": { "type": "null" } } },
+            "else": { "properties": { "game": { "$ref": "#/$defs/game" } } }
+        },
         {
             "if": {
                 "properties": { "suite": { "const": "baseline:speed" } },
@@ -155,6 +168,34 @@
                     "notes": { "type": "array", "minItems": 1 },
                     "corpus": { "type": "null" },
                     "results": { "$ref": "#/$defs/scoredResults" }
+                },
+                "required": ["notes"]
+            }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "scored:authoring" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "corpus": { "type": "null" },
+                    "results": { "$ref": "#/$defs/authoringResults" }
+                },
+                "required": ["notes"]
+            }
+        },
+        {
+            "if": {
+                "properties": { "suite": { "const": "scored:calibration" } },
+                "required": ["suite"]
+            },
+            "then": {
+                "properties": {
+                    "notes": { "type": "array", "minItems": 1 },
+                    "corpus": { "type": "null" },
+                    "results": { "$ref": "#/$defs/calibrationResults" }
                 },
                 "required": ["notes"]
             }
@@ -1395,6 +1436,563 @@
                         "hint": { "$ref": "#/$defs/count" }
                     }
                 }
+            }
+        },
+        "judgeRecord": {
+            "description": "The judge's part of an authoring trial or a calibration item: its session's end and problems, and its answer per dimension, or why there is none. The judge's reasons are never recorded.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "state",
+                "why",
+                "stopped",
+                "harness_problems",
+                "answers",
+                "turns",
+                "duration_ms",
+                "exit_code"
+            ],
+            "properties": {
+                "state": {
+                    "description": "answered: every question answered; malformed: the session answered, not in the answer's shape; not-judged: no judge was asked, or its session said nothing.",
+                    "enum": ["answered", "malformed", "not-judged"]
+                },
+                "why": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/text" }] },
+                "stopped": {
+                    "oneOf": [
+                        { "type": "null" },
+                        {
+                            "enum": [
+                                "finished",
+                                "session-limit",
+                                "turns",
+                                "error",
+                                "timeout",
+                                "no-result"
+                            ]
+                        }
+                    ]
+                },
+                "harness_problems": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "answers": {
+                    "description": "One per question the request asks, in its order, when answered; otherwise none.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["dimension", "answer"],
+                        "properties": {
+                            "dimension": { "$ref": "#/$defs/text" },
+                            "answer": { "enum": ["yes", "no", "cannot-tell"] }
+                        }
+                    }
+                },
+                "turns": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/count" }] },
+                "duration_ms": {
+                    "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0 }]
+                },
+                "exit_code": { "oneOf": [{ "type": "null" }, { "type": "integer" }] }
+            }
+        },
+        "validity": {
+            "description": "Grade one of an authoring trial: pychivalry's checker on the result, over the base game.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "errors",
+                "warnings",
+                "information",
+                "hints",
+                "zero_errors",
+                "no_warnings",
+                "in_format",
+                "by_code"
+            ],
+            "properties": {
+                "errors": { "$ref": "#/$defs/count" },
+                "warnings": { "$ref": "#/$defs/count" },
+                "information": { "$ref": "#/$defs/count" },
+                "hints": { "$ref": "#/$defs/count" },
+                "zero_errors": { "type": "boolean" },
+                "no_warnings": { "type": "boolean" },
+                "in_format": {
+                    "description": "No warning of the family style/: the result is in pychivalry's format.",
+                    "type": "boolean"
+                },
+                "by_code": {
+                    "description": "The errors and warnings by code.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["code", "severity", "count"],
+                        "properties": {
+                            "code": { "$ref": "#/$defs/text" },
+                            "severity": { "enum": ["error", "warning"] },
+                            "count": { "type": "integer", "minimum": 1 }
+                        }
+                    }
+                }
+            }
+        },
+        "authoringTrial": {
+            "description": "One trial of a scored authoring run: one authoring test session of Claude Code, then one judge test session on what it left.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "task",
+                "content_type",
+                "difficulty",
+                "trial",
+                "harness_held",
+                "stopped",
+                "harness_problems",
+                "tool_calls",
+                "tool_errors",
+                "permission_denials",
+                "session",
+                "turns",
+                "duration_ms",
+                "exit_code",
+                "validity",
+                "expectations",
+                "expectations_met",
+                "judge"
+            ],
+            "properties": {
+                "task": { "description": "The request's id.", "$ref": "#/$defs/text" },
+                "content_type": {
+                    "enum": ["event", "decision", "scripted_effect", "scripted_trigger"]
+                },
+                "difficulty": { "enum": ["easy", "medium", "hard"] },
+                "trial": {
+                    "description": "From 1, within its request.",
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "harness_held": {
+                    "description": "Neither the authoring session nor the judge's had a harness problem.",
+                    "type": "boolean"
+                },
+                "stopped": {
+                    "enum": ["finished", "session-limit", "turns", "error", "timeout", "no-result"]
+                },
+                "harness_problems": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "tool_calls": { "$ref": "#/$defs/trial/properties/tool_calls" },
+                "tool_errors": { "$ref": "#/$defs/trial/properties/tool_errors" },
+                "permission_denials": { "$ref": "#/$defs/count" },
+                "session": { "$ref": "#/$defs/trial/properties/session" },
+                "turns": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/count" }] },
+                "duration_ms": {
+                    "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0 }]
+                },
+                "exit_code": { "oneOf": [{ "type": "null" }, { "type": "integer" }] },
+                "validity": { "$ref": "#/$defs/validity" },
+                "expectations": {
+                    "description": "Each expectation of the request, in its order, checked in code.",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["expectation", "met", "problem"],
+                        "properties": {
+                            "expectation": { "$ref": "#/$defs/text" },
+                            "met": { "type": "boolean" },
+                            "problem": {
+                                "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/text" }]
+                            }
+                        }
+                    }
+                },
+                "expectations_met": { "type": "boolean" },
+                "judge": { "$ref": "#/$defs/judgeRecord" }
+            }
+        },
+        "measures": {
+            "description": "The measures of a set of authoring trials: every count but trials and harness_held is over the trials whose harness held.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "trials",
+                "harness_held",
+                "zero_errors",
+                "no_warnings",
+                "in_format",
+                "expectations_met",
+                "judged"
+            ],
+            "properties": {
+                "trials": { "$ref": "#/$defs/count" },
+                "harness_held": { "$ref": "#/$defs/count" },
+                "zero_errors": { "$ref": "#/$defs/count" },
+                "no_warnings": { "$ref": "#/$defs/count" },
+                "in_format": { "$ref": "#/$defs/count" },
+                "expectations_met": { "$ref": "#/$defs/count" },
+                "judged": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["dimension", "yes", "no", "cannot_tell", "unanswered"],
+                        "properties": {
+                            "dimension": { "$ref": "#/$defs/text" },
+                            "yes": { "$ref": "#/$defs/count" },
+                            "no": { "$ref": "#/$defs/count" },
+                            "cannot_tell": { "$ref": "#/$defs/count" },
+                            "unanswered": { "$ref": "#/$defs/count" }
+                        }
+                    }
+                }
+            }
+        },
+        "authoringResults": {
+            "description": "A scored authoring run (records/README.md, \"Scored records\"): the harness, the models, each trial's session, grades and judge, and the measures per request and over all. No target: the owner sets the targets from the first run.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "task",
+                "harness",
+                "model",
+                "judge_model",
+                "session_limit",
+                "judge_session_limit",
+                "timeout_minutes",
+                "judge_timeout_minutes",
+                "arguments",
+                "judge_arguments",
+                "server",
+                "trials",
+                "tasks",
+                "overall"
+            ],
+            "properties": {
+                "task": {
+                    "description": "The task: its committed request list, prompts, judge schema, base mods and skills, each by its hash.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "name",
+                        "requests_file",
+                        "requests_sha256",
+                        "prompt_file",
+                        "prompt_sha256",
+                        "judge_prompt_file",
+                        "judge_prompt_sha256",
+                        "judge_schema_file",
+                        "judge_schema_sha256",
+                        "bases",
+                        "skills",
+                        "dimensions",
+                        "answers"
+                    ],
+                    "properties": {
+                        "name": { "const": "authoring" },
+                        "requests_file": { "$ref": "#/$defs/text" },
+                        "requests_sha256": { "$ref": "#/$defs/sha256" },
+                        "prompt_file": { "$ref": "#/$defs/text" },
+                        "prompt_sha256": { "$ref": "#/$defs/sha256" },
+                        "judge_prompt_file": { "$ref": "#/$defs/text" },
+                        "judge_prompt_sha256": { "$ref": "#/$defs/sha256" },
+                        "judge_schema_file": { "$ref": "#/$defs/text" },
+                        "judge_schema_sha256": { "$ref": "#/$defs/sha256" },
+                        "bases": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["name", "sha256"],
+                                "properties": {
+                                    "name": { "$ref": "#/$defs/text" },
+                                    "sha256": { "$ref": "#/$defs/sha256" }
+                                }
+                            }
+                        },
+                        "skills": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["name", "sha256"],
+                                "properties": {
+                                    "name": { "$ref": "#/$defs/text" },
+                                    "sha256": { "$ref": "#/$defs/sha256" }
+                                }
+                            }
+                        },
+                        "dimensions": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": { "$ref": "#/$defs/text" }
+                        },
+                        "answers": {
+                            "type": "array",
+                            "items": { "enum": ["yes", "no", "cannot-tell"] }
+                        }
+                    }
+                },
+                "harness": { "$ref": "#/$defs/scoredResults/properties/harness" },
+                "model": { "$ref": "#/$defs/scoredResults/properties/model" },
+                "judge_model": { "$ref": "#/$defs/scoredResults/properties/model" },
+                "session_limit": { "$ref": "#/$defs/scoredResults/properties/session_limit" },
+                "judge_session_limit": {
+                    "description": "The session limit each judge test session was given.",
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                },
+                "timeout_minutes": { "$ref": "#/$defs/scoredResults/properties/timeout_minutes" },
+                "judge_timeout_minutes": { "type": "number", "exclusiveMinimum": 0 },
+                "arguments": { "$ref": "#/$defs/scoredResults/properties/arguments" },
+                "judge_arguments": { "type": "array", "items": { "type": "string" } },
+                "server": { "$ref": "#/$defs/scoredResults/properties/server" },
+                "trials": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "$ref": "#/$defs/authoringTrial" }
+                },
+                "tasks": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "name",
+                            "content_type",
+                            "difficulty",
+                            "trials",
+                            "harness_held",
+                            "zero_errors",
+                            "no_warnings",
+                            "in_format",
+                            "expectations_met",
+                            "judged"
+                        ],
+                        "properties": {
+                            "name": { "$ref": "#/$defs/text" },
+                            "content_type": {
+                                "enum": [
+                                    "event",
+                                    "decision",
+                                    "scripted_effect",
+                                    "scripted_trigger"
+                                ]
+                            },
+                            "difficulty": { "enum": ["easy", "medium", "hard"] },
+                            "trials": { "$ref": "#/$defs/count" },
+                            "harness_held": { "$ref": "#/$defs/count" },
+                            "zero_errors": { "$ref": "#/$defs/count" },
+                            "no_warnings": { "$ref": "#/$defs/count" },
+                            "in_format": { "$ref": "#/$defs/count" },
+                            "expectations_met": { "$ref": "#/$defs/count" },
+                            "judged": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": [
+                                        "dimension",
+                                        "yes",
+                                        "no",
+                                        "cannot_tell",
+                                        "unanswered"
+                                    ],
+                                    "properties": {
+                                        "dimension": { "$ref": "#/$defs/text" },
+                                        "yes": { "$ref": "#/$defs/count" },
+                                        "no": { "$ref": "#/$defs/count" },
+                                        "cannot_tell": { "$ref": "#/$defs/count" },
+                                        "unanswered": { "$ref": "#/$defs/count" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "overall": { "$ref": "#/$defs/measures" }
+            }
+        },
+        "agreement": {
+            "description": "How the judge agreed with the hand grades over a set of them: the grades, those the judge answered, those it answered as the person did, agree / judged (null when it answered none), how often each said cannot-tell, and the table of hand answer against judge answer.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "grades",
+                "judged",
+                "agree",
+                "agreement",
+                "hand_cannot_tell",
+                "judge_cannot_tell",
+                "judge_cannot_tell_rate",
+                "matrix"
+            ],
+            "properties": {
+                "grades": { "$ref": "#/$defs/count" },
+                "judged": { "$ref": "#/$defs/count" },
+                "agree": { "$ref": "#/$defs/count" },
+                "agreement": {
+                    "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0, "maximum": 1 }]
+                },
+                "hand_cannot_tell": { "$ref": "#/$defs/count" },
+                "judge_cannot_tell": { "$ref": "#/$defs/count" },
+                "judge_cannot_tell_rate": {
+                    "oneOf": [{ "type": "null" }, { "type": "number", "minimum": 0, "maximum": 1 }]
+                },
+                "matrix": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["hand", "judge", "count"],
+                        "properties": {
+                            "hand": { "enum": ["yes", "no", "cannot-tell"] },
+                            "judge": { "enum": ["yes", "no", "cannot-tell"] },
+                            "count": { "type": "integer", "minimum": 1 }
+                        }
+                    }
+                }
+            }
+        },
+        "calibrationResults": {
+            "description": "The judge's calibration (records/README.md, \"Scored records\"): the judge run over results graded by hand, and its agreement per dimension and over all.",
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "grades",
+                "requests_file",
+                "requests_sha256",
+                "judge_prompt_file",
+                "judge_prompt_sha256",
+                "judge_schema_file",
+                "judge_schema_sha256",
+                "answers",
+                "harness",
+                "judge_model",
+                "judge_session_limit",
+                "judge_timeout_minutes",
+                "judge_arguments",
+                "items",
+                "dimensions",
+                "overall"
+            ],
+            "properties": {
+                "grades": {
+                    "description": "The hand grades, by their file and its hash.",
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["file", "sha256", "items"],
+                    "properties": {
+                        "file": { "$ref": "#/$defs/text" },
+                        "sha256": { "$ref": "#/$defs/sha256" },
+                        "items": { "$ref": "#/$defs/count" }
+                    }
+                },
+                "requests_file": { "$ref": "#/$defs/text" },
+                "requests_sha256": { "$ref": "#/$defs/sha256" },
+                "judge_prompt_file": { "$ref": "#/$defs/text" },
+                "judge_prompt_sha256": { "$ref": "#/$defs/sha256" },
+                "judge_schema_file": { "$ref": "#/$defs/text" },
+                "judge_schema_sha256": { "$ref": "#/$defs/sha256" },
+                "answers": { "type": "array", "items": { "enum": ["yes", "no", "cannot-tell"] } },
+                "harness": { "$ref": "#/$defs/scoredResults/properties/harness" },
+                "judge_model": { "$ref": "#/$defs/scoredResults/properties/model" },
+                "judge_session_limit": { "type": "number", "exclusiveMinimum": 0 },
+                "judge_timeout_minutes": { "type": "number", "exclusiveMinimum": 0 },
+                "judge_arguments": { "type": "array", "items": { "type": "string" } },
+                "items": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "description": "One hand-graded result and the judge's answer on it.",
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["item", "request", "hand", "judge", "agrees"],
+                        "properties": {
+                            "item": { "type": "integer", "minimum": 1 },
+                            "request": { "$ref": "#/$defs/text" },
+                            "hand": {
+                                "type": "array",
+                                "minItems": 1,
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["dimension", "answer"],
+                                    "properties": {
+                                        "dimension": { "$ref": "#/$defs/text" },
+                                        "answer": { "enum": ["yes", "no", "cannot-tell"] }
+                                    }
+                                }
+                            },
+                            "judge": { "$ref": "#/$defs/judgeRecord" },
+                            "agrees": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["dimension", "agrees"],
+                                    "properties": {
+                                        "dimension": { "$ref": "#/$defs/text" },
+                                        "agrees": {
+                                            "oneOf": [{ "type": "null" }, { "type": "boolean" }]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                            "dimension",
+                            "grades",
+                            "judged",
+                            "agree",
+                            "agreement",
+                            "hand_cannot_tell",
+                            "judge_cannot_tell",
+                            "judge_cannot_tell_rate",
+                            "matrix"
+                        ],
+                        "properties": {
+                            "dimension": { "$ref": "#/$defs/text" },
+                            "grades": { "$ref": "#/$defs/count" },
+                            "judged": { "$ref": "#/$defs/count" },
+                            "agree": { "$ref": "#/$defs/count" },
+                            "agreement": {
+                                "oneOf": [
+                                    { "type": "null" },
+                                    { "type": "number", "minimum": 0, "maximum": 1 }
+                                ]
+                            },
+                            "hand_cannot_tell": { "$ref": "#/$defs/count" },
+                            "judge_cannot_tell": { "$ref": "#/$defs/count" },
+                            "judge_cannot_tell_rate": {
+                                "oneOf": [
+                                    { "type": "null" },
+                                    { "type": "number", "minimum": 0, "maximum": 1 }
+                                ]
+                            },
+                            "matrix": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["hand", "judge", "count"],
+                                    "properties": {
+                                        "hand": { "enum": ["yes", "no", "cannot-tell"] },
+                                        "judge": { "enum": ["yes", "no", "cannot-tell"] },
+                                        "count": { "type": "integer", "minimum": 1 }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "overall": { "$ref": "#/$defs/agreement" }
             }
         }
     }

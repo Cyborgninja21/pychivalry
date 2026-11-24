@@ -29,3 +29,6 @@ fixtures/mods/**/*.txt -text
 fixtures/mods/**/*.yml -text
 fixtures/defects/**/*.txt -text
 fixtures/defects/**/*.yml -text
+# The content requests' base mods and example results, in the format too (fixtures/requests/).
+fixtures/requests/**/*.txt -text
+fixtures/requests/**/*.yml -text

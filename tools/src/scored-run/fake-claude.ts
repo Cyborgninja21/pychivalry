@@ -1,15 +1,19 @@
 /**
- * A stand-in for Claude Code in the scored run's tests: it starts no model and reaches no
- * network. `--version` answers as Claude Code 2.1.330 does. Otherwise, as a trial runs it, it
- * does what its environment says, in this order:
+ * A stand-in for Claude Code in the scored runs' tests: it starts no model and reaches no
+ * network. `--version` answers as Claude Code 2.1.330 does. Otherwise, as a trial or a judge's
+ * session runs it, it does what its environment says, in this order. A session started with an
+ * agent-server configuration (`--mcp-config`) is a trial; one without is a judge's session.
  *
  * - `FAKE_CLAUDE_ARGV`: appends one JSON line to that file: its arguments, its folder, the
  *   names of the variables it was given that may hold a key, a token or another credential
  *   (none, when the run is right), which of the other variables a trial sets or removes it was
- *   given, whether its folder holds git history, and the agent-server configuration it was
- *   given;
- * - `FAKE_CLAUDE_APPLY`: copies that folder's files over its own folder, as an agent's edits;
- * - `FAKE_CLAUDE_STREAM`: writes that file to its output, as a recorded session's stream;
+ *   given, whether its folder holds git history, the agent-server configuration it was given,
+ *   and what it read on its standard input (a judge's prompt);
+ * - `FAKE_CLAUDE_APPLY` (a trial only): copies that folder's files over its own folder, as an
+ *   agent's edits;
+ * - `FAKE_CLAUDE_STREAM` (a trial) or `FAKE_CLAUDE_JUDGE_STREAM` (a judge's session): writes
+ *   that file to its output, as a recorded session's stream; in a judge's stream, `{{request}}`
+ *   is replaced by the id of the request its prompt names;
  * - `FAKE_CLAUDE_SLEEP_MS`: waits that long;
  * - `FAKE_CLAUDE_EXIT`: exits with that code (0 by default).
  */
@@ -25,6 +29,16 @@ const env = process.env;
 const argvFile = env['FAKE_CLAUDE_ARGV'];
 const configAt = args.indexOf('--mcp-config');
 const config = configAt < 0 ? undefined : args[configAt + 1];
+const judge = config === undefined;
+// A judge's prompt comes on standard input; a trial's standard input is closed.
+let stdin = '';
+if (judge) {
+    try {
+        stdin = readFileSync(0, 'utf8');
+    } catch {
+        stdin = '';
+    }
+}
 if (argvFile !== undefined) {
     appendFileSync(
         argvFile,
@@ -48,16 +62,18 @@ if (argvFile !== undefined) {
             git: existsSync('.git'),
             mcp_config:
                 config === undefined ? null : (JSON.parse(readFileSync(config, 'utf8')) as unknown),
+            stdin,
         })}\n`,
     );
 }
 const apply = env['FAKE_CLAUDE_APPLY'];
-if (apply !== undefined) {
+if (apply !== undefined && !judge) {
     cpSync(apply, process.cwd(), { recursive: true });
 }
-const stream = env['FAKE_CLAUDE_STREAM'];
+const stream = judge ? env['FAKE_CLAUDE_JUDGE_STREAM'] : env['FAKE_CLAUDE_STREAM'];
 if (stream !== undefined) {
-    process.stdout.write(readFileSync(stream, 'utf8'));
+    const request = /<request id="([^"]*)">/.exec(stdin)?.[1] ?? '';
+    process.stdout.write(readFileSync(stream, 'utf8').replaceAll('{{request}}', request));
 }
 const sleep = Number(env['FAKE_CLAUDE_SLEEP_MS'] ?? '0');
 if (sleep > 0) {

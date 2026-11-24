@@ -1,0 +1,5 @@
+﻿l_english:
+ authoring_merchant.0001.t:0 "An Old Debt Repaid"
+ authoring_merchant.0001.desc:0 "A merchant who borrowed from [ROOT.Char.GetFirstName] years ago comes back to repay the debt."
+ authoring_merchant.0001.a:0 "Take the gold."
+ authoring_merchant.0001.b:0 "Forgive the debt before the court."

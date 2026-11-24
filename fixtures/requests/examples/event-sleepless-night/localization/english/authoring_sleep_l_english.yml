@@ -1,0 +1,6 @@
+﻿l_english:
+ authoring_sleep.0001.t:0 "A Sleepless Night"
+ authoring_sleep.0001.desc:0 "[ROOT.Char.GetFirstName] lies awake, worrying about everything at once."
+ authoring_sleep.0001.a:0 "Call a physician for a sleeping draught."
+ authoring_sleep.0001.b:0 "Pray until dawn."
+ authoring_sleep.0001.c:0 "Let the court see me rest; my name can bear it."
