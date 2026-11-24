@@ -1564,7 +1564,7 @@
                 "content_type": {
                     "enum": ["event", "decision", "scripted_effect", "scripted_trigger"]
                 },
-                "difficulty": { "enum": ["easy", "medium", "hard"] },
+                "difficulty": { "enum": ["easy", "medium", "hard", "expert"] },
                 "trial": {
                     "description": "From 1, within its request.",
                     "type": "integer",
@@ -1780,7 +1780,7 @@
                                     "scripted_trigger"
                                 ]
                             },
-                            "difficulty": { "enum": ["easy", "medium", "hard"] },
+                            "difficulty": { "enum": ["easy", "medium", "hard", "expert"] },
                             "trials": { "$ref": "#/$defs/count" },
                             "harness_held": { "$ref": "#/$defs/count" },
                             "zero_errors": { "$ref": "#/$defs/count" },

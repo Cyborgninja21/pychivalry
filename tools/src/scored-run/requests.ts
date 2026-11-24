@@ -14,7 +14,11 @@
  * - `requests[]`:
  *   - `id`: stable, lower-case words joined by hyphens; a record names a request by it.
  *   - `content_type`: `event`, `decision`, `scripted_effect` or `scripted_trigger`.
- *   - `difficulty`: `easy`, `medium` or `hard`.
+ *   - `difficulty`: `easy`, `medium`, `hard` or `expert`. The `expert` requests were added after the
+ *     second scored authoring run, whose every measure was at its ceiling on the first twelve: each
+ *     sets a trap a first draft is likely to fall into (a name the game had once or never had, a
+ *     scope a list leads into, a definition of the base to find, use or change in place), so that
+ *     results can be read with them and without them.
  *   - `base`: the folder under `fixtures/requests/bases/` the trial's mod starts as.
  *   - `request`: the text the session is given. Every name it writes between backticks is one
  *     the request relies on, one the result must define or write, or a folder the result
@@ -26,24 +30,36 @@
  *     value? }` (a field the package's schema gives that folder's records, and a value the
  *     base game writes in it), or `{ base, database, name }` (a definition of the base mod).
  *     `reliedOnProblems` proves each exists, and the run refuses to start when one does not.
+ *     Any of them may say `unnamed: true`: the request describes the name in words and does not
+ *     write it, so that a session has to find it with the tools (a name the game renamed, a
+ *     definition of the base the request only describes); `requests.test.ts` holds that such a
+ *     name is nowhere in the text.
  *   - `expect[]`: what a correct result must contain, checked in code (`expectations.ts`); each
  *     has a `kind`:
  *     - `file` (`folder`, `new?`): the mod has a file the index reads in that spec folder
  *       (`localization` for every language), one the base did not have when `new` is true;
  *     - `top-level` (`folder`, `key`, `value`): a file of that folder holds `key = value` at its
  *       top level;
- *     - `defines` (`database`, `name`): the mod defines the name in that database;
+ *     - `defines` (`database`, `name`, `count?`): the mod defines the name in that database, or
+ *       exactly `count` times (`1`: changed in place, not defined a second time beside the base's);
  *     - `field` (`database`, `name`, `field`, `value?`, `count?`): the mod's definition holds
  *       the field directly in its block, with that value, or that many times;
- *     - `uses` (`database`, `name`, `uses`, `through?`): the name `uses` is written inside the
- *       definition, or, with `through` a database, inside a definition of the mod in that
- *       database which the definition reaches by names written inside it, one after another (an
- *       on-action the game's own documentation lets fire other on-actions: `through` names the
- *       database, never a keyword);
- *     - `resolves` (`database`, `name`, `uses`, `to`, `through?`): it is, and the mod or the base
- *       game defines it in the database `to`;
+ *     - `uses` (`database`, `name`, `uses`, `through?`, `within?`): the name `uses` is written
+ *       inside the definition, or, with `through` a database, inside a definition of the mod in
+ *       that database which the definition reaches by names written inside it, one after another
+ *       (an on-action the game's own documentation lets fire other on-actions: `through` names the
+ *       database, never a keyword); with `within`, inside a block of the definition written with
+ *       that key (an iterator, a scope link, a saved scope such as `scope:envoy`), at any depth:
+ *       how code tells that an effect or a condition was written in the scope the request names.
+ *       `within` and `through` are not given together;
+ *     - `resolves` (`database`, `name`, `uses`, `to`, `through?`, `within?`): it is, and the mod
+ *       or the base game defines it in the database `to`;
  *     - `localization` (`key`): the mod's English localization defines the key;
- *     - `unchanged` (`file`): a file of the base mod is still there, byte for byte.
+ *     - `unchanged` (`file`): a file of the base mod is still there, byte for byte;
+ *     - `kept` (`database`, `name`): a definition of the base mod is still in the result, in the
+ *       file the base has it in, its text from its name to the end of its block byte for byte
+ *       the base's: what `unchanged` says of a file, said of one definition, for a file the
+ *       request changes elsewhere.
  *   - `judged[]`: the dimensions the judge answers for this request (`dimension`, one of
  *     `dimensions`, at most once), each with the `question` it is asked.
  * - `retired[]` (optional): the ids of requests taken out of the list, each with `why`. A record
@@ -68,14 +84,27 @@ export const BASES_DIR = 'fixtures/requests/bases';
 
 export const CONTENT_TYPES = ['event', 'decision', 'scripted_effect', 'scripted_trigger'] as const;
 export type ContentType = (typeof CONTENT_TYPES)[number];
-export const DIFFICULTIES = ['easy', 'medium', 'hard'] as const;
+export const DIFFICULTIES = ['easy', 'medium', 'hard', 'expert'] as const;
 export type Difficulty = (typeof DIFFICULTIES)[number];
 
-export type ReliedOn =
-    | { readonly bucket: BucketName; readonly name: string }
-    | { readonly iterator: string }
-    | { readonly field: string; readonly folder: string; readonly value?: string }
-    | { readonly base: string; readonly database: string; readonly name: string };
+/**
+ * The level added after the second scored authoring run, whose results are read with and
+ * without it (`authoring-targets.ts`).
+ */
+export const EXPERT: Difficulty = 'expert';
+
+/** True when a request describes the name in words and does not write it. */
+interface MaybeUnnamed {
+    readonly unnamed?: true;
+}
+
+export type ReliedOn = MaybeUnnamed &
+    (
+        | { readonly bucket: BucketName; readonly name: string }
+        | { readonly iterator: string }
+        | { readonly field: string; readonly folder: string; readonly value?: string }
+        | { readonly base: string; readonly database: string; readonly name: string }
+    );
 
 export type Expectation =
     | { readonly kind: 'file'; readonly folder: string; readonly new?: boolean }
@@ -85,7 +114,12 @@ export type Expectation =
           readonly key: string;
           readonly value: string;
       }
-    | { readonly kind: 'defines'; readonly database: string; readonly name: string }
+    | {
+          readonly kind: 'defines';
+          readonly database: string;
+          readonly name: string;
+          readonly count?: number;
+      }
     | {
           readonly kind: 'field';
           readonly database: string;
@@ -100,6 +134,7 @@ export type Expectation =
           readonly name: string;
           readonly uses: string;
           readonly through?: string;
+          readonly within?: string;
       }
     | {
           readonly kind: 'resolves';
@@ -108,9 +143,11 @@ export type Expectation =
           readonly uses: string;
           readonly to: string;
           readonly through?: string;
+          readonly within?: string;
       }
     | { readonly kind: 'localization'; readonly key: string }
-    | { readonly kind: 'unchanged'; readonly file: string };
+    | { readonly kind: 'unchanged'; readonly file: string }
+    | { readonly kind: 'kept'; readonly database: string; readonly name: string };
 
 export const EXPECTATION_KINDS = [
     'file',
@@ -121,6 +158,7 @@ export const EXPECTATION_KINDS = [
     'resolves',
     'localization',
     'unchanged',
+    'kept',
 ] as const;
 
 export interface JudgedQuestion {
@@ -175,6 +213,15 @@ function reliedOnShape(value: unknown): boolean {
     if (!isObject(value)) {
         return false;
     }
+    if ('unnamed' in value) {
+        // Only ever `true`: a name the text writes is the default, and says nothing.
+        if (value['unnamed'] !== true) {
+            return false;
+        }
+        return reliedOnShape(
+            Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'unnamed')),
+        );
+    }
     if ('bucket' in value) {
         return (
             only(value, ['bucket', 'name']) &&
@@ -210,12 +257,13 @@ const EXPECTATION_FIELDS: Readonly<
 > = {
     file: { required: ['folder'], optional: ['new'] },
     'top-level': { required: ['folder', 'key', 'value'], optional: [] },
-    defines: { required: ['database', 'name'], optional: [] },
+    defines: { required: ['database', 'name'], optional: ['count'] },
     field: { required: ['database', 'name', 'field'], optional: ['value', 'count'] },
-    uses: { required: ['database', 'name', 'uses'], optional: ['through'] },
-    resolves: { required: ['database', 'name', 'uses', 'to'], optional: ['through'] },
+    uses: { required: ['database', 'name', 'uses'], optional: ['through', 'within'] },
+    resolves: { required: ['database', 'name', 'uses', 'to'], optional: ['through', 'within'] },
     localization: { required: ['key'], optional: [] },
     unchanged: { required: ['file'], optional: [] },
+    kept: { required: ['database', 'name'], optional: [] },
 };
 
 function expectationShape(value: unknown): boolean {
@@ -242,8 +290,17 @@ function expectationShape(value: unknown): boolean {
     if (value['through'] !== undefined && !text(value['through'])) {
         return false;
     }
+    if (
+        value['within'] !== undefined &&
+        (!text(value['within']) || value['through'] !== undefined)
+    ) {
+        return false;
+    }
     const count = value['count'];
     if (count !== undefined && !(Number.isInteger(count) && (count as number) >= 0)) {
+        return false;
+    }
+    if (kind === 'defines' && count !== undefined && (count as number) < 1) {
         return false;
     }
     return !(value['value'] !== undefined && count !== undefined);
@@ -529,8 +586,11 @@ export function reliedOnProblems(spec: Spec, root: string, list: RequestList): s
     return problems;
 }
 
-/** How a `through` database reads in an expectation's words. */
-function throughWords(through: string | undefined): string {
+/** How a `through` database or a `within` block reads in an expectation's words. */
+function throughWords(through: string | undefined, within?: string): string {
+    if (within !== undefined) {
+        return ` inside ${within}`;
+    }
     return through === undefined ? '' : `, directly or through the mod's ${through} it uses`;
 }
 
@@ -542,16 +602,18 @@ export function describeExpectation(e: Expectation): string {
         case 'top-level':
             return `${e.key} = ${e.value} at the top of a file in ${e.folder}`;
         case 'defines':
-            return `${e.database} defines ${e.name}`;
+            return `${e.database} defines ${e.name}${e.count !== undefined ? ` ${String(e.count)} time${e.count === 1 ? '' : 's'}` : ''}`;
         case 'field':
             return `${e.name} (${e.database}) has ${e.field}${e.value !== undefined ? ` = ${e.value}` : ''}${e.count !== undefined ? ` ${String(e.count)} time${e.count === 1 ? '' : 's'}` : ''}`;
         case 'uses':
-            return `${e.name} (${e.database}) uses ${e.uses}${throughWords(e.through)}`;
+            return `${e.name} (${e.database}) uses ${e.uses}${throughWords(e.through, e.within)}`;
         case 'resolves':
-            return `${e.name} (${e.database}) uses ${e.uses}${throughWords(e.through)}, defined in ${e.to}`;
+            return `${e.name} (${e.database}) uses ${e.uses}${throughWords(e.through, e.within)}, defined in ${e.to}`;
         case 'localization':
             return `the English localization defines ${e.key}`;
         case 'unchanged':
             return `${e.file} is unchanged`;
+        case 'kept':
+            return `the base's ${e.name} (${e.database}) is kept as it was`;
     }
 }

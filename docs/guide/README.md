@@ -19,7 +19,7 @@ and nothing more.
 | [Checks](checks.md) | Every code pychivalry reports: its severity, what it finds, the game's evidence for it and its fix |
 | [Checking a preview by hand](by-hand-check.md) | The check a person makes on Linux and on Windows before a preview or a release: the signed-in AI harnesses, Claude Code, an update, the terminal |
 | [Checking the skills by hand](ai-checklist.md) | The checklist a person runs in VS Code's own AI, which no script can drive: the same kinds of request the scored run makes, and what to look for in each |
-| [Grading results for the judge's calibration](judge-calibration.md) | How the owner grades results by hand on two sheets, ten hand-made results first and then twelve real ones of the second scored run, and the one command of each that runs the judge over them |
+| [Grading results for the judge's calibration](judge-calibration.md) | How the owner grades results by hand on two sheets, ten hand-made results first and then twelve real ones of the second scored run, and on a third if he chooses, twenty-four hand-made results of the expert requests, and the one command of each that runs the judge over them |
 
 Writing content with AI is built in step 9: the skills ([Commands](commands.md#the-skills));
 how well it does is measured by the scored authoring run, built and not yet run. Coming with the step

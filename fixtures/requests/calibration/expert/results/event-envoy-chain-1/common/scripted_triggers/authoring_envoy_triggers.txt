@@ -1,0 +1,6 @@
+﻿# An adult ruler at peace, ready to receive an envoy.
+authoring_envoy_host_trigger = {
+	is_ruler = yes
+	is_adult = yes
+	is_at_war = no
+}

@@ -1,0 +1,13 @@
+﻿# Thanks a vassal who keeps a granary, if the vassal is loyal.
+granary_vassal_gift_effect = {
+	if = {
+		limit = {
+			opinion = {
+				target = liege
+				value >= 30
+			}
+		}
+		add_gold = 20
+	}
+	else = { add_prestige = 10 }
+}

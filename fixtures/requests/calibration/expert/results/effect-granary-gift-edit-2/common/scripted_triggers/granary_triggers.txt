@@ -1,0 +1,12 @@
+﻿# A ruler with the gold to pay for new granaries.
+granary_can_afford_trigger = {
+	is_ruler = yes
+	gold >= 150
+}
+
+# A ruler free to ride out and see the granaries.
+granary_can_travel_trigger = {
+	is_adult = yes
+	is_imprisoned = no
+	is_at_war = no
+}

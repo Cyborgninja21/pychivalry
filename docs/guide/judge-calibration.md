@@ -8,12 +8,13 @@ record says how often the two of you agree. It is build step 9's item 9.6
 ([PLAN.md](../PLAN.md)). It starts test sessions, so it runs only when you choose; each counts
 against your own Claude plan like any session you open.
 
-## The two sheets, and which first
+## The sheets, and which first
 
 | Order | Sheet | Results | Answers | Judge test sessions | Record |
 | --- | --- | --- | --- | --- | --- |
 | 1 | [`fixtures/requests/calibration/grades.json`](../../fixtures/requests/calibration/README.md) | 10 **hand-made** results of six requests | 26 | 10 | `records/scored/calibration-hand-made.json` |
-| 2 | [`fixtures/requests/calibration/run-2/grades.json`](../../fixtures/requests/calibration/run-2/README.md) | 12 **real** results of the second scored run, one of each request | 36 | 12 | `records/scored/calibration-run-2.json` |
+| 2 | [`fixtures/requests/calibration/run-2/grades.json`](../../fixtures/requests/calibration/run-2/README.md) | 12 **real** results of the second scored run, one of each of its twelve requests | 36 | 12 | `records/scored/calibration-run-2.json` |
+| 3, if you choose to | [`fixtures/requests/calibration/expert/grades.json`](../../fixtures/requests/calibration/expert/README.md) | 24 **hand-made** results of the twelve expert requests, two of each | 88 | 24 | `records/scored/calibration-expert.json` |
 
 Grade the **hand-made sheet first**. Its results were written by hand for this, and some of them
 are deliberately wrong or cannot be judged from their files: it is the only sheet on which a
@@ -22,6 +23,14 @@ can say no at all. The second run's judge said yes to every question it was aske
 results are what it said yes to; on their own they can show the judge agreeing with you, not that
 it would notice a fault. The real sheet comes second, so that the real results are read with the
 same care.
+
+The third sheet is of the **expert requests**, added after the second run (decision 131). Its
+results were written by hand too, and every one of them passes everything code checks: nothing the
+checker reports, every expectation met. Some are right and some are wrong in a way only reading
+what the script does shows: an effect given to the wrong character, a condition tested in the
+wrong scope, an amount or a time that is not the one asked for. It is the sheet that asks most of
+the judge, and the largest; it is worth grading if you want to know whether the judge can tell
+such faults before the release run, and it can wait otherwise.
 
 The real results are **trial 1 of each request**, taken by number before any of them was read, so
 none was picked for being good or bad. Each is the trial's mod as its session left it, with the
@@ -32,7 +41,8 @@ answers in `records/scored/authoring.json`.
 
 1. **Open its page**: [fixtures/requests/calibration/README.md](../../fixtures/requests/calibration/README.md)
    for the hand-made sheet, [fixtures/requests/calibration/run-2/README.md](../../fixtures/requests/calibration/run-2/README.md)
-   for the real one. Each lists its result folders, each with the request it answers and the
+   for the real one, [fixtures/requests/calibration/expert/README.md](../../fixtures/requests/calibration/expert/README.md)
+   for the expert one. Each lists its result folders, each with the request it answers and the
    questions to answer.
 2. **Read each result** in the sheet's `results/<name>/`: only its files, as the judge sees them.
    Do not look for a key: none is written down.
@@ -62,11 +72,17 @@ answers in `records/scored/authoring.json`.
    SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/run-2/grades.json SCORED_RECORD=records/scored/calibration-run-2.json task scored:calibrate
    ```
 
+   The expert sheet, if you grade it, **24 judge test sessions**:
+
+   ```sh
+   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/expert/grades.json SCORED_RECORD=records/scored/calibration-expert.json task scored:calibrate
+   ```
+
    Each judge session has session limit 3 and runs on Fable 5.2 (the judge you chose;
    `SCORED_JUDGE_MODEL` names another). Each command writes its own record, named by
    `SCORED_RECORD`, so the second does not replace the first: for each question and over all,
-   how often the judge agreed with you, and how often each of you said "cannot tell". Both
-   sheets are **22 judge test sessions** in all. A command with no `SCORED_RECORD` writes
+   how often the judge agreed with you, and how often each of you said "cannot tell". The first
+   two sheets are **22 judge test sessions** in all; with the expert sheet, **46**. A command with no `SCORED_RECORD` writes
    `records/scored/calibration.json`.
 
 ## Grading more real results later

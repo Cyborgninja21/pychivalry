@@ -1,0 +1,21 @@
+﻿namespace = granary
+
+# The ruler rides out to inspect the granaries.
+granary.0002 = {
+	type = character_event
+	title = granary.0002.t
+	desc = granary.0002.desc
+
+	option = {
+		name = granary.0002.a
+		every_vassal = {
+			limit = { is_adult = yes }
+			granary_vassal_gift_effect = yes
+		}
+	}
+
+	option = {
+		name = granary.0002.b
+		add_stress = -15
+	}
+}

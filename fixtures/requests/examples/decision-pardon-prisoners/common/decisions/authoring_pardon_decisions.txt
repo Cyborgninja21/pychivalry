@@ -1,0 +1,25 @@
+﻿# Pardon the prisoners the ruler holds.
+authoring_pardon_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	ai_check_interval = 120
+
+	is_shown = { is_ruler = yes }
+
+	is_valid = {
+		is_at_war = no
+		any_prisoner = { count >= 1 }
+	}
+
+	cooldown = { years = 5 }
+
+	effect = {
+		add_gold = -25
+		every_prisoner = {
+			limit = { is_adult = yes }
+			release_from_prison = yes
+			add_stress = -10
+		}
+	}
+
+	ai_will_do = { base = 5 }
+}

@@ -1,0 +1,32 @@
+﻿namespace = authoring_unrest
+
+# Unrest in one of the counties of the ruler's realm.
+authoring_unrest.0001 = {
+	type = character_event
+	title = authoring_unrest.0001.t
+	desc = authoring_unrest.0001.desc
+
+	trigger = {
+		is_ruler = yes
+		any_sub_realm_county = { county_opinion < -20 }
+	}
+
+	immediate = {
+		random_sub_realm_county = {
+			limit = { county_opinion < -20 }
+			save_scope_as = unrest_county
+		}
+	}
+
+	option = {
+		name = authoring_unrest.0001.a
+		scope:unrest_county = { change_county_control = 20 }
+		add_gold = -50
+	}
+
+	option = {
+		name = authoring_unrest.0001.b
+		scope:unrest_county = { add_county_opinion = 10 }
+		add_prestige = -25
+	}
+}

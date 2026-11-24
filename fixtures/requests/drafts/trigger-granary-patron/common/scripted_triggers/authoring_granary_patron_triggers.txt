@@ -1,0 +1,11 @@
+﻿# A ruler free to ride out, with vassals who can pay for granaries.
+authoring_granary_patron_trigger = {
+	is_adult = yes
+	is_imprisoned = no
+	is_at_war = no
+	any_vassal = {
+		count >= 2
+		is_ruler = yes
+		gold >= 150
+	}
+}

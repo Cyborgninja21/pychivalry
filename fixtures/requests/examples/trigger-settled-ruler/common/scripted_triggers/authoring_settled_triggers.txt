@@ -1,0 +1,13 @@
+﻿# A ruler at peace and married, with grown children and a fit heir.
+authoring_settled_ruler_trigger = {
+	is_at_war = no
+	is_married = yes
+	any_child = {
+		count >= 2
+		is_adult = yes
+	}
+	primary_heir = {
+		is_adult = yes
+		is_imprisoned = no
+	}
+}

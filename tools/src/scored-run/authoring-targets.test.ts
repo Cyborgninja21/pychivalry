@@ -12,14 +12,17 @@ import { test } from 'node:test';
 import { tempDir } from '../testing.js';
 import { CommandError } from '../util.js';
 import type { AuthoringTask, DimensionCounts, Measures } from './authoring-record.js';
+import type { AuthoringResults } from './authoring-record.js';
 import {
     AUTHORING_TARGETS_DECISION,
     readRecordTargets,
     readTargets,
+    sumMeasures,
     targetLines,
     type TargetsReading,
 } from './authoring-targets.js';
 import { root } from './authoring-testing.js';
+import { committedRequests, type Difficulty } from './requests.js';
 
 function dimension(
     name: string,
@@ -52,6 +55,16 @@ function tasks(...trials: number[]): AuthoringTask[] {
         difficulty: 'easy',
         ...measures(n),
     }));
+}
+
+/** A request's measures at a difficulty, every measure at `held` unless given. */
+function task(
+    name: string,
+    difficulty: Difficulty,
+    held: number,
+    over: Partial<Measures> = {},
+): AuthoringTask {
+    return { name, content_type: 'event', difficulty, ...measures(held, over) };
 }
 
 function met(reading: TargetsReading): Record<string, boolean> {
@@ -218,4 +231,80 @@ test('a record that is not an authoring record, or whose figures disagree, is re
     );
     writeFileSync(forged, '{');
     refused({ SCORED_RECORD: forged }, /not JSON/);
+});
+
+test('with and without the expert requests: the reading over all decides, the other is read beside it', () => {
+    const all = [
+        task('easy-one', 'easy', 5),
+        task('hard-one', 'hard', 5),
+        task('expert-one', 'expert', 5, {
+            zero_errors: 3,
+            expectations_met: 4,
+            judged: [dimension('effects-as-asked', 4, 1), dimension('scope-as-asked', 3, 2)],
+        }),
+    ];
+    const overall = sumMeasures(all);
+    assert.deepEqual([overall.trials, overall.zero_errors, overall.expectations_met], [15, 13, 14]);
+    const reading = readTargets({ tasks: all, overall });
+    assert.equal(reading.met, false);
+    assert.deepEqual(met(reading), {
+        'no-error': false,
+        'no-warning-in-format': true,
+        expectations: false,
+        judged: false,
+    });
+    assert.ok(reading.without_expert !== null);
+    assert.equal(reading.without_expert.requests, 2);
+    assert.equal(reading.without_expert.met, true);
+    const lines = targetLines(reading);
+    assert.equal(lines[5], '3 of 4 targets not met');
+    assert.equal(lines[6], 'the same targets without the expert requests (2 requests):');
+    assert.equal(
+        lines[7],
+        '  every result with no error: no error 10 of 10 (100%); needs 100%: met',
+    );
+    assert.equal(lines.at(-1), 'every target met');
+    // A record of one kind only is read once: there is nothing to read it without.
+    assert.equal(readTargets({ tasks: tasks(5, 5), overall: measures(10) }).without_expert, null);
+    const expertOnly = [task('expert-one', 'expert', 5)];
+    assert.equal(
+        readTargets({ tasks: expertOnly, overall: sumMeasures(expertOnly) }).without_expert,
+        null,
+    );
+});
+
+test('a record that lacks requests of the list names them, and is not a release run of it', () => {
+    const ten = [task('a', 'easy', 10), task('b', 'expert', 10)];
+    const whole = readTargets({ tasks: ten, overall: sumMeasures(ten) }, ['a', 'b']);
+    assert.equal(whole.run, 'release');
+    assert.deepEqual(whole.missing, []);
+    const part = readTargets({ tasks: ten.slice(0, 1), overall: sumMeasures(ten.slice(0, 1)) }, [
+        'a',
+        'b',
+    ]);
+    assert.equal(part.run, 'development');
+    assert.deepEqual(part.missing, ['b']);
+    assert.deepEqual(targetLines(part).slice(0, 2), [
+        'the record has no trial of 1 request of the list (made before it was added, or a run of some requests only), so it is read over the requests it has: b',
+        `the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}), which hold before any release; a development run (10 trials of each request, but not of every request of the list):`,
+    ]);
+    assert.equal(targetLines(part).at(-1), 'every target met');
+});
+
+test("the second run's record, made before the expert requests: read over its twelve, the twelve it lacks named", () => {
+    const { reading } = readRecordTargets(root, {});
+    const expert = committedRequests(root)
+        .requests.filter((r) => r.difficulty === 'expert')
+        .map((r) => r.id);
+    assert.equal(expert.length, 12);
+    assert.deepEqual(reading.missing, expert);
+    assert.equal(reading.without_expert, null);
+    assert.equal(reading.met, true);
+    assert.equal(reading.run, 'development');
+    // The measures per request add up to the measures over all, as the reading without the
+    // expert requests relies on.
+    const record = JSON.parse(
+        readFileSync(path.join(root, 'records', 'scored', 'authoring.json'), 'utf8'),
+    ) as { results: AuthoringResults };
+    assert.deepEqual(sumMeasures(record.results.tasks), record.results.overall);
 });

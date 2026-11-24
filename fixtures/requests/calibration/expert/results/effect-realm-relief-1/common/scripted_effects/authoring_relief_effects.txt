@@ -1,0 +1,9 @@
+﻿# Relief for the counties of the realm held most loosely, at the ruler's cost.
+authoring_realm_relief_effect = {
+	every_sub_realm_county = {
+		limit = { county_control < 50 }
+		holder = { add_gold = 10 }
+		change_county_control = 10
+	}
+	add_prestige = -25
+}

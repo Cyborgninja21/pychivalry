@@ -13,7 +13,14 @@ import { fileURLToPath } from 'node:url';
 import { checkRecord, compileRecordSchema } from '../records-check.js';
 import { tempDir } from '../testing.js';
 import { CommandError } from '../util.js';
-import { exampleDir, judgeAnswer, judgeStream, root, textFile } from './authoring-testing.js';
+import {
+    checkOver,
+    exampleDir,
+    judgeAnswer,
+    judgeStream,
+    root,
+    textFile,
+} from './authoring-testing.js';
 import { formatKindOf, formatText } from '@pychivalry/core';
 import {
     agreementOf,
@@ -23,8 +30,15 @@ import {
     runCalibration,
     type CalibrationRecord,
 } from './calibration.js';
+import { checkExpectations } from './expectations.js';
 import { resultFiles, type JudgeAnswer } from './judge.js';
-import { baseDir, committedRequests, REQUESTS_DIR, type ContentRequest } from './requests.js';
+import {
+    baseDir,
+    committedRequests,
+    EXPERT,
+    REQUESTS_DIR,
+    type ContentRequest,
+} from './requests.js';
 import { PINNED_JUDGE_MODEL } from './run.js';
 
 const fake = fileURLToPath(new URL('./fake-claude.js', import.meta.url));
@@ -310,10 +324,13 @@ test('the sheet of real results: trial 1 of each request, every question asked, 
         about: string;
         items: { request: string; result: string; grades: Record<string, string> }[];
     };
-    // One result of each request, in the list's order: each request's first trial, none picked.
+    // One result of each request the second run was made on, in the list's order: each
+    // request's first trial, none picked. The expert requests came after it.
     assert.deepEqual(
         sheet.items.map((i) => [i.request, i.result]),
-        list.requests.map((r) => [r.id, `results/${r.id}-1`]),
+        list.requests
+            .filter((r) => r.difficulty !== EXPERT)
+            .map((r) => [r.id, `results/${r.id}-1`]),
     );
     assert.match(sheet.about, /not hand-made: trial 1 of each of the twelve requests/);
     const problems = gradesProblems(sheet, list, RUN_2_DIR);
@@ -406,6 +423,112 @@ test('a real result holds only the mod its session left: its base, what it wrote
             // In pychivalry's format, as the run measured each: the format is not what is judged.
             const kind = formatKindOf(full);
             if (kind !== undefined) {
+                assert.ok(text.startsWith('\uFEFF'), full);
+                assert.equal(formatText(text, kind).changed, false, full);
+            }
+        }
+    }
+});
+
+/** The third sheet: hand-made results of the expert requests, two of each. */
+const EXPERT_DIR = path.join(SHEET_DIR, 'expert');
+
+test('the sheet of the expert requests: two hand-made results of each, every question asked, every answer left to the person', (t) => {
+    const sheet = JSON.parse(readFileSync(path.join(EXPERT_DIR, 'grades.json'), 'utf8')) as {
+        about: string;
+        items: { request: string; result: string; grades: Record<string, string> }[];
+    };
+    const expert = list.requests.filter((r) => r.difficulty === EXPERT);
+    assert.deepEqual(
+        sheet.items.map((i) => [i.request, i.result]),
+        expert.flatMap((r) => [
+            [r.id, `results/${r.id}-1`],
+            [r.id, `results/${r.id}-2`],
+        ]),
+    );
+    assert.match(sheet.about, /Hand-made results of the twelve expert requests/);
+    const problems = gradesProblems(sheet, list, EXPERT_DIR);
+    const blanks = sheet.items.flatMap((item, i) =>
+        Object.keys(item.grades).map(
+            (d) => `items[${String(i)}]: ${d} is graded "?", not one of yes, no, cannot-tell`,
+        ),
+    );
+    assert.deepEqual(problems, blanks);
+    assert.equal(sheet.items.length, 24);
+    assert.equal(blanks.length, 88);
+    const filled = JSON.parse(JSON.stringify(sheet)) as typeof sheet;
+    for (const item of filled.items) {
+        for (const d of Object.keys(item.grades)) {
+            item.grades[d] = 'no';
+        }
+    }
+    assert.deepEqual(gradesProblems(filled, list, EXPERT_DIR), []);
+    const argv = path.join(tempDir(t), 'argv.jsonl');
+    assert.throws(
+        () =>
+            runCalibration(
+                root,
+                {
+                    SCORED_SESSION_LIMIT: '1',
+                    SCORED_GRADES: path.join(EXPERT_DIR, 'grades.json'),
+                    SCORED_CLAUDE: fake,
+                    FAKE_CLAUDE_ARGV: argv,
+                },
+                () => undefined,
+                path.join(tempDir(t), 'calibration.json'),
+            ),
+        (e: unknown) => e instanceof CommandError && /is graded "\?"/.test(e.message),
+    );
+    assert.ok(!existsSync(argv), 'no session was started');
+    assert.deepEqual(
+        readdirSync(path.join(EXPERT_DIR, 'results')).sort(),
+        sheet.items.map((i) => path.basename(i.result)).sort(),
+    );
+    const readme = readFileSync(path.join(EXPERT_DIR, 'README.md'), 'utf8');
+    assert.match(readme, /\*\*Hand-made, not the work of a test session\.\*\*/);
+    assert.match(readme, /88 answers, and 24 judge test sessions/);
+    for (const item of sheet.items) {
+        const r = request(item.request);
+        assert.ok(readme.includes(`### \`${item.result}\``), item.result);
+        assert.ok(readme.includes(`Request \`${r.id}\`: ${r.request}`), r.id);
+        for (const q of r.judged) {
+            assert.ok(readme.includes(`- \`${q.dimension}\`: ${q.question}`), q.question);
+        }
+    }
+});
+
+test('a hand-made result of an expert request passes everything code checks: only the judge, or a person, can tell a wrong one', (t) => {
+    const sheet = JSON.parse(readFileSync(path.join(EXPERT_DIR, 'grades.json'), 'utf8')) as {
+        items: { request: string; result: string }[];
+    };
+    for (const item of sheet.items) {
+        const r = request(item.request);
+        const result = path.join(EXPERT_DIR, item.result);
+        // A whole mod: its base, nothing of it removed, and something written or changed (a
+        // request that changes a definition in place writes no new file).
+        const shown = resultFiles(result, baseDir(root, r.base));
+        assert.ok(!shown.some((f) => f.state === 'removed'), item.result);
+        assert.ok(
+            shown.some((f) => f.state === 'written' || f.state === 'changed'),
+            item.result,
+        );
+        // Nothing the checker reports, every expectation met.
+        const check = checkOver(t, result);
+        assert.deepEqual(
+            check.findings.map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
+            [],
+            item.result,
+        );
+        const unmet = checkExpectations(
+            { index: check.index, modDir: result, givenDir: baseDir(root, r.base) },
+            r.expect,
+        ).filter((e) => !e.met);
+        assert.deepEqual(unmet, [], item.result);
+        // In the format, so that the format is not what is judged.
+        for (const full of filesUnder(result)) {
+            const kind = formatKindOf(full);
+            if (kind !== undefined) {
+                const text = readFileSync(full, 'utf8');
                 assert.ok(text.startsWith('\uFEFF'), full);
                 assert.equal(formatText(text, kind).changed, false, full);
             }

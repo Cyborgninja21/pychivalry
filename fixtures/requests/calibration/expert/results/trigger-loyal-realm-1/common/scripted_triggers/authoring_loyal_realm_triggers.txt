@@ -1,0 +1,11 @@
+﻿# A realm whose counties are held firmly and love their lords.
+authoring_loyal_realm_trigger = {
+	any_sub_realm_county = {
+		count >= 3
+		county_control >= 50
+	}
+	any_sub_realm_county = {
+		count >= 3
+		popular_opinion >= 20
+	}
+}

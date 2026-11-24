@@ -1,0 +1,5 @@
+﻿l_english:
+ granary.0002.t:0 "Riding Out to the Granaries"
+ granary.0002.desc:0 "[ROOT.Char.GetFirstName] rides out to see the granaries with [ROOT.Char.GetHerHis] own eyes."
+ granary.0002.a:0 "Thank the vassals who keep them."
+ granary.0002.b:0 "A quiet ride is thanks enough."

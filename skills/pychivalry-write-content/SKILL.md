@@ -11,11 +11,16 @@ game's own documentation, and its checker says whether what you wrote is valid. 
 tools decide. Never trust memory of CK3 for a name: models remember names that the game does not
 have, or had once.
 
-The tools are named here by their bare names. Your client may list them under a prefix of its
-own (Claude Code lists `check` as `mcp__pychivalry__check`): call each by the name your client
-lists. If no pychivalry tool is offered at all, say so and stop: in VS Code the extension
-registers the agent server by itself; for Claude Code, the person runs "pychivalry: Set up for
-Claude Code" in VS Code once for the mod's folder.
+**Call each tool by the name your client lists.** The tools are written here by their short names,
+such as `check`, but Claude Code, for one, lists them under longer names, and only a listed name
+can be called: a call of a short name reaches nothing, and Claude Code answers that there is no
+such tool. In Claude Code the names are `mcp__pychivalry__check`, `mcp__pychivalry__lookup`,
+`mcp__pychivalry__find_definition`, `mcp__pychivalry__list_definitions`,
+`mcp__pychivalry__explain_code`, `mcp__pychivalry__format`, `mcp__pychivalry__apply_format`. Call
+each by the name your client lists, never by the short name alone; if a call finds no such tool,
+call the same tool again by its listed name. If no pychivalry tool is offered at all, say so and
+stop: in VS Code the extension registers the agent server by itself; for Claude Code, the person
+runs "pychivalry: Set up for Claude Code" in VS Code once for the mod's folder.
 
 ## The rules
 

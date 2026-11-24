@@ -1,0 +1,11 @@
+﻿# Gifts for the heir's household, and some rest for the ruler.
+authoring_heir_household_effect = {
+	primary_heir ?= {
+		add_gold = 50
+		every_sibling = {
+			limit = { is_adult = yes }
+			add_prestige = 10
+		}
+	}
+	add_stress = -10
+}

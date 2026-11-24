@@ -669,7 +669,12 @@ export function runAuthoring(
     log(
         `scored:authoring: ${String(overall.harness_held)} of ${String(overall.trials)} trials held; of those, ${String(overall.zero_errors)} without an error, ${String(overall.no_warnings)} without a warning, ${String(overall.in_format)} in the format, ${String(overall.expectations_met)} meeting every expectation; record written to ${relativePosix(root, recordFile)}`,
     );
-    for (const line of targetLines(readTargets(record.results))) {
+    for (const line of targetLines(
+        readTargets(
+            record.results,
+            list.requests.map((r) => r.id),
+        ),
+    )) {
         log(`scored:authoring: ${line}`);
     }
     return { file: recordFile, record };

@@ -119,6 +119,29 @@ test('a cursor given with other arguments is bad input, not a wrong page', async
     assert.match(other, /cursor: it was given for other arguments/);
     const elsewhere = await s.error('find_references', { name: 'x', cursor });
     assert.match(elsewhere, /cursor: it was given for other arguments/);
+    // The way out is in the text: the same arguments to continue, no cursor for anything else.
+    assert.match(
+        other,
+        /repeated with exactly the same arguments; to ask anything else, call again without cursor/,
+    );
+});
+
+test('lookup given the cursor of another call with other names says to look them up without it', async (t) => {
+    // The second scored authoring run: 4 lookup calls gave the cursor of an earlier call
+    // together with other names, and the server refused them. The refusal names lookup's own
+    // arguments and says what to do instead.
+    const dir = scratch(t);
+    const game = gameStub(path.join(dir, 'install'));
+    const mod = path.join(MODS, 'parse-broken-syntax');
+    const s = await connect(t, ['--mod', mod, '--vanilla', game], path.join(dir, 'cache'));
+    const first = await s.output('check', { min_severity: 'hint', limit: 1 });
+    const cursor = first['next_cursor'];
+    assert.equal(typeof cursor, 'string');
+    const refused = await s.error('lookup', { names: ['is_adult'], cursor });
+    assert.equal(
+        refused,
+        'cursor: it was given for other names or language. A cursor only continues the answer of the call that gave it, repeated with exactly the same names or language; to ask anything else, call again without cursor',
+    );
 });
 
 test("the argument check's text, without a server", () => {

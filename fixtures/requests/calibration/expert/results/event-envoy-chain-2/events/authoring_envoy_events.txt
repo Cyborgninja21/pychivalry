@@ -1,0 +1,39 @@
+﻿namespace = authoring_envoy
+
+# An envoy arrives at court.
+authoring_envoy.0001 = {
+	type = character_event
+	title = authoring_envoy.0001.t
+	desc = authoring_envoy.0001.desc
+
+	trigger = { authoring_envoy_host_trigger = yes }
+
+	option = {
+		name = authoring_envoy.0001.a
+		random_courtier = {
+			limit = { is_adult = yes }
+			save_scope_as = envoy
+		}
+		trigger_event = {
+			id = authoring_envoy.0002
+			days = 5
+		}
+	}
+}
+
+# The envoy is sent home.
+authoring_envoy.0002 = {
+	type = character_event
+	title = authoring_envoy.0002.t
+	desc = authoring_envoy.0002.desc
+
+	option = {
+		name = authoring_envoy.0002.a
+		scope:envoy = { authoring_envoy_gift_effect = yes }
+	}
+
+	option = {
+		name = authoring_envoy.0002.b
+		add_piety = 20
+	}
+}

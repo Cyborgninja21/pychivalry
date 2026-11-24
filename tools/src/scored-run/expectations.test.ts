@@ -224,3 +224,113 @@ test('file: a file the base already had is not new', (t) => {
     ]);
     assert.deepEqual(unmet(results), ['a new file in events: the mod has no new file in events']);
 });
+
+test('within: a name used inside the block the request names its scope by, at any depth', (t) => {
+    // The example runs the gift effect inside scope:envoy, and the courtier is picked inside
+    // random_courtier: both met.
+    assert.deepEqual(unmet(held(t, 'event-envoy-chain', () => undefined)), []);
+    const file = 'events/authoring_envoy_events.txt';
+    // Run on the character instead of on the saved courtier: used, but not inside scope:envoy.
+    const self = held(t, 'event-envoy-chain', (mod) => {
+        edit(
+            mod,
+            file,
+            'scope:envoy = { authoring_envoy_gift_effect = yes }',
+            'authoring_envoy_gift_effect = yes',
+        );
+    });
+    assert.deepEqual(unmet(self), [
+        'authoring_envoy.0002 (events) uses authoring_envoy_gift_effect inside scope:envoy, defined in common/scripted_effects: authoring_envoy.0002 does not use authoring_envoy_gift_effect inside scope:envoy',
+    ]);
+    // A name written in the block's key alone is not inside the block, and a block of the same
+    // key in another definition does not count.
+    const results = held(t, 'effect-heir-household', () => undefined, [
+        {
+            kind: 'uses',
+            database: 'common/scripted_effects',
+            name: 'authoring_heir_household_effect',
+            uses: 'primary_heir',
+            within: 'primary_heir',
+        },
+        {
+            kind: 'uses',
+            database: 'common/scripted_effects',
+            name: 'authoring_heir_household_effect',
+            uses: 'add_prestige',
+            within: 'primary_heir',
+        },
+        {
+            kind: 'uses',
+            database: 'common/scripted_effects',
+            name: 'authoring_heir_household_effect',
+            uses: 'add_stress',
+            within: 'primary_heir',
+        },
+    ]);
+    assert.deepEqual(unmet(results), [
+        'authoring_heir_household_effect (common/scripted_effects) uses primary_heir inside primary_heir: authoring_heir_household_effect does not use primary_heir inside primary_heir',
+        'authoring_heir_household_effect (common/scripted_effects) uses add_stress inside primary_heir: authoring_heir_household_effect does not use add_stress inside primary_heir',
+    ]);
+});
+
+test("defines with a count: a definition written a second time beside the base's is not met", (t) => {
+    const results = held(t, 'effect-granary-gift-edit', (mod) => {
+        writeFileSync(
+            path.join(mod, 'common', 'scripted_effects', 'zz_override.txt'),
+            '\uFEFFgranary_vassal_gift_effect = {\r\n\tadd_gold = 20\r\n}\r\n',
+        );
+    });
+    assert.deepEqual(unmet(results), [
+        'common/scripted_effects defines granary_vassal_gift_effect 1 time: the mod defines granary_vassal_gift_effect in common/scripted_effects 2 times, not 1',
+    ]);
+});
+
+test('kept: a definition of the base changed, moved or removed is not met; one left alone is', (t) => {
+    const file = 'common/scripted_effects/granary_effects.txt';
+    const expect: Expectation[] = [
+        { kind: 'kept', database: 'common/scripted_effects', name: 'granary_pay_effect' },
+        { kind: 'kept', database: 'common/scripted_effects', name: 'granary_reward_effect' },
+    ];
+    // The example changes the file, but not these two.
+    assert.deepEqual(unmet(held(t, 'effect-granary-gift-edit', () => undefined, expect)), []);
+    const changed = held(
+        t,
+        'effect-granary-gift-edit',
+        (mod) => {
+            edit(mod, file, 'add_prestige = 40', 'add_prestige = 45');
+            edit(mod, file, 'granary_pay_effect = { add_gold = -150 }\r\n', '');
+        },
+        expect,
+    );
+    assert.deepEqual(unmet(changed), [
+        "the base's granary_pay_effect (common/scripted_effects) is kept as it was: granary_pay_effect is no longer in common/scripted_effects/granary_effects.txt",
+        "the base's granary_reward_effect (common/scripted_effects) is kept as it was: granary_reward_effect was changed in common/scripted_effects/granary_effects.txt",
+    ]);
+    // Moved to a file of its own: not where the base has it.
+    const moved = held(
+        t,
+        'effect-granary-gift-edit',
+        (mod) => {
+            edit(mod, file, 'granary_pay_effect = { add_gold = -150 }\r\n', '');
+            writeFileSync(
+                path.join(mod, 'common', 'scripted_effects', 'granary_pay.txt'),
+                '\uFEFFgranary_pay_effect = {\r\n\tadd_gold = -150\r\n}\r\n',
+            );
+        },
+        expect,
+    );
+    assert.deepEqual(unmet(moved), [
+        "the base's granary_pay_effect (common/scripted_effects) is kept as it was: granary_pay_effect is no longer in common/scripted_effects/granary_effects.txt",
+    ]);
+    // A name the base does not define is a fault of the request, said as such.
+    assert.deepEqual(
+        unmet(
+            held(t, 'effect-granary-gift-edit', () => undefined, [
+                { kind: 'kept', database: 'common/scripted_effects', name: 'granary_other_effect' },
+            ]),
+        ),
+        [
+            "the base's granary_other_effect (common/scripted_effects) is kept as it was: the base does not define granary_other_effect in common/scripted_effects",
+        ],
+    );
+});

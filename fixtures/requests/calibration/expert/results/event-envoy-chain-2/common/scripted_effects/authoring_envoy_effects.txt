@@ -1,0 +1,5 @@
+﻿# A parting gift: gold and honour.
+authoring_envoy_gift_effect = {
+	add_prestige = 10
+	add_gold = 30
+}

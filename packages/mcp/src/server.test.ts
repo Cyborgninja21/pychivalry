@@ -52,10 +52,13 @@ test('the server names itself, its version and its schema version, and says how 
     const instructions = client.getInstructions() ?? '';
     assert.match(instructions, /Crusader Kings 3/);
     assert.match(instructions, /Start with check/);
-    // A client may show the tools under a prefix; the instructions say so, and that the names
-    // they use are the bare ones (item 6.11: a test session called a tool by its bare name).
-    assert.match(instructions, /names here are the bare ones/);
+    // A client may show the tools under a prefix; the instructions say so, that the names they
+    // use are the short ones, and that a call of the short name reaches nothing in Claude Code
+    // (item 6.11 and both scored authoring runs: test sessions called tools by their short names).
+    assert.match(instructions, /names here are the short ones/);
     assert.match(instructions, /mcp__pychivalry__check/);
+    assert.match(instructions, /mcp__pychivalry__lookup/);
+    assert.match(instructions, /a call of the short name reaches nothing/);
     assert.match(instructions, new RegExp(`tool schema version ${String(SCHEMA_VERSION)}`));
     assert.ok(instructions.includes(dir), 'it names the mod folder it works on');
 });
