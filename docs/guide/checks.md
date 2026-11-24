@@ -8,17 +8,20 @@ it finds and the game's evidence for it, with the game's own message as the spec
 catalogue for game 1.21.0.3 gives it. `pychivalry explain <code>` prints the same for one
 code ([Commands](commands.md)).
 
-62 codes: 21 errors, 6 warnings, 33 information and 2 hints. 28 rest on the game's own evidence; 34 are advice.
+66 codes: 21 errors, 7 warnings, 33 information and 5 hints. 28 rest on the game's own evidence; 34 are advice; 4 are best-practice rules.
 
 - An **error** or a **warning** is something the game itself rejects or complains about, and
   rests on the game's own evidence: a message of the game, the game's own output, or a
-  field the spec package marks required with the game's message for it.
+  field the spec package marks required with the game's message for it. The one exception
+  is the family `style`: pychivalry's own best-practice rules, each at the severity the
+  owner set for it, each followed by the base game more often than it is broken.
 - **Information** and **hints** without such evidence are advice: usually right, not
   something the game enforces.
 - A file reports at most 1,000 findings, its most severe first; the command line says how
   many it left out.
-- A check marked **off by default** reports only when asked: the command line's
-  `check --unused-keys`, the agent server's `check` with `unused_keys`.
+- A check marked **on by default** can be turned off: the command line's
+  `check --no-unused-keys`, the agent server's `check` with `unused_keys: false`, the
+  editor's setting `pychivalry.localization.unusedKeys`.
 - A finding with a mechanical **fix** carries it as data: **safe**, the one outcome that
   can be right, which `pychivalry check --fix` and the editor's "fix all" apply; or a
   **suggestion**, alternatives to choose from, which nothing applies by itself. The editor
@@ -58,7 +61,7 @@ check each replaces and how each was proved on the base game, is the
 | --- | --- | --- | --- | --- |
 | `localization/missing-key` | warning | A localization key, in a field that holds one or that a record has by its name, defined in no localization file. | The game's message `unknown_loc_key_X`: "Unknown loc key &lt;key&gt;" | Suggestion: A stub entry for the key in the mod's localization file of each language it has (one is made when it has none). |
 | `localization/unbalanced-brackets` | warning | Localization text with an extra `[` or `]`. | The game's message `loc_key_X_unexpected_extra_at_position_X_file_X`: "Loc key `<key>`: Unexpected extra `[` at position &lt;column&gt; - file `<file>`" | Suggestion: The statement left open closed after its command, or the extra bracket taken away; offered only where the entry is then balanced. |
-| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **Off by default:** `pychivalry check --unused-keys` turns it on. | Advice: pychivalry's own, with no game message | None: removing a key deletes text that may be wanted. |
+| `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses. **On by default:** `pychivalry check --no-unused-keys` turns it off. | Advice: pychivalry's own, with no game message | None: removing a key deletes text that may be wanted. |
 
 ## names
 
@@ -119,6 +122,15 @@ check each replaces and how each was proved on the base game, is the
 | `structure/switch-without-branches` | information | A switch block with no branch. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
 | `structure/switch-without-trigger` | information | A switch block without the trigger its cases are values of. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
 | `structure/trigger-else-without-trigger-if` | information | A trigger else branch not directly after the conditional it belongs to. | Advice: pychivalry's own, with no game message | None: the right change is a choice of content the data does not make. |
+
+## style
+
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `style/not-utf8` | warning | A file that is not valid UTF-8; its fix converts it to UTF-8 with a byte-order mark, reading the bytes that are not as Windows-1252. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
+| `style/deep-nesting` | hint | A block nested more than six blocks deep inside its record: release 2.3.0's CK3317. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | None: how to restructure deep script is a choice. |
+| `style/empty-block` | hint | A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | Suggestion: The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. |
+| `style/unusual-field-order` | hint | A record whose fields are written in another order than its folder's usual one, in a folder whose records' fields the game reads by name. | Best practice: pychivalry's own best-practice rules, with no game message; the base game follows each more often than it breaks it | Safe: The record's fields written in the usual order, comments with their field; none where a comment's field is not clear. |
 
 ## syntax
 

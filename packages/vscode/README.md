@@ -33,7 +33,7 @@ pychivalry holds no API key, no token and no login, and makes no network call an
 | --- | --- | --- |
 | `pychivalry.gamePath` | empty | The game's `game` folder. Empty: pychivalry looks in every Steam library |
 | `pychivalry.background.fileLimit` | `3000` | The most files checked in the background; `0`: only open files |
-| `pychivalry.localization.unusedKeys` | `false` | A hint on each localization key nothing uses |
+| `pychivalry.localization.unusedKeys` | `true` | A hint on each localization key nothing uses; `false` hides them |
 | `pychivalry.encoding.fallback` | `none` | `windows-1252` reads a file that is not valid UTF-8 as many older mods were saved |
 
 ## Requirements

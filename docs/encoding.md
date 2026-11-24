@@ -91,6 +91,33 @@ What follows from it:
 - **UTF-16 is not detected.** No game file uses it; a file that does is read as UTF-8, like any
   other, and gets the note.
 
+### The best-practice warning and its conversion (2026-11-23)
+
+On the owner's word of 2026-11-23 (best practice and tidiness come before what a mod's author
+wrote), a file that is not valid UTF-8 is also an actionable warning, `style/not-utf8`, of the
+family `style`: pychivalry's own best-practice rules, not the game's evidence. The note
+`encoding/not-utf8` above is unchanged, as signed off: information, saying how the file was
+read. The two sit at the same place, the first invalid byte, and say different things: the note
+how the file was read, the warning what to do; converting the file takes both away. The warning
+is given on localization files too, which have no note.
+
+- **The fix** writes the file as UTF-8 with the byte-order mark, each invalid stretch read as
+  Windows-1252 (the "ansi" the game's own title-history message asks for). Its edits are against
+  the text as the checks read it: on each line that holds invalid stretches, the stretches
+  replaced by their Windows-1252 letters, and the mark written at the start where the file has
+  none. Applied, the text is written as UTF-8, which is the conversion.
+- **Safe** only when every invalid byte reads as a printable Windows-1252 character (none of the
+  five bytes the code page leaves undefined, which read as control characters, nor its soft
+  hyphen) and the converted text parses to the same tree, node for node, apart from the decoded
+  letters (for a localization file: the same headers and keys). Otherwise the same edits are a
+  suggestion: the bytes may have been written in another code page.
+- **`check --fix`** converts such a file first and then applies its other safe fixes to the same
+  text, so no byte is lost; a file whose conversion is not applied is left alone, as before.
+- **On the base game** the warning fires on the 25 of the 27 files that the checks read (the 25
+  in `history/titles/`; `map_data/positions.txt` and `licenses/software/FTL.txt` are in no
+  folder the index reads), and its fix is safe on every one: each invalid byte is a printable
+  letter in a comment.
+
 ## The byte-order mark
 
 The UTF-8 byte-order mark (`EF BB BF`) is removed when a file is decoded, and reported
