@@ -1,0 +1,21 @@
+﻿authoring_vigil_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	desc = authoring_vigil_decision_desc
+
+	cooldown = { years = 3 }
+
+	is_shown = { is_adult = yes }
+
+	is_valid = { is_at_war = no }
+
+	effect = {
+		trigger_event = {
+			id = authoring_vigil.0001
+			days = 5
+		}
+	}
+
+	ai_check_interval = 120
+
+	ai_will_do = { base = 10 }
+}

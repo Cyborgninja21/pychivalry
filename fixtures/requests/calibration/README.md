@@ -6,6 +6,11 @@ its results. Some are right, some are deliberately wrong, and some cannot be jud
 files alone; which is which is not written anywhere, so that the grading is done by reading
 them. How to grade them and run the calibration: [the guide](../../../docs/guide/judge-calibration.md).
 
+Since the second scored authoring run (2026-11-24) kept its results, real results are graded
+too: twelve of them, one of each request, in [run-2/](run-2/README.md), with a sheet of their own.
+These hand-made ones stay, and are graded first: they are the only results here made wrong on
+purpose, and whether the judge can say no shows only on a result that is wrong.
+
 Each folder under `results/` is a whole mod as a session would leave it: the request's base mod
 (`fixtures/requests/bases/`) with the result's files written into it. The judge is shown exactly
 these files, so grade from them alone, the way the judge must.

@@ -18,11 +18,12 @@ import { formatKindOf, formatText } from '@pychivalry/core';
 import {
     agreementOf,
     calibrationProblems,
+    calibrationRecordFile,
     gradesProblems,
     runCalibration,
     type CalibrationRecord,
 } from './calibration.js';
-import type { JudgeAnswer } from './judge.js';
+import { resultFiles, type JudgeAnswer } from './judge.js';
 import { baseDir, committedRequests, REQUESTS_DIR, type ContentRequest } from './requests.js';
 import { PINNED_JUDGE_MODEL } from './run.js';
 
@@ -299,6 +300,181 @@ test('the hand-grading sheet: every result there, every question of its request 
             assert.equal(formatText(text, kind).changed, false, full);
         }
     }
+});
+
+/** Real results of the second scored authoring run, one of each request, and their sheet. */
+const RUN_2_DIR = path.join(SHEET_DIR, 'run-2');
+
+test('the sheet of real results: trial 1 of each request, every question asked, every answer left to the person', (t) => {
+    const sheet = JSON.parse(readFileSync(path.join(RUN_2_DIR, 'grades.json'), 'utf8')) as {
+        about: string;
+        items: { request: string; result: string; grades: Record<string, string> }[];
+    };
+    // One result of each request, in the list's order: each request's first trial, none picked.
+    assert.deepEqual(
+        sheet.items.map((i) => [i.request, i.result]),
+        list.requests.map((r) => [r.id, `results/${r.id}-1`]),
+    );
+    assert.match(sheet.about, /not hand-made: trial 1 of each of the twelve requests/);
+    const problems = gradesProblems(sheet, list, RUN_2_DIR);
+    const blanks = sheet.items.flatMap((item, i) =>
+        Object.keys(item.grades).map(
+            (d) => `items[${String(i)}]: ${d} is graded "?", not one of yes, no, cannot-tell`,
+        ),
+    );
+    assert.deepEqual(problems, blanks);
+    assert.equal(sheet.items.length, 12);
+    assert.equal(blanks.length, 36);
+    const filled = JSON.parse(JSON.stringify(sheet)) as typeof sheet;
+    for (const item of filled.items) {
+        for (const d of Object.keys(item.grades)) {
+            item.grades[d] = 'yes';
+        }
+    }
+    assert.deepEqual(gradesProblems(filled, list, RUN_2_DIR), []);
+    const argv = path.join(tempDir(t), 'argv.jsonl');
+    assert.throws(
+        () =>
+            runCalibration(
+                root,
+                {
+                    SCORED_SESSION_LIMIT: '1',
+                    SCORED_GRADES: path.join(RUN_2_DIR, 'grades.json'),
+                    SCORED_CLAUDE: fake,
+                    FAKE_CLAUDE_ARGV: argv,
+                },
+                () => undefined,
+                path.join(tempDir(t), 'calibration.json'),
+            ),
+        (e: unknown) => e instanceof CommandError && /is graded "\?"/.test(e.message),
+    );
+    assert.ok(!existsSync(argv), 'no session was started');
+    assert.deepEqual(
+        readdirSync(path.join(RUN_2_DIR, 'results')).sort(),
+        sheet.items.map((i) => path.basename(i.result)).sort(),
+    );
+    const readme = readFileSync(path.join(RUN_2_DIR, 'README.md'), 'utf8');
+    assert.match(readme, /\*\*Real results of test sessions, not hand-made\.\*\*/);
+    for (const item of sheet.items) {
+        const r = request(item.request);
+        assert.ok(readme.includes(`### \`${item.result}\``), item.result);
+        assert.ok(readme.includes(`Request \`${r.id}\`: ${r.request}`), r.id);
+        for (const q of r.judged) {
+            assert.ok(readme.includes(`- \`${q.dimension}\`: ${q.question}`), q.question);
+        }
+    }
+});
+
+test('a real result holds only the mod its session left: its base, what it wrote, nothing of the machine', () => {
+    const sheet = JSON.parse(readFileSync(path.join(RUN_2_DIR, 'grades.json'), 'utf8')) as {
+        items: { request: string; result: string }[];
+    };
+    for (const item of sheet.items) {
+        const r = request(item.request);
+        const result = path.join(RUN_2_DIR, item.result);
+        const files = filesUnder(result).map((f) =>
+            path.relative(result, f).split(path.sep).join('/'),
+        );
+        // The skills folder the run gave the session, and the trial's stream, error output and
+        // server configuration, are not committed: only the mod's own files.
+        for (const file of files) {
+            assert.ok(
+                file === 'descriptor.mod' || /\.(txt|yml)$/.test(file),
+                `${item.result}: ${file}`,
+            );
+            assert.ok(
+                !file.split('/').some((part) => part.startsWith('.')),
+                `${item.result}: ${file}`,
+            );
+        }
+        // The judge is shown the result against its base: no base file may look removed, and
+        // the session wrote something.
+        const shown = resultFiles(result, baseDir(root, r.base));
+        assert.ok(!shown.some((f) => f.state === 'removed'), item.result);
+        assert.ok(
+            shown.some((f) => f.state === 'written'),
+            item.result,
+        );
+        for (const full of filesUnder(result)) {
+            const text = readFileSync(full, 'utf8');
+            // Nothing of the machine the run was made on.
+            assert.doesNotMatch(
+                text,
+                /(^|[\s"'=])(\/(home|tmp|Users|root)\/|~\/|[A-Za-z]:[\\/])/m,
+                full,
+            );
+            // In pychivalry's format, as the run measured each: the format is not what is judged.
+            const kind = formatKindOf(full);
+            if (kind !== undefined) {
+                assert.ok(text.startsWith('\uFEFF'), full);
+                assert.equal(formatText(text, kind).changed, false, full);
+            }
+        }
+    }
+});
+
+test('SCORED_RECORD: the calibration of each sheet writes a record of its own, in records/scored/ only', (t) => {
+    const scored = path.join(root, 'records', 'scored');
+    assert.equal(calibrationRecordFile(root, {}), path.join(scored, 'calibration.json'));
+    assert.equal(
+        calibrationRecordFile(root, { SCORED_RECORD: 'records/scored/calibration-run-2.json' }),
+        path.join(scored, 'calibration-run-2.json'),
+    );
+    for (const named of [
+        'calibration.json',
+        'records/calibration.json',
+        'records/scored/old/calibration.json',
+        'records/scored/calibration.txt',
+        'records/scored/record.schema.json',
+        '../records/scored/calibration.json',
+        path.join(tempDir(t), 'calibration.json'),
+    ]) {
+        assert.throws(
+            () => calibrationRecordFile(root, { SCORED_RECORD: named }),
+            (e: unknown) =>
+                e instanceof CommandError &&
+                /SCORED_RECORD must name a \.json file/.test(e.message),
+            named,
+        );
+    }
+    // Refused before any session starts.
+    const argv = path.join(tempDir(t), 'argv.jsonl');
+    assert.throws(
+        () =>
+            runCalibration(
+                root,
+                {
+                    SCORED_SESSION_LIMIT: '1',
+                    SCORED_GRADES: path.join(SHEET_DIR, 'grades.json'),
+                    SCORED_RECORD: 'calibration.json',
+                    SCORED_CLAUDE: fake,
+                    FAKE_CLAUDE_ARGV: argv,
+                },
+                () => undefined,
+            ),
+        (e: unknown) => e instanceof CommandError && /SCORED_RECORD/.test(e.message),
+    );
+    assert.ok(!existsSync(argv), 'no session was started');
+    // The record's command names the record it was written to.
+    const r = request('effect-reward');
+    const log: string[] = [];
+    const { record } = runCalibration(
+        root,
+        {
+            SCORED_SESSION_LIMIT: '1',
+            SCORED_GRADES: gradesFor(t, r, ['yes', 'yes']),
+            SCORED_RECORD: 'records/scored/calibration-run-2.json',
+            SCORED_CLAUDE: fake,
+            FAKE_CLAUDE_JUDGE_STREAM: textFile(
+                t,
+                'judge.jsonl',
+                judgeStream(judgeAnswer(r, 'yes')),
+            ),
+        },
+        (line) => log.push(line),
+        path.join(tempDir(t), 'calibration.json'),
+    );
+    assert.match(record.command, / SCORED_RECORD=<record file> /);
 });
 
 test('the judge is Fable 5.2 unless SCORED_JUDGE_MODEL names another', (t) => {

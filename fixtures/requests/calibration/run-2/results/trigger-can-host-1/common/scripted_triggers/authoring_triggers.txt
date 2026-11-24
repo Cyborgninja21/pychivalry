@@ -1,0 +1,5 @@
+﻿authoring_can_host_trigger = {
+	is_adult = yes
+	is_ruler = yes
+	gold >= 50
+}

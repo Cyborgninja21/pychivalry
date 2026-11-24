@@ -1,0 +1,17 @@
+﻿namespace = authoring_vigil
+
+authoring_vigil.0001 = {
+	type = character_event
+	title = authoring_vigil.0001.t
+	desc = authoring_vigil.0001.desc
+	theme = faith
+	left_portrait = {
+		character = root
+		animation = personality_zealous
+	}
+
+	option = {
+		name = authoring_vigil.0001.a
+		add_piety = 25
+	}
+}

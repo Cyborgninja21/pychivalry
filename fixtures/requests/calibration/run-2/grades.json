@@ -1,0 +1,114 @@
+{
+    "grades_format": 1,
+    "about": "Real results of the second scored authoring run (2026-11-24, records/scored/authoring.json), not hand-made: trial 1 of each of the twelve requests, taken by its number before any result was read, so that none was picked. Each folder is that trial's mod as its test session left it, with the skills folder the run gave the session taken out; the judge is shown exactly these files. Replace every ? with yes, no or cannot-tell.",
+    "items": [
+        {
+            "request": "event-merchant-debt",
+            "result": "results/event-merchant-debt-1",
+            "grades": {
+                "effects-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "event-sleepless-night",
+            "result": "results/event-sleepless-night-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "event-letter-from-spouse",
+            "result": "results/event-letter-from-spouse-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-give-alms",
+            "result": "results/decision-give-alms-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-night-vigil",
+            "result": "results/decision-night-vigil-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-hold-banquet",
+            "result": "results/decision-hold-banquet-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-reward",
+            "result": "results/effect-reward-1",
+            "grades": {
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-war-chest",
+            "result": "results/effect-war-chest-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-children-gift",
+            "result": "results/effect-children-gift-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-can-host",
+            "result": "results/trigger-can-host-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-family-ready",
+            "result": "results/trigger-family-ready-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?"
+            }
+        },
+        {
+            "request": "trigger-banquet-guest",
+            "result": "results/trigger-banquet-guest-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        }
+    ]
+}

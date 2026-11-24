@@ -1,0 +1,9 @@
+﻿# Scope: character
+authoring_war_chest_effect = {
+	if = {
+		limit = { is_at_war = yes }
+		add_gold = 100
+	}
+	else = { add_prestige = 50 }
+	add_stress = 5
+}

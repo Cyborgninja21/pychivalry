@@ -1,0 +1,8 @@
+﻿l_english:
+ authoring_letter.0001.t: "A Letter from [ROOT.Char.GetPrimarySpouse.GetFirstName]"
+ authoring_letter.0001.desc: "A messenger brings a sealed letter from my spouse, [ROOT.Char.GetPrimarySpouse.GetFirstName]. In warm words, they write of their prayers for my health and for the good of our house."
+ authoring_letter.0001.a: "I give thanks to the heavens for such a spouse."
+ authoring_letter.0002.t: "An Answer to [ROOT.Char.GetPrimarySpouse.GetFirstName]"
+ authoring_letter.0002.desc: "Some days have passed since the letter came, and the time has come to write an answer. What shall I tell [ROOT.Char.GetPrimarySpouse.GetFirstName]?"
+ authoring_letter.0002.a: "Praise their devotion before the whole court."
+ authoring_letter.0002.b: "Write simply of my love, and find peace in it."
