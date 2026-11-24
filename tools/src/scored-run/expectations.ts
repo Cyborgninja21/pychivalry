@@ -8,7 +8,8 @@
  * own layer (`mod`) holds it; a name a `resolves` expectation follows may be defined by the mod
  * or by the base game. A `field` is a pair written directly in the definition's block; a `uses`
  * is a name the index lists as used between the start of the definition and the end of its
- * block.
+ * block, or, with `through`, inside a definition of the mod in that database that the first
+ * reaches through names used inside each, one after another (`reaches`).
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -90,6 +91,40 @@ function usedInside(index: WorkspaceIndex, definition: Definition, name: string)
         );
 }
 
+/** A definition's identity, for the walk of `reaches`. */
+function keyOf(d: Definition): string {
+    return `${d.file}\u0000${String(d.start)}`;
+}
+
+/**
+ * True when `name` is used inside one of `from`, or, with `through` a database, inside a
+ * definition of the mod in that database reached from them: each step a name used inside the
+ * definition before it, defined by the mod in `through`.
+ */
+function reaches(
+    index: WorkspaceIndex,
+    from: readonly Definition[],
+    name: string,
+    through: string | undefined,
+): boolean {
+    const steps =
+        through === undefined ? [] : index.definitionsOf(through).filter((d) => d.layer === MOD);
+    const seen = new Set(from.map(keyOf));
+    const queue = [...from];
+    for (let d = queue.shift(); d !== undefined; d = queue.shift()) {
+        if (usedInside(index, d, name)) {
+            return true;
+        }
+        for (const next of steps) {
+            if (!seen.has(keyOf(next)) && usedInside(index, d, next.name)) {
+                seen.add(keyOf(next));
+                queue.push(next);
+            }
+        }
+    }
+    return false;
+}
+
 function holds(input: ExpectationInput, e: Expectation): string | null {
     const { index, modDir, givenDir } = input;
     switch (e.kind) {
@@ -146,8 +181,10 @@ function holds(input: ExpectationInput, e: Expectation): string | null {
             if (definitions.length === 0) {
                 return `the mod does not define ${e.name} in ${e.database}`;
             }
-            if (!definitions.some((d) => usedInside(index, d, e.uses))) {
-                return `${e.name} does not use ${e.uses}`;
+            if (!reaches(index, definitions, e.uses, e.through)) {
+                return e.through === undefined
+                    ? `${e.name} does not use ${e.uses}`
+                    : `${e.name} does not use ${e.uses}, directly or through the mod's ${e.through}`;
             }
             if (
                 e.kind === 'resolves' &&

@@ -260,7 +260,8 @@
                     "database": "common/on_action",
                     "name": "yearly_playable_pulse",
                     "uses": "authoring_letter.0001",
-                    "to": "events"
+                    "to": "events",
+                    "through": "common/on_action"
                 },
                 {
                     "kind": "resolves",
@@ -542,23 +543,23 @@
             ]
         },
         {
-            "id": "decision-hold-feast",
+            "id": "decision-hold-banquet",
             "content_type": "decision",
             "difficulty": "hard",
-            "base": "feast",
-            "request": "The mod in this folder already has the scripted trigger `feast_can_host_trigger`, the scripted effect `feast_host_reward_effect` and the character event `feast.0001`. Write a decision `authoring_hold_feast_decision` in a new file under `common/decisions/` that uses them. It is shown to characters for whom `feast_can_host_trigger` holds, and can be taken only with at least 100 gold (`gold`). Taking it takes 100 gold from the character (`add_gold`), runs `feast_host_reward_effect`, and fires `feast.0001` 7 days later (`trigger_event`). It can be taken again only 5 years after it was last taken (`cooldown`). Write its English localization in a new file under `localization/english/`: the title `authoring_hold_feast_decision` and the description `authoring_hold_feast_decision_desc`. Change none of the mod's other files.",
+            "base": "banquet",
+            "request": "The mod in this folder already has the scripted trigger `banquet_can_host_trigger`, the scripted effect `banquet_host_reward_effect` and the character event `banquet.0001`. Write a decision `authoring_hold_banquet_decision` in a new file under `common/decisions/` that uses them. It is shown to characters for whom `banquet_can_host_trigger` holds, and can be taken only with at least 100 gold (`gold`). Taking it takes 100 gold from the character (`add_gold`), runs `banquet_host_reward_effect`, and fires `banquet.0001` 7 days later (`trigger_event`). It can be taken again only 5 years after it was last taken (`cooldown`). Write its English localization in a new file under `localization/english/`: the title `authoring_hold_banquet_decision` and the description `authoring_hold_banquet_decision_desc`. Change none of the mod's other files.",
             "relies_on": [
                 {
-                    "base": "feast",
+                    "base": "banquet",
                     "database": "common/scripted_triggers",
-                    "name": "feast_can_host_trigger"
+                    "name": "banquet_can_host_trigger"
                 },
                 {
-                    "base": "feast",
+                    "base": "banquet",
                     "database": "common/scripted_effects",
-                    "name": "feast_host_reward_effect"
+                    "name": "banquet_host_reward_effect"
                 },
-                { "base": "feast", "database": "events", "name": "feast.0001" },
+                { "base": "banquet", "database": "events", "name": "banquet.0001" },
                 { "bucket": "triggers", "name": "gold" },
                 { "bucket": "effects", "name": "add_gold" },
                 { "bucket": "effects", "name": "trigger_event" },
@@ -570,68 +571,68 @@
                 {
                     "kind": "defines",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision"
+                    "name": "authoring_hold_banquet_decision"
                 },
                 {
                     "kind": "resolves",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
-                    "uses": "feast_can_host_trigger",
+                    "name": "authoring_hold_banquet_decision",
+                    "uses": "banquet_can_host_trigger",
                     "to": "common/scripted_triggers"
                 },
                 {
                     "kind": "resolves",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
-                    "uses": "feast_host_reward_effect",
+                    "name": "authoring_hold_banquet_decision",
+                    "uses": "banquet_host_reward_effect",
                     "to": "common/scripted_effects"
                 },
                 {
                     "kind": "resolves",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
-                    "uses": "feast.0001",
+                    "name": "authoring_hold_banquet_decision",
+                    "uses": "banquet.0001",
                     "to": "events"
                 },
                 {
                     "kind": "uses",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
+                    "name": "authoring_hold_banquet_decision",
                     "uses": "gold"
                 },
                 {
                     "kind": "uses",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
+                    "name": "authoring_hold_banquet_decision",
                     "uses": "add_gold"
                 },
                 {
                     "kind": "uses",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
+                    "name": "authoring_hold_banquet_decision",
                     "uses": "trigger_event"
                 },
                 {
                     "kind": "field",
                     "database": "common/decisions",
-                    "name": "authoring_hold_feast_decision",
+                    "name": "authoring_hold_banquet_decision",
                     "field": "cooldown"
                 },
-                { "kind": "localization", "key": "authoring_hold_feast_decision" },
-                { "kind": "localization", "key": "authoring_hold_feast_decision_desc" },
-                { "kind": "unchanged", "file": "events/feast_events.txt" },
-                { "kind": "unchanged", "file": "common/scripted_effects/feast_effects.txt" },
-                { "kind": "unchanged", "file": "common/scripted_triggers/feast_triggers.txt" },
-                { "kind": "unchanged", "file": "localization/english/feast_l_english.yml" }
+                { "kind": "localization", "key": "authoring_hold_banquet_decision" },
+                { "kind": "localization", "key": "authoring_hold_banquet_decision_desc" },
+                { "kind": "unchanged", "file": "events/banquet_events.txt" },
+                { "kind": "unchanged", "file": "common/scripted_effects/banquet_effects.txt" },
+                { "kind": "unchanged", "file": "common/scripted_triggers/banquet_triggers.txt" },
+                { "kind": "unchanged", "file": "localization/english/banquet_l_english.yml" }
             ],
             "judged": [
                 {
                     "dimension": "conditions-as-asked",
-                    "question": "Is the decision shown only where the mod's feast_can_host_trigger holds, can it be taken only with at least 100 gold, and can it be taken again only 5 years later?"
+                    "question": "Is the decision shown only where the mod's banquet_can_host_trigger holds, can it be taken only with at least 100 gold, and can it be taken again only 5 years later?"
                 },
                 {
                     "dimension": "effects-as-asked",
-                    "question": "Does taking the decision take 100 gold from the character, run feast_host_reward_effect and fire feast.0001 7 days later?"
+                    "question": "Does taking the decision take 100 gold from the character, run banquet_host_reward_effect and fire banquet.0001 7 days later?"
                 },
                 {
                     "dimension": "text-as-asked",
@@ -943,13 +944,13 @@
             ]
         },
         {
-            "id": "trigger-feast-guest",
+            "id": "trigger-banquet-guest",
             "content_type": "scripted_trigger",
             "difficulty": "hard",
-            "base": "feast",
-            "request": "The mod in this folder already has the character event `feast.0001`. Write a scripted trigger `authoring_feast_guest_trigger` in a new file under `common/scripted_triggers/`, for a character: it holds for an adult (`is_adult`) who is not at war (`is_at_war`) and whose liege (`liege`) is a ruler (`is_ruler`) with at least 100 gold (`gold`). Then let `feast.0001` happen only to characters for whom the new trigger holds, by adding it to that event's trigger and keeping what is there. Change nothing else in the mod.",
+            "base": "banquet",
+            "request": "The mod in this folder already has the character event `banquet.0001`. Write a scripted trigger `authoring_banquet_guest_trigger` in a new file under `common/scripted_triggers/`, for a character: it holds for an adult (`is_adult`) who is not at war (`is_at_war`) and whose liege (`liege`) is a ruler (`is_ruler`) with at least 100 gold (`gold`). Then let `banquet.0001` happen only to characters for whom the new trigger holds, by adding it to that event's trigger and keeping what is there. Change nothing else in the mod.",
             "relies_on": [
-                { "base": "feast", "database": "events", "name": "feast.0001" },
+                { "base": "banquet", "database": "events", "name": "banquet.0001" },
                 { "bucket": "triggers", "name": "is_adult" },
                 { "bucket": "triggers", "name": "is_at_war" },
                 { "bucket": "links", "name": "liege" },
@@ -961,61 +962,66 @@
                 {
                     "kind": "defines",
                     "database": "common/scripted_triggers",
-                    "name": "authoring_feast_guest_trigger"
+                    "name": "authoring_banquet_guest_trigger"
                 },
                 {
                     "kind": "uses",
                     "database": "common/scripted_triggers",
-                    "name": "authoring_feast_guest_trigger",
+                    "name": "authoring_banquet_guest_trigger",
                     "uses": "is_adult"
                 },
                 {
                     "kind": "uses",
                     "database": "common/scripted_triggers",
-                    "name": "authoring_feast_guest_trigger",
+                    "name": "authoring_banquet_guest_trigger",
                     "uses": "is_at_war"
                 },
                 {
                     "kind": "uses",
                     "database": "common/scripted_triggers",
-                    "name": "authoring_feast_guest_trigger",
+                    "name": "authoring_banquet_guest_trigger",
                     "uses": "liege"
                 },
                 {
                     "kind": "uses",
                     "database": "common/scripted_triggers",
-                    "name": "authoring_feast_guest_trigger",
+                    "name": "authoring_banquet_guest_trigger",
                     "uses": "is_ruler"
                 },
                 {
                     "kind": "uses",
                     "database": "common/scripted_triggers",
-                    "name": "authoring_feast_guest_trigger",
+                    "name": "authoring_banquet_guest_trigger",
                     "uses": "gold"
                 },
                 {
                     "kind": "resolves",
                     "database": "events",
-                    "name": "feast.0001",
-                    "uses": "authoring_feast_guest_trigger",
+                    "name": "banquet.0001",
+                    "uses": "authoring_banquet_guest_trigger",
                     "to": "common/scripted_triggers"
                 },
-                { "kind": "uses", "database": "events", "name": "feast.0001", "uses": "is_adult" },
+                {
+                    "kind": "uses",
+                    "database": "events",
+                    "name": "banquet.0001",
+                    "uses": "is_adult"
+                },
                 {
                     "kind": "field",
                     "database": "events",
-                    "name": "feast.0001",
+                    "name": "banquet.0001",
                     "field": "option",
                     "count": 1
                 },
-                { "kind": "unchanged", "file": "common/scripted_effects/feast_effects.txt" },
-                { "kind": "unchanged", "file": "common/scripted_triggers/feast_triggers.txt" },
-                { "kind": "unchanged", "file": "localization/english/feast_l_english.yml" }
+                { "kind": "unchanged", "file": "common/scripted_effects/banquet_effects.txt" },
+                { "kind": "unchanged", "file": "common/scripted_triggers/banquet_triggers.txt" },
+                { "kind": "unchanged", "file": "localization/english/banquet_l_english.yml" }
             ],
             "judged": [
                 {
                     "dimension": "conditions-as-asked",
-                    "question": "Does the trigger hold exactly for an adult not at war whose liege is a ruler with at least 100 gold, and does feast.0001 now need the trigger as well as what its trigger held before?"
+                    "question": "Does the trigger hold exactly for an adult not at war whose liege is a ruler with at least 100 gold, and does banquet.0001 now need the trigger as well as what its trigger held before?"
                 },
                 {
                     "dimension": "scope-as-asked",
@@ -1023,9 +1029,19 @@
                 },
                 {
                     "dimension": "nothing-unasked",
-                    "question": "Is feast.0001 otherwise unchanged, are the mod's other files unchanged, and does the result add nothing else that changes the game?"
+                    "question": "Is banquet.0001 otherwise unchanged, are the mod's other files unchanged, and does the result add nothing else that changes the game?"
                 }
             ]
+        }
+    ],
+    "retired": [
+        {
+            "id": "decision-hold-feast",
+            "why": "Its base mod defined the event feast.0001, an id the base game's own events/activities/feast_activity/feast_events.txt defines: definitions/clash, an error no result could avoid while changing none of the mod's files (the first scored authoring run, 2026-11-24). Replaced by decision-hold-banquet, on the base banquet."
+        },
+        {
+            "id": "trigger-feast-guest",
+            "why": "Its base mod defined the event feast.0001, an id the base game's own events/activities/feast_activity/feast_events.txt defines: definitions/clash, an error no result could avoid without renaming the event it was asked to change (the first scored authoring run, 2026-11-24). Replaced by trigger-banquet-guest, on the base banquet."
         }
     ]
 }

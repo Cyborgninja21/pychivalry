@@ -370,12 +370,41 @@ export function selectRequests(list: RequestList, ids: readonly string[] | null)
     }
     const unknown = ids.filter((id) => !list.requests.some((r) => r.id === id));
     if (unknown.length > 0) {
+        const retired = unknown.filter((id) => (list.retired ?? []).some((r) => r.id === id));
         throw new CommandError(
-            `SCORED_REQUESTS names no request of ${REQUESTS_FILE}: ${unknown.join(', ')} (the ids: ${list.requests.map((r) => r.id).join(', ')})`,
+            `SCORED_REQUESTS names no request of ${REQUESTS_FILE}: ${unknown.join(', ')}${retired.length > 0 ? ` (retired: ${retired.join(', ')})` : ''} (the ids: ${list.requests.map((r) => r.id).join(', ')})`,
             EXIT.usage,
         );
     }
     return list.requests.filter((r) => ids.includes(r.id));
+}
+
+/**
+ * The errors and warnings the checker finds in the base mods of `requests` over the installed
+ * game, each as `<base>: <code> at <file>:<line>: <message>`: empty when every base is clean.
+ * A base passes the request tests over an empty base game (requests.test.ts); only the run has
+ * the game, where a name of the base can be one the game defines as well (the first run's
+ * `feast.0001`).
+ */
+export function baseProblems(
+    root: string,
+    spec: Spec,
+    gameDir: string,
+    cacheDir: string | null,
+    requests: readonly ContentRequest[],
+): string[] {
+    const out: string[] = [];
+    for (const base of [...new Set(requests.map((r) => r.base))].sort()) {
+        const check = checkWorkspace({ spec, gameDir, cacheDir, modDir: baseDir(root, base) });
+        for (const f of check.findings) {
+            if (f.severity === 'error' || f.severity === 'warning') {
+                out.push(
+                    `${base}: ${f.code} at ${f.file}:${String(f.range.start.line + 1)}: ${f.message}`,
+                );
+            }
+        }
+    }
+    return out;
 }
 
 /** The requests as the measures need them. */
@@ -572,11 +601,26 @@ export function runAuthoring(
     // The base game's index, built once into the cache every trial's agent server reads, so that
     // no session waits for it; the grader loads it from there too.
     const indexCache = defaultCacheDir({ XDG_CACHE_HOME: cacheDir, LOCALAPPDATA: cacheDir });
-    if (sessions > 0) {
-        openWorkspace({ spec, gameDir: options.gameDir, cacheDir: indexCache, modDir: null });
-    }
     let stopped = false;
     try {
+        if (sessions > 0) {
+            openWorkspace({ spec, gameDir: options.gameDir, cacheDir: indexCache, modDir: null });
+            // A base mod the checker finds fault with over the installed game would put its own
+            // fault in every result: the run would measure the base, not the session.
+            const faults = baseProblems(
+                root,
+                spec,
+                options.gameDir,
+                indexCache,
+                plan.filter((p) => p.count > 0).map((p) => p.request),
+            );
+            if (faults.length > 0) {
+                throw new CommandError(
+                    `a base mod is not clean over the installed game, so no test session was started:\n  ${faults.join('\n  ')}`,
+                    EXIT.usage,
+                );
+            }
+        }
         for (const { request, first, count } of plan) {
             for (let n = first; n < first + count && !stopped; n++) {
                 const trial = runTrial({

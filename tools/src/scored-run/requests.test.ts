@@ -8,10 +8,10 @@
  */
 
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { formatKindOf, formatText } from '@pychivalry/core';
+import { folderTableFromSpec, formatKindOf, formatText } from '@pychivalry/core';
 import { checkOver, exampleResult, root, spec } from './authoring-testing.js';
 import { checkExpectations } from './expectations.js';
 import {
@@ -162,6 +162,46 @@ test('every field an expectation names is one the spec package gives its folder,
             d,
         );
     }
+    // A database an expectation walks through is one the index knows.
+    const folders = new Set(folderTableFromSpec(spec.data).folders.map((f) => f.path));
+    for (const request of list.requests) {
+        for (const e of request.expect) {
+            if ((e.kind === 'uses' || e.kind === 'resolves') && e.through !== undefined) {
+                assert.ok(folders.has(e.through), `${request.id}: through ${e.through}`);
+            }
+        }
+    }
+});
+
+test('a retired id is never used again, and the requests the first run named and retired are listed', () => {
+    const retired = (list.retired ?? []).map((r) => r.id);
+    // The two requests of the first scored authoring run whose base clashed with the game.
+    assert.deepEqual(retired, ['decision-hold-feast', 'trigger-feast-guest']);
+    for (const id of retired) {
+        assert.ok(!list.requests.some((r) => r.id === id), id);
+        assert.ok(!existsSync(path.join(root, REQUESTS_DIR, 'examples', id)), `${id}: no example`);
+    }
+    // Only the bases a request starts from are kept.
+    assert.deepEqual(
+        readdirSync(path.join(root, REQUESTS_DIR, 'bases')).sort(),
+        [...new Set(list.requests.map((r) => r.base))].sort(),
+    );
+    const copy = JSON.parse(JSON.stringify(list)) as {
+        requests: Record<string, unknown>[];
+        retired: Record<string, unknown>[];
+    };
+    const [first] = copy.requests;
+    assert.ok(first !== undefined);
+    first['id'] = 'trigger-feast-guest';
+    assert.deepEqual(requestsShapeProblems(copy), [
+        'requests[0]: the id trigger-feast-guest is retired, and a retired id is never used again',
+    ]);
+    copy.retired.push({ id: 'trigger-feast-guest', why: 'twice' }, { id: 'x' });
+    first['id'] = 'event-merchant-debt';
+    assert.deepEqual(requestsShapeProblems(copy), [
+        'retired[2]: trigger-feast-guest is retired twice',
+        'retired[3]: needs an id and why it was retired',
+    ]);
 });
 
 test('each base mod is in the format, and the checker reports nothing on it', (t) => {

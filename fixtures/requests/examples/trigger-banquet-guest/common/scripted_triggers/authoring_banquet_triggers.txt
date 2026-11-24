@@ -1,5 +1,5 @@
 ﻿# An adult at peace whose liege is a ruler with gold to spare.
-authoring_feast_guest_trigger = {
+authoring_banquet_guest_trigger = {
 	is_adult = yes
 	is_at_war = no
 	liege = {

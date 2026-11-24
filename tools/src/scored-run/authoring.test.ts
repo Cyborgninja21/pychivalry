@@ -11,7 +11,7 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { checkRecord, compileRecordSchema } from '../records-check.js';
-import { tempDir } from '../testing.js';
+import { fixtureGame, tempDir, writeTree } from '../testing.js';
 import { CommandError } from '../util.js';
 import { authoringProblems, type AuthoringRecord } from './authoring-record.js';
 import { callsOutside } from './confinement.js';
@@ -330,7 +330,7 @@ test('a session not confined stops the run after its trial, and the record says 
     assert.deepEqual(trial.harness_problems, [
         'tools outside the confinement were offered: Bash',
         `the pychivalry skills were not offered: ${SKILL_NAME}`,
-        "the agent server's tools were not offered: check, explain_code, find_definition, find_references, format, list_definitions, lookup",
+        "the agent server's tools were not offered: apply_format, check, explain_code, find_definition, find_references, format, list_definitions, lookup",
         'the session named files outside its mod (2 calls of Write, Read)',
     ]);
     // No judge was asked: only the authoring session started.
@@ -490,6 +490,52 @@ test('the parameters: the game and a session limit are required, the judge follo
         () => run(t, { SCORED_SKILLS: tempDir(t) }),
         (e: unknown) => e instanceof CommandError && /no skill in /.test(e.message),
     );
+    // A retired request is named as retired.
+    assert.throws(
+        () => run(t, { SCORED_REQUESTS: 'trigger-feast-guest' }),
+        (e: unknown) =>
+            e instanceof CommandError && /trigger-feast-guest \(retired: /.test(e.message),
+    );
+});
+
+test('a base mod the checker faults over the installed game stops the run before any session', (t) => {
+    // The first run's base defined feast.0001, which the base game defines too: definitions/clash
+    // in every result of its two requests. A game that defines the banquet base's event the same
+    // way shows the run refusing to start.
+    const install = tempDir(t);
+    const game = fixtureGame(install);
+    writeTree(install, {
+        'game/events/other_banquet_events.txt':
+            'namespace = banquet\n\nbanquet.0001 = {\n\ttype = character_event\n}\n',
+    });
+    const recordFile = path.join(tempDir(t), 'authoring.json');
+    const argvFile = path.join(tempDir(t), 'argv.jsonl');
+    assert.throws(
+        () =>
+            run(
+                t,
+                {
+                    CK3_GAME_PATH: game,
+                    SCORED_REQUESTS: 'effect-reward,trigger-banquet-guest',
+                    FAKE_CLAUDE_ARGV: argvFile,
+                },
+                {},
+                recordFile,
+            ),
+        (e: unknown) =>
+            e instanceof CommandError &&
+            /a base mod is not clean over the installed game, so no test session was started:\n {2}banquet: definitions\/clash at events\/banquet_events\.txt:4: Duplicated event ID banquet\.0001/.test(
+                e.message,
+            ),
+    );
+    assert.ok(!existsSync(argvFile), 'Claude Code was never started');
+    assert.ok(!existsSync(recordFile), 'no record was written');
+    // Over the empty game the same bases are clean, and the run goes on.
+    const { record } = run(t, {
+        SCORED_REQUESTS: 'effect-reward,trigger-banquet-guest',
+        FAKE_CLAUDE_APPLY: exampleDir('effect-reward'),
+    });
+    assert.equal(record.results.trials.length, 2);
 });
 
 test("an authoring session's arguments: the agent-use flags, file writing and skills, and no switch that turns the skills off", () => {

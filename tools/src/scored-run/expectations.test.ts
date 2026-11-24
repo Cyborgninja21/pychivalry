@@ -127,18 +127,61 @@ test('resolves: the name must be defined in the database named, by the mod or th
         problems.join('\n'),
     );
     // Used, but defined in another database than the one named.
-    const elsewhere = held(t, 'decision-hold-feast', () => undefined, [
+    const elsewhere = held(t, 'decision-hold-banquet', () => undefined, [
         {
             kind: 'resolves',
             database: 'common/decisions',
-            name: 'authoring_hold_feast_decision',
-            uses: 'feast_host_reward_effect',
+            name: 'authoring_hold_banquet_decision',
+            uses: 'banquet_host_reward_effect',
             to: 'common/scripted_triggers',
         },
     ]);
     assert.deepEqual(unmet(elsewhere), [
-        'authoring_hold_feast_decision (common/decisions) uses feast_host_reward_effect, defined in common/scripted_triggers: feast_host_reward_effect is defined in common/scripted_triggers by neither the mod nor the base game',
+        'authoring_hold_banquet_decision (common/decisions) uses banquet_host_reward_effect, defined in common/scripted_triggers: banquet_host_reward_effect is defined in common/scripted_triggers by neither the mod nor the base game',
     ]);
+});
+
+test('through: a name used in an on-action the record fires, as the game documents it, is met', (t) => {
+    // The game's own `common/on_action/_on_actions.info` lets an on-action fire others
+    // (`on_actions = { ... }`), and gives that as the way a mod appends to one of the game's; the
+    // base game hooks its own content into yearly_playable_pulse so. Two sessions of the first
+    // scored authoring run did it, and the expectation without `through` failed them.
+    const file = 'common/on_action/authoring_letter_on_actions.txt';
+    const chained = (mod: string): void => {
+        edit(
+            mod,
+            file,
+            'yearly_playable_pulse = {\r\n\tevents = { authoring_letter.0001 }\r\n}\r\n',
+            'yearly_playable_pulse = {\r\n\ton_actions = { authoring_letter_pulse }\r\n}\r\n\r\nauthoring_letter_pulse = {\r\n\ton_actions = { authoring_letter_relay }\r\n}\r\n\r\nauthoring_letter_relay = {\r\n\tevents = { authoring_letter.0001 }\r\n}\r\n',
+        );
+    };
+    assert.deepEqual(unmet(held(t, 'event-letter-from-spouse', chained)), []);
+    // Without `through`, as the first run's list had it, only a name written in the record counts.
+    const direct: Expectation = {
+        kind: 'resolves',
+        database: 'common/on_action',
+        name: 'yearly_playable_pulse',
+        uses: 'authoring_letter.0001',
+        to: 'events',
+    };
+    assert.deepEqual(unmet(held(t, 'event-letter-from-spouse', chained, [direct])), [
+        'yearly_playable_pulse (common/on_action) uses authoring_letter.0001, defined in events: yearly_playable_pulse does not use authoring_letter.0001',
+    ]);
+    // An on-action of the mod that nothing in the record reaches does not count.
+    const unhooked = held(t, 'event-letter-from-spouse', (mod) => {
+        edit(
+            mod,
+            file,
+            'yearly_playable_pulse = {\r\n\tevents = { authoring_letter.0001 }\r\n}\r\n',
+            'yearly_playable_pulse = {\r\n\ton_actions = { authoring_letter_other }\r\n}\r\n\r\nauthoring_letter_other = {\r\n\ttrigger = { is_adult = yes }\r\n}\r\n\r\nauthoring_letter_pulse = {\r\n\tevents = { authoring_letter.0001 }\r\n}\r\n',
+        );
+    });
+    assert.deepEqual(
+        unmet(unhooked).filter((p) => p.startsWith('yearly_playable_pulse')),
+        [
+            "yearly_playable_pulse (common/on_action) uses authoring_letter.0001, directly or through the mod's common/on_action it uses, defined in events: yearly_playable_pulse does not use authoring_letter.0001, directly or through the mod's common/on_action",
+        ],
+    );
 });
 
 test('localization: a key the English file does not define, or a file the game does not read, is not met', (t) => {
@@ -158,18 +201,23 @@ test('localization: a key the English file does not define, or a file the game d
 });
 
 test('unchanged: a file of the base changed or removed is not met', (t) => {
-    const results = held(t, 'decision-hold-feast', (mod) => {
-        edit(mod, 'common/scripted_effects/feast_effects.txt', 'add_piety = 10', 'add_piety = 20');
-        rmSync(path.join(mod, 'localization', 'english', 'feast_l_english.yml'));
+    const results = held(t, 'decision-hold-banquet', (mod) => {
+        edit(
+            mod,
+            'common/scripted_effects/banquet_effects.txt',
+            'add_piety = 10',
+            'add_piety = 20',
+        );
+        rmSync(path.join(mod, 'localization', 'english', 'banquet_l_english.yml'));
     });
     assert.deepEqual(unmet(results), [
-        'common/scripted_effects/feast_effects.txt is unchanged: common/scripted_effects/feast_effects.txt was changed',
-        'localization/english/feast_l_english.yml is unchanged: localization/english/feast_l_english.yml was removed',
+        'common/scripted_effects/banquet_effects.txt is unchanged: common/scripted_effects/banquet_effects.txt was changed',
+        'localization/english/banquet_l_english.yml is unchanged: localization/english/banquet_l_english.yml was removed',
     ]);
 });
 
 test('file: a file the base already had is not new', (t) => {
-    const results = held(t, 'trigger-feast-guest', () => undefined, [
+    const results = held(t, 'trigger-banquet-guest', () => undefined, [
         { kind: 'file', folder: 'events', new: true },
         { kind: 'file', folder: 'events' },
         { kind: 'file', folder: 'common/scripted_triggers', new: true },
