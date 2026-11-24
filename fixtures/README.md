@@ -10,9 +10,9 @@ them, are described in [docs/test-data.md](../docs/test-data.md).
 | [game/](game/README.md) | Stubs of a base game, for tests that look names up in the game: the override rules, the checks that need a base game, lookup, and `planted-defects`, the base game of the planted-defect mod | Build step 3 |
 | [format/](format/README.md) | The formatter's golden files: for each rule of `docs/formatting.md` a file written to break it and what the formatter makes of it, byte for byte | Build step 8 |
 | [defects/](defects/README.md) | The planted-defect mod of the scored agent-use test: 35 planted defects, every error and warning code at least once (the `style/` family's two warnings among them), and 29 look-alike lines, with its manifest and its fixed reference copy, read over the game stub `planted-defects` | Build step 6 (made harder after item 6.11; in the format, with `style/` defects, in step 8) |
+| [requests/](requests/README.md) | The content requests of the scored authoring test: twelve requests, three each of events, decisions, scripted effects and scripted triggers, with the names each relies on, its expectations and its judged dimensions; the two mods a trial starts as; and an example result of each, for the tests only | Build step 9 |
 
-Two more parts arrive later: `requests/`, the content requests of the scored authoring test
-(step 9), and `logs/`, captured game error logs (step 11).
+One more part arrives later: `logs/`, captured game error logs (step 11).
 
 The base game itself is not a fixture: the game-file suites read the local install, and their
 classifications of what it raises live beside the suites, in `tools/data/`

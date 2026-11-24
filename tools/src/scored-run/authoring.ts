@@ -10,8 +10,10 @@
  * For each content request of `fixtures/requests/requests.json` (`requests.ts`), and for each of
  * its trials:
  *
- * 1. its base mod is copied into a fresh temporary folder, and the skills folder's skills beside
- *    it, in `.claude/skills/`, where Claude Code finds a project's skills;
+ * 1. its base mod is copied into a fresh temporary folder, and each skill of the skills folder
+ *    is copied whole, as "Set up for Claude Code" copies it, into a configuration folder of the
+ *    trial's own (`SkillPlace`): by default `.claude/skills/` of that mod, where Claude Code finds
+ *    a project's skills;
  * 2. one authoring test session starts there in Claude Code's command-line mode, with the
  *    request in the committed prompt (`tools/scored-run/authoring.prompt.md`), the agent server
  *    over the base game, the skills, and file read, edit and write (`authoringArgs`), with the
@@ -40,6 +42,7 @@
  * | `CK3_GAME_PATH` | The base game every session, the checker and the expectations read | none: it must be given |
  * | `SCORED_REQUESTS` | The requests to run, by id, comma-separated | every request |
  * | `SCORED_SKILLS` | The skills folder, from the repository root: each folder in it holding a `SKILL.md` is a skill | `skills` |
+ * | `SCORED_SKILLS_IN` | Where each session is given the skills: `project` (the trial's own `.claude/skills/`) or `config` (`skills/` of a temporary `CLAUDE_CONFIG_DIR`; see `SkillPlace`) | `project` |
  * | `SCORED_JUDGE_MODEL` | The judge's model, by its full name | the authoring model |
  * | `SCORED_JUDGE_SESSION_LIMIT` | The session limit of each judge session | `SCORED_SESSION_LIMIT` |
  * | `SCORED_JUDGE_TIMEOUT_MINUTES` | The time limit of each judge session | 10 |
@@ -147,6 +150,30 @@ export const DEFAULT_SKILLS = 'skills';
 export const DEFAULT_JUDGE_TIMEOUT_MINUTES = 10;
 /** Where Claude Code finds a project's skills, inside the folder a session starts in. */
 export const PROJECT_SKILLS = '.claude/skills';
+/**
+ * Where Claude Code finds a person's own skills, inside its configuration folder: where "Set up
+ * for Claude Code" puts pychivalry's (`SKILLS_FOLDER` of packages/vscode/src/skills.ts).
+ */
+export const CONFIG_SKILLS = 'skills';
+
+/**
+ * Where a trial's session is given the skills (`SCORED_SKILLS_IN`), each a copy of a folder of
+ * the skills folder, whole, as the set-up copies them:
+ *
+ * - `project`: in `.claude/skills/` of the trial's own mod, the configuration folder of that
+ *   throwaway project, read with `--setting-sources project,local`. The session runs in the
+ *   developer's Claude Code as it already runs, its own configuration folder left as it is and
+ *   none of its settings or skills read.
+ * - `config`: in `skills/` of a temporary configuration folder of the trial's own, named by
+ *   `CLAUDE_CONFIG_DIR` and read with `--setting-sources user,project,local`, where the set-up
+ *   puts them in a person's own folder. Claude Code keeps the developer's sign-in in its
+ *   configuration folder on Linux and Windows, so a session given a temporary one starts
+ *   without it and ends on an error before any model is reached: a harness problem, which
+ *   stops the run. The script never copies anything from the developer's own folder into it.
+ */
+export const SKILL_PLACES = ['project', 'config'] as const;
+export type SkillPlace = (typeof SKILL_PLACES)[number];
+export const DEFAULT_SKILL_PLACE: SkillPlace = 'project';
 
 export interface AuthoringOptions extends ScoredOptions {
     readonly judgeModel: string;
@@ -158,6 +185,8 @@ export interface AuthoringOptions extends ScoredOptions {
     readonly gameDir: string;
     /** The skills folder, absolute. */
     readonly skillsDir: string;
+    /** Where each trial's session is given the skills. */
+    readonly skillPlace: SkillPlace;
 }
 
 /** The run's parameters, from the environment (the table above). */
@@ -175,6 +204,13 @@ export function authoringOptions(
                   .map((s) => s.trim())
                   .filter((s) => s !== '');
     const judgeLimit = env['SCORED_JUDGE_SESSION_LIMIT'];
+    const place = env['SCORED_SKILLS_IN'] ?? DEFAULT_SKILL_PLACE;
+    if (!(SKILL_PLACES as readonly string[]).includes(place)) {
+        throw new CommandError(
+            `SCORED_SKILLS_IN must be one of ${SKILL_PLACES.join(', ')}, not ${JSON.stringify(place)}`,
+            EXIT.usage,
+        );
+    }
     return {
         ...base,
         judgeModel: fullModelName('SCORED_JUDGE_MODEL', env['SCORED_JUDGE_MODEL'] ?? base.model),
@@ -190,6 +226,7 @@ export function authoringOptions(
         requests,
         gameDir: requireGameDir(env['CK3_GAME_PATH']),
         skillsDir: path.resolve(root, env['SCORED_SKILLS'] ?? DEFAULT_SKILLS),
+        skillPlace: place as SkillPlace,
     };
 }
 
@@ -235,9 +272,11 @@ export function skillsIn(dir: string): Skill[] {
  * `AUTHORING_TOOLS`, since an authoring session writes new files and loads skills. And
  * `--disable-slash-commands` is left out: it switches every skill off, the pychivalry skills
  * with Claude Code's own, and a session can be given one set without the other only this way.
+ * With the skills in a temporary configuration folder (`SkillPlace`), the setting sources
+ * include `user`: that folder.
  */
 export function authoringArgs(
-    options: Pick<AuthoringOptions, 'model' | 'sessionLimit'>,
+    options: Pick<AuthoringOptions, 'model' | 'sessionLimit' | 'skillPlace'>,
     prompt: string,
     mcpConfigFile: string,
 ): string[] {
@@ -262,7 +301,7 @@ export function authoringArgs(
         '--model',
         options.model,
         '--setting-sources',
-        'project,local',
+        options.skillPlace === 'config' ? 'user,project,local' : 'project,local',
     ];
 }
 
@@ -367,6 +406,9 @@ function commandOf(root: string, options: AuthoringOptions): string {
     if (skills !== DEFAULT_SKILLS) {
         parts.push(`SCORED_SKILLS=${skills.startsWith('..') ? '<skills folder>' : skills}`);
     }
+    if (options.skillPlace !== DEFAULT_SKILL_PLACE) {
+        parts.push(`SCORED_SKILLS_IN=${options.skillPlace}`);
+    }
     if (options.claude.command !== 'claude' || options.claude.args.length > 0) {
         parts.push('SCORED_CLAUDE=<another Claude Code>');
     }
@@ -430,6 +472,7 @@ export function runAuthoring(
             judge_schema_sha256: sha256OfFile(path.join(root, JUDGE_SCHEMA_FILE)),
             bases: bases.map((name) => ({ name, sha256: folderSha256(baseDir(root, name)) })),
             skills: skills.map((s) => ({ name: s.name, sha256: s.sha256 })),
+            skills_in: options.skillPlace,
             dimensions: list.dimensions.map((d) => d.id),
             answers: [...JUDGE_ANSWERS],
         },
@@ -600,7 +643,11 @@ function runTrial(ctx: TrialContext): AuthoringTrial {
     const modDir = path.join(trialDir, 'mod');
     const givenDir = baseDir(ctx.root, request.base);
     cpSync(givenDir, modDir, { recursive: true });
-    const skillsDir = path.join(modDir, ...PROJECT_SKILLS.split('/'));
+    const configDir = path.join(trialDir, 'claude-config');
+    const skillsDir =
+        options.skillPlace === 'project'
+            ? path.join(modDir, ...PROJECT_SKILLS.split('/'))
+            : path.join(configDir, CONFIG_SKILLS);
     for (const skill of ctx.skills) {
         cpSync(path.join(options.skillsDir, skill.folder), path.join(skillsDir, skill.folder), {
             recursive: true,
@@ -625,7 +672,10 @@ function runTrial(ctx: TrialContext): AuthoringTrial {
             {
                 cwd: modDir,
                 stdio: ['ignore', out, err],
-                env: trialEnv(ctx.env),
+                env:
+                    options.skillPlace === 'config'
+                        ? { ...trialEnv(ctx.env), CLAUDE_CONFIG_DIR: configDir }
+                        : trialEnv(ctx.env),
                 timeout: options.timeoutMinutes * 60_000,
                 killSignal: 'SIGTERM',
             },

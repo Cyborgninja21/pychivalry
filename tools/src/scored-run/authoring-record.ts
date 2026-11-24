@@ -120,6 +120,8 @@ export interface AuthoringResults {
         readonly bases: readonly { readonly name: string; readonly sha256: string }[];
         /** The skills each trial's session was given, by name and the hash of their files. */
         readonly skills: readonly { readonly name: string; readonly sha256: string }[];
+        /** Where each session was given them: its project's or a temporary configuration folder. */
+        readonly skills_in: 'project' | 'config';
         /** The closed set of judged dimensions of the request list. */
         readonly dimensions: readonly string[];
         readonly answers: readonly JudgeAnswer[];

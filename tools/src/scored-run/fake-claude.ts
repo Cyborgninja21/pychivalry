@@ -8,7 +8,9 @@
  *   names of the variables it was given that may hold a key, a token or another credential
  *   (none, when the run is right), which of the other variables a trial sets or removes it was
  *   given, whether its folder holds git history, the agent-server configuration it was given,
- *   and what it read on its standard input (a judge's prompt);
+ *   what it read on its standard input (a judge's prompt), and the skills it would find: in
+ *   `.claude/skills/` of its folder, and in `skills/` of the configuration folder
+ *   `CLAUDE_CONFIG_DIR` names, if any;
  * - `FAKE_CLAUDE_APPLY` (a trial only): copies that folder's files over its own folder, as an
  *   agent's edits;
  * - `FAKE_CLAUDE_STREAM` (a trial) or `FAKE_CLAUDE_JUDGE_STREAM` (a judge's session): writes
@@ -18,7 +20,8 @@
  * - `FAKE_CLAUDE_EXIT`: exits with that code (0 by default).
  */
 
-import { appendFileSync, cpSync, existsSync, readFileSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 
 const args = process.argv.slice(2);
 if (args[0] === '--version') {
@@ -39,6 +42,15 @@ if (judge) {
         stdin = '';
     }
 }
+/** The folders of `dir` that hold a `SKILL.md`, as Claude Code would find skills there. */
+function skillsAt(dir: string): string[] {
+    return existsSync(dir)
+        ? readdirSync(dir)
+              .filter((name) => existsSync(path.join(dir, name, 'SKILL.md')))
+              .sort()
+        : [];
+}
+const configDir = env['CLAUDE_CONFIG_DIR'];
 if (argvFile !== undefined) {
     appendFileSync(
         argvFile,
@@ -63,6 +75,11 @@ if (argvFile !== undefined) {
             mcp_config:
                 config === undefined ? null : (JSON.parse(readFileSync(config, 'utf8')) as unknown),
             stdin,
+            claude_config_dir: configDir ?? null,
+            skills: {
+                project: skillsAt(path.join('.claude', 'skills')),
+                config: configDir === undefined ? [] : skillsAt(path.join(configDir, 'skills')),
+            },
         })}\n`,
     );
 }

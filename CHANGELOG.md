@@ -414,6 +414,32 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   - `docs/guide/ai-checklist.md`, the hand checklist for VS Code's own AI (item 9.7): the
     requests, one of each kind of content, an explanation and a fix, and what to look for in
     each.
+- Build step 9, items 9.4 to 9.6, built in parallel with the skills (decision 118), with 9.8
+  prepared:
+  - `fixtures/requests/`, the fixed list of content requests: twelve, three each of events,
+    decisions, scripted effects and scripted triggers, easy to hard, two of them on a mod that
+    already has content; each with the names it relies on (every one a name the spec package or
+    its base mod has, which a test proves), expectations checked in code and judged dimensions
+    from one closed set of five; and an example result of each, which meets every expectation
+    with nothing from the checker.
+  - `task scored:authoring`, the scored authoring test (`tools/scored-run/README.md`), a
+    developer's test script on the agent-use script, never shipped or run by CI: per request and
+    trial, a test session of the developer's own Claude Code in a fresh copy of the request's
+    base mod with the agent server over the installed game and the three skills; grade one, the
+    checker (no error, no warning, in the format); grade two, the expectations and a judge, one
+    more test session started the same way with no tool, server or skill, answering each
+    dimension yes, no or cannot tell, by a fixed prompt, a fixed answer schema and fixed parsing,
+    a malformed answer recorded as such. A harness problem stops the run.
+  - `task scored:calibrate`, the judge run over results graded by hand, recording its agreement
+    per dimension and over all, with the cannot-tell rates.
+  - The record format gains the suites `scored:authoring` and `scored:calibration`, and
+    `task records:check` their checks; a calibration record states no game.
+  - Tests, in public CI against a stand-in for Claude Code: the request list, the expectations
+    (each kind failing when it should), the judge's prompt, schema and parsing, the run (a
+    correct result, an empty one, a broken one, an unconfined session, an unconfined judge, both
+    places of the skills, a continued run), the calibration, and `no-model-call.test.ts`: the
+    scored scripts name no key or model library, reach no network, and start no program but the
+    Claude Code the run names.
 
 ### Changed
 
@@ -613,11 +639,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 9's items 9.4 to 9.6 (the request list, the scored authoring run and its judge)
-  are another branch's; 9.8 (the first scored authoring run, from which the owner sets the
-  targets) and 9.9 (the third preview) wait for the owner's word, and the hand checklist has not
-  been run yet (item 9.7's "Done when"). The checklist's requests take the ids of item 9.4's
-  list once it is merged.
+- Build step 9's item 9.8 (the first scored authoring run, from which the owner sets the
+  targets; at most 120 test sessions, each with session limit 3), the judge's calibration of
+  item 9.6 (results graded by hand), and 9.9 (the third preview) wait for the owner's word, and
+  the hand checklist has not been run yet (item 9.7's "Done when"). Where the scored run gives
+  the skills, and the first run's size, are questions for the owner (`docs/decisions.md`).
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

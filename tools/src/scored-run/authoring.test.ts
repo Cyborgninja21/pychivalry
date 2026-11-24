@@ -204,7 +204,7 @@ test('a trial whose session writes a correct result: valid, every expectation me
     assert.deepEqual(
         argv,
         authoringArgs(
-            { model: PINNED_MODEL, sessionLimit: 2 },
+            { model: PINNED_MODEL, sessionLimit: 2, skillPlace: 'project' },
             prompt,
             argv[argv.indexOf('--mcp-config') + 1] ?? '',
         ),
@@ -214,7 +214,9 @@ test('a trial whose session writes a correct result: valid, every expectation me
     assert.equal(authoring['mcp_nonblocking'], '0');
     assert.equal(authoring['git'], false);
     const cwd = authoring['cwd'] as string;
-    // The skills were in the trial's mod, where Claude Code finds a project's skills.
+    // The skills were in the trial's mod, where Claude Code finds a project's skills, and in no
+    // configuration folder of the run's.
+    assert.deepEqual(authoring['skills'], { project: ['write-content'], config: [] });
     assert.ok(cwd.endsWith(`${r.id}-1${path.sep}mod`), cwd);
     const config = authoring['mcp_config'] as { mcpServers: Record<string, { args: string[] }> };
     assert.deepEqual(Object.keys(config.mcpServers), ['pychivalry']);
@@ -410,6 +412,35 @@ test('a continued run brings each request up to its trials, numbered after its o
     assert.equal(kept.results.trials.length, 4);
 });
 
+test("with SCORED_SKILLS_IN=config the skills are in a temporary configuration folder, as the set-up puts them in a person's own", (t) => {
+    const r = request('effect-reward');
+    const own = path.join(tempDir(t), 'the-developers-own-config');
+    const { record, calls } = run(
+        t,
+        {
+            SCORED_REQUESTS: r.id,
+            SCORED_SKILLS_IN: 'config',
+            CLAUDE_CONFIG_DIR: own,
+            FAKE_CLAUDE_APPLY: exampleDir(r.id),
+        },
+        { judge: judgeStream(judgeAnswer(r, 'yes')) },
+    );
+    assert.equal(record.results.task.skills_in, 'config');
+    assert.match(record.command, / SCORED_SKILLS_IN=config /);
+    const [authoring, judge] = calls;
+    assert.ok(authoring !== undefined && judge !== undefined);
+    const config = authoring['claude_config_dir'] as string;
+    assert.notEqual(config, own);
+    assert.ok(config.endsWith(`${r.id}-1${path.sep}claude-config`), config);
+    assert.deepEqual(authoring['skills'], { project: [], config: ['write-content'] });
+    const argv = authoring['argv'] as string[];
+    assert.equal(argv[argv.indexOf('--setting-sources') + 1], 'user,project,local');
+    // The judge's session is given no skill and the developer's own configuration folder.
+    assert.equal(judge['claude_config_dir'], own);
+    assert.deepEqual(judge['skills'], { project: [], config: [] });
+    assert.equal(record.results.trials[0]?.harness_held, true);
+});
+
 test('the parameters: the game and a session limit are required, the judge follows the run, requests are named by id', (t) => {
     const usage = (env: Record<string, string>, pattern: RegExp): void => {
         assert.throws(
@@ -424,6 +455,10 @@ test('the parameters: the game and a session limit are required, the judge follo
     usage(
         { SCORED_SESSION_LIMIT: '2', CK3_GAME_PATH: game, SCORED_JUDGE_MODEL: 'sonnet' },
         /SCORED_JUDGE_MODEL must be a model's full name/,
+    );
+    usage(
+        { SCORED_SESSION_LIMIT: '2', CK3_GAME_PATH: game, SCORED_SKILLS_IN: 'home' },
+        /SCORED_SKILLS_IN must be one of project, config, not "home"/,
     );
     usage(
         { SCORED_SESSION_LIMIT: '2', CK3_GAME_PATH: game, SCORED_JUDGE_SESSION_LIMIT: '0' },
@@ -457,7 +492,7 @@ test('the parameters: the game and a session limit are required, the judge follo
 
 test("an authoring session's arguments: the agent-use flags, file writing and skills, and no switch that turns the skills off", () => {
     const args = authoringArgs(
-        { model: 'claude-test-1', sessionLimit: 1.5 },
+        { model: 'claude-test-1', sessionLimit: 1.5, skillPlace: 'project' },
         'Write it.',
         'mcp.json',
     );
@@ -485,6 +520,17 @@ test("an authoring session's arguments: the agent-use flags, file writing and sk
         'project,local',
     ]);
     assert.ok(!args.includes('--disable-slash-commands'));
+});
+
+test("the repository's skills folder gives the three skills the set-up installs", () => {
+    assert.deepEqual(
+        skillsIn(path.join(root, 'skills')).map((s) => [s.name, s.folder]),
+        [
+            ['pychivalry-explain-error', 'pychivalry-explain-error'],
+            ['pychivalry-fix-error', 'pychivalry-fix-error'],
+            ['pychivalry-write-content', 'pychivalry-write-content'],
+        ],
+    );
 });
 
 test('the skills folder: each folder holding a SKILL.md, by the name its front matter gives', (t) => {

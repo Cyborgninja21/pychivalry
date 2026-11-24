@@ -1682,6 +1682,7 @@
                         "judge_schema_sha256",
                         "bases",
                         "skills",
+                        "skills_in",
                         "dimensions",
                         "answers"
                     ],
@@ -1720,6 +1721,7 @@
                                 }
                             }
                         },
+                        "skills_in": { "enum": ["project", "config"] },
                         "dimensions": {
                             "type": "array",
                             "minItems": 1,
