@@ -116,6 +116,7 @@ const EXCEPTIONS: readonly {
             'packages/lsp/src/completion.ts',
             'packages/lsp/src/diagnostics.ts',
             'packages/lsp/src/documents.ts',
+            'packages/lsp/src/formatting.ts',
             'packages/lsp/src/inlay-hints.ts',
             'packages/lsp/src/main.ts',
             'packages/lsp/src/outline.ts',

@@ -7,8 +7,8 @@
  * - the time from the extension's activation to the language server's first full result (the
  *   first background pass that leaves nothing to check), and the server's peak resident memory
  *   at that moment (`process.resourceUsage().maxRSS`), written to `PYCHIVALRY_CORPUS_OUT`;
- * - when `PYCHIVALRY_CORPUS_COMPARE` is `1`, the same-answers test on the mod (item 7.9),
- *   its counts written beside them.
+ * - when `PYCHIVALRY_CORPUS_COMPARE` is `1`, the same-answers test on the mod (item 7.9) and
+ *   its formatting half (item 8.9), their counts written beside them.
  */
 
 import assert from 'node:assert/strict';
@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
 import { given, type EditorCase } from './harness.js';
 import { activeExtension, displayCase } from './main.js';
-import { assertSameAnswers } from './same.js';
+import { assertSameAnswers, assertSameFormatting } from './same.js';
 
 function writeOut(file: string, add: Record<string, unknown>): void {
     const before = existsSync(file)
@@ -59,6 +59,14 @@ export function corpusCases(): readonly EditorCase[] {
                 assert.ok(api !== undefined, 'the extension did not activate');
                 const report = await assertSameAnswers(api, mod, game, work);
                 writeOut(out, { same_answers: report });
+            },
+        });
+        cases.push({
+            name: '8.9: the editor, the command line and the agent server format alike',
+            run: async () => {
+                assert.ok(api !== undefined, 'the extension did not activate');
+                const report = await assertSameFormatting(api, mod, work);
+                writeOut(out, { same_formatting: report });
             },
         });
     }

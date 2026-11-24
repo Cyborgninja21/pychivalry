@@ -13,4 +13,4 @@ export const SERVER_NAME = 'pychivalry';
 export const VERSION = '0.0.0';
 
 /** The version of the tools' input and output shapes. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;

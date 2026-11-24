@@ -12,6 +12,7 @@ a document adds its row here.
 | [decisions.md](decisions.md) | Every decision with its date, in the order it was made, and the choices an agent made that the owner has not yet confirmed | Every step that asks or answers one |
 | [checks.md](checks.md) | The check inventory: every check the MVP ships, with its code, severity, evidence (or "advice"), the 2.3.0 check it replaces, its fixture pair and its state (built, blocked, retired); the code scheme; the review of 2.3.0's codes and the pre-2.0 rules. Signed off by the owner on 2026-11-21 | Step 4, item 4.1; every step that adds a check |
 | [preview-release.md](preview-release.md) | The first preview's GitHub pre-release (item 7.12), published on the owner's word on 2026-11-23: its tag, title, commit, file and notes as published, and how a preview is made | Step 7 |
+| [preview-release-0.2.0.md](preview-release-0.2.0.md) | The second preview's GitHub pre-release (item 8.10), **drafted, not published**: its tag, title and notes, what is new since 0.1.0, waiting for the owner's word | Step 8 |
 | [shared-index.md](shared-index.md) | How the language server, the agent servers and the command line share one copy of the base game's index (decision 87): the options weighed and why one was chosen, how it works, its local channel and the exception to rule 12, what only Windows can show, and the measurements | Step 7, after its pre-release |
 
 ## Sources and test data
@@ -25,7 +26,7 @@ a document adds its row here.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), and the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
+| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), formatting ([guide/formatting.md](guide/formatting.md), step 8), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), and the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
 | [wiki/](wiki/README.md) | How the repository's GitHub wiki is generated from these documents, and its home page | Step 1 |
 
 ## The game's behaviour, as each step establishes it
@@ -36,7 +37,7 @@ Each is written by the step named, from evidence.
 | --- | --- | --- |
 | [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports | Step 2 |
 | [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one. The rules are carried as data in the spec package's part D1 | Step 3, items 3.1 and 3.1a |
-| [formatting.md](formatting.md) | The formatting rules, **proposed** and awaiting the owner's sign-off: 13 rules, each checked against the base game, the 11 decisions for the owner, and what release 2.3.0's formatter does to the base game | Step 8, item 8.1 (#145) |
+| [formatting.md](formatting.md) | The formatting rules, as the owner decided them (decisions 90 to 103) and as built: the principle, each rule with its base-game evidence and what it changes, the 120-column rule, the `style/` findings, what the formatter guarantees, the round trip on the base game, on-type formatting and Format Selection, what release 2.3.0's formatter did, and the record of what was decided | Step 8, items 8.1 to 8.5 |
 
 These do not exist yet:
 

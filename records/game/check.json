@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:check",
     "command": "task game:check",
-    "made_at": "2026-11-23T16:51:29.453Z",
+    "made_at": "2026-11-24T00:23:45.415Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "84d9c0f0550dd8a48d1c9c244c0d318c283a4858",
+        "commit": "3539184ed5182d9433800924d0f92c7ac1edc508",
         "dirty": false
     },
     "machine": {
@@ -33,7 +33,8 @@
         "Every error and warning is listed with its file, layer, line and column, and classified in tools/data/check-classifications.json, matched by layer, file, code and line: game-defect (a defect of the game's own files), spec-package-fault (the committed spec package is wrong or lacks what the check needs; the request is in docs/decisions.md) or pychivalry-fault (fails the run). Information and hints are counted by code.",
         "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
         "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
-        "The load average over one minute was 4.24 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The style/ family (docs/formatting.md) rests on pychivalry's own formatting rules, not on the game: its warning (style/not-formatted, one a file not in the format) and its hints are counted in by_code and by_severity, never listed or classified; warnings and warning_list are the other warnings. The base game is not written in the format, so nearly every file has a style warning.",
+        "The load average over one minute was 5.94 on 16 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
@@ -59,9 +60,9 @@
         ],
         "by_severity": {
             "error": 806,
-            "warning": 151,
+            "warning": 17160,
             "information": 6086,
-            "hint": 0
+            "hint": 808526
         },
         "by_code": [
             {
@@ -95,6 +96,11 @@
                 "count": 1
             },
             {
+                "code": "style/not-formatted",
+                "severity": "warning",
+                "count": 17009
+            },
+            {
                 "code": "localization/missing-key",
                 "severity": "warning",
                 "count": 151
@@ -118,6 +124,46 @@
                 "code": "references/unknown-name",
                 "severity": "information",
                 "count": 4
+            },
+            {
+                "code": "style/block-layout",
+                "severity": "hint",
+                "count": 344802
+            },
+            {
+                "code": "style/spacing",
+                "severity": "hint",
+                "count": 215692
+            },
+            {
+                "code": "style/indentation",
+                "severity": "hint",
+                "count": 122270
+            },
+            {
+                "code": "style/trailing-whitespace",
+                "severity": "hint",
+                "count": 66789
+            },
+            {
+                "code": "style/blank-lines",
+                "severity": "hint",
+                "count": 27007
+            },
+            {
+                "code": "style/comment-spacing",
+                "severity": "hint",
+                "count": 17679
+            },
+            {
+                "code": "style/line-endings",
+                "severity": "hint",
+                "count": 13641
+            },
+            {
+                "code": "style/byte-order-mark",
+                "severity": "hint",
+                "count": 646
             }
         ],
         "errors": 806,
@@ -9704,9 +9750,45 @@
         },
         "capped": {
             "max_per_file": 1000,
-            "files": 0,
-            "dropped": 0,
-            "dropped_by_code": []
+            "files": 211,
+            "dropped": 1202986,
+            "dropped_by_code": [
+                {
+                    "code": "style/blank-lines",
+                    "severity": "hint",
+                    "count": 2158
+                },
+                {
+                    "code": "style/block-layout",
+                    "severity": "hint",
+                    "count": 98419
+                },
+                {
+                    "code": "style/comment-spacing",
+                    "severity": "hint",
+                    "count": 2544
+                },
+                {
+                    "code": "style/indentation",
+                    "severity": "hint",
+                    "count": 78717
+                },
+                {
+                    "code": "style/line-endings",
+                    "severity": "hint",
+                    "count": 8
+                },
+                {
+                    "code": "style/spacing",
+                    "severity": "hint",
+                    "count": 1002741
+                },
+                {
+                    "code": "style/trailing-whitespace",
+                    "severity": "hint",
+                    "count": 18399
+                }
+            ]
         },
         "scope": {
             "keyword_uses": 610898,
@@ -9795,11 +9877,11 @@
             "keyword_uses_judged": 101162
         },
         "time_ms": {
-            "list": 414,
-            "build": 16468,
-            "check": 39442,
-            "total": 56325
+            "list": 424,
+            "build": 17200,
+            "check": 76925,
+            "total": 94548
         },
-        "peak_rss_kib": 2876388
+        "peak_rss_kib": 3719536
     }
 }

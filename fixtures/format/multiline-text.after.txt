@@ -1,0 +1,5 @@
+﻿desc = {
+	text = "first line
+second line"
+}
+other = yes

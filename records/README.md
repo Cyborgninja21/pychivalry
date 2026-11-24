@@ -190,8 +190,12 @@ of folders and extensions, and measures the encoding of every text file of the g
 | `notes` | Every information finding, such as a file that is not valid UTF-8 |
 | `not_read` | The text files the suite does not parse, and why |
 | `encoding` | Over every text file of the game: `files`, `bom`, `utf16_bom`, `not_utf8`, `line_endings`, the same `by_folder`, and per file that is not valid UTF-8 its `invalid_bytes`, `first_line`, where the bytes sit (`in_comments`, `in_strings`, `elsewhere`) and its `valid_multibyte_sequences` |
+| `round_trip` | The formatter's round trip over every file parsed (build step 8, item 8.3; [docs/formatting.md](../docs/formatting.md)): the `rules` used; `files`, `formatted`, `left` (each with a parse error: `file`, `id`, `line`), `changed`; `trees_equal`, `tokens_equal`, `second_format_unchanged`; `comments_before`, `comments_after`, `comments_moved`; `lines_before`, `lines_after`, `lines_changed` (the lines its edits touch); `blocks_written_on_one_line_broken` and `blocks` (by kind: one simple pair, plain values, empty, other; written on one line or several, laid out on one or several); `by_rule` (each `style/` hint's `files`, `places` and `lines`); `width` (the 120-column rule: lines over it before, formatted without it and with it, and the files it changes alone); `format_ms` and the `largest_file`; its `failures` |
+| `round_trip_localization` | The same over the game's `localization/` `.yml` files, their reading by the index's localization reader compared |
 
-The run passes when every folder holds the files expected, every file yields a tree, and every
+The run passes when every folder holds the files expected, every file yields a tree, every
+file formatted keeps its tree, tokens and comments (none moved) and a second format changes
+nothing, and every
 error matches an entry of `tools/data/parse-classifications.json` (by file, finding and line)
 classified `game-defect`. An error without an entry, an entry without an error, and a
 `pychivalry-fault` each fail it. A failed run still writes its record, and exits 1.
@@ -255,6 +259,11 @@ folder), `by_severity`, `by_code`, `errors` and `error_list` (each classified, f
 `baseline-2.3.0/results-mods.json`, compared by file and line; null for a mod it did not run), and
 `time_ms` (`load_base`: listing the base game and loading its index from the cache; `check`:
 indexing and checking the mod; `total`) with the process's `peak_rss_kib`.
+
+The `style/` family (build step 8, [docs/formatting.md](../docs/formatting.md)) rests on
+pychivalry's own formatting rules, not on the game: its findings are counted in `by_severity` and
+`by_code` and never listed or classified; `warnings` and `warning_list` are the other warnings,
+so `warnings` is `by_severity.warning` less the `style/` warnings.
 
 A run passes when every finding it must classify has an entry, every entry matches a finding,
 none is a pychivalry fault, and, for the mods, none is `unclassified`. A failed run still writes

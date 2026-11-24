@@ -12,6 +12,8 @@
  *   order is taken; check again to fix the rest), and every fix of a file that is not valid
  *   UTF-8, whose bytes the decoder replaced: writing it back would lose them.
  * - **The files** keep their byte-order mark and line breaks; only the edited spans change.
+ * - **Formatting:** a file's `style/not-formatted` fix formats the whole file, which is every
+ *   other `style/` fix of the file at once: when it is applied, those are not applied apart.
  */
 
 import {
@@ -58,6 +60,12 @@ export function applySafeFixes(
     all: readonly WorkspaceFinding[] = findings,
 ): FixRun {
     const notUtf8 = new Set(all.filter((f) => f.code === 'encoding/not-utf8').map((f) => f.file));
+    // A file formatted whole needs none of its other formatting fixes.
+    const formatted = new Set(
+        findings
+            .filter((f) => f.code === 'style/not-formatted' && f.fix?.safety === 'safe')
+            .map((f) => f.file),
+    );
     const planned: PlannedFix[] = [];
     let left = 0;
     for (const finding of findings) {
@@ -68,6 +76,13 @@ export function applySafeFixes(
         }
         if (alternative.edits.some((e) => notUtf8.has(e.file))) {
             left++;
+            continue;
+        }
+        if (
+            finding.code.startsWith('style/') &&
+            finding.code !== 'style/not-formatted' &&
+            formatted.has(finding.file)
+        ) {
             continue;
         }
         planned.push({ finding, alternative });

@@ -58,6 +58,8 @@ export function evidenceCell(row: InventoryRow): string {
             return `The game's message for the missing field ${e.field}`;
         case 'advice':
             return "Advice: pychivalry's own, with no game message";
+        case 'formatting-rules':
+            return `pychivalry's own formatting rules (${e.source}), not the game: by the owner's decision, the one kind of warning that rests on them`;
     }
 }
 
@@ -80,6 +82,7 @@ export function fixCell(row: InventoryRow): string {
 export function checkReferencePage(rows: readonly InventoryRow[], specVersion: string): string {
     const count = (s: Severity): number => rows.filter((r) => r.severity === s).length;
     const advice = rows.filter((r) => r.evidence.kind === 'advice').length;
+    const style = rows.filter((r) => r.evidence.kind === 'formatting-rules').length;
     const lines = [
         '# Checks',
         '',
@@ -91,13 +94,17 @@ export function checkReferencePage(rows: readonly InventoryRow[], specVersion: s
         `catalogue for game ${specVersion} gives it. \`pychivalry explain <code>\` prints the same for one`,
         'code ([Commands](commands.md)).',
         '',
-        `${String(rows.length)} codes: ${String(count('error'))} errors, ${String(count('warning'))} warnings, ${String(count('information'))} information and ${String(count('hint'))} hints. ${String(rows.length - advice)} rest on the game's own evidence; ${String(advice)} are advice.`,
+        `${String(rows.length)} codes: ${String(count('error'))} errors, ${String(count('warning'))} warnings, ${String(count('information'))} information and ${String(count('hint'))} hints. ${String(rows.length - advice - style)} rest on the game's own evidence; ${String(advice)} are advice; ${String(style)} rest on pychivalry's own formatting rules.`,
         '',
         '- An **error** or a **warning** is something the game itself rejects or complains about, and',
         "  rests on the game's own evidence: a message of the game, the game's own output, or a",
         "  field the spec package marks required with the game's message for it.",
         '- **Information** and **hints** without such evidence are advice: usually right, not',
         '  something the game enforces.',
+        "- The **`style/`** findings rest on pychivalry's own formatting rules",
+        "  ([formatting rules](../formatting.md)), not on the game: by the owner's decision, a file",
+        '  that is not in that format is a warning, and each place that differs a hint, each with a',
+        '  safe fix. A file with a parse error has none.',
         `- A file reports at most ${MAX_FINDINGS_PER_FILE.toLocaleString('en-US')} findings, its most severe first; the command line says how`,
         '  many it left out.',
         "- A check marked **off by default** reports only when asked: the command line's",

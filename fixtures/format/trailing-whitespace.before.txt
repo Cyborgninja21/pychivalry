@@ -1,0 +1,5 @@
+﻿my_effect = {  
+	add_gold = 10	
+	 	
+	add_prestige = 5 # a comment   
+}  

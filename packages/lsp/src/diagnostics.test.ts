@@ -208,7 +208,10 @@ test('an edited open file is checked again from the editor text, as the runner c
     const file = readdirSync(path.join(dir, 'events'))[0] ?? '';
     const rel = `events/${file}`;
     const disk = path.join(dir, 'events', file);
-    const text = readFileSync(disk, 'utf8');
+    // The text as an editor holds it: without the byte-order mark, which is the file's encoding.
+    const saved = readFileSync(disk, 'utf8');
+    const mark = saved.startsWith('\uFEFF') ? '\uFEFF' : '';
+    const text = saved.slice(mark.length);
     const uri = await client.open(disk, text);
     const before = await client.diagnosticsOf(uri);
     assert.ok(before.some((d) => d.code === 'names/unknown-trigger'));
@@ -243,7 +246,7 @@ test('an edited open file is checked again from the editor text, as the runner c
         () => client.diagnostics.get(uri)?.version === version,
         'the diagnostics of the last change',
     );
-    write(disk, edited);
+    write(disk, `${mark}${edited}`);
     const expected = runnerFindings(dir, game, rel);
     assert.ok(expected.some((f) => f.message.includes('no_such_trigger_typed')));
     assert.deepEqual(json((await client.findings(uri)).findings), json(expected));
@@ -257,7 +260,8 @@ test('closing a file keeps its diagnostics, and the index goes back to the file 
     const { client, dir } = await session(t, 'names-unknown-trigger-bad');
     const file = readdirSync(path.join(dir, 'events'))[0] ?? '';
     const disk = path.join(dir, 'events', file);
-    const text = readFileSync(disk, 'utf8');
+    // The text as an editor holds it: without the byte-order mark.
+    const text = readFileSync(disk, 'utf8').replace(/^\uFEFF/, '');
     const uri = await client.open(disk, text);
     await client.until(() => client.diagnostics.get(uri)?.version === 1, 'the open file checked');
     const kept = client.diagnostics.get(uri)?.diagnostics ?? [];

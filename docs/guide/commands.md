@@ -24,6 +24,9 @@ localization file, or a folder holding a `descriptor.mod`. They are the language
   alternatives, a safe one preferred, and "fix every safe ... in the file" where a file has
   more than one safe fix of a code; Source Action > Fix All applies every safe fix of the file.
   A fix that adds a localization stub edits the mod's localization file, or makes one.
+- Format Document, Format Selection and on-type formatting (after Enter, `}` and `=`, when
+  VS Code's `editor.formatOnType` is on), by pychivalry's rules ([Formatting](formatting.md)).
+  A file with a parse error is left as it is, and pychivalry says why once.
 
 Each later step that adds a command adds its row here.
 
@@ -42,6 +45,7 @@ libraries, or reads it from `--vanilla <game folder>`.
 | --- | --- |
 | `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
 | `pychivalry lookup <name>...` | What a name is: every reading the spec package has of it (its description, the scopes it supports, what it takes, the version it came in or went out), where the base game and a mod define and use it and which definition is in force, and, for a name nothing knows, the names close to it |
+| `pychivalry format <file\|folder>...` | Formats the mod's script and localization files by pychivalry's rules ([Formatting](formatting.md)), in place; a file with a parse error, or not valid UTF-8, is left as it is and named |
 | `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it, its message with each value a named slot (`Unknown trigger '<trigger>'`). A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
 | `pychivalry --version` | The version |
@@ -58,8 +62,21 @@ Options of `check`:
 | `--code <code>` | Keep only findings of these codes: a code, a family (`names/*`) or `*`. Several as for `--severity` |
 | `--limit <n>` | Show at most `n` findings. The summary still counts all of them |
 | `--unused-keys` | Also report localization keys nothing in the mod or the base game uses (`localization/unused-key`). Off by default: a large mod has a hint for nearly every key it defines |
-| `--fix` | Apply the safe fixes of the findings kept (the filters choose them), then check again and print what is left. A safe fix is one whose finding has one outcome that can be right; a suggestion is never applied. A fix whose edits overlap one applied before it waits for another run, and a file that is not valid UTF-8 is left as it is |
+| `--fix` | Apply the safe fixes of the findings kept (the filters choose them), then check again and print what is left. A safe fix is one whose finding has one outcome that can be right; a suggestion is never applied. A fix whose edits overlap one applied before it waits for another run, and a file that is not valid UTF-8 is left as it is. A file's `style/not-formatted` fix formats the whole file and stands for its other `style/` fixes |
 | `--dry-run` | With `--fix`: write nothing, and print each safe fix and its edits instead (with `--json`, one `{"fix": ...}` line each, then the summary) |
+
+Options of `format`:
+
+| Option | What it does |
+| --- | --- |
+| `--check` | Write nothing; exit with `1` when a file would change |
+| `--diff` | Write nothing; print what would change as a unified diff |
+| `--mod <mod>` | The mod folder. Without it: the folder holding `descriptor.mod` at or above the first path given, otherwise that path. Every path given must be inside the mod, and only the files the game reads there are formatted: a file named that is not one is bad usage |
+| `--spec <file>` | Another spec package, as for `check` (its folders say which files the game reads) |
+
+`format` prints a line for each file it formats (or would, with `--check`), then
+`<n> files formatted, <m> files already formatted, <k> files left as they are`; a file left as it
+is is named on standard error with the reason.
 
 Options of `lookup`: `--vanilla`, `--no-vanilla`, `--spec` and `--json` as for `check`, and:
 
@@ -119,7 +136,8 @@ Exit codes: `0` when no finding kept is an error, `1` when one is, `2` on bad us
 mod, the game or the spec package cannot be read. The filters choose the findings kept, so
 `--code syntax/*` exits with `1` only for a syntax error; `--limit` does not change the exit
 code. `lookup` exits with `1` when neither the spec package nor the game and the mod know a
-name, and `explain` when a code is none of this build's.
+name, `explain` when a code is none of this build's, and `format --check` when a file would
+change.
 
 The first `check` reads the whole base game, about 15 seconds for game 1.21, and saves what it
 found in your cache folder ([Settings](settings.md)); every later one loads that in a second or

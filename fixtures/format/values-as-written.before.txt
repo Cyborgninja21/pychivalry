@@ -1,0 +1,10 @@
+﻿title = "my_event.1.t"
+yes_quoted = "yes"
+cost = @[  base_cost*1.50 ]
+count $OPERATOR$ $COUNT$
+scope:$TARGET$ ?= { is_alive = yes }
+numbers = { 1.50 007 +5 .5 }
+date = 867.1.1
+escaped = "he said \"hi\""
+scripted_trigger my_trigger = { always = yes }
+OPERATOR = <=

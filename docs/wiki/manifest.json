@@ -7,6 +7,7 @@
         { "page": "Installing", "source": "docs/guide/install.md" },
         { "page": "Commands", "source": "docs/guide/commands.md" },
         { "page": "Settings", "source": "docs/guide/settings.md" },
+        { "page": "Formatting", "source": "docs/guide/formatting.md" },
         { "page": "Agent-Server", "source": "docs/guide/agent-server.md" },
         { "page": "Checks", "source": "docs/guide/checks.md" },
         { "page": "By-Hand-Check", "source": "docs/guide/by-hand-check.md" },
@@ -22,6 +23,7 @@
         },
         { "page": "What-The-Parser-Reads", "source": "docs/encoding.md" },
         { "page": "Override-Rules", "source": "docs/overrides.md" },
+        { "page": "Formatting-Rules", "source": "docs/formatting.md" },
         { "page": "Check-Inventory", "source": "docs/checks.md" },
         { "page": "Test-Data", "source": "docs/test-data.md" },
         { "page": "Decision-Log", "source": "docs/decisions.md" }
@@ -35,6 +37,7 @@
                 "Installing",
                 "Commands",
                 "Settings",
+                "Formatting",
                 "Agent-Server",
                 "Checks",
                 "By-Hand-Check"
@@ -54,7 +57,12 @@
         },
         {
             "heading": "The game's behaviour",
-            "pages": ["What-The-Parser-Reads", "Override-Rules", "Check-Inventory"]
+            "pages": [
+                "What-The-Parser-Reads",
+                "Override-Rules",
+                "Formatting-Rules",
+                "Check-Inventory"
+            ]
         },
         { "heading": "Project", "pages": ["Test-Data", "Decision-Log"] }
     ]

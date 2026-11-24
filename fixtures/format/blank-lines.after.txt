@@ -1,0 +1,12 @@
+﻿my_event.1 = {
+	type = character_event
+
+	immediate = {
+		add_gold = 5
+		add_prestige = 5
+	}
+}
+my_event.2 = {
+	type = character_event
+	hidden = yes
+}

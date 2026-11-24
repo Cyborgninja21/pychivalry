@@ -106,6 +106,7 @@ export const SERVER_TOOLS: readonly string[] = [
     'explain_code',
     'find_definition',
     'find_references',
+    'format',
     'list_definitions',
     'lookup',
 ];

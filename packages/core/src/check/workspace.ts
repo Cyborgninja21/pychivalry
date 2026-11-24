@@ -63,6 +63,7 @@ import { drain, type Steps } from '../steps.js';
 import type { FallbackEncoding } from '../syntax/decode.js';
 import {
     catalogueFromSpec,
+    fillPlaceholders,
     findingMessage,
     type Evidence,
     type Finding,
@@ -73,7 +74,10 @@ import { parse, type ParseResult } from '../syntax/parser.js';
 import type { Range } from '../syntax/position.js';
 import { readScript } from '../syntax/read.js';
 import type { DefinedNames } from './context.js';
-import { checkMessage, type FindingData } from './finding.js';
+import { styleOf, type StylePlace } from '../format/style.js';
+import type { FormatKind } from '../format/result.js';
+import type { LineIndex } from '../syntax/position.js';
+import { CHECK_KINDS, checkMessage, evidenceOf, type FindingData } from './finding.js';
 import { checkFile, checkLocalizationFile } from './index.js';
 import type { Code } from './inventory.js';
 import type { ScopeMeasure } from './measure.js';
@@ -222,6 +226,61 @@ export function capFindings(
 /** The layer of a mod's files in the index (`indexMod`). */
 const MOD_LAYER = 'mod';
 
+/**
+ * The `style/` findings of a file (`format/style.ts`), each with its safe fix: where the file is
+ * not in pychivalry's format. `text` is the file's text without the byte-order mark, `bom`
+ * whether the file has the mark.
+ */
+function styleFindings(
+    kind: FormatKind,
+    file: string,
+    layer: string,
+    text: string,
+    lines: LineIndex,
+    bom: boolean,
+    parsed?: ParseResult,
+): WorkspaceFinding[] {
+    return styleOf(kind, text, bom, parsed === undefined ? {} : { parsed }).map(
+        (place: StylePlace): WorkspaceFinding => {
+            const kindOf = CHECK_KINDS[place.code];
+            return {
+                file,
+                layer,
+                code: place.code,
+                severity: kindOf.severity,
+                range: lines.rangeOf(place.start, place.end),
+                start: place.start,
+                end: place.end,
+                message: fillPlaceholders(kindOf.text ?? kindOf.description, place.args),
+                evidence: evidenceOf(place.code, undefined),
+                data: {},
+                fix: {
+                    safety: 'safe',
+                    basis: 'formatting',
+                    alternatives: [
+                        {
+                            title: place.title,
+                            edits: place.edits.map((e) => ({
+                                file,
+                                range: lines.rangeOf(e.start, e.end),
+                                new_text: e.text,
+                            })),
+                        },
+                    ],
+                },
+            };
+        },
+    );
+}
+
+/** Findings with their fixes, in the order of where each starts. */
+function withStyle(
+    found: readonly WorkspaceFinding[],
+    style: readonly WorkspaceFinding[],
+): WorkspaceFinding[] {
+    return style.length === 0 ? [...found] : [...found, ...style].sort(compareFindings);
+}
+
 export interface ScriptInput {
     readonly spec: Spec;
     /** The file's path inside its mod, with `/`. */
@@ -266,6 +325,7 @@ function parsedScriptFindings(
     parsed: ParseResult,
     syntax: readonly Finding[],
     withFixes = true,
+    bom = parsed.bom,
 ): WorkspaceFinding[] {
     const { folders, catalogue } = specContext(input.spec);
     const out: Omit<WorkspaceFinding, 'fix'>[] = [];
@@ -333,7 +393,10 @@ function parsedScriptFindings(
             );
         },
     );
-    return sorted.map((f, i) => ({ ...f, fix: fixes[i] ?? null }));
+    return withStyle(
+        sorted.map((f, i) => ({ ...f, fix: fixes[i] ?? null })),
+        styleFindings('script', input.file, layer, parsed.text, parsed.lines, bom, parsed),
+    );
 }
 
 export interface LocalizationInput {
@@ -364,6 +427,7 @@ function parsedLocalizationFindings(
     input: Omit<LocalizationInput, 'bytes'>,
     parsed: LocalizationFile,
     withFixes = true,
+    bom = parsed.bom,
 ): WorkspaceFinding[] {
     const { folders, catalogue } = specContext(input.spec);
     const found = checkLocalizationFile({
@@ -404,7 +468,17 @@ function parsedLocalizationFindings(
         },
         (text) => parsedLocalizationFindings(input, parseLocalization(text), false),
     );
-    return found.map((f, i) => ({ ...f, fix: fixes[i] ?? null }));
+    return withStyle(
+        found.map((f, i) => ({ ...f, fix: fixes[i] ?? null })),
+        styleFindings(
+            'localization',
+            input.file,
+            input.layer ?? MOD_LAYER,
+            parsed.text,
+            parsed.lines,
+            bom,
+        ),
+    );
 }
 
 export interface WorkspaceOptions {
@@ -559,8 +633,13 @@ export interface WorkspaceCheck {
  */
 export type CheckSource =
     | { readonly bytes: Uint8Array }
-    | { readonly script: ParseResult; readonly notes?: readonly Finding[] | undefined }
-    | { readonly localization: LocalizationFile };
+    | {
+          readonly script: ParseResult;
+          readonly notes?: readonly Finding[] | undefined;
+          /** True when the file on disk has the byte-order mark, which an editor's text never holds. */
+          readonly bom?: boolean | undefined;
+      }
+    | { readonly localization: LocalizationFile; readonly bom?: boolean | undefined };
 
 /** One file of a workspace to check, and what its checks see. */
 export interface FileCheckInput {
@@ -614,6 +693,8 @@ export function checkSourceFile(input: FileCheckInput): {
             'localization' in source
                 ? source.localization
                 : readLocalization(source.bytes, { fallbackEncoding: input.fallbackEncoding }),
+            true,
+            'localization' in source ? (source.bom ?? source.localization.bom) : undefined,
         );
     } else {
         if ('localization' in source) {
@@ -634,7 +715,13 @@ export function checkSourceFile(input: FileCheckInput): {
             const syntax = [...(source.notes ?? []), ...source.script.findings].sort(
                 (a, b) => a.start - b.start || a.end - b.end,
             );
-            found = parsedScriptFindings(scriptInput, source.script, syntax);
+            found = parsedScriptFindings(
+                scriptInput,
+                source.script,
+                syntax,
+                true,
+                source.bom ?? source.script.bom,
+            );
         }
     }
     return capFindings(found, input.maxFindingsPerFile ?? MAX_FINDINGS_PER_FILE);

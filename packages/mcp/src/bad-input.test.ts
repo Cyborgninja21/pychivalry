@@ -81,6 +81,13 @@ test('bad arguments are results that name the valid values', async (t) => {
             { codes: ['nope'] },
             /codes: nope is no code of this build; the codes are .*syntax\//,
         ],
+        ['format', { file: 'nope.txt' }, /file: the mod has no file or folder nope.txt/],
+        [
+            'format',
+            { file: 'descriptor.mod' },
+            /file: descriptor.mod is not a script or localization file/,
+        ],
+        ['format', { file: '../outside.txt' }, /file: \.\.\/outside.txt is outside the mod/],
     ];
     for (const [tool, args, expected] of cases) {
         const result = await s.call(tool, args);

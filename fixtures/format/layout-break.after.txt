@@ -1,0 +1,30 @@
+﻿reward = { add_gold = 5 }
+trigger = {
+	age >= 16
+	is_adult = yes
+}
+option = {
+	name = my_event.1.a
+	add_prestige = 50
+}
+immediate = {
+	add_gold = 10
+	remove_trait = shy
+}
+color = rgb { 255 0 0 }
+nested = {
+	inner = { a = b }
+}
+mixed = {
+	a
+	b = c
+	d
+}
+blocks = {
+	{ 1 2 }
+	{ 3 4 }
+}
+tagged = { list "my_list" }
+pair_with_tag = {
+	color = list "my_list"
+}

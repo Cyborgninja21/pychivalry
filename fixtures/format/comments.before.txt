@@ -1,0 +1,16 @@
+﻿my_event.1 = {   # the first event
+	trigger = {
+# commented out:
+#		is_adult = yes
+		age >= 16	# adults only
+	}
+	after = { add_gold = 5 # paid
+	}
+	immediate = # a comment inside a pair
+	{
+		add_gold = 5
+	}
+	list = { a # first
+		b }
+}   
+# the end   

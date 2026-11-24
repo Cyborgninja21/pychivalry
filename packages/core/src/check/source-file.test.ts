@@ -65,7 +65,12 @@ test('from bytes, from parsed text or from read text, a file has the runner’s 
                 source:
                     fileKindOf(file.path) === 'localization'
                         ? { localization: readLocalization(bytes) }
-                        : { script: parse(decoded.text, { catalogue }), notes: decoded.findings },
+                        : {
+                              script: parse(decoded.text, { catalogue }),
+                              notes: decoded.findings,
+                              // The file's mark, which text without it does not show.
+                              bom: decoded.bom,
+                          },
             });
             assert.deepEqual(json(fromText.kept), expected, `${mod}: ${file.path} from text`);
             compared++;

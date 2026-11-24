@@ -8,6 +8,7 @@ them, are described in [docs/test-data.md](../docs/test-data.md).
 | --- | --- | --- |
 | [mods/](mods/README.md) | Small mods, one behaviour each: the parser's broken inputs, the index's override cases, and a pair for every check (51 pairs by the end of build step 4) | Build step 2 |
 | [game/](game/README.md) | Stubs of a base game, for tests that look names up in the game: the override rules, the checks that need a base game, lookup, and `planted-defects`, the base game of the planted-defect mod | Build step 3 |
+| [format/](format/README.md) | The formatter's golden files: for each rule of `docs/formatting.md` a file written to break it and what the formatter makes of it, byte for byte | Build step 8 |
 | [defects/](defects/README.md) | The planted-defect mod of the scored agent-use test: 32 planted defects, every error and warning code at least once, and 29 look-alike lines, with its manifest and its fixed reference copy, read over the game stub `planted-defects` | Build step 6 (made harder after item 6.11) |
 
 Two more parts arrive later: `requests/`, the content requests of the scored authoring test
@@ -32,7 +33,9 @@ classifications of what it raises live beside the suites, in `tools/data/`
 6. **Explained.** Each fixture mod has a `README.md` of a few lines: what it shows, and what a
    correct tool reports on it.
 7. **LF line endings and UTF-8,** except where the fixture exists to test another encoding or
-   line ending, which its README says and `.gitattributes` protects. Localization files start
+   line ending, or is in pychivalry's format (`\r\n` and the byte-order mark: the `style/`
+   pairs, the golden files of `format/`, `names-unknown-trigger-*`), which its README says and
+   `.gitattributes` protects. Localization files start
    with the byte-order mark, as the game asks for, and Prettier leaves them alone; a file that
    leaves it out shows what the game does without it, and its README says so.
 8. **No two paths that differ only in letter case in one folder tree.** Windows cannot check

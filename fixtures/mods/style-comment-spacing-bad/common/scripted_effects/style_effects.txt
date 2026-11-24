@@ -1,0 +1,11 @@
+﻿style_reward_effect = { # gold and a trait
+	add_gold = 10		# ten
+	remove_trait = shy#shy no more
+}
+
+style_limit_effect = {
+	if = {
+		limit = { is_adult = yes }
+		add_prestige = 50 # a reward
+	}
+}

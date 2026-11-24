@@ -83,7 +83,9 @@ export function filesIn(dir: string): string[] {
 /**
  * The checker's findings on a mod over a game folder: the core's one runner, no cache, with its
  * defaults, as the agent server's `check` answers by default: `localization/unused-key` off
- * unless `unusedKeys` is given (docs/decisions.md, decision 76).
+ * unless `unusedKeys` is given (docs/decisions.md, decision 76). The `style/` family is left out:
+ * it rests on pychivalry's own formatting rules, not on the game, and nothing in the planted
+ * mod is planted or graded by it (docs/formatting.md).
  */
 export function checkMod(
     spec: Spec,
@@ -97,12 +99,14 @@ export function checkMod(
         cacheDir: null,
         modDir,
         unusedKeys: options.unusedKeys,
-    }).findings.map((f: WorkspaceFinding) => ({
-        file: f.file,
-        line: f.range.start.line + 1,
-        code: f.code,
-        severity: f.severity,
-    }));
+    })
+        .findings.filter((f: WorkspaceFinding) => !f.code.startsWith('style/'))
+        .map((f: WorkspaceFinding) => ({
+            file: f.file,
+            line: f.range.start.line + 1,
+            code: f.code,
+            severity: f.severity,
+        }));
 }
 
 /** The text with its comments removed: from a `#` outside quotes to the end of its line. */

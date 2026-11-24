@@ -120,6 +120,12 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'syntax/missing-operator': ['token', 'file:line'],
     'syntax/null-safe-operator-after-value': ['token', 'file:line'],
     'syntax/unterminated-string': ['file:line'],
+    'style/not-formatted': ['places'],
+    'style/indentation': ['indentation'],
+    'style/spacing': ['tokens'],
+    'style/blank-lines': ['blank lines', 'blank lines kept'],
+    'style/block-layout': ['layout'],
+    'style/line-endings': ['line breaks'],
 };
 
 /** A row's message as it is shown: each placeholder a readable slot (`SLOT_NAMES`). */

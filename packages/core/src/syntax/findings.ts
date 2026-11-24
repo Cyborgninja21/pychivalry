@@ -146,6 +146,16 @@ export type Evidence =
     | {
           /** No game message: pychivalry's own advice (principle 1 of docs/MVP.md). */
           readonly kind: 'advice';
+      }
+    | {
+          /**
+           * pychivalry's own formatting rules (docs/formatting.md): the evidence of the `style/`
+           * findings, the one kind of warning that rests on no game evidence, by the owner's
+           * decision (principle 1 of docs/MVP.md).
+           */
+          readonly kind: 'formatting-rules';
+          /** Where the rules are written. */
+          readonly source: string;
       };
 
 /** One finding of the syntax layer. */

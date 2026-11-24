@@ -17,6 +17,8 @@
 import {
     checkWorkspaceSteps,
     drain,
+    formattingFixTooLong,
+    type FindingFix,
     type Severity,
     type Steps,
     type WorkspaceFinding,
@@ -47,6 +49,25 @@ export interface CheckArgs {
     readonly unused_keys?: boolean;
 }
 
+/**
+ * A fix as `check` returns it: whole, but a formatting fix too long for a result
+ * (`formattingFixTooLong`, a `style/` finding of a large file), whose edits are left out and
+ * marked so; the `format` tool gives the formatted text.
+ */
+export function fixOutput(fix: FindingFix): FindingFix | Record<string, unknown> {
+    if (!formattingFixTooLong(fix)) {
+        return fix;
+    }
+    return {
+        ...fix,
+        alternatives: fix.alternatives.map((a) => ({
+            title: a.title,
+            edits: [],
+            edits_omitted: true,
+        })),
+    };
+}
+
 /** A finding as `check` returns it. */
 export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
     return {
@@ -56,7 +77,7 @@ export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
         code: f.code,
         message: f.message,
         data: f.data,
-        fix: f.fix === null ? null : withSpans(f.fix),
+        fix: f.fix === null ? null : withSpans(fixOutput(f.fix)),
     };
 }
 
@@ -110,7 +131,7 @@ const FIX: Schema = {
         basis: {
             type: 'string',
             description:
-                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range or declared-names',
+                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names or formatting',
         },
         alternatives: {
             type: 'array',
@@ -119,6 +140,11 @@ const FIX: Schema = {
                 properties: {
                     title: { type: 'string' },
                     edits: { type: 'array', items: EDIT },
+                    edits_omitted: {
+                        type: 'boolean',
+                        description:
+                            "True when the edits of a formatting fix (a style/ finding's) are too long to list: the format tool gives the file's formatted text",
+                    },
                 },
                 required: ['title', 'edits'],
             },

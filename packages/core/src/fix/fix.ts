@@ -48,6 +48,8 @@ export const MAX_FIX_ALTERNATIVES = 5;
  * - `observed-values`: the values the base game writes in the field.
  * - `range`: a range's two bounds, written in the order the game reads them.
  * - `declared-names`: the names the file declares (an event's namespace).
+ * - `formatting`: pychivalry's formatting rules (docs/formatting.md): the formatter's own edits,
+ *   which change only the whitespace between tokens and keep the tree.
  */
 export type FixBasis =
     | 'retired'
@@ -59,7 +61,8 @@ export type FixBasis =
     | 'game-message'
     | 'observed-values'
     | 'range'
-    | 'declared-names';
+    | 'declared-names'
+    | 'formatting';
 
 /** One edit: a span of a file replaced with new text. */
 export interface FixEdit {
@@ -92,6 +95,19 @@ export interface FindingFix {
     readonly alternatives: readonly FixAlternative[];
     /** How many alternatives there are in all, given only when the list was cut. */
     readonly alternatives_total?: number;
+}
+
+/**
+ * The most characters of a formatting fix's JSON (basis `formatting`, a `style/` finding's) that
+ * a surface with a budget for each result lists in full: the agent server gives a longer one's
+ * title and safety, and points to its `format` tool for the text. Every other surface gives every
+ * fix whole.
+ */
+export const FORMATTING_FIX_CHARS = 2000;
+
+/** True for a formatting fix too long to list in full where results have a budget. */
+export function formattingFixTooLong(fix: FindingFix): boolean {
+    return fix.basis === 'formatting' && JSON.stringify(fix).length > FORMATTING_FIX_CHARS;
 }
 
 /** A safe fix: one alternative. */
