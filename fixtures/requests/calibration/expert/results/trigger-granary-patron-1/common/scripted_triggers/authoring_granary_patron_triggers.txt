@@ -1,0 +1,5 @@
+﻿# A ruler free to ride out, with vassals who can pay for granaries.
+authoring_granary_patron_trigger = {
+	granary_can_travel_trigger = yes
+	any_vassal = { granary_can_afford_trigger = yes }
+}

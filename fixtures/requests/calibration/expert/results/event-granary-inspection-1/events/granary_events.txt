@@ -1,0 +1,19 @@
+﻿namespace = granary
+
+# The reeve reports on the granaries.
+granary.0001 = {
+	type = character_event
+	title = granary.0001.t
+	desc = granary.0001.desc
+
+	trigger = { granary_can_travel_trigger = yes }
+
+	option = {
+		name = granary.0001.a
+		granary_reward_effect = yes
+		trigger_event = {
+			id = granary.0002
+			days = 10
+		}
+	}
+}

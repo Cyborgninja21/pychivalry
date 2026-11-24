@@ -1,0 +1,13 @@
+﻿namespace = authoring_house_feast
+
+# The house feast ends.
+authoring_house_feast.0001 = {
+	type = character_event
+	title = authoring_house_feast.0001.t
+	desc = authoring_house_feast.0001.desc
+
+	option = {
+		name = authoring_house_feast.0001.a
+		add_piety = 15
+	}
+}

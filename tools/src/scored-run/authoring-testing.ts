@@ -1,11 +1,12 @@
 /**
- * What the authoring test's tests share: the requests' example results, the checker over an
- * empty base game, a skills folder standing in for `skills/`, and streams in the shape Claude
- * Code 2.1.330 writes for an authoring session and for a judge's session, for the stand-in
- * (`fake-claude.ts`) to play back. Not a test file itself, so that importing it runs no test.
+ * What the authoring test's tests share: the requests' example results and the expert requests'
+ * first drafts, the checker over an empty base game, a skills folder standing in for `skills/`,
+ * and streams in the shape Claude Code 2.1.330 writes for an authoring session and for a judge's
+ * session, for the stand-in (`fake-claude.ts`) to play back. Not a test file itself, so that
+ * importing it runs no test.
  */
 
-import { cpSync, writeFileSync } from 'node:fs';
+import { cpSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { TestContext } from 'node:test';
 import { checkWorkspace, openSpec, type WorkspaceCheck } from '@pychivalry/core';
@@ -22,6 +23,46 @@ export const spec = openSpec(path.join(root, 'spec'));
 /** A request's example result: what a correct session could leave, for the tests only. */
 export function exampleDir(id: string): string {
     return path.join(root, ...REQUESTS_DIR.split('/'), 'examples', id);
+}
+
+/** The expert requests' first drafts: each a result with the mistake its request invites. */
+export const DRAFTS_DIR = 'fixtures/requests/drafts';
+
+/** One first draft, and what fails it on the code-checked side (`drafts/drafts.json`). */
+export interface Draft {
+    /** The request's id, and the draft's folder under `DRAFTS_DIR`. */
+    readonly request: string;
+    /** The mistake, in words. */
+    readonly mistake: string;
+    /** Every error and warning the checker reports on it, as `<severity> <code>`. */
+    readonly checker: readonly string[];
+    /** Every expectation it does not meet, as `<expectation>: <problem>`. */
+    readonly unmet: readonly string[];
+}
+
+/** The committed drafts and what fails each, read from `drafts/drafts.json`. */
+export function committedDrafts(): { readonly about: string; readonly drafts: readonly Draft[] } {
+    const value = JSON.parse(
+        readFileSync(path.join(root, ...DRAFTS_DIR.split('/'), 'drafts.json'), 'utf8'),
+    ) as { drafts_format?: unknown; about?: unknown; drafts?: unknown };
+    const texts = (x: unknown): boolean =>
+        Array.isArray(x) && x.every((y) => typeof y === 'string');
+    if (
+        value.drafts_format !== 1 ||
+        typeof value.about !== 'string' ||
+        !Array.isArray(value.drafts) ||
+        !value.drafts.every(
+            (d: Record<string, unknown>) =>
+                typeof d['request'] === 'string' &&
+                typeof d['mistake'] === 'string' &&
+                texts(d['checker']) &&
+                texts(d['unmet']) &&
+                Object.keys(d).length === 4,
+        )
+    ) {
+        throw new Error(`${DRAFTS_DIR}/drafts.json is not a list of drafts`);
+    }
+    return { about: value.about, drafts: value.drafts as Draft[] };
 }
 
 /** A trial's mod as a correct session leaves it: the base, with the example written over it. */

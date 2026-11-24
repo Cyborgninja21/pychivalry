@@ -1,0 +1,28 @@
+﻿# Feast the members of the ruler's house.
+authoring_house_feast_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	ai_check_interval = 120
+
+	is_shown = { is_ruler = yes }
+
+	is_valid = {
+		house = { house_power_score >= 50 }
+		gold >= 75
+	}
+
+	effect = {
+		add_gold = -75
+		house = {
+			every_house_member = {
+				limit = { is_adult = yes }
+				add_prestige = 10
+			}
+		}
+		trigger_event = {
+			id = authoring_house_feast.0001
+			days = 3
+		}
+	}
+
+	ai_will_do = { base = 10 }
+}

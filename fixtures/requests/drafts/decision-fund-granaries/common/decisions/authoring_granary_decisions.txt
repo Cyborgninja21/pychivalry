@@ -1,0 +1,18 @@
+﻿# Pay for new granaries across the realm.
+authoring_fund_granaries_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	ai_check_interval = 120
+
+	is_shown = { is_ruler = yes }
+
+	is_valid = { granary_can_pay_trigger = yes }
+
+	cooldown = { years = 10 }
+
+	effect = {
+		granary_pay_effect = yes
+		granary_full_reward_effect = yes
+	}
+
+	ai_will_do = { base = 25 }
+}

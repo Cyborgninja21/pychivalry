@@ -1,0 +1,238 @@
+{
+    "grades_format": 1,
+    "about": "Hand-made results of the twelve expert requests for the judge's calibration (docs/guide/judge-calibration.md): two of each request, written by hand, every one clean under the checker and meeting every expectation checked in code. Some are right, and some are wrong on a judged dimension in a way that only reading what the script does can show; which is which is written nowhere. None is the work of a test session. Replace every ? with yes, no or cannot-tell.",
+    "items": [
+        {
+            "request": "event-granary-inspection",
+            "result": "results/event-granary-inspection-1",
+            "grades": {
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "event-granary-inspection",
+            "result": "results/event-granary-inspection-2",
+            "grades": {
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "event-envoy-chain",
+            "result": "results/event-envoy-chain-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "event-envoy-chain",
+            "result": "results/event-envoy-chain-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "event-county-unrest",
+            "result": "results/event-county-unrest-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "event-county-unrest",
+            "result": "results/event-county-unrest-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-fund-granaries",
+            "result": "results/decision-fund-granaries-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "decision-fund-granaries",
+            "result": "results/decision-fund-granaries-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "decision-pardon-prisoners",
+            "result": "results/decision-pardon-prisoners-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-pardon-prisoners",
+            "result": "results/decision-pardon-prisoners-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-house-feast",
+            "result": "results/decision-house-feast-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "decision-house-feast",
+            "result": "results/decision-house-feast-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "effect-realm-relief",
+            "result": "results/effect-realm-relief-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-realm-relief",
+            "result": "results/effect-realm-relief-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-granary-gift-edit",
+            "result": "results/effect-granary-gift-edit-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-granary-gift-edit",
+            "result": "results/effect-granary-gift-edit-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-heir-household",
+            "result": "results/effect-heir-household-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-heir-household",
+            "result": "results/effect-heir-household-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-loyal-realm",
+            "result": "results/trigger-loyal-realm-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-loyal-realm",
+            "result": "results/trigger-loyal-realm-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-granary-patron",
+            "result": "results/trigger-granary-patron-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-granary-patron",
+            "result": "results/trigger-granary-patron-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-settled-ruler",
+            "result": "results/trigger-settled-ruler-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?"
+            }
+        },
+        {
+            "request": "trigger-settled-ruler",
+            "result": "results/trigger-settled-ruler-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?"
+            }
+        }
+    ]
+}

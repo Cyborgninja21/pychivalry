@@ -1,0 +1,111 @@
+{
+    "drafts_format": 1,
+    "about": "Hand-made first drafts of the expert requests (docs/PLAN.md item 9.4): for each, a result with the mistake its request invites, written over its base the way an example result is. Each is what a session that drafts from memory, or does not follow a scope or a definition the request names, could leave before its first check. checker lists every error and warning the checker reports on it over an empty base game, by severity and code; unmet, every expectation it does not meet, with the reason. requests.test.ts holds each to exactly these, so that each fails the code-checked side for the reason given; repair.test.ts shows the agent server reporting the same errors and warnings, and none once the draft is repaired. Never shown to a session or to the judge.",
+    "drafts": [
+        {
+            "request": "event-granary-inspection",
+            "mistake": "The new event's file does not declare the mod's namespace: a draft that sees `namespace = granary` in the mod's own events file and leaves it out of the new one, as if declaring it twice would clash.",
+            "checker": ["warning structure/event-undeclared-namespace"],
+            "unmet": []
+        },
+        {
+            "request": "event-envoy-chain",
+            "mistake": "The second event runs the gift effect on the character, where the effect is written, instead of on the courtier the first event saved: the scope saved in one event is not used in the other.",
+            "checker": [],
+            "unmet": [
+                "authoring_envoy.0002 (events) uses authoring_envoy_gift_effect inside scope:envoy, defined in common/scripted_effects: authoring_envoy.0002 does not use authoring_envoy_gift_effect inside scope:envoy"
+            ]
+        },
+        {
+            "request": "event-county-unrest",
+            "mistake": "The county's opinion of its holder is written from memory instead of looked up: `county_opinion`, a trigger the game had before 1.21.0.3, and `add_county_opinion`, an effect it does not have. 1.21.0.3 has `popular_opinion` and `add_popular_opinion`.",
+            "checker": [
+                "error names/unknown-effect",
+                "error names/unknown-trigger",
+                "error names/unknown-trigger"
+            ],
+            "unmet": [
+                "authoring_unrest.0001 (events) uses popular_opinion inside any_sub_realm_county: authoring_unrest.0001 does not use popular_opinion inside any_sub_realm_county",
+                "authoring_unrest.0001 (events) uses add_popular_opinion inside scope:unrest_county: authoring_unrest.0001 does not use add_popular_opinion inside scope:unrest_county"
+            ]
+        },
+        {
+            "request": "decision-fund-granaries",
+            "mistake": "The mod's trigger and effects are guessed from the request's words instead of found with the tools: `granary_can_pay_trigger` and `granary_full_reward_effect` do not exist (only `granary_pay_effect` is guessed right).",
+            "checker": ["error names/unknown-effect", "error names/unknown-trigger"],
+            "unmet": [
+                "authoring_fund_granaries_decision (common/decisions) uses granary_can_afford_trigger inside is_valid, defined in common/scripted_triggers: authoring_fund_granaries_decision does not use granary_can_afford_trigger inside is_valid",
+                "authoring_fund_granaries_decision (common/decisions) uses granary_reward_effect inside effect, defined in common/scripted_effects: authoring_fund_granaries_decision does not use granary_reward_effect inside effect"
+            ]
+        },
+        {
+            "request": "decision-pardon-prisoners",
+            "mistake": "Being at peace and setting a prisoner free are written with names that read well and do not exist, `is_at_peace` and `release_prisoner`, instead of `is_at_war = no` and `release_from_prison`.",
+            "checker": ["error names/unknown-effect", "error names/unknown-trigger"],
+            "unmet": [
+                "authoring_pardon_decision (common/decisions) uses is_at_war inside is_valid: authoring_pardon_decision does not use is_at_war inside is_valid",
+                "authoring_pardon_decision (common/decisions) uses release_from_prison inside every_prisoner: authoring_pardon_decision does not use release_from_prison inside every_prisoner"
+            ]
+        },
+        {
+            "request": "decision-house-feast",
+            "mistake": "The house's power is tested with `house_power`, the name 1.21.0.3 renamed `house_power_score`, on the character instead of the house, and the house's members are walked from the character, a scope `every_house_member` is not valid in.",
+            "checker": ["error names/unknown-trigger", "error scope/wrong-scope-for-effect"],
+            "unmet": [
+                "authoring_house_feast_decision (common/decisions) uses house_power_score inside house: authoring_house_feast_decision does not use house_power_score inside house",
+                "authoring_house_feast_decision (common/decisions) uses every_house_member inside house: authoring_house_feast_decision does not use every_house_member inside house"
+            ]
+        },
+        {
+            "request": "effect-realm-relief",
+            "mistake": "The gold is given in the county's own scope, where `add_gold` is not valid, instead of to the county's holder.",
+            "checker": ["error scope/wrong-scope-for-effect"],
+            "unmet": [
+                "authoring_realm_relief_effect (common/scripted_effects) uses holder inside every_sub_realm_county: authoring_realm_relief_effect does not use holder inside every_sub_realm_county",
+                "authoring_realm_relief_effect (common/scripted_effects) uses add_gold inside holder: authoring_realm_relief_effect does not use add_gold inside holder"
+            ]
+        },
+        {
+            "request": "effect-granary-gift-edit",
+            "mistake": "The effect is written again in a new file, overriding the mod's own, instead of being changed in place: the mod then defines it twice.",
+            "checker": [],
+            "unmet": [
+                "common/scripted_effects defines granary_vassal_gift_effect 1 time: the mod defines granary_vassal_gift_effect in common/scripted_effects 2 times, not 1"
+            ]
+        },
+        {
+            "request": "effect-heir-household",
+            "mistake": "The siblings are walked from the ruler instead of from the heir: `every_sibling` written beside `primary_heir` reaches the ruler's own siblings.",
+            "checker": [],
+            "unmet": [
+                "authoring_heir_household_effect (common/scripted_effects) uses every_sibling inside primary_heir: authoring_heir_household_effect does not use every_sibling inside primary_heir"
+            ]
+        },
+        {
+            "request": "trigger-loyal-realm",
+            "mistake": "The county's opinion of its holder is written with `county_opinion`, a trigger the game had before 1.21.0.3, instead of `popular_opinion`.",
+            "checker": ["error names/unknown-trigger"],
+            "unmet": [
+                "authoring_loyal_realm_trigger (common/scripted_triggers) uses popular_opinion inside any_sub_realm_county: authoring_loyal_realm_trigger does not use popular_opinion inside any_sub_realm_county"
+            ]
+        },
+        {
+            "request": "trigger-granary-patron",
+            "mistake": "The conditions of the mod's two triggers are written again instead of the triggers being used.",
+            "checker": [],
+            "unmet": [
+                "authoring_granary_patron_trigger (common/scripted_triggers) uses granary_can_travel_trigger, defined in common/scripted_triggers: authoring_granary_patron_trigger does not use granary_can_travel_trigger",
+                "authoring_granary_patron_trigger (common/scripted_triggers) uses granary_can_afford_trigger inside any_vassal, defined in common/scripted_triggers: authoring_granary_patron_trigger does not use granary_can_afford_trigger inside any_vassal"
+            ]
+        },
+        {
+            "request": "trigger-settled-ruler",
+            "mistake": "Being at peace and being married are written with names that read well and do not exist, `is_at_peace` and `has_spouse`, instead of `is_at_war = no` and `is_married = yes`.",
+            "checker": ["error names/unknown-trigger", "error names/unknown-trigger"],
+            "unmet": [
+                "authoring_settled_ruler_trigger (common/scripted_triggers) uses is_at_war: authoring_settled_ruler_trigger does not use is_at_war",
+                "authoring_settled_ruler_trigger (common/scripted_triggers) uses is_married: authoring_settled_ruler_trigger does not use is_married"
+            ]
+        }
+    ]
+}

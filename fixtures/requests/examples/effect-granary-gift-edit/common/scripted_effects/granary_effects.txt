@@ -1,0 +1,22 @@
+﻿# Pays for new granaries.
+granary_pay_effect = { add_gold = -150 }
+
+# Rewards a ruler who keeps the granaries full.
+granary_reward_effect = {
+	add_prestige = 40
+	add_stress = -10
+}
+
+# Thanks a vassal who keeps a granary.
+granary_vassal_gift_effect = {
+	if = {
+		limit = {
+			opinion = {
+				target = liege
+				value >= 30
+			}
+		}
+		add_gold = 20
+	}
+	else = { add_prestige = 10 }
+}
