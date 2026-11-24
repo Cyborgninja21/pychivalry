@@ -15,6 +15,8 @@ fixtures/requests/
   bases/          the mods a trial starts as: empty/ (a descriptor only) and banquet/ (an event,
                   a scripted effect, a scripted trigger and their localization)
   examples/       one correct result per request, for the tests only; never shown to a session
+  calibration/    ten hand-made results and a sheet for grading them by hand, for the judge's
+                  calibration (docs/guide/judge-calibration.md); never shown to a session
 ```
 
 Nothing here is copied from the game or from a published mod. The script and localization files

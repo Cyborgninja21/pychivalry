@@ -488,7 +488,7 @@ required with no default, `SCORED_MODEL`, `SCORED_TRIALS`, `SCORED_SERVER`,
 | `SCORED_REQUESTS` | The requests to run, by id, comma-separated | every request |
 | `SCORED_SKILLS` | The skills folder, from the repository root: each folder holding a `SKILL.md` is a skill | `skills` (the three skills of item 9.1) |
 | `SCORED_SKILLS_IN` | Where each session is given the skills: `project` or `config` ([below](#the-skills)) | `project` |
-| `SCORED_JUDGE_MODEL` | The judge's model, by its full name | the authoring model |
+| `SCORED_JUDGE_MODEL` | The judge's model, by its full name | `claude-fable-5-2`, Fable 5.2 (`PINNED_JUDGE_MODEL` in `run.ts`): another model than the one it judges, by the owner's answer of 2026-11-24 |
 | `SCORED_JUDGE_SESSION_LIMIT` | The session limit of each judge session | `SCORED_SESSION_LIMIT` |
 | `SCORED_JUDGE_TIMEOUT_MINUTES` | A judge session still running after this is stopped | 10 |
 
@@ -617,23 +617,166 @@ each stopping the run; both places of the skills; the continued run; and the rec
 
 ## The first scored authoring run (item 9.8)
 
-Not run: it waits for the owner's word. What it is, exactly:
+Made on the owner's word of 2026-11-24, the whole run at once, with no shake-down first, from
+the main clone at the merge of #152:
+`SCORED_MODEL=claude-opus-5-5 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring`,
+with Claude Code 2.1.330 (the copy VS Code's Claude Code extension installed) and the base game
+1.21.0.3. Every request, 5 trials each: 60 authoring test sessions of Opus 5.5 and 60 judge test
+sessions of Fable 5.2, **120 test sessions**, each with session limit 3. No harness problem
+stopped it. The record is [`records/scored/authoring.json`](../../records/scored/authoring.json),
+as the run wrote it; the run kept no trial's files (`SCORED_KEEP` was not set).
 
-- **The command:**
-  `SCORED_SESSION_LIMIT=3 CK3_GAME_PATH=<game dir> task scored:authoring`, from the repository
-  root, on the machine with the game, after `task build` (the task builds first) and with Claude
-  Code 2.1.280 or later (`SCORED_CLAUDE` names it, as item 6.11's run did).
-- **What it does:** for each of the 12 requests, 5 trials; each trial one authoring test session
-  of the pinned model, `claude-opus-5-5`, in a fresh copy of the request's base mod, with the
-  agent server over the installed game and the three skills in the trial's own `.claude/skills/`,
-  then one judge test session of the same model on what it wrote.
-- **How many sessions:** at most **120 test sessions**: 60 authoring sessions and 60 judge
-  sessions. Fewer if a harness problem stops it, after the trial that had one.
-- **The session limit:** 3 for every session, the authoring sessions' and the judge's
-  (`SCORED_JUDGE_SESSION_LIMIT` is not given, so it is the same); the time limits 30 minutes for
-  an authoring session and 10 for a judge's.
-- **What it leaves:** `records/scored/authoring.json`, committed, from which the owner sets the
-  targets on the measures above.
+### The results
+
+| Request | Type | Difficulty | Held | No error | No warning | In the format | Every expectation | Judge: yes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `event-merchant-debt` | event | easy | 5 of 5 | 5 | 0 | 0 | 5 | 15 of 15 |
+| `event-sleepless-night` | event | medium | 5 of 5 | 5 | 0 | 0 | 5 | 15 of 15 |
+| `event-letter-from-spouse` | event | hard | 5 of 5 | 5 | 0 | 0 | 3 | 20 of 20 |
+| `decision-give-alms` | decision | easy | 5 of 5 | 5 | 0 | 0 | 5 | 15 of 15 |
+| `decision-night-vigil` | decision | medium | 5 of 5 | 5 | 0 | 0 | 5 | 15 of 15 |
+| `decision-hold-feast` (retired) | decision | hard | 5 of 5 | 0 | 0 | 0 | 5 | 20 of 20 |
+| `effect-reward` | scripted effect | easy | 5 of 5 | 5 | 0 | 0 | 5 | 10 of 10 |
+| `effect-war-chest` | scripted effect | medium | 5 of 5 | 5 | 0 | 0 | 5 | 15 of 15 |
+| `effect-children-gift` | scripted effect | hard | 5 of 5 | 5 | 0 | 0 | 5 | 20 of 20 |
+| `trigger-can-host` | scripted trigger | easy | 5 of 5 | 5 | 0 | 0 | 5 | 10 of 10 |
+| `trigger-family-ready` | scripted trigger | medium | 5 of 5 | 5 | 0 | 0 | 5 | 10 of 10 |
+| `trigger-feast-guest` (retired) | scripted trigger | hard | 5 of 5 | 0 | 0 | 0 | 5 | 15 of 15 |
+| **All** | | | **60 of 60** | **50** | **0** | **0** | **58** | **180 of 180** |
+
+By kind of content: events 15 without an error, 13 meeting every expectation; decisions 10 and
+15; scripted effects 15 and 15; scripted triggers 10 and 15. Every warning was
+`style/not-formatted`, one for each file a session wrote (1 to 3 a trial); the only error was
+`definitions/clash`, once in each trial of the two requests now retired. The judge answered every
+question of every trial, none malformed, never `no` or `cannot-tell`.
+
+Every session ended by itself, in 11 to 23 turns and 19 to 42 seconds; the permission mode
+refused nothing. Over the 60: `Skill` 60 calls (once each), `check` 231 (2 to 7 a session),
+`lookup` 97, `format` 59 (in 42 sessions), `find_definition` 54, `explain_code` 2,
+`list_definitions` 1; `Write` 217, `Edit` 47, `Read` 8. The tool errors: 31 `Edit`s refused
+because their two strings were the same (below), 7 `lookup`s given a cursor with other
+arguments, 10 calls of a server tool by its bare name (`lookup` 4, `find_definition` 4, `check`
+2) and one of `mcp__pychivalry__Read`, none of which exist.
+
+### What it proved about real sessions
+
+Four things the tests could only assume, each now seen in all 60 trials:
+
+1. **Project skills are offered** under `--setting-sources project,local`: every start event
+   listed the three pychivalry skills from the trial's `.claude/skills/`, beside the 21 that come
+   with Claude Code, and none of the developer's own.
+2. **The skill tool is `Skill`**: offered in every session and called once in each, with no
+   error.
+3. **The judge's prompt on standard input, with no tool**: every judge session ran with `-p`, no
+   prompt argument and `--tools ""`, offered nothing (its confinement held), and ended by itself
+   in one turn (2 to 7 seconds).
+4. **The judge's answer shape**: all 60 answers were one JSON object valid against
+   `judge.schema.json`, about the request asked and answering exactly its questions, under the
+   fixed parsing rules: 180 answers, none malformed.
+
+### Why no result was in the format
+
+The authoring skill told every session to format what it wrote and to count
+`style/not-formatted` as an error. No session could, whatever it did:
+
+1. **`format` only proposes.** It returns the formatted text and writes nothing (items 6.5 and
+   8.9; `format.test.ts`). 42 sessions called it, 59 times.
+2. **Claude Code's own file tools cannot be relied on to write Windows line breaks.** Read in the
+   shipped code of Claude Code 2.1.330, the release the run used: `Write` saves the text exactly
+   as the model sends it, adding a byte-order mark only when the file it replaces had one; `Edit`
+   reads a file with its `\r\n` turned into `\n`, changes it, and writes it back with the line
+   break it found in the file, and refuses an edit whose two strings are the same ("No changes
+   to make: old_string and new_string are exactly the same."). A new file therefore gets Windows
+   line breaks only if the model itself sends carriage returns, and `Edit` never changes a
+   file's line breaks. The 31 refused `Edit`s are sessions trying to apply `format`'s text,
+   which differed from the file only in line breaks the model's own text does not carry.
+3. **What the results held**, from the record's counts and a reproduction on an example result:
+   a file with `\n` line breaks and the byte-order mark gives one `style/not-formatted` and one
+   hint, `style/line-endings`; without the mark it also gives `style/byte-order-mark`, and a
+   localization file without it also gives `localization/missing-key` for each of its keys. No
+   trial had a `localization/missing-key`, and each had one hint a file (one more in five
+   trials): the sessions wrote the mark, as the skill said, but `\n` line breaks.
+4. **No terminal.** A trial offers `Read`, `Edit`, `Write`, `Skill` and the server's tools; the
+   skill's other way, `pychivalry format <file>` "when pychivalry runs in a terminal you can
+   use", was out of reach.
+5. **`check` did say so.** With `min_severity` `warning`, as the skill's rule 3 asks,
+   `style/not-formatted` is listed; every session checked 2 to 7 times and saw it.
+
+### Why two requests had an error in every trial
+
+`decision-hold-feast` and `trigger-feast-guest` started from the base `feast`, whose event is
+`feast.0001`. The base game defines an event of that id too
+(`events/activities/feast_activity/feast_events.txt`), at the same override priority: the
+game's own error, `definitions/clash`. The base alone, copied untouched, gives it over the
+installed game; so do both requests' example results, and a minimal result that adds one
+unrelated scripted trigger. The checker indexes the base once (the other definition is the
+game's). The sessions wrote nothing that caused it, and could not remove it: one request forbade
+changing the mod's files, and the other asked for that very event to be changed, not renamed.
+The request tests check each base over an empty game, which cannot see a name the game defines.
+
+### The on-action expectation
+
+Two trials of `event-letter-from-spouse` (1 and 4) missed the expectation
+"`yearly_playable_pulse` uses `authoring_letter.0001`": they hooked the event in through an
+on-action of their own, `yearly_playable_pulse = { on_actions = { <theirs> } }` and
+`<theirs> = { events = { authoring_letter.0001 } }`. The game's own documentation,
+`common/on_action/_on_actions.info`, says an on-action "can fire other on_actions, following the
+same rules as with events" and gives exactly this as the way a mod appends to one of the game's
+on-actions without overriding a file; the base game hooks its own content into
+`yearly_playable_pulse` the same way (its `on_actions` list there names several on-actions of
+its own). The result does what the request asks: the expectation was too strict, and the judge,
+who answered "comes through the yearly on-action" yes in both, was right. A hand-made result of
+that shape gives the checker nothing at all over the installed game.
+
+### What the judge's 180 yes show
+
+That the judge answered, in the right shape, about what was asked, and that its answers agree
+with everything the code could check: the two trials whose expectation failed are ones the judge
+was right about. Its question on `conditions-as-asked` ("Does the first event come through the
+yearly on-action...?") is the same question as the failed expectation, and its reasons (printed,
+not recorded) named the on-action of the session's own. What they do not show is that the judge
+can say `no` or `cannot-tell`: as far as the code and the expectations can tell, no result was
+wrong on a judged question, so there was nothing to say no to, and a judge that always said yes
+would have scored the same. Only results graded by hand, wrong ones among them, can tell the
+two apart: the calibration (item 9.6). The judge is shown the files with `\n` line breaks and no
+byte-order mark, so the format is the checker's to measure, never the judge's.
+
+### What was done with it
+
+As fixes of pychivalry's own harness, tools and skills, each with tests that need no model; the
+record's measures are left as the run made them:
+
+1. **`apply_format`**, a tool of the agent server that writes one file of the mod in the format,
+   as `pychivalry format <file>` does ([docs/guide/agent-server.md](../../docs/guide/agent-server.md#the-tools)),
+   and the write-content and fix-error skills run it on each file they wrote or changed instead
+   of writing `format`'s text back. It is the server's one tool that writes, declared not
+   read-only: a choice awaiting the owner's confirmation, since the server wrote nothing before.
+2. **A clean base.** `decision-hold-feast` and `trigger-feast-guest` are retired and replaced by
+   `decision-hold-banquet` and `trigger-banquet-guest`, the same requests on a base `banquet`
+   whose names the game does not have; a retired id is never used again
+   ([fixtures/requests/README.md](../../fixtures/requests/README.md#retired-requests)). The run
+   now refuses to start any test session while a base it would use has an error or a warning
+   over the installed game, as `feast` had.
+3. **The on-action expectation corrected**: an expectation may follow records of the mod in a
+   named database (`through`), and `event-letter-from-spouse`'s does, through the mod's
+   on-actions. The record's two trials stay as measured on the old list (its
+   `requests_sha256`).
+4. **Fable 5.2 judges** unless `SCORED_JUDGE_MODEL` names another, in the run and the
+   calibration, by the owner's answer.
+5. **A calibration that can be run now**: ten hand-made results and a sheet for the owner
+   ([docs/guide/judge-calibration.md](../../docs/guide/judge-calibration.md)).
+
+Not changed, as findings for the owner: every session met every expectation it could (bar the
+two above) in about half a minute, much as item 6.11's first planted mod was fixed too easily;
+the requests may need to be harder before their rates tell a better server from a worse one.
+
+### A second run
+
+The record's format and validity measures say nothing yet about the fixes: the skills now
+format with `apply_format`, and two requests are new. A second run measures them, on the
+owner's word: the same command, every request, **120 test sessions** (60 authoring, 60 judge),
+each with session limit 3; with `SCORED_KEEP=true` it also keeps the results a calibration on
+real results needs. It replaces this record; git keeps this one.
 
 ## Calibrating the judge (item 9.6)
 

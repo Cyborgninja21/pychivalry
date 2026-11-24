@@ -3,7 +3,8 @@
 pychivalry's agent server gives an AI agent, such as Claude Code or VS Code's built-in AI, the
 same checks and lookups as the command line, as tools that return structured data. It speaks the
 Model Context Protocol (MCP) over standard input and output: the agent's harness starts it as a
-local process. It opens no network port, holds no model and no key, and only reads.
+local process. It opens no network port, holds no model and no key, and only reads, but for one
+tool, `apply_format`, which writes a file of the mod you name in pychivalry's format.
 
 **No key, no login, no model call.** pychivalry contains no API key, no token and no login,
 and never will. None of its packages makes a network call or a model call: the agent server is
@@ -68,13 +69,15 @@ repository:
 ## What it reads and writes
 
 It reads the mod folder, the game folder, the spec package and its index of the base game. It
-writes nothing into the mod or the game. The only thing it ever writes is that index, in your
-cache folder ([Settings](settings.md)), and only when none is there for the installed game: a
-server finds the index the command line saved and loads it in a second or two. The first request
-loads it; later requests reuse it. While VS Code has a mod open, the server asks its language
-server instead, which holds the index already and answers with the server's own tools, so the
-two hold one copy between them; the answers are the same either way, and when the language
-server cannot answer, the server loads the index itself ([Settings](settings.md)).
+writes nothing into the game, and into the mod only what `apply_format` is asked to write: the
+one file named, in pychivalry's format (below). Beside that, the only thing it writes is that
+index, in your cache folder ([Settings](settings.md)), and only when none is there for the
+installed game: a server finds the index the command line saved and loads it in a second or
+two. The first request loads it; later requests reuse it. While VS Code has a mod open, the
+server asks its language server instead, which holds the index already and answers with the
+server's own tools, so the two hold one copy between them; the answers are the same either way,
+and when the language server cannot answer, the server loads the index itself
+([Settings](settings.md)).
 
 Every request reads the mod's files as they are now. An agent fixes a finding by editing the
 files itself, through its own harness, and checks again. A finding with a mechanical fix
@@ -82,8 +85,9 @@ carries its edits (below); the server applies none of them.
 
 ## The tools
 
-Every tool is read-only and declares the shape of what it takes and returns. Lines and columns
-count from 1, as an editor shows them.
+Every tool but `apply_format` is read-only, and each declares the shape of what it takes and
+returns; `apply_format` is declared not read-only, so a harness may ask you before it runs. Lines
+and columns count from 1, as an editor shows them.
 
 | Tool | Takes | Returns |
 | --- | --- | --- |
@@ -94,9 +98,11 @@ count from 1, as an editor shows them.
 | `list_definitions` | `kind`: the folder that holds the definitions (`common/scripted_effects`, `events`) or a localization language (`localization:l_english`); `limit`; `cursor` | The count by layer, then the definitions, the mod's first, each with whether it is in force |
 | `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default or can be turned off |
 | `format` | `file`: a script or localization file of the mod the game reads; `cursor` | The file formatted by pychivalry's rules ([Formatting](formatting.md)), as a proposal: nothing is written. `formatted` (false for a file with a parse error or not valid UTF-8, with the `reason`), `changed`, `bom` and `line_ending` (`crlf`), `total_lines`, and the `text` from `first_line`, without the byte-order mark, a page at a time with `next_cursor`; no text when nothing changes |
+| `apply_format` | `file`: a script or localization file of the mod the game reads | The same formatting **written to the file**, as `pychivalry format <file>` writes it: Windows line breaks and the UTF-8 byte-order mark, whitespace only, never a token or a comment changed. `written` (false when the file is already in the format, or is left as it is), `formatted`, `changed`, `reason`, `bom`, `line_ending`, `total_lines`. It exists because an AI harness's own file tools may not write Windows line breaks or the mark: the first scored authoring run left every file it wrote out of the format |
 
 Two more tools come with the steps that build them: `call_graph` (step 10) and `analyze_log`
-(step 11). The tools' shapes are schema version 2 since `format` came (step 8).
+(step 11). The tools' shapes are schema version 3 since `apply_format` came (step 9; version 2
+came with `format`, step 8).
 
 **Tool names.** The names here, and in the server's own instructions, are the bare ones. A
 client may list them under a prefix of its own: Claude Code lists `check` as
@@ -142,7 +148,7 @@ the command line's `--json` give:
   mod's localization file), or make a new file (`create`, its `new_text` the whole file, the
   byte-order mark the game needs first).
 
-The server writes nothing: an agent applies a fix with its own edit tool, every edit of the one
+The server applies no fix: an agent applies a fix with its own edit tool, every edit of the one
 alternative it chose, each place read against the file as it was before any of them, then
 checks again. A finding with no fix (`fix: null`) is one whose right change is a choice the data
 does not make: an event with no option, a definition two files share.

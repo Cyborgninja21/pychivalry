@@ -62,5 +62,7 @@ it formats the files that are not in the format too.
 ## For an AI agent
 
 The agent server's `format` tool returns a file's formatted text as a proposal, a page at a time;
-it writes nothing ([The agent server](agent-server.md#the-tools)). `check` reports the `style/`
+it writes nothing. Its `apply_format` tool writes the file formatted, as `pychivalry format`
+does ([The agent server](agent-server.md#the-tools)): the skills use it, because an AI's own file
+tools may not write Windows line breaks or the byte-order mark. `check` reports the `style/`
 findings with the others.
