@@ -1,0 +1,22 @@
+﻿# Hold a banquet for the court.
+authoring_hold_banquet_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	ai_check_interval = 120
+
+	is_shown = { banquet_can_host_trigger = yes }
+
+	is_valid = { gold >= 100 }
+
+	cooldown = { years = 5 }
+
+	effect = {
+		add_gold = -100
+		banquet_host_reward_effect = yes
+		trigger_event = {
+			id = banquet.0001
+			days = 7
+		}
+	}
+
+	ai_will_do = { base = 25 }
+}

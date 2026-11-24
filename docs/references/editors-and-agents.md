@@ -142,6 +142,24 @@ the tests use, read as files; no harness was run for it, and no session started.
   extension; "Set up for Claude Code" copies them into Claude Code's personal skills, not into
   the mod's `.claude/skills/`, which a mod's author may share or upload with the mod.
 
+## Claude Code's file tools, checked for build step 9's first run (2026-11-24)
+
+Read in the shipped code of Claude Code 2.1.330, the native program inside the release of VS
+Code's Claude Code extension that ran the first scored authoring run, as files; no session was
+started for it.
+
+- **`Write`** saves the text exactly as the model sends it (`savesTextAsSent`), in the encoding
+  of the file it replaces (UTF-8 for a new one), and adds the byte-order mark only when the file
+  it replaces started with one and the new text does not. A new file gets Windows line breaks
+  only if the model sends carriage returns.
+- **`Edit`** reads a file with its `\r\n` turned into `\n` and notes the line break the file
+  mostly uses (its first 4,096 characters); it replaces the text and writes the file back with
+  that line break and encoding, so an edit never changes a file's line breaks. An edit whose two
+  strings are equal is refused: "No changes to make: old_string and new_string are exactly the
+  same."
+- What pychivalry does with it: the format is written by the agent server's `apply_format`, not
+  by the AI's own file tools ([tools/scored-run/README.md](../../tools/scored-run/README.md#why-no-result-was-in-the-format)).
+
 ## The Model Context Protocol library
 
 - The TypeScript library has two lines. The 2.x line, `@modelcontextprotocol/server`, is the

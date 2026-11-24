@@ -16,7 +16,7 @@ import {
     listDefinitionsTool,
 } from './tools/definitions.js';
 import { explainTool } from './tools/explain.js';
-import { formatTool } from './tools/format.js';
+import { applyFormatTool, formatTool } from './tools/format.js';
 import { lookupTool } from './tools/lookup.js';
 
 /** Every tool, in the order a client lists them. */
@@ -28,6 +28,7 @@ export const TOOLS: readonly ListedTool[] = [
     listed(listDefinitionsTool),
     listed(explainTool),
     listed(formatTool),
+    listed(applyFormatTool),
 ];
 
 /** A tool's answer as a result: bad input as a result marked as an error, never thrown. */

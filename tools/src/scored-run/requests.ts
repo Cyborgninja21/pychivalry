@@ -35,13 +35,20 @@
  *     - `defines` (`database`, `name`): the mod defines the name in that database;
  *     - `field` (`database`, `name`, `field`, `value?`, `count?`): the mod's definition holds
  *       the field directly in its block, with that value, or that many times;
- *     - `uses` (`database`, `name`, `uses`): the name `uses` is written inside the definition;
- *     - `resolves` (`database`, `name`, `uses`, `to`): it is, and the mod or the base game
- *       defines it in the database `to`;
+ *     - `uses` (`database`, `name`, `uses`, `through?`): the name `uses` is written inside the
+ *       definition, or, with `through` a database, inside a definition of the mod in that
+ *       database which the definition reaches by names written inside it, one after another (an
+ *       on-action the game's own documentation lets fire other on-actions: `through` names the
+ *       database, never a keyword);
+ *     - `resolves` (`database`, `name`, `uses`, `to`, `through?`): it is, and the mod or the base
+ *       game defines it in the database `to`;
  *     - `localization` (`key`): the mod's English localization defines the key;
  *     - `unchanged` (`file`): a file of the base mod is still there, byte for byte.
  *   - `judged[]`: the dimensions the judge answers for this request (`dimension`, one of
  *     `dimensions`, at most once), each with the `question` it is asked.
+ * - `retired[]` (optional): the ids of requests taken out of the list, each with `why`. A record
+ *   names a request by its id, so an id is never given to another request: no request may take
+ *   a retired id. A request whose text must change is retired and replaced under a new id.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -92,6 +99,7 @@ export type Expectation =
           readonly database: string;
           readonly name: string;
           readonly uses: string;
+          readonly through?: string;
       }
     | {
           readonly kind: 'resolves';
@@ -99,6 +107,7 @@ export type Expectation =
           readonly name: string;
           readonly uses: string;
           readonly to: string;
+          readonly through?: string;
       }
     | { readonly kind: 'localization'; readonly key: string }
     | { readonly kind: 'unchanged'; readonly file: string };
@@ -135,11 +144,18 @@ export interface Dimension {
     readonly what: string;
 }
 
+/** A request taken out of the list: its id is never used again. */
+export interface RetiredRequest {
+    readonly id: string;
+    readonly why: string;
+}
+
 export interface RequestList {
     readonly requests_format: 1;
     readonly about: string;
     readonly dimensions: readonly Dimension[];
     readonly requests: readonly ContentRequest[];
+    readonly retired?: readonly RetiredRequest[];
 }
 
 /** The language the `localization` expectation reads: the index's database of English keys. */
@@ -196,8 +212,8 @@ const EXPECTATION_FIELDS: Readonly<
     'top-level': { required: ['folder', 'key', 'value'], optional: [] },
     defines: { required: ['database', 'name'], optional: [] },
     field: { required: ['database', 'name', 'field'], optional: ['value', 'count'] },
-    uses: { required: ['database', 'name', 'uses'], optional: [] },
-    resolves: { required: ['database', 'name', 'uses', 'to'], optional: [] },
+    uses: { required: ['database', 'name', 'uses'], optional: ['through'] },
+    resolves: { required: ['database', 'name', 'uses', 'to'], optional: ['through'] },
     localization: { required: ['key'], optional: [] },
     unchanged: { required: ['file'], optional: [] },
 };
@@ -223,6 +239,9 @@ function expectationShape(value: unknown): boolean {
     if (value['value'] !== undefined && !text(value['value'])) {
         return false;
     }
+    if (value['through'] !== undefined && !text(value['through'])) {
+        return false;
+    }
     const count = value['count'];
     if (count !== undefined && !(Number.isInteger(count) && (count as number) >= 0)) {
         return false;
@@ -236,7 +255,7 @@ export function requestsShapeProblems(value: unknown): string[] {
         return ['the request list is not a JSON object'];
     }
     const problems: string[] = [];
-    if (!only(value, ['requests_format', 'about', 'dimensions', 'requests'])) {
+    if (!only(value, ['requests_format', 'about', 'dimensions', 'requests', 'retired'])) {
         problems.push('the request list has a field it does not know');
     }
     if (value['requests_format'] !== 1) {
@@ -265,6 +284,30 @@ export function requestsShapeProblems(value: unknown): string[] {
                 ids.add(d['id']);
             }
         });
+    }
+    const retired = new Set<string>();
+    const gone = value['retired'];
+    if (gone !== undefined) {
+        if (!Array.isArray(gone)) {
+            problems.push('retired is not a list');
+        } else {
+            gone.forEach((r: unknown, i) => {
+                const where = `retired[${String(i)}]`;
+                if (
+                    !isObject(r) ||
+                    !only(r, ['id', 'why']) ||
+                    !text(r['id']) ||
+                    !ID.test(r['id']) ||
+                    !text(r['why'])
+                ) {
+                    problems.push(`${where}: needs an id and why it was retired`);
+                } else if (retired.has(r['id'])) {
+                    problems.push(`${where}: ${r['id']} is retired twice`);
+                } else {
+                    retired.add(r['id']);
+                }
+            });
+        }
     }
     const requests = value['requests'];
     if (!Array.isArray(requests) || requests.length === 0) {
@@ -297,6 +340,10 @@ export function requestsShapeProblems(value: unknown): string[] {
             problems.push(`${where}: id is not lower-case words joined by hyphens`);
         } else if (seen.has(id)) {
             problems.push(`${where}: the id ${id} is used twice`);
+        } else if (retired.has(id)) {
+            problems.push(
+                `${where}: the id ${id} is retired, and a retired id is never used again`,
+            );
         } else {
             seen.add(id);
         }
@@ -482,6 +529,11 @@ export function reliedOnProblems(spec: Spec, root: string, list: RequestList): s
     return problems;
 }
 
+/** How a `through` database reads in an expectation's words. */
+function throughWords(through: string | undefined): string {
+    return through === undefined ? '' : `, directly or through the mod's ${through} it uses`;
+}
+
 /** An expectation in words, as a record states it. */
 export function describeExpectation(e: Expectation): string {
     switch (e.kind) {
@@ -494,9 +546,9 @@ export function describeExpectation(e: Expectation): string {
         case 'field':
             return `${e.name} (${e.database}) has ${e.field}${e.value !== undefined ? ` = ${e.value}` : ''}${e.count !== undefined ? ` ${String(e.count)} time${e.count === 1 ? '' : 's'}` : ''}`;
         case 'uses':
-            return `${e.name} (${e.database}) uses ${e.uses}`;
+            return `${e.name} (${e.database}) uses ${e.uses}${throughWords(e.through)}`;
         case 'resolves':
-            return `${e.name} (${e.database}) uses ${e.uses}, defined in ${e.to}`;
+            return `${e.name} (${e.database}) uses ${e.uses}${throughWords(e.through)}, defined in ${e.to}`;
         case 'localization':
             return `the English localization defines ${e.key}`;
         case 'unchanged':

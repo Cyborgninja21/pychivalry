@@ -68,7 +68,8 @@ lives unchanged in `legacy/`.
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
-| Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. |
+| Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. The first run is on record (2026-11-24, decision 120); the owner sets the targets from it (decision 124). |
+| Authoring judge | In the scored authoring run, Opus 5.5 (`claude-opus-5-5`) writes and Fable 5.2 (`claude-fable-5-2`) judges: the judge is another model than the one whose work it judges (decision 121). |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
@@ -160,7 +161,10 @@ The headline feature: describe content, get script the game accepts.
 - The MVP covers the content types modders write most: events (with their localization),
   decisions, scripted effects and scripted triggers.
 - The AI's edits go through its own harness, which shows them to the person for approval.
-  pychivalry's server writes nothing.
+  pychivalry's server writes nothing. *Since build step 9's first scored run, awaiting the
+  owner's confirmation ([decisions.md](decisions.md#awaiting-confirmation)):* but for
+  `apply_format`, which writes a file the AI names in pychivalry's format, whitespace only, and
+  which the harness asks about like any tool that writes.
 
 **Zero checker errors is not the same as content that works.** The checker proves the script
 is valid. It does not prove an event can fire, does what was asked, or reads sensibly. Authored
@@ -376,7 +380,9 @@ default folder.
   then findings filtered by severity and code, limited, with a cursor for the next page.
   Results stay under about 10,000 tokens; Claude Code cuts a result off at 25,000.
 - **Errors are results.** Bad input comes back as a result that lists the valid values.
-- **Read-only.** The server reads the mod folder and the game folder and writes nothing.
+- **Read-only.** The server reads the mod folder and the game folder and writes nothing. *Since
+  build step 9, awaiting the owner's confirmation:* but for `apply_format`, the one tool declared
+  not read-only, which writes the file it is given in pychivalry's format.
 - **Connection.** A local process spoken to over standard input and output. No network port.
 - **Several copies run at once.** Each AI harness starts its own copy, beside the language
   server. Each would hold its own index in memory, so all of them load the same on-disk index.
@@ -531,7 +537,7 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
 | Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same.* |
 | Agent use | Planted defects `M` | See [AI tests](#ai-tests). |
-| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). |
+| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *The first run, 2026-11-24, is on record (`records/scored/authoring.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation; the owner sets the targets from it.* |
 | Speed | Benchmarks `G` | Within the stated tolerance of the 2.3.0 medians recorded in build step 1. |
 
 ## AI tests
@@ -574,7 +580,8 @@ rate, because a model's output is not repeatable.
   spec package has; validity as three measures (no error, no warning, in pychivalry's format);
   the match as expectations checked in code and a judge, one more test session of the
   developer's own Claude Code with no tool, answering each dimension yes, no or cannot tell;
-  the judge calibrated against hand grades by `task scored:calibrate`. Not run yet.
+  the judge calibrated against hand grades by `task scored:calibrate`. *First run 2026-11-24*
+  (below); the calibration not run yet.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
 - **The target (agent use).** Every test session passes: a release run of 10 test sessions must
   pass all 10, and a development run of 5 that passes fewer than 5 is looked into. The record
@@ -583,7 +590,14 @@ rate, because a model's output is not repeatable.
 - **The first result.** Agent use, 2026-11-23: five test sessions of Claude Code 2.1.330 on
   `claude-opus-5-5`, each with session limit 3, all passed, each in about a minute
   (`records/scored/agent-use.json`). The owner set the target from it (above); the planted
-  mod was then made harder, and the harder mod has not been run yet.
+  mod was then made harder, and the harder mod has not been run yet. Authoring, 2026-11-24:
+  every request 5 times, Opus 5.5 writing and Fable 5.2 judging, 120 test sessions of Claude
+  Code 2.1.330 each with session limit 3 (`records/scored/authoring.json`): 60 of 60 trials
+  held; 50 had no error, none had no warning, none was in the format, 58 met every expectation,
+  and the judge said yes to all 180 of its questions. Its causes were pychivalry's own: no tool
+  of a session could write the format (now `apply_format`), two requests' base clashed with the
+  game (now replaced), one expectation was stricter than the game (now corrected). The owner
+  sets the targets from it; a second run measures the fixes.
 
 ## Test data
 
@@ -657,6 +671,8 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    *2026-11-23:* the target is set (10 of 10). The first five test sessions passed 5 of 5 on
    the first planted mod; the harder mod that replaced it has not been run yet (not yet met).
 6. **Authoring.** The scored run meets its targets on all three measures.
+   *2026-11-24:* the first run is on record ([AI tests](#ai-tests)); the targets are not set yet
+   (not yet met).
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.
    *2026-11-23, after build step 7:* the editor reaches its first full result faster than 2.3.0
    on all five mods; the language server's peak memory is higher on four ([Speed](#speed)).

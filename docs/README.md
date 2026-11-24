@@ -26,7 +26,7 @@ a document adds its row here.
 
 | Document | What it holds | Written by |
 | --- | --- | --- |
-| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), formatting ([guide/formatting.md](guide/formatting.md), step 8), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7), and the hand checklist of the skills in VS Code's own AI ([guide/ai-checklist.md](guide/ai-checklist.md), step 9) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
+| [guide/](guide/README.md) | The user guide: installing the preview, commands, settings, the agent server ([guide/agent-server.md](guide/agent-server.md), step 6), formatting ([guide/formatting.md](guide/formatting.md), step 8), the reference of every check ([guide/checks.md](guide/checks.md), written from the core's check inventory by `task docs:checks`), the check a person makes by hand before a preview goes out ([guide/by-hand-check.md](guide/by-hand-check.md), step 7), the hand checklist of the skills in VS Code's own AI ([guide/ai-checklist.md](guide/ai-checklist.md), step 9), and grading results by hand for the judge's calibration ([guide/judge-calibration.md](guide/judge-calibration.md), step 9) | Step 1 starts it; each step that ships a feature adds to it; step 13 completes it |
 | [wiki/](wiki/README.md) | How the repository's GitHub wiki is generated from these documents, and its home page | Step 1 |
 
 ## The game's behaviour, as each step establishes it

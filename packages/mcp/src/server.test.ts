@@ -1,8 +1,9 @@
 /**
  * The server as a client sees it (docs/PLAN.md items 6.1 and 6.2), through a real round trip
- * over standard input and output: its name and version, its written instructions, and its six
+ * over standard input and output: its name and version, its written instructions, and its
  * tools, each named in lower case with underscores, declaring what it takes and returns, and
- * marked read-only; the tools later steps fill in are not there yet. Also the protocol as a
+ * marked read-only but `apply_format`, the one that writes; the tools later steps fill in are not
+ * there yet. Also the protocol as a
  * client of the 2025 revisions speaks it, by hand, which is how today's harnesses start.
  */
 
@@ -23,7 +24,11 @@ const TOOL_NAMES = [
     'list_definitions',
     'explain_code',
     'format',
+    'apply_format',
 ];
+
+/** The one tool that writes (a file of the mod, in the format): every other only reads. */
+const WRITES = ['apply_format'];
 
 interface ListedTool {
     readonly name: string;
@@ -55,7 +60,7 @@ test('the server names itself, its version and its schema version, and says how 
     assert.ok(instructions.includes(dir), 'it names the mod folder it works on');
 });
 
-test('the seven tools, each read-only, declaring what it takes and what it returns', async (t) => {
+test('the eight tools, each read-only but apply_format, declaring what it takes and what it returns', async (t) => {
     const dir = scratch(t);
     const { client } = await connect(t, ['--mod', dir, '--no-vanilla'], path.join(dir, 'cache'));
     const { tools } = (await client.listTools()) as { tools: ListedTool[] };
@@ -75,7 +80,7 @@ test('the seven tools, each read-only, declaring what it takes and what it retur
         assert.equal(tool.outputSchema?.type, 'object', `${tool.name} declares its output`);
         assert.deepEqual(tool.annotations, {
             title: tool.annotations?.['title'],
-            readOnlyHint: true,
+            readOnlyHint: !WRITES.includes(tool.name),
             destructiveHint: false,
             idempotentHint: true,
             openWorldHint: false,

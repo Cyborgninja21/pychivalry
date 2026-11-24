@@ -1,0 +1,15 @@
+﻿namespace = banquet
+
+# The ruler holds a banquet for the court.
+banquet.0001 = {
+	type = character_event
+	title = banquet.0001.t
+	desc = banquet.0001.desc
+
+	trigger = { is_adult = yes }
+
+	option = {
+		name = banquet.0001.a
+		add_prestige = 10
+	}
+}

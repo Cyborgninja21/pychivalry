@@ -83,7 +83,7 @@ test('the prompt has each of its four slots once, and the answer schema its clos
 });
 
 test('a filled prompt holds the request, its questions and every file of the result, each marked', (t) => {
-    const r = request('decision-hold-feast');
+    const r = request('decision-hold-banquet');
     const mod = exampleResult(t, r);
     // The harness's own folder is not part of the result.
     writeTree(mod, { '.claude/skills/x/SKILL.md': 'not shown' });
@@ -91,13 +91,13 @@ test('a filled prompt holds the request, its questions and every file of the res
     assert.deepEqual(
         files.map((f) => `${f.path} ${f.state}`),
         [
-            'common/decisions/authoring_feast_decisions.txt written',
-            'common/scripted_effects/feast_effects.txt as given',
-            'common/scripted_triggers/feast_triggers.txt as given',
+            'common/decisions/authoring_banquet_decisions.txt written',
+            'common/scripted_effects/banquet_effects.txt as given',
+            'common/scripted_triggers/banquet_triggers.txt as given',
             'descriptor.mod as given',
-            'events/feast_events.txt as given',
-            'localization/english/authoring_feast_l_english.yml written',
-            'localization/english/feast_l_english.yml as given',
+            'events/banquet_events.txt as given',
+            'localization/english/authoring_banquet_l_english.yml written',
+            'localization/english/banquet_l_english.yml as given',
         ],
     );
     const prompt = judgePrompt(template, r, files);
@@ -107,28 +107,28 @@ test('a filled prompt holds the request, its questions and every file of the res
     }
     assert.ok(
         prompt.includes(
-            '--- file common/decisions/authoring_feast_decisions.txt (written while the request was worked on) ---\n# Hold a feast for the court.\nauthoring_hold_feast_decision = {',
+            '--- file common/decisions/authoring_banquet_decisions.txt (written while the request was worked on) ---\n# Hold a banquet for the court.\nauthoring_hold_banquet_decision = {',
         ),
     );
-    assert.ok(prompt.includes('--- end of common/decisions/authoring_feast_decisions.txt ---'));
+    assert.ok(prompt.includes('--- end of common/decisions/authoring_banquet_decisions.txt ---'));
     assert.ok(!prompt.includes('\r'), 'line breaks as \\n');
     assert.ok(!prompt.includes('\uFEFF'), 'no byte-order mark');
     assert.ok(!prompt.includes('not shown'));
     assert.ok(!/\{\{[a-z_]+\}\}/.test(prompt), 'every slot filled');
 
     // A changed and a removed file are marked so.
-    const changed = exampleResult(t, request('trigger-feast-guest'));
+    const changed = exampleResult(t, request('trigger-banquet-guest'));
     writeFileSync(path.join(changed, 'descriptor.mod'), 'changed');
-    const marks = resultFiles(changed, baseDir(root, 'feast')).map((f) => `${f.path} ${f.state}`);
-    assert.ok(marks.includes('events/feast_events.txt changed'));
+    const marks = resultFiles(changed, baseDir(root, 'banquet')).map((f) => `${f.path} ${f.state}`);
+    assert.ok(marks.includes('events/banquet_events.txt changed'));
     assert.ok(marks.includes('descriptor.mod changed'));
     const empty = path.join(tempDir(t), 'empty');
     mkdirSync(empty);
-    const gone = resultFiles(empty, baseDir(root, 'feast'));
+    const gone = resultFiles(empty, baseDir(root, 'banquet'));
     assert.ok(gone.every((f) => f.state === 'removed' && f.text === null));
     assert.ok(
         resultText(gone).includes(
-            '--- file events/feast_events.txt (removed while the request was worked on) ---',
+            '--- file events/banquet_events.txt (removed while the request was worked on) ---',
         ),
     );
     assert.equal(resultText([]), '(the mod holds no file)');

@@ -25,6 +25,14 @@ higher source wins.
 Open, for the owner: whether the spec package may carry the text of these files' comments, or
 only the facts taken from them.
 
+`common/on_action/_on_actions.info`, read for build step 9's item 9.8 (2026-11-24): an on-action
+can fire other on-actions (its `on_actions` list, "following the same rules as with events"),
+and its modding notes give `some_vanilla_on_action = { on_actions = { some_modded_on_action } }`
+as the way a mod appends to one of the game's on-actions without overriding a file. The base
+game hooks its own content into `yearly_playable_pulse` the same way. It is the evidence for the
+`through` expectation of the content request `event-letter-from-spouse`
+([fixtures/requests/README.md](../../fixtures/requests/README.md)).
+
 ## The command-line options file
 
 `_commandline_options.info` in the game folder documents the game's start-up options. The ones

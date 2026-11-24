@@ -1,0 +1,6 @@
+﻿# Rewards the character it runs on.
+authoring_reward_effect = {
+	add_gold = 25
+	add_prestige = 50
+	add_piety = 10
+}

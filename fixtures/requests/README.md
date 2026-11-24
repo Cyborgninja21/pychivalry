@@ -12,9 +12,11 @@ on the request's judged dimensions (the match to the request).
 fixtures/requests/
   requests.json   the requests: each with its id, type, difficulty, base, text, the names it
                   relies on, its expectations and its judged dimensions
-  bases/          the mods a trial starts as: empty/ (a descriptor only) and feast/ (an event,
+  bases/          the mods a trial starts as: empty/ (a descriptor only) and banquet/ (an event,
                   a scripted effect, a scripted trigger and their localization)
   examples/       one correct result per request, for the tests only; never shown to a session
+  calibration/    ten hand-made results and a sheet for grading them by hand, for the judge's
+                  calibration (docs/guide/judge-calibration.md); never shown to a session
 ```
 
 Nothing here is copied from the game or from a published mod. The script and localization files
@@ -35,13 +37,23 @@ already has content and must leave the rest of it alone.
 | `event-letter-from-spouse` | event | hard | empty | Two events: the first through the on-action `yearly_playable_pulse` for a married ruler, firing the second 3 days later, whose option rewards the spouse |
 | `decision-give-alms` | decision | easy | empty | A decision for rulers with 100 gold, taking the gold for 50 piety |
 | `decision-night-vigil` | decision | medium | empty | A decision for adults at peace with a cooldown and an AI weight, firing an event it also writes |
-| `decision-hold-feast` | decision | hard | feast | A decision built on the mod's scripted trigger, scripted effect and event, changing none of the mod's files |
+| `decision-hold-banquet` | decision | hard | banquet | A decision built on the mod's scripted trigger, scripted effect and event, changing none of the mod's files |
 | `effect-reward` | scripted effect | easy | empty | 50 gold and 25 prestige |
 | `effect-war-chest` | scripted effect | medium | empty | Gold at war, prestige in peace (`if` and `else`), stress either way |
 | `effect-children-gift` | scripted effect | hard | empty | Gold for each adult child (`every_child`), prestige for the parent, and a second effect that runs the first |
 | `trigger-can-host` | scripted trigger | easy | empty | An adult ruler with 50 gold |
 | `trigger-family-ready` | scripted trigger | medium | empty | Married or the parent of an adult child (`any_child`), and not imprisoned |
-| `trigger-feast-guest` | scripted trigger | hard | feast | A trigger tested partly on the liege, then added to the mod's event's trigger, keeping what is there |
+| `trigger-banquet-guest` | scripted trigger | hard | banquet | A trigger tested partly on the liege, then added to the mod's event's trigger, keeping what is there |
+
+### Retired requests
+
+`retired` in `requests.json` lists the ids taken out of the list, with why; no request may take
+one again (a record names a request by its id).
+
+| Id | Replaced by | Why |
+| --- | --- | --- |
+| `decision-hold-feast` | `decision-hold-banquet` | Its base, `feast`, defined the event `feast.0001`, an id the base game defines too (`events/activities/feast_activity/feast_events.txt`): `definitions/clash`, an error in every result, which the request forbade fixing. Found by the first scored authoring run (2026-11-24), whose 5 trials of it each have that error |
+| `trigger-feast-guest` | `trigger-banquet-guest` | The same base and the same clash, in the event the request asked to change |
 
 ## What each request holds
 
@@ -60,7 +72,11 @@ The format is stated field by field in `tools/src/scored-run/requests.ts`, which
   database; a field written directly in a record, with a value or a number of times; a name used
   inside a record; a name used there that the mod or the base game defines in a given database
   (a reference that resolves); an English localization key; a file of the base left byte for
-  byte.
+  byte. A name used may also be reached `through` records of the mod in a database that the
+  record uses, one after another: `event-letter-from-spouse` accepts its event in an on-action of
+  the mod that `yearly_playable_pulse` fires, the way the game's own
+  `common/on_action/_on_actions.info` tells a mod to append to one of the game's on-actions and
+  the way the base game hooks its own content into that on-action.
 - **`judged`**: the dimensions the judge answers for this request, each with the question it is
   asked. The dimensions are one closed set, `dimensions` at the top of the file, shared by every
   request so that the judge's agreement with hand grading can be measured per dimension:
@@ -85,7 +101,9 @@ character or whether the texts tell the story asked for, is left to the judged d
   dimension of the set is asked by some request;
 - each base mod and each example result is in pychivalry's format, and the checker reports
   nothing on either (over an empty base game: the requests rely on no name of the base game's
-  own files);
+  own files). Over the installed game only the run can check a base: it refuses to start any
+  test session while the checker finds an error or a warning in a base it would use, as it would
+  have for `feast` (a name of the base the game defines too);
 - **every request can be met**: its example result meets every one of its expectations.
 
 `tools/src/scored-run/expectations.test.ts` breaks the examples one way at a time and shows each
@@ -95,5 +113,8 @@ kind of expectation failing, with its reason.
 
 Give it a new id, its type, difficulty and base, its text, the names it relies on, its
 expectations and its judged questions; write its example under `examples/<id>/`, in the format;
-run the tests. A request is never edited in place once a record names it: its id goes to a new
-request, and the record's `requests_sha256` says which list it was made on.
+run the tests. What a session and the judge are given, a request's text and its judged
+questions, is never edited in place once a record names it: the request is retired and replaced
+under a new id. An expectation that game evidence shows to be wrong (too strict or too lenient)
+is corrected in place, the decision log says so, and the record's `requests_sha256` says which
+list its measures were made on.

@@ -35,8 +35,9 @@ it from what you ask, or you start one by name.
   next time it starts.
 
 The AI's edits go through its own harness, which shows them to you; pychivalry's agent server
-only reads. A clean check proves the script is valid, not that it does what you asked: read
-what the AI wrote.
+only reads, but for `apply_format`, which the skills run on each file the AI wrote to put it in
+pychivalry's format (your harness asks you first, unless you allowed it). A clean check proves
+the script is valid, not that it does what you asked: read what the AI wrote.
 
 The editor features need no command: the extension starts when you open a CK3 script or
 localization file, or a folder holding a `descriptor.mod`. They are the language server's:

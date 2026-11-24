@@ -1,0 +1,92 @@
+{
+    "grades_format": 1,
+    "about": "Hand-made stand-in results for the judge's calibration (docs/guide/judge-calibration.md): ten results of six requests, written by hand before any result of a test session was kept. Some are right, some are deliberately wrong, and some cannot be judged from their files alone. None is the work of a test session. Replace every ? with yes, no or cannot-tell.",
+    "items": [
+        {
+            "request": "decision-give-alms",
+            "result": "results/decision-give-alms-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "effect-reward",
+            "result": "results/effect-reward-1",
+            "grades": {
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-reward",
+            "result": "results/effect-reward-2",
+            "grades": {
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-reward",
+            "result": "results/effect-reward-3",
+            "grades": {
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-war-chest",
+            "result": "results/effect-war-chest-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "effect-war-chest",
+            "result": "results/effect-war-chest-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "event-letter-from-spouse",
+            "result": "results/event-letter-from-spouse-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "effects-as-asked": "?",
+                "scope-as-asked": "?",
+                "text-as-asked": "?"
+            }
+        },
+        {
+            "request": "event-merchant-debt",
+            "result": "results/event-merchant-debt-1",
+            "grades": {
+                "effects-as-asked": "?",
+                "text-as-asked": "?",
+                "nothing-unasked": "?"
+            }
+        },
+        {
+            "request": "trigger-family-ready",
+            "result": "results/trigger-family-ready-1",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?"
+            }
+        },
+        {
+            "request": "trigger-family-ready",
+            "result": "results/trigger-family-ready-2",
+            "grades": {
+                "conditions-as-asked": "?",
+                "scope-as-asked": "?"
+            }
+        }
+    ]
+}

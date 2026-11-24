@@ -440,6 +440,28 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
     places of the skills, a continued run), the calibration, and `no-model-call.test.ts`: the
     scored scripts name no key or model library, reach no network, and start no program but the
     Claude Code the run names.
+- Build step 9, item 9.8, the first scored authoring run, made on the owner's word of
+  2026-11-24 and committed as `records/scored/authoring.json`: every request, 5 trials each,
+  Opus 5.5 writing and Fable 5.2 judging, each of the 120 test sessions with session limit 3, on
+  Claude Code 2.1.330. 60 of 60 trials held; 50 had no error, none had no warning, none was in
+  the format, 58 met every expectation, and the judge answered yes to all 180 of its questions.
+  What the run showed, and what was done with it (`tools/scored-run/README.md`, "The first scored
+  authoring run"):
+  - The agent server's `apply_format` tool: one script or localization file of the mod written
+    in pychivalry's format, in place, as `pychivalry format <file>` writes it. The run left all
+    60 results out of the format, because nothing a session had could write the format's
+    Windows line breaks (Claude Code's own file tools keep the line breaks they are sent or find);
+    the write-content and fix-error skills now run `apply_format` on each file they wrote or
+    changed. It is the server's one tool that writes, declared not read-only; tool schema
+    version 3.
+  - The content requests `decision-hold-banquet` and `trigger-banquet-guest`, on a new base mod
+    `banquet`, replace `decision-hold-feast` and `trigger-feast-guest`, which are retired: their
+    base defined the event `feast.0001`, which the base game defines too, an error in every result
+    of theirs. The run now refuses to start a test session while a base mod has an error or a
+    warning over the installed game.
+  - The judge's calibration can be run now: ten hand-made results, labelled as such, some right
+    and some deliberately wrong, with a sheet in the grades format for the owner to fill in, and
+    a page of the guide on grading them (`docs/guide/judge-calibration.md`).
 
 ### Changed
 
@@ -618,6 +640,18 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   how the file was read (`read_as` in its data). The parse note `encoding/not-utf8` is retired
   (decision 113): no surface emits it, and the code is never reused.
 
+- The scored authoring test's judge is Fable 5.2 unless `SCORED_JUDGE_MODEL` names another, in
+  the run and in the calibration (the owner's answer of 2026-11-24: Opus 5.5 writes, Fable 5.2
+  judges).
+- An expectation that a name is used inside a record may also follow records of the mod in a
+  named database that the record uses: `event-letter-from-spouse` accepts its event in an
+  on-action of the mod that `yearly_playable_pulse` fires, the way the game's own on-action
+  documentation tells a mod to append to one of its on-actions. Two trials of the first run did
+  that and failed the expectation as it was; their recorded measures stay as the run made them.
+- The hand checklist for VS Code's AI uses the banquet request and `apply_format`, and says that
+  it cannot be run on preview 0.2.0, which has neither the skills nor `apply_format`.
+
+### Fixed
 ### Fixed
 
 - The command line's cache test compared the wall-clock times of two runs and failed once on a
@@ -639,11 +673,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 9's item 9.8 (the first scored authoring run, from which the owner sets the
-  targets; at most 120 test sessions, each with session limit 3), the judge's calibration of
-  item 9.6 (results graded by hand), and 9.9 (the third preview) wait for the owner's word, and
-  the hand checklist has not been run yet (item 9.7's "Done when"). Where the scored run gives
-  the skills, and the first run's size, are questions for the owner (`docs/decisions.md`).
+- Build step 9: the owner sets the authoring targets from the first run's record; the judge's
+  calibration (item 9.6) and the hand checklist on VS Code's AI (item 9.7) are the owner's to
+  run, after the test, and the third preview (9.9) waits for both. A second authoring run, to
+  measure the fixes of the first (at most 120 test sessions), waits for the owner's word.
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

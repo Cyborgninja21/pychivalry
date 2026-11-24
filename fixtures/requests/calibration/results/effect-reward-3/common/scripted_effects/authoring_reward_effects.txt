@@ -1,0 +1,2 @@
+﻿# Rewards the character it runs on.
+authoring_reward_effect = { authoring_reward_purse_effect = yes }

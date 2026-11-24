@@ -1,0 +1,9 @@
+﻿# An adult at peace whose liege is a ruler with gold to spare.
+authoring_banquet_guest_trigger = {
+	is_adult = yes
+	is_at_war = no
+	liege = {
+		is_ruler = yes
+		gold >= 100
+	}
+}

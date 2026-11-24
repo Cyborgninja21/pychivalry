@@ -11,7 +11,7 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { checkRecord, compileRecordSchema } from '../records-check.js';
-import { tempDir } from '../testing.js';
+import { fixtureGame, tempDir, writeTree } from '../testing.js';
 import { CommandError } from '../util.js';
 import { authoringProblems, type AuthoringRecord } from './authoring-record.js';
 import { callsOutside } from './confinement.js';
@@ -38,7 +38,7 @@ import {
     textFile,
 } from './authoring-testing.js';
 import { committedRequests, type ContentRequest } from './requests.js';
-import { PINNED_MODEL, SESSION_LIMIT_OPTION } from './run.js';
+import { PINNED_JUDGE_MODEL, PINNED_MODEL, SESSION_LIMIT_OPTION } from './run.js';
 
 const fake = fileURLToPath(new URL('./fake-claude.js', import.meta.url));
 const validate = compileRecordSchema(path.join(root, 'records', 'record.schema.json'));
@@ -125,7 +125,7 @@ test('a trial whose session writes a correct result: valid, every expectation me
     assert.equal(record.suite, 'scored:authoring');
     assert.equal(results.harness.version, '2.1.330');
     assert.equal(results.model, PINNED_MODEL);
-    assert.equal(results.judge_model, PINNED_MODEL);
+    assert.equal(results.judge_model, PINNED_JUDGE_MODEL);
     assert.equal(results.session_limit, 2);
     assert.equal(results.judge_session_limit, 2);
     assert.deepEqual(
@@ -135,7 +135,7 @@ test('a trial whose session writes a correct result: valid, every expectation me
     assert.deepEqual(results.task.answers, ['yes', 'no', 'cannot-tell']);
     assert.match(
         record.command,
-        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=1 SCORED_SESSION_LIMIT=2 SCORED_REQUESTS=effect-war-chest SCORED_SKILLS=<skills folder> SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring$/,
+        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=1 SCORED_SESSION_LIMIT=2 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=effect-war-chest SCORED_SKILLS=<skills folder> SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring$/,
     );
     const [trial] = results.trials;
     assert.ok(trial !== undefined);
@@ -330,7 +330,7 @@ test('a session not confined stops the run after its trial, and the record says 
     assert.deepEqual(trial.harness_problems, [
         'tools outside the confinement were offered: Bash',
         `the pychivalry skills were not offered: ${SKILL_NAME}`,
-        "the agent server's tools were not offered: check, explain_code, find_definition, find_references, format, list_definitions, lookup",
+        "the agent server's tools were not offered: apply_format, check, explain_code, find_definition, find_references, format, list_definitions, lookup",
         'the session named files outside its mod (2 calls of Write, Read)',
     ]);
     // No judge was asked: only the authoring session started.
@@ -443,7 +443,7 @@ test("with SCORED_SKILLS_IN=config the skills are in a temporary configuration f
     assert.equal(record.results.trials[0]?.harness_held, true);
 });
 
-test('the parameters: the game and a session limit are required, the judge follows the run, requests are named by id', (t) => {
+test('the parameters: the game and a session limit are required, the judge is the pinned judge, requests are named by id', (t) => {
     const usage = (env: Record<string, string>, pattern: RegExp): void => {
         assert.throws(
             () => authoringOptions(root, env),
@@ -471,7 +471,9 @@ test('the parameters: the game and a session limit are required, the judge follo
         CK3_GAME_PATH: game,
         SCORED_REQUESTS: ' a , b ',
     });
-    assert.equal(options.judgeModel, PINNED_MODEL);
+    // Another model judges, by the owner's answer of 2026-11-24.
+    assert.equal(options.judgeModel, PINNED_JUDGE_MODEL);
+    assert.notEqual(PINNED_JUDGE_MODEL, PINNED_MODEL);
     assert.equal(options.judgeSessionLimit, 2);
     assert.equal(options.judgeTimeoutMinutes, 10);
     assert.equal(options.trials, 5);
@@ -490,6 +492,52 @@ test('the parameters: the game and a session limit are required, the judge follo
         () => run(t, { SCORED_SKILLS: tempDir(t) }),
         (e: unknown) => e instanceof CommandError && /no skill in /.test(e.message),
     );
+    // A retired request is named as retired.
+    assert.throws(
+        () => run(t, { SCORED_REQUESTS: 'trigger-feast-guest' }),
+        (e: unknown) =>
+            e instanceof CommandError && /trigger-feast-guest \(retired: /.test(e.message),
+    );
+});
+
+test('a base mod the checker faults over the installed game stops the run before any session', (t) => {
+    // The first run's base defined feast.0001, which the base game defines too: definitions/clash
+    // in every result of its two requests. A game that defines the banquet base's event the same
+    // way shows the run refusing to start.
+    const install = tempDir(t);
+    const game = fixtureGame(install);
+    writeTree(install, {
+        'game/events/other_banquet_events.txt':
+            'namespace = banquet\n\nbanquet.0001 = {\n\ttype = character_event\n}\n',
+    });
+    const recordFile = path.join(tempDir(t), 'authoring.json');
+    const argvFile = path.join(tempDir(t), 'argv.jsonl');
+    assert.throws(
+        () =>
+            run(
+                t,
+                {
+                    CK3_GAME_PATH: game,
+                    SCORED_REQUESTS: 'effect-reward,trigger-banquet-guest',
+                    FAKE_CLAUDE_ARGV: argvFile,
+                },
+                {},
+                recordFile,
+            ),
+        (e: unknown) =>
+            e instanceof CommandError &&
+            /a base mod is not clean over the installed game, so no test session was started:\n {2}banquet: definitions\/clash at events\/banquet_events\.txt:4: Duplicated event ID banquet\.0001/.test(
+                e.message,
+            ),
+    );
+    assert.ok(!existsSync(argvFile), 'Claude Code was never started');
+    assert.ok(!existsSync(recordFile), 'no record was written');
+    // Over the empty game the same bases are clean, and the run goes on.
+    const { record } = run(t, {
+        SCORED_REQUESTS: 'effect-reward,trigger-banquet-guest',
+        FAKE_CLAUDE_APPLY: exampleDir('effect-reward'),
+    });
+    assert.equal(record.results.trials.length, 2);
 });
 
 test("an authoring session's arguments: the agent-use flags, file writing and skills, and no switch that turns the skills off", () => {

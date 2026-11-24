@@ -1,0 +1,8 @@
+﻿# Each year, a letter may come from the spouse.
+yearly_playable_pulse = {
+	on_actions = { authoring_letter_pulse }
+}
+
+authoring_letter_pulse = {
+	events = { authoring_letter.0001 }
+}
