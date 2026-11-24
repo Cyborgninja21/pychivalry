@@ -49,7 +49,7 @@ function converted(mod: string, fallback?: 'windows-1252'): Map<string, string> 
         const decoded = decodeScript(readFileSync(path.join(dir, ...file.split('/'))), {
             fallbackEncoding: fallback,
         });
-        return `${decoded.bom ? '﻿' : ''}${decoded.text}`;
+        return `${decoded.bom ? '\uFEFF' : ''}${decoded.text}`;
     };
     return new Map(
         applyFixes(
@@ -66,7 +66,7 @@ test('the fix writes the file as UTF-8 with the byte-order mark, read either way
             readFileSync(path.join(MODS, 'style-not-utf8-good', ...file.split('/')), 'utf8');
         assert.equal(
             files.get('common/scripted_effects/fixture_effects.txt'),
-            `﻿${good('common/scripted_effects/fixture_effects.txt')}`,
+            `\uFEFF${good('common/scripted_effects/fixture_effects.txt')}`,
         );
         assert.equal(
             files.get('localization/english/fixture_l_english.yml'),
@@ -78,7 +78,7 @@ test('the fix writes the file as UTF-8 with the byte-order mark, read either way
 test('on the fixture encoding-windows-1252 the fix is safe and converts all four bytes', () => {
     const files = converted('encoding-windows-1252');
     const text = files.get('history/titles/k_fixture.txt') ?? '';
-    assert.ok(text.startsWith('﻿'));
+    assert.ok(text.startsWith('\uFEFF'));
     assert.equal(text.split('é').length - 1, 4);
     assert.ok(!text.includes('�'));
 });

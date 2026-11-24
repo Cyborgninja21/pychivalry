@@ -48,7 +48,7 @@ function read(value: unknown): ReadonlyMap<string, readonly FieldOrder[]> {
                 ) {
                     throw new Error(`field-order.json: ${folder} has an order out of the format`);
                 }
-                return { block: order.block, fields: order.fields as string[] };
+                return { block: order.block, fields: order.fields };
             }),
         );
     }
@@ -63,7 +63,7 @@ function judged(value: unknown): ReadonlySet<string> {
     if (!Array.isArray(list) || !list.every((f) => typeof f === 'string')) {
         throw new Error('field-order.json: judged is not a list of folders');
     }
-    return new Set(list as string[]);
+    return new Set(list);
 }
 
 /** Every folder's field orders, by the folder's path as the spec package writes it. */

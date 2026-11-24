@@ -36,7 +36,8 @@ export function notUtf8Finding(
         return null;
     }
     const bytes = invalid.reduce((n, s) => n + s.windows1252.length, 0);
-    const letters = [...new Set(invalid.flatMap((s) => [...s.windows1252]))];
+    // One character a byte, each in the Basic Multilingual Plane (Windows-1252).
+    const letters = [...new Set(invalid.flatMap((s) => Array.from(s.windows1252)))];
     return finding(
         CODE,
         first,

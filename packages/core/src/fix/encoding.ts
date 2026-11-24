@@ -34,7 +34,7 @@ export function printable(invalid: readonly InvalidStretch[]): boolean {
 export function conversionEdits(file: FixFile, invalid: readonly InvalidStretch[]): FixEdit[] {
     const edits: FixEdit[] = [];
     if (!hasMark(file)) {
-        edits.push(file.insert(0, '﻿'));
+        edits.push(file.insert(0, '\uFEFF'));
     }
     let group: InvalidStretch[] = [];
     const flush = (): void => {
