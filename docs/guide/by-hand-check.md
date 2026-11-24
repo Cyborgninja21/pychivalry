@@ -5,7 +5,8 @@ in public CI. A few things they cannot prove: an AI harness signed in to a real 
 pychivalry's tools, a real Claude Code reading the entry the set-up wrote, and the extension on
 an ordinary desktop with the game installed. This page is the check a person makes before a
 preview or a release goes out, once on Linux and once on Windows. It takes about twenty
-minutes on each.
+minutes on each. How well VS Code's AI uses the skills is a longer check of its own,
+[Checking the skills by hand](ai-checklist.md).
 
 Nothing here needs a key or a login of pychivalry's own: pychivalry holds none. The AI you use
 is signed in however you already signed it in.
@@ -38,7 +39,8 @@ Write down for each step: what you did, what you saw, and pass or fail.
      `pychivalry.gamePath` first ([Settings](settings.md)); without a game, a message says so
      once, and names the game defines are not judged.
 3. **VS Code's AI sees the agent server.** Run "MCP: List Servers" from the Command Palette.
-   - Pass: `pychivalry` is listed, from the extension.
+   - Pass: `pychivalry` is listed, from the extension. In the Chat view, typing `/` offers the
+     three pychivalry skills (a build with the skills, from the third preview).
 4. **VS Code's AI uses it.** In the chat, in agent mode, ask: "Use pychivalry's check tool on
    this mod and list the errors." Approve the tool call when VS Code asks.
    - Pass: the answer names the same errors that `pychivalry check .` prints in the integrated
@@ -51,7 +53,10 @@ Write down for each step: what you did, what you saw, and pass or fail.
 6. **Claude Code.** Run "pychivalry: Set up for Claude Code" from the Command Palette. Then, in
    a terminal in the mod's folder, start `claude` and type `/mcp`.
    - Pass: the set-up says it is done; `/mcp` lists `pychivalry` as connected. Ask Claude Code
-     to run pychivalry's check: the findings are the same as in step 4.
+     to run pychivalry's check: the findings are the same as in step 4. Ask "What skills are
+     available?": `pychivalry-explain-error`, `pychivalry-fix-error` and
+     `pychivalry-write-content` are among them (a build with the skills, from the third
+     preview).
 7. **The game folder setting reaches Claude Code.** Set `pychivalry.gamePath` to the game's
    `game` folder (or change it). pychivalry offers to set Claude Code up again; accept.
    - Pass: `claude mcp get pychivalry` in the mod's folder shows `--vanilla` and the folder you

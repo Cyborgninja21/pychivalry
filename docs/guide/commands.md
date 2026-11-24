@@ -4,11 +4,39 @@
 
 | Command | What it does |
 | --- | --- |
-| pychivalry: Set up for Claude Code | Adds pychivalry's agent server to Claude Code's own configuration for the mod's folder, which Claude Code reads instead of what VS Code extensions register. With Claude Code's `claude` command installed it runs `claude mcp add --scope local` (removing an earlier entry first), so the entry is private to you and kept outside the mod. Without it, it says so and asks whether to write a project configuration file, `.mcp.json`, in the mod's folder instead; nothing is written before you answer. Run it once per mod folder; it keeps working when the extension updates |
+| pychivalry: Set up for Claude Code | Adds pychivalry's agent server to Claude Code's own configuration for the mod's folder, which Claude Code reads instead of what VS Code extensions register. With Claude Code's `claude` command installed it runs `claude mcp add --scope local` (removing an earlier entry first), so the entry is private to you and kept outside the mod. Without it, it says so and asks whether to write a project configuration file, `.mcp.json`, in the mod's folder instead; nothing is written before you answer. Once the server is set up, it copies pychivalry's three skills ([below](#the-skills)) into Claude Code's folder of personal skills. Run it once per mod folder; it keeps working when the extension updates, and running it again changes nothing that is already in place |
+| pychivalry: Remove from Claude Code | Undoes the set-up for the mod's folder: removes the server's entry (`claude mcp remove --scope local`), takes pychivalry's own entry out of the folder's `.mcp.json` (the file goes too when nothing else is left in it; an entry of that name pychivalry did not write is left), and, when no other folder you set up is left, removes the skills it copied. Run it before you uninstall the extension, which cannot do it for you |
 
 When `pychivalry.gamePath` changes after a set-up, Claude Code still has the command line it was
 given, with the old game folder. pychivalry notices and offers, once, to set the folder up
 again; accepting runs the command again for that folder.
+
+### The skills
+
+pychivalry ships three skills: short written instructions an AI loads when a task calls for one.
+Each tells the AI how to use pychivalry's tools for one kind of task; the AI decides when to load
+it from what you ask, or you start one by name.
+
+| Skill | When the AI uses it |
+| --- | --- |
+| `pychivalry-explain-error` | You ask what an error, a warning or a code means, or why pychivalry reports something. It explains from the game's own evidence and documentation, and changes nothing |
+| `pychivalry-fix-error` | You ask to fix the errors and warnings of the mod or a file. It checks, looks up what is valid, edits, and checks again, at most five rounds, and formats what it changed; it says what is left |
+| `pychivalry-write-content` | You ask for new content: an event with its localization, a decision, a scripted effect or a scripted trigger. It looks every name up before writing it, writes the localization with the event, runs the checker and repairs from what it finds, at most five rounds, formats what it wrote, and never says it is done while an error is left |
+
+- **VS Code's own AI** has them as soon as the extension is installed: they are listed in the
+  chat's skills, and in agent mode the AI loads one when your request matches it (or type `/`
+  and pick one).
+- **Claude Code** gets them from "Set up for Claude Code", which copies them into the `skills`
+  folder of Claude Code's configuration folder (`~/.claude`, or the folder `CLAUDE_CONFIG_DIR`
+  names), never into your mod. Claude Code picks them up at once; ask "What skills are
+  available?" to see them. pychivalry writes and removes only its own copies there: a skill of
+  the same name that pychivalry did not write, or one you edited, is left as it is, and the
+  set-up says so. When the extension updates, it brings its copies up to the new version the
+  next time it starts.
+
+The AI's edits go through its own harness, which shows them to you; pychivalry's agent server
+only reads. A clean check proves the script is valid, not that it does what you asked: read
+what the AI wrote.
 
 The editor features need no command: the extension starts when you open a CK3 script or
 localization file, or a folder holding a `descriptor.mod`. They are the language server's:

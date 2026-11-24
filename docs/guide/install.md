@@ -1,15 +1,18 @@
 # Installing pychivalry
 
-## Today: the preview, 0.1.0
+## Today: the preview, 0.2.0
 
-pychivalry 1.0.0 is not released. The first **preview**, version 0.1.0, is a build of the
-rebuild as it stands after build step 7: the checks, lookups and editor features built so far,
-the agent server for your AI, and the command line. It is a preview: it will change, it has
-not been through a release's checks, and it is installed and updated by hand. Its file,
-`pychivalry-0.1.0.vsix`, is attached to the pre-release
-[pychivalry 0.1.0 (preview)](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0)
-on the repository's GitHub releases page, published on 2026-11-23. It can also be built from
-source with `task vscode:package` (below).
+pychivalry 1.0.0 is not released. The second **preview**, version 0.2.0, is a build of the
+rebuild as it stands after build step 8: the checks, lookups and editor features built so far,
+the formatter and the quick fixes, the agent server for your AI, and the command line. It is a
+preview: it will change, it has not been through a release's checks, and it is installed and
+updated by hand. Its file, `pychivalry-0.2.0.vsix`, is attached to the pre-release
+[pychivalry 0.2.0 (preview)](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0)
+on the repository's GitHub releases page, published on 2026-11-23. The first preview, 0.1.0,
+is [still there](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0); 0.2.0
+updates it in place. The skills of build step 9 ([Commands](commands.md#the-skills)) are not in
+0.2.0: they come with the third preview, or a build from source with `task vscode:package`
+(below).
 
 The old version, release 2.3.0, is still published as the `ck3-language-support` extension and
 still works. It is no longer developed. pychivalry is a new extension named `pychivalry`
@@ -18,12 +21,13 @@ by side, but both then check the same files; disable one of them for a mod.
 
 ### Installing the preview
 
-1. Download `pychivalry-0.1.0.vsix` from the
-   [0.1.0 pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0). Its
-   SHA-256 is `25f38c9dfd11e7019ac0f0b9b5d193b305be87c129fa687dca59dad7c20cac94`.
+1. Download `pychivalry-0.2.0.vsix` from the
+   [0.2.0 pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0). It is
+   4,050,490 bytes, and its SHA-256 is
+   `cf810a06a9ee2a04783bf26e96323bebf545a35f61bd0e124e2cf95ab0bc4b61`.
 2. In VS Code, open the Extensions view, choose the `...` menu at its top, then
    "Install from VSIX...", and choose the file. From a terminal, the same is
-   `code --install-extension pychivalry-0.1.0.vsix`.
+   `code --install-extension pychivalry-0.2.0.vsix`.
 3. Open your mod's folder, the one holding `descriptor.mod`. The extension starts by itself:
    the Problems panel fills with pychivalry's findings, and the first time it reads your game,
    which takes up to a minute, a progress notice shows it working. If the game is not found, it
@@ -41,17 +45,23 @@ server and the command line are all inside the file, and VS Code runs them.
   update it. Install the newer `.vsix` the same way, over the old one. Claude Code's set-up
   keeps working across the update: the extension keeps its servers in a folder whose path does
   not change.
-- **Removing it.** Uninstall it from the Extensions view. For Claude Code, also run
-  `claude mcp remove --scope local pychivalry` in each mod folder you set up (or delete the
-  `pychivalry` entry from the `.mcp.json` the set-up wrote, if it wrote one). pychivalry's
-  index of the game is in your cache folder ([Settings](settings.md)) and can be deleted.
+- **Removing it.** For Claude Code, first run **pychivalry: Remove from Claude Code** in each
+  mod folder you set up, which a build with the skills has ([Commands](commands.md)): it
+  removes the server's entry and, with the last folder, the skills it copied. With 0.2.0, or
+  by hand: run `claude mcp remove --scope local pychivalry` in each mod folder you set up (or
+  delete the `pychivalry` entry from the `.mcp.json` the set-up wrote, if it wrote one), and
+  delete the folders `pychivalry-explain-error`, `pychivalry-fix-error` and
+  `pychivalry-write-content` from Claude Code's `skills` folder if a set-up copied them there.
+  Then uninstall the extension from the Extensions view. pychivalry's index of the game is in
+  your cache folder ([Settings](settings.md)) and can be deleted.
 
 ## When 1.0.0 is released
 
 - **One thing to install: the extension**, as for the preview: a file attached to each release
-  on GitHub, installed with "Install from VSIX". It will also contain the skills.
+  on GitHub, installed with "Install from VSIX". It contains the skills too.
 - **Updates are by hand**, as for the preview.
-- **Claude Code.** After installing, run "Set up for Claude Code" once per mod folder.
+- **Claude Code.** After installing, run "Set up for Claude Code" once per mod folder: it adds
+  the server and the skills.
 
 ## What you need
 

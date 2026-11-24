@@ -19,10 +19,13 @@ registers the agent server with VS Code's AI and Claude Code, the command line o
 path, the same-answers test, the packaged `.vsix` and its smoke test; the first preview,
 0.1.0, is published as a GitHub pre-release (2026-11-23). After it the language server, the
 agent servers and the command line were made to share one copy of the base game's index
-([shared-index.md](shared-index.md)). Build step 8, the formatter and fixes, has started: the
-formatting rules are proposed for the owner's sign-off, findings carry their fixes with quick
-fixes in the editor and `check --fix` on the command line, and the presentation data (outline,
-snippets, field order, inline hints) is built. What
+([shared-index.md](shared-index.md)). Build step 8, the formatter and fixes, is built: the
+formatting rules the owner decided, the `style/` findings, findings that carry their fixes with
+quick fixes in the editor and `check --fix` on the command line, and the presentation data
+(outline, snippets, field order, inline hints); the second preview, 0.2.0, is published as a
+GitHub pre-release (2026-11-23). Build step 9 has started: the three skills, in the form both AI
+harnesses load, given to VS Code's AI by the extension and installed for Claude Code by its
+set-up, and the hand checklist for VS Code's AI; the scored authoring run is being built. What
 waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
@@ -381,8 +384,15 @@ default folder.
 
 ### Skills
 
-Three: explain an error, fix an error, write new content. Each is tested by the scored runs in
-[AI tests](#ai-tests).
+Three: explain an error, fix an error, write new content (`skills/`, build step 9). Each is a
+folder holding one `SKILL.md`, a `name` and a `description` and then the instructions, the one
+form both harnesses load. VS Code's AI reads them inside the installed extension; "Set up for
+Claude Code" copies them into Claude Code's own folder of personal skills, never into the mod,
+keeps them current across updates, and "Remove from Claude Code" takes them away again. They
+drive the agent server's tools and hold no CK3 vocabulary of their own: a test holds every name
+they write as code to the tools, the command line and the spec package. Each is tested by the
+scored runs in [AI tests](#ai-tests), and by hand in VS Code's AI
+([guide/ai-checklist.md](guide/ai-checklist.md)).
 
 ## Check inventory and codes
 
@@ -750,7 +760,7 @@ Each is settled by evidence inside the build, not by a choice.
 | 3 | The real format of the error log, when it is cleared, and what debug mode adds. | Build step 11, from captured logs. |
 | 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on the analysis machine. |
 | 9 | Whether ck3-tiger and the CWTools rule files hold rules worth taking, and under what licences. | Build step 4, when the check inventory is written. |
-| 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | The VS Code half is answered by build step 7 (item 7.1, #142): on VS Code 1.146 and later, the definition the extension registers is forwarded unchanged to the Copilot harness, with no sign-in, on Linux and Windows; Claude Code reaches the same server through "Set up for Claude Code", and both keep working across an extension update. Whether a signed-in harness then calls the tools is the by-hand check before a release ([guide/by-hand-check.md](guide/by-hand-check.md)). The skills half is open: build step 9. |
+| 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | The VS Code half is answered by build step 7 (item 7.1, #142): on VS Code 1.146 and later, the definition the extension registers is forwarded unchanged to the Copilot harness, with no sign-in, on Linux and Windows; Claude Code reaches the same server through "Set up for Claude Code", and both keep working across an extension update. Whether a signed-in harness then calls the tools is the by-hand check before a release ([guide/by-hand-check.md](guide/by-hand-check.md)). The skills half is answered by build step 9 (items 9.1 and 9.3): one skills folder serves both unchanged. VS Code 1.147 lists the skills the extension contributes and syncs them, byte for byte, into the plugin it writes for its Copilot harness; "Set up for Claude Code" copies the same files into Claude Code's personal skills folder, read by every Claude Code session (2.1.220's code and documentation); editor tests show both on Linux and Windows. Whether a signed-in AI loads and follows them is the scored authoring run's and the hand checklist's to show ([guide/ai-checklist.md](guide/ai-checklist.md)). |
 | 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
 | 7 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
 

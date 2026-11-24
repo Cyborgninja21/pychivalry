@@ -58,8 +58,8 @@ about the game: check again before relying on one.
   `claude mcp list` and `claude mcp get` connect to each server to report its health.
   An entry is `{type: "stdio", command, args, env}`. Checked 2026-11-23 (below).
 - **Skills** are folders of instructions a harness loads on demand. pychivalry ships three:
-  explain, fix, and write content. Whether one skills folder loads in both harnesses is part of
-  open question 4.
+  explain, fix, and write content. One skills folder serves both harnesses unchanged: what each
+  reads, and from where, is [below](#skills-checked-for-build-step-9-2026-11-23).
 - **Scored tests** are developer test scripts, never shipped and never run by CI. They start
   the Claude Code already installed on the developer's machine, signed in however the developer
   signed it in, once per trial as a separate test session in its command-line mode, confined to
@@ -107,6 +107,40 @@ Read on 2026-11-23 for items 7.1, 7.2 and 7.8; every page fetched:
 - `@vscode/vsce` 4.1.1 (released 2026-11-12), `vsce package --help`: the options used.
 - `actions/cache` v6.1.0 (released 2026-06-26), commit
   `55cc8345863c7cc4c66a329aec7e433d2d1c52a9`, for the downloaded VS Code in the editor-test job.
+
+## Skills, checked for build step 9 (2026-11-23)
+
+Read for items 9.1 and 9.3: each product's documentation, and the shipped code of the releases
+the tests use, read as files; no harness was run for it, and no session started.
+
+- **One form for both.** A skill is a folder holding `SKILL.md`: a YAML frontmatter between two
+  `---` lines, then Markdown instructions. Both read `name` and `description`. VS Code: `name`
+  is required, only lowercase letters, digits and hyphens, at most 64 characters, no hyphen at
+  either end and none doubled, and the folder's own name, or the skill does not load;
+  `description` is required, at most 1,024 characters. Claude Code: every field is optional,
+  `name` defaults to the folder's name and may not hold `<`, `>` or control characters, the
+  description and `when_to_use` together are cut at 1,536 characters in its listing and show
+  `<` and `>` as entities, and fields it does not know are ignored. pychivalry's skills use
+  `name` and `description` only, inside both sets of rules.
+- **VS Code** (its page "Use Agent Skills in VS Code", updated 2026-11-18, and the workbench
+  code of 1.147.0): an extension contributes skills with `contributes.chatSkills`, a list of
+  `{ path }` entries, each the path of a `SKILL.md` relative to the extension's folder; the
+  folder must have the skill's name. The setting `chat.useAgentSkills` (default on) governs
+  them. The skills VS Code has are synced into the plugin it writes for the Copilot harness, each
+  under `skills/<name>/` (the same plugin as the agent server's definition, item 7.1), and its
+  internal command `_listExtensionPromptFiles` lists what extensions contribute. The Copilot
+  harness reads a project's `.github/skills/` and `~/.copilot/skills/` itself; the deprecated
+  Local harness also reads `.claude/skills/` and `~/.claude/skills/`.
+- **Claude Code** (its page "Extend Claude with skills", read 2026-11-23, and the code of
+  2.1.220): personal skills are in `~/.claude/skills/<name>/SKILL.md`, every project's; project
+  skills in a project's `.claude/skills/`; plugins have their own. The configuration folder is
+  `CLAUDE_CONFIG_DIR` when that is set, else `~/.claude`, normalised to Unicode NFC, and the
+  personal skills are its `skills/`. Claude Code watches the folders and picks a change up
+  without a restart. Before 2.1.280 a `manifest.json` in `~/.claude/skills/` made Claude Code move
+  the skill folders it listed aside, so nothing but skill folders is written there.
+- **What pychivalry does with it.** VS Code's AI reads the skills inside the installed
+  extension; "Set up for Claude Code" copies them into Claude Code's personal skills, not into
+  the mod's `.claude/skills/`, which a mod's author may share or upload with the mod.
 
 ## The Model Context Protocol library
 
