@@ -1,0 +1,6 @@
+﻿l_english:
+ authoring_vigil_decision:0 "Keep a Night Vigil"
+ authoring_vigil_decision_desc:0 "Keep a night of prayer in the chapel."
+ authoring_vigil.0001.t:0 "Dawn after the Vigil"
+ authoring_vigil.0001.desc:0 "[ROOT.Char.GetFirstName] leaves the chapel as the sun rises."
+ authoring_vigil.0001.a:0 "I feel closer to the divine."

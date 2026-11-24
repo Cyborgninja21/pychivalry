@@ -21,7 +21,7 @@ and nothing more.
 | [Checking the skills by hand](ai-checklist.md) | The checklist a person runs in VS Code's own AI, which no script can drive: the same kinds of request the scored run makes, and what to look for in each |
 
 Writing content with AI is built in step 9: the skills ([Commands](commands.md#the-skills));
-how well it does is measured by the scored authoring run, still to come. Coming with the step
+how well it does is measured by the scored authoring run, built and not yet run. Coming with the step
 that builds them: the editor's views (step 12).
 
 ## What pychivalry will and will not tell you

@@ -25,7 +25,8 @@ quick fixes in the editor and `check --fix` on the command line, and the present
 (outline, snippets, field order, inline hints); the second preview, 0.2.0, is published as a
 GitHub pre-release (2026-11-23). Build step 9 has started: the three skills, in the form both AI
 harnesses load, given to VS Code's AI by the extension and installed for Claude Code by its
-set-up, and the hand checklist for VS Code's AI; the scored authoring run is being built. What
+set-up, and the hand checklist for VS Code's AI; and the scored authoring run, with its content
+requests, its judge and the judge's calibration, built and waiting for the owner's word. What
 waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
@@ -568,7 +569,12 @@ rate, because a model's output is not repeatable.
   fix the checker accepts inside those ranges passes, not only the reference copy's.
 - **Authoring.** A fixed list of content requests. Each result is graded on validity by the
   checker and on the match to the request by a separate model call that may answer "cannot
-  tell". The in-game load is the third grade once build step 11 exists.
+  tell". The in-game load is the third grade once build step 11 exists. *Built in build step 9:*
+  twelve requests in `fixtures/requests/`, three of each kind, each relying only on names the
+  spec package has; validity as three measures (no error, no warning, in pychivalry's format);
+  the match as expectations checked in code and a judge, one more test session of the
+  developer's own Claude Code with no tool, answering each dimension yes, no or cannot tell;
+  the judge calibrated against hand grades by `task scored:calibrate`. Not run yet.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
 - **The target (agent use).** Every test session passes: a release run of 10 test sessions must
   pass all 10, and a development run of 5 that passes fewer than 5 is looked into. The record

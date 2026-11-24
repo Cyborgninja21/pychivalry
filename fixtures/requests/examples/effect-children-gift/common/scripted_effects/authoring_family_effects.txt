@@ -1,0 +1,14 @@
+﻿# Gold for each adult child, prestige for the parent.
+authoring_children_gift_effect = {
+	every_child = {
+		limit = { is_adult = yes }
+		add_gold = 25
+	}
+	add_prestige = 20
+}
+
+# The family feast: the gifts, then some rest.
+authoring_family_feast_effect = {
+	authoring_children_gift_effect = yes
+	add_stress = -15
+}

@@ -16,8 +16,10 @@
  *
  * Nothing else is kept: not the text, not the tools' inputs or results (they hold the trial
  * folder's absolute paths), not the session id, nor any figure Claude Code reports about the
- * session's use of the developer's Claude plan, nor how Claude Code is signed in. A line that is
- * not a JSON object is counted, not read.
+ * session's use of the developer's Claude plan, nor how Claude Code is signed in. Two things are
+ * read for the run itself and never recorded: the files each tool call names, so that a run
+ * can check a session stayed in its folder, and the session's last words, which a judge
+ * session's answer is (judge.ts). A line that is not a JSON object is counted, not read.
  */
 
 import { isObject } from '../util.js';
@@ -42,6 +44,11 @@ export interface StreamInit {
 export interface StreamToolCall {
     readonly id: string;
     readonly name: string;
+    /**
+     * The files the call names (its input's `file_path`, `path` or `notebook_path`), for the
+     * run's own check that a session stays in its folder; never recorded.
+     */
+    readonly paths: readonly string[];
 }
 
 export interface StreamToolError {
@@ -64,6 +71,11 @@ export interface StreamResult {
      * record never holds them.
      */
     readonly errorText: string | null;
+    /**
+     * The session's last words however it ended (the end's `result`): what a judge session
+     * answered, which the run parses (judge.ts). A record never holds them.
+     */
+    readonly text: string | null;
     readonly turns: number | null;
     readonly durationMs: number | null;
     /** The tool names of the calls the permission mode denied. */
@@ -106,6 +118,16 @@ function resultText(content: unknown): string {
             .join('\n');
     }
     return '';
+}
+
+/** The files a tool call's input names. */
+function pathsOf(input: unknown): string[] {
+    if (!isObject(input)) {
+        return [];
+    }
+    return ['file_path', 'path', 'notebook_path']
+        .map((key) => text(input[key]))
+        .filter((p): p is string => p !== null && p !== '');
 }
 
 function initOf(event: Record<string, unknown>): StreamInit {
@@ -167,6 +189,7 @@ function resultOf(event: Record<string, unknown>): StreamResult {
         terminalReason: text(event['terminal_reason']),
         apiErrorStatus: count(event['api_error_status']),
         errorText: isError ? text(event['result']) : null,
+        text: text(event['result']),
         turns: count(event['num_turns']),
         durationMs: count(event['duration_ms']),
         permissionDenials: denials,
@@ -205,7 +228,7 @@ export function readStream(stream: string): StreamSummary {
                     const id = text(block['id']) ?? '';
                     const name = text(block['name']) ?? 'unknown';
                     names.set(id, name);
-                    toolCalls.push({ id, name });
+                    toolCalls.push({ id, name, paths: pathsOf(block['input']) });
                 }
             }
         } else if (type === 'user') {

@@ -69,6 +69,8 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task wiki:build` | The wiki pages, built into `.wiki-build/` to look at |
 | `task wiki:publish` | Publishes the wiki. Public the moment it runs: only on the owner's word ([docs/wiki/README.md](docs/wiki/README.md)) |
 | `task scored:agent-use` | The scored agent-use test, a developer's test script: it starts the Claude Code already installed on the developer's machine as separate test sessions, with the agent server attached, to fix the planted-defect mod, and grades them in code. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in `task ci` ([tools/scored-run/README.md](tools/scored-run/README.md)) |
+| `task scored:authoring` | The scored authoring test, a developer's test script on the same terms: for each content request of `fixtures/requests/`, test sessions of the developer's own Claude Code with the agent server and the skills write the content in a fresh mod, graded by the checker, by the request's expectations and by a judge, one more test session; `CK3_GAME_PATH` and `SCORED_SESSION_LIMIT` are required. Only on the owner's word, never in `task ci` ([tools/scored-run/README.md](tools/scored-run/README.md#the-scored-authoring-test)) |
+| `task scored:calibrate` | The judge's calibration: one judge test session per result graded by hand (`SCORED_GRADES`), recording the agreement. Only on the owner's word, never in `task ci` |
 
 ## Layout
 

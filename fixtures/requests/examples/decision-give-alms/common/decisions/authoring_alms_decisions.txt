@@ -1,0 +1,16 @@
+﻿# Give alms to the poor.
+authoring_alms_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	ai_check_interval = 120
+
+	is_shown = { is_ruler = yes }
+
+	is_valid = { gold >= 100 }
+
+	effect = {
+		add_gold = -100
+		add_piety = 50
+	}
+
+	ai_will_do = { base = 10 }
+}

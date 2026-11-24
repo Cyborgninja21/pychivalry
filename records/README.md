@@ -20,7 +20,9 @@ enforces and this page is fixed.
 | `game/bench.json` | `task game:bench` |
 | `baseline-2.3.0/speed-mods.json`, `speed-base-game.json`, `speed-editor.json` | `task baseline:speed` |
 | `baseline-2.3.0/results-base-game.json`, `results-mods.json` | `task baseline:results` |
-| `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records-scoredagent-use)) |
+| `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records)) |
+| `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code ([below](#authoring-records-scoredauthoring)) |
+| `scored/calibration.json` | `task scored:calibrate`, the judge's calibration against hand grades, in test sessions of the same ([below](#calibration-records-scoredcalibration)) |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
 
 Each run overwrites its suite's record; the history is git's. Records are written only by the
@@ -33,12 +35,12 @@ Every record is one JSON object, four-space indented, with a final newline.
 | Field | What it states |
 | --- | --- |
 | `record_format` | The version of this format: `1`. |
-| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench`, `baseline:speed`, `baseline:results` or `scored:agent-use`. |
+| `suite` | Which suite: `game:parse`, `game:index`, `game:check`, `game:mods`, `game:bench`, `baseline:speed`, `baseline:results`, `scored:agent-use`, `scored:authoring` or `scored:calibration`. |
 | `command` | The command that made it, with `<game dir>`, `<corpus dir>` and `<legacy build>` for local paths. |
 | `made_at` | When it was made, ISO 8601 in UTC. |
 | `tool` | The build that made it: `name` (`pychivalry`), `version`, the git `commit`, and `dirty`, true when tracked files outside `records/` differed from that commit. A 2.3.0 baseline names release 2.3.0 and the commit that last changed `legacy/`; its `dirty` is true when the build copy differs from `legacy/` in a file other than those the baseline writes on purpose (the export's `spec.config.json`, and the records 2.3.0's own tools write into their tree). |
 | `machine` | The machine, generically: `os` (family), `arch`, `logical_cpus`, `memory_gib`, `node`. Nothing that identifies it or its owner. |
-| `game` | The installed game: `build` (from the launcher's settings file, `rawVersion`), `manifest_sha256` (below), `files`, `content_hashed_files`. |
+| `game` | The installed game: `build` (from the launcher's settings file, `rawVersion`), `manifest_sha256` (below), `files`, `content_hashed_files`. `null` for the judge's calibration, which reads no game, and only for it. |
 | `spec` | The spec package the run used: `version`, `sha256` (of the uncompressed bytes), `package_format`. For a 2.3.0 baseline, the format 4 copy it ran on ([Baselines](#baselines)). |
 | `corpus` | `null` for a suite that reads no mods; otherwise `manifest_sha256`, the SHA-256 of `corpus/MANIFEST.tsv` as committed, and `slugs`, the mods it read. |
 | `notes` | Optional sentences a reader needs to interpret the results. Required on a speed record. |
@@ -75,7 +77,7 @@ For every `*.json` under `records/` except the `*.schema.json` files:
    record made on another spec fails**, so a spec change forces the suites to be re-run. A
    2.3.0 baseline is tied to the committed format 4 copy instead, by the rule in
    [Baselines](#baselines). A scored record is not tied to it at all
-   ([Scored records](#scored-records-scoredagent-use)).
+   ([Scored records](#scored-records)).
 3. If it read the corpus, its `corpus.manifest_sha256` is the SHA-256 of the committed
    `corpus/MANIFEST.tsv`, so a corpus refresh forces them to be re-run too.
 4. No string in it is an absolute or home-relative path.
@@ -102,6 +104,16 @@ For every `*.json` under `records/` except the `*.schema.json` files:
     problems, its graders the five in order, each grader's `passed` with its problems, the
     trials numbered from 1, and each task's trial and pass counts, pass rate and target with
     the trials.
+11. An authoring record valid against the schema agrees with itself: each trial's validity
+    with its counts by code (no error, no warning, in the format), each expectation's `met`
+    with its problem and the trial's `expectations_met` with them, the judge's state with its
+    answers (one per dimension its request asks, in order, when answered) and why, the trial's
+    `harness_held` with its two lists of harness problems, the trials numbered from 1 within
+    each request, and the measures per request and over all with the trials.
+12. A calibration record valid against the schema agrees with itself: its items numbered from
+    1, each item's agreement with its hand grades and the judge's answers, the judge's state
+    with its answers, the count of items, and the agreement per dimension and over all with the
+    items.
 
 ## Baselines
 
@@ -269,7 +281,18 @@ A run passes when every finding it must classify has an entry, every entry match
 none is a pychivalry fault, and, for the mods, none is `unclassified`. A failed run still writes
 its record, and exits 1.
 
-## Scored records (`scored:agent-use`)
+## Scored records
+
+Three suites are scored test runs, made in test sessions of the developer's own Claude Code:
+the agent-use test (`scored:agent-use`), the authoring test (`scored:authoring`) and the judge's
+calibration (`scored:calibration`). None is tied to the committed spec: each states the spec it
+was made on, and a later spec does not fail it, because making it again means new test sessions,
+which start only on the owner's word. Their `corpus` is null and their `notes` are required.
+Nothing from a session is kept beyond their fields: not its text, not the tools' inputs or
+results, not its id, no figure Claude Code reports about the session's use of the developer's
+plan, nothing about how Claude Code runs as the developer.
+
+### Agent-use records (`scored:agent-use`)
 
 `task scored:agent-use` (build step 6, items 6.8 and 6.10) is a developer's test script, never
 run by CI. pychivalry holds no key and makes no model call: the script starts the Claude Code
@@ -306,3 +329,42 @@ to the record already written, numbered after its own, only when that record was
 same commit with the same task, Claude Code version, model, session limit, time limit, arguments
 and agent server, and a note says which trials each run added. The first record, of item 6.11,
 is one session and then four more, made that way.
+
+### Authoring records (`scored:authoring`)
+
+`task scored:authoring` (build step 9, items 9.4 and 9.5): for each content request of
+`fixtures/requests/` and each of its trials, one authoring test session in a fresh copy of the
+request's base mod, with the agent server over the installed game and the skills, then one judge
+test session on what it wrote ([tools/scored-run/README.md](../tools/scored-run/README.md#the-scored-authoring-test)).
+Its `game` is the installed game the sessions, the checker and the expectations read. The record
+is written again after every trial. `results`:
+
+| Field | What it states |
+| --- | --- |
+| `task` | `name` (`authoring`); the `requests_file`, both prompts (`prompt_file`, `judge_prompt_file`) and the `judge_schema_file`, each with its SHA-256; the `bases` and the `skills`, each by name and the SHA-256 of its files; `skills_in`, where each session was given the skills (`project` or `config`); the closed sets of `dimensions` and `answers` |
+| `harness` | `name` (`claude-code`) and `version` |
+| `model`, `judge_model` | The authoring sessions' model and the judge's, by their full names |
+| `session_limit`, `judge_session_limit`, `timeout_minutes`, `judge_timeout_minutes` | The session limit and the time limit of each kind of session |
+| `arguments`, `judge_arguments` | Claude Code's arguments for each, the prompt and the agent-server configuration named instead of given |
+| `server` | The agent server's `entry` and `arguments`, with `<trial mod>` and `<game dir>` |
+| `trials` | Per trial: `task` (the request's id), `content_type`, `difficulty`, `trial` (from 1 within its request), `harness_held`, then what an agent-use trial keeps of the session (`stopped`, `harness_problems`, `tool_calls`, `tool_errors`, `permission_denials`, `session`, `turns`, `duration_ms`, `exit_code`); `validity`, grade one: the `errors`, `warnings`, `information` and `hints`, `zero_errors`, `no_warnings`, `in_format` (no `style/` warning) and the errors and warnings `by_code`; `expectations`, each `expectation` in words, `met` and its `problem`, and `expectations_met`; `judge`: its `state` (`answered`, `malformed` or `not-judged`), `why` when not answered, its session's `stopped`, `harness_problems`, `turns`, `duration_ms` and `exit_code`, and its `answers`, one per dimension the request asks (`yes`, `no` or `cannot-tell`) |
+| `tasks` | Per request run: its `name`, `content_type` and `difficulty`, its `trials` and those whose harness `held`, and of those the counts with `zero_errors`, `no_warnings`, `in_format` and `expectations_met`, and per dimension `judged` the counts of `yes`, `no`, `cannot_tell` and `unanswered` |
+| `overall` | The same counts over every trial |
+
+A trial whose harness did not hold is listed and counted in `trials` only. There is no target:
+the owner sets the targets from the first run (item 9.8).
+
+### Calibration records (`scored:calibration`)
+
+`task scored:calibrate` (build step 9, item 9.6): one judge test session on each result a person
+graded by hand ([tools/scored-run/README.md](../tools/scored-run/README.md#calibrating-the-judge-item-96)).
+Its `game` is null: the results were made over a game already. `results`:
+
+| Field | What it states |
+| --- | --- |
+| `grades` | The grades file, by its path inside the repository or `<grades file>`, its SHA-256 and the number of `items` judged |
+| `requests_file`, `judge_prompt_file`, `judge_schema_file` | Each with its SHA-256 |
+| `answers` | The judge's closed set |
+| `harness`, `judge_model`, `judge_session_limit`, `judge_timeout_minutes`, `judge_arguments` | As in an authoring record |
+| `items` | Per graded result: `item` (from 1), `request`, the `hand` grades per dimension, the `judge` as in an authoring trial, and `agrees` per dimension (null where the judge did not answer) |
+| `dimensions` | Per dimension, and `overall` over all: the `grades`, those the judge answered (`judged`), those it answered as the person did (`agree`), the `agreement` (agree over judged, to 4 places, null when none was judged), `hand_cannot_tell`, `judge_cannot_tell` and its rate over judged, and the `matrix` of hand answer against judge answer |

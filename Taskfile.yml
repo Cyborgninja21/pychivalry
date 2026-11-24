@@ -192,6 +192,18 @@ tasks:
     cmds:
       - node tools/dist/cli.js scored agent-use
 
+  scored:authoring:
+    desc: "The scored authoring test (tools/scored-run/README.md), a developer's test script: for each content request of fixtures/requests (SCORED_REQUESTS, default all) and each of SCORED_TRIALS trials (default 5), starts the Claude Code already installed on this machine as one authoring test session in a fresh copy of the request's base mod, with the agent server over CK3_GAME_PATH and the skills, then one judge test session on what it left; SCORED_SESSION_LIMIT (required, no default) is each session's limit. Grades each result with the checker, its expectations and the judge's answers, and writes records/scored/authoring.json; stops at the first trial whose harness did not hold. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in task ci"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js scored authoring
+
+  scored:calibrate:
+    desc: "The judge's calibration (tools/scored-run/README.md), a developer's test script: one judge test session of the Claude Code already installed on this machine for each result graded by hand in SCORED_GRADES, with SCORED_SESSION_LIMIT (required, no default) as each session's limit; records the judge's agreement with the hand grades per dimension and over all, with the cannot-tell rates, in records/scored/calibration.json. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in task ci"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js scored calibrate
+
   # ─── Documents written from the code ───
 
   docs:checks:

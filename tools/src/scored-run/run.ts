@@ -67,6 +67,7 @@ import {
     sha256OfFile,
     writeJson,
 } from '../util.js';
+import { sessionProblems, type Confinement } from './confinement.js';
 import { GRADERS, gradeMod, type GraderResult } from './graders.js';
 import { committedManifest, DEFECTS_DIR, type DefectManifest } from './manifest.js';
 import { readStream, type StreamSummary } from './stream.js';
@@ -129,7 +130,8 @@ export interface ScoredOptions {
     readonly continue: boolean;
 }
 
-function positive(name: string, value: string, integer: boolean): number {
+/** A parameter that must be a positive number (a whole one when `integer`), or a usage error. */
+export function positive(name: string, value: string, integer: boolean): number {
     const n = Number(value);
     if (!/^[0-9]+(\.[0-9]+)?$/.test(value) || !(n > 0) || (integer && !Number.isInteger(n))) {
         throw new CommandError(
@@ -138,6 +140,29 @@ function positive(name: string, value: string, integer: boolean): number {
         );
     }
     return n;
+}
+
+/**
+ * A file's path from the repository root, written with `/`, as a record may name it; `named`
+ * (such as `<agent server>`) when the file is outside the repository: above it, or on another
+ * drive, where the path between them is absolute.
+ */
+export function inRepository(root: string, file: string, named: string): string {
+    const rel = path.relative(root, file);
+    return rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)
+        ? named
+        : rel.split(path.sep).join('/');
+}
+
+/** A model's full name, never an alias, so that a record names the model it measured. */
+export function fullModelName(variable: string, model: string): string {
+    if (!/^claude-[a-z0-9]+(-[a-z0-9]+)*$/.test(model)) {
+        throw new CommandError(
+            `${variable} must be a model's full name such as ${PINNED_MODEL}, not an alias: ${JSON.stringify(model)}`,
+            EXIT.usage,
+        );
+    }
+    return model;
 }
 
 /** The run's parameters, from the environment (the table above). */
@@ -152,13 +177,7 @@ export function scoredOptions(
             EXIT.usage,
         );
     }
-    const model = env['SCORED_MODEL'] ?? PINNED_MODEL;
-    if (!/^claude-[a-z0-9]+(-[a-z0-9]+)*$/.test(model)) {
-        throw new CommandError(
-            `SCORED_MODEL must be a model's full name such as ${PINNED_MODEL}, not an alias: ${JSON.stringify(model)}`,
-            EXIT.usage,
-        );
-    }
+    const model = fullModelName('SCORED_MODEL', env['SCORED_MODEL'] ?? PINNED_MODEL);
     let serverArgs: readonly string[] = DEFAULT_SERVER_ARGS;
     const rawArgs = env['SCORED_SERVER_ARGS'];
     if (rawArgs !== undefined && rawArgs !== '') {
@@ -197,6 +216,13 @@ export function scoredOptions(
 }
 
 /**
+ * Claude Code's own option that ends a session early at the session limit, named here once for
+ * every scored session (docs/decisions.md, decision 80): the agent-use and authoring trials and
+ * the judge's sessions pass the session limit to it unchanged.
+ */
+export const SESSION_LIMIT_OPTION = '--max-budget-usd';
+
+/**
  * Claude Code's arguments for one trial: the flags of docs/PLAN.md item 6.8, checked against
  * `claude --help` of Claude Code 2.1.220 and again of 2.1.330, which ran item 6.11's test
  * sessions (tools/scored-run/README.md says how each differs):
@@ -231,7 +257,7 @@ export function claudeArgs(
         [`mcp__${SERVER_NAME}__*`, ...BUILT_IN_TOOLS].join(','),
         '--permission-mode',
         'dontAsk',
-        '--max-budget-usd',
+        SESSION_LIMIT_OPTION,
         String(options.sessionLimit),
         '--output-format',
         'stream-json',
@@ -395,20 +421,12 @@ export function stoppedBy(summary: StreamSummary, timedOut: boolean): TrialRecor
     return 'error';
 }
 
-/** How a session that ended on an error ended: its subtype, why its loop ended, the status. */
-function errorEnd(summary: StreamSummary): string {
-    const result = summary.result;
-    if (result === null) {
-        return 'an error';
-    }
-    return [
-        result.subtype,
-        result.terminalReason,
-        result.apiErrorStatus === null ? null : `status ${String(result.apiErrorStatus)}`,
-    ]
-        .filter((part) => part !== null)
-        .join(', ');
-}
+/** What an agent-use trial's session may be offered: `Read`, `Edit`, the one server, no skill. */
+export const AGENT_USE_CONFINEMENT: Confinement = {
+    builtIn: BUILT_IN_TOOLS,
+    server: { name: SERVER_NAME, tools: SERVER_TOOLS },
+    skills: { required: [], othersAllowed: false },
+};
 
 /** The problems of a trial's harness: what makes the trial say nothing about the server. */
 export function harnessProblems(
@@ -417,56 +435,48 @@ export function harnessProblems(
     exitCode: number | null,
     timeoutMinutes: number,
 ): string[] {
-    const problems: string[] = [];
-    if (stopped === 'timeout') {
-        problems.push(
-            `the session was stopped after the time limit of ${String(timeoutMinutes)} minutes`,
-        );
-    } else if (stopped === 'no-result') {
-        problems.push(`the stream has no result; Claude Code exited with ${String(exitCode)}`);
-    } else if (stopped === 'error') {
-        problems.push(`the session ended on an error (${errorEnd(summary)})`);
+    return sessionProblems(summary, stopped, exitCode, timeoutMinutes, AGENT_USE_CONFINEMENT);
+}
+
+/**
+ * What a trial's record states of its session, from its stream: the tool calls and errors per
+ * tool, the calls the permission mode refused, what the session was offered, its turns and its
+ * time. Shared by the agent-use and the authoring trials.
+ */
+export function sessionRecord(
+    summary: StreamSummary,
+): Pick<TrialRecord, 'tool_calls' | 'permission_denials' | 'session' | 'turns' | 'duration_ms'> {
+    const calls = new Map<string, { calls: number; errors: number }>();
+    for (const call of summary.toolCalls) {
+        const row = calls.get(call.name) ?? { calls: 0, errors: 0 };
+        row.calls++;
+        calls.set(call.name, row);
     }
-    const init = summary.init;
-    if (init === null) {
-        problems.push('the stream has no init event: the confinement was not seen');
-        return problems;
+    for (const error of summary.toolErrors) {
+        const row = calls.get(error.name) ?? { calls: 0, errors: 0 };
+        row.errors++;
+        calls.set(error.name, row);
     }
-    const outside = init.tools.filter(
-        (t) => !BUILT_IN_TOOLS.includes(t) && !t.startsWith(`mcp__${SERVER_NAME}__`),
-    );
-    if (outside.length > 0) {
-        problems.push(`tools outside the confinement were offered: ${outside.join(', ')}`);
-    }
-    if (init.skills.length > 0) {
-        problems.push(`skills were offered: ${init.skills.join(', ')}`);
-    }
-    // Claude Code's own plugins come with the program, as its built-in agents do; any other
-    // plugin is the person's set-up.
-    const plugins = init.plugins.filter((p) => !p.builtIn).map((p) => p.name);
-    if (plugins.length > 0) {
-        problems.push(`plugins were loaded: ${plugins.join(', ')}`);
-    }
-    const others = init.mcpServers.filter((s) => s.name !== SERVER_NAME).map((s) => s.name);
-    if (others.length > 0) {
-        problems.push(`other agent servers were offered: ${others.join(', ')}`);
-    }
-    const server = init.mcpServers.find((s) => s.name === SERVER_NAME);
-    if (server === undefined) {
-        problems.push('the agent server is not in the session');
-    } else if (server.status === 'failed') {
-        problems.push('the agent server failed to start');
-    } else if (server.status === 'connected') {
-        // A server still starting when the session began (Claude Code before 2.1.221) has
-        // offered no tools yet; one that is connected offers all of them.
-        const missing = SERVER_TOOLS.filter(
-            (t) => !init.tools.includes(`mcp__${SERVER_NAME}__${t}`),
-        );
-        if (missing.length > 0) {
-            problems.push(`the agent server's tools were not offered: ${missing.join(', ')}`);
-        }
-    }
-    return problems;
+    return {
+        tool_calls: [...calls]
+            .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+            .map(([tool, row]) => ({ tool, calls: row.calls, errors: row.errors })),
+        permission_denials: summary.result?.permissionDenials.length ?? 0,
+        session:
+            summary.init === null
+                ? null
+                : {
+                      harness_version: summary.init.version,
+                      model: summary.init.model,
+                      permission_mode: summary.init.permissionMode,
+                      tools: [...summary.init.tools].sort(),
+                      mcp_servers: summary.init.mcpServers.map((s) => ({ ...s })),
+                      skills: [...summary.init.skills].sort(),
+                      plugins: summary.init.plugins.map((p) => p.name).sort(),
+                  },
+        turns: summary.result?.turns ?? null,
+        duration_ms: summary.result?.durationMs ?? null,
+    };
 }
 
 /** One trial's record, from its stream, its exit and its grades. */
@@ -483,19 +493,9 @@ export function trialRecord(input: {
     const { summary } = input;
     const stopped = stoppedBy(summary, input.timedOut);
     const problems = harnessProblems(summary, stopped, input.exitCode, input.timeoutMinutes);
-    const calls = new Map<string, { calls: number; errors: number }>();
-    for (const call of summary.toolCalls) {
-        const row = calls.get(call.name) ?? { calls: 0, errors: 0 };
-        row.calls++;
-        calls.set(call.name, row);
-    }
-    for (const error of summary.toolErrors) {
-        const row = calls.get(error.name) ?? { calls: 0, errors: 0 };
-        row.errors++;
-        calls.set(error.name, row);
-    }
     const count = (severity: string): number =>
         input.findings.filter((f) => f.severity === severity).length;
+    const session = sessionRecord(summary);
     return {
         task: TASK,
         trial: input.trial,
@@ -507,28 +507,15 @@ export function trialRecord(input: {
             passed: g.passed,
             problems: g.problems.map((text) => sanitize(text, input.folders)),
         })),
-        tool_calls: [...calls]
-            .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-            .map(([tool, row]) => ({ tool, calls: row.calls, errors: row.errors })),
+        tool_calls: session.tool_calls,
         tool_errors: summary.toolErrors.map((e) => ({
             tool: e.name,
             message: sanitize(e.message, input.folders),
         })),
-        permission_denials: summary.result?.permissionDenials.length ?? 0,
-        session:
-            summary.init === null
-                ? null
-                : {
-                      harness_version: summary.init.version,
-                      model: summary.init.model,
-                      permission_mode: summary.init.permissionMode,
-                      tools: [...summary.init.tools].sort(),
-                      mcp_servers: summary.init.mcpServers.map((s) => ({ ...s })),
-                      skills: [...summary.init.skills].sort(),
-                      plugins: summary.init.plugins.map((p) => p.name).sort(),
-                  },
-        turns: summary.result?.turns ?? null,
-        duration_ms: summary.result?.durationMs ?? null,
+        permission_denials: session.permission_denials,
+        session: session.session,
+        turns: session.turns,
+        duration_ms: session.duration_ms,
         exit_code: input.exitCode,
         findings_left: {
             error: count('error'),
@@ -546,9 +533,9 @@ function commandOf(root: string, options: ScoredOptions): string {
         `SCORED_TRIALS=${String(options.trials)}`,
         `SCORED_SESSION_LIMIT=${String(options.sessionLimit)}`,
     ];
-    const server = relativePosix(root, options.server);
+    const server = inRepository(root, options.server, '<agent server>');
     if (server !== DEFAULT_SERVER) {
-        parts.push(`SCORED_SERVER=${server.startsWith('..') ? '<agent server>' : server}`);
+        parts.push(`SCORED_SERVER=${server}`);
     }
     if (options.claude.command !== 'claude' || options.claude.args.length > 0) {
         parts.push('SCORED_CLAUDE=<another Claude Code>');
@@ -581,6 +568,28 @@ export function continuedRecord(
             | 'server'
         >,
 ): ScoredRecord {
+    const { tool, spec, game, ...results } = expected;
+    return recordToContinue(
+        file,
+        SCORED_SUITE,
+        { tool, spec, game },
+        results,
+    ) as unknown as ScoredRecord;
+}
+
+/**
+ * The record of `suite` already written at `file`, which a continued run adds its trials to:
+ * it must state `top` (the record's own fields: the tool, the spec, the game) and `results`
+ * (the fields of its results a trial depends on) exactly as this run would, compared as the
+ * record holds them, written as JSON and read back. Otherwise the run stops before any test
+ * session, naming what differs.
+ */
+export function recordToContinue(
+    file: string,
+    suite: string,
+    top: Readonly<Record<string, unknown>>,
+    results: Readonly<Record<string, unknown>>,
+): Record<string, unknown> {
     if (!existsSync(file)) {
         throw new CommandError(
             `SCORED_CONTINUE=true adds to the record already written, and there is none: ${file}`,
@@ -588,34 +597,32 @@ export function continuedRecord(
         );
     }
     const record = readJson(file);
-    const results = isObject(record) ? record['results'] : undefined;
+    const written = isObject(record) ? record['results'] : undefined;
     if (
         !isObject(record) ||
-        record['suite'] !== SCORED_SUITE ||
-        !isObject(results) ||
-        !Array.isArray(results['trials']) ||
+        record['suite'] !== suite ||
+        !isObject(written) ||
+        !Array.isArray(written['trials']) ||
         !Array.isArray(record['notes'])
     ) {
-        throw new CommandError(`SCORED_CONTINUE=true: ${file} is not a scored record`, EXIT.usage);
+        throw new CommandError(
+            `SCORED_CONTINUE=true: ${file} is not a ${suite} record`,
+            EXIT.usage,
+        );
     }
     // As the record would hold them: written as JSON and read back.
-    const wanted = JSON.parse(JSON.stringify(expected)) as Record<string, unknown>;
+    const asWritten = (value: unknown): Record<string, unknown> =>
+        JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
+    const wantedTop = asWritten(top);
+    const wantedResults = asWritten(results);
     const differ: string[] = [];
-    for (const key of ['tool', 'spec', 'game'] as const) {
-        if (!isDeepStrictEqual(record[key], wanted[key])) {
+    for (const key of Object.keys(wantedTop)) {
+        if (!isDeepStrictEqual(record[key], wantedTop[key])) {
             differ.push(key);
         }
     }
-    for (const key of [
-        'task',
-        'harness',
-        'model',
-        'session_limit',
-        'timeout_minutes',
-        'arguments',
-        'server',
-    ] as const) {
-        if (!isDeepStrictEqual(results[key], wanted[key])) {
+    for (const key of Object.keys(wantedResults)) {
+        if (!isDeepStrictEqual(written[key], wantedResults[key])) {
             differ.push(key);
         }
     }
@@ -625,7 +632,7 @@ export function continuedRecord(
             EXIT.usage,
         );
     }
-    return record as unknown as ScoredRecord;
+    return record;
 }
 
 /** Run the scored agent-use run and write its record. */
@@ -672,9 +679,7 @@ export function runScored(
         timeout_minutes: options.timeoutMinutes,
         arguments: recordedArgs(options),
         server: {
-            entry: relativePosix(root, options.server).startsWith('..')
-                ? '<agent server>'
-                : relativePosix(root, options.server),
+            entry: inRepository(root, options.server, '<agent server>'),
             arguments: options.serverArgs.map((a) =>
                 a.replaceAll('{mod}', '<trial mod>').replaceAll('{game}', '<game stub>'),
             ),

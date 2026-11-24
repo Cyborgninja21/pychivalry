@@ -20,6 +20,14 @@
  *   scored agent-use               the scored agent-use test: test sessions of the developer's
  *                                  own Claude Code on the planted-defect mod (task
  *                                  scored:agent-use; never in CI, only on the owner's word)
+ *   scored authoring               the scored authoring test: test sessions of the developer's
+ *                                  own Claude Code writing the content requests of
+ *                                  fixtures/requests, each result graded by the checker, by its
+ *                                  expectations and by a judge's test session (task
+ *                                  scored:authoring; never in CI, only on the owner's word)
+ *   scored calibrate               the judge's calibration: a judge's test session on each
+ *                                  result graded by hand, and the agreement (task
+ *                                  scored:calibrate; never in CI, only on the owner's word)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -32,6 +40,8 @@ import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseli
 import { requireGameDir } from './game.js';
 import { checkRecords } from './records-check.js';
 import { checkRulesTable, RULES_SOURCE, rulesUse } from './rules-table.js';
+import { runAuthoring } from './scored-run/authoring.js';
+import { runCalibration } from './scored-run/calibration.js';
 import { runScored } from './scored-run/run.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
@@ -47,7 +57,7 @@ const USAGE = `usage: pychivalry-tools <command>
   wiki check|build|publish
   advice proof
   docs checks
-  scored agent-use`;
+  scored agent-use|authoring|calibrate`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -181,6 +191,19 @@ function run(args: readonly string[]): number {
         return record.results.trials.some((t) => t.harness_problems.length > 0)
             ? EXIT.failed
             : EXIT.ok;
+    }
+    if (group === 'scored' && command === 'authoring') {
+        const { record } = runAuthoring(root, process.env, (line) => {
+            process.stdout.write(`${line}\n`);
+        });
+        // The run passes when every trial's harness held; the measures are the result.
+        return record.results.trials.every((t) => t.harness_held) ? EXIT.ok : EXIT.failed;
+    }
+    if (group === 'scored' && command === 'calibrate') {
+        const { stopped } = runCalibration(root, process.env, (line) => {
+            process.stdout.write(`${line}\n`);
+        });
+        return stopped ? EXIT.failed : EXIT.ok;
     }
     process.stderr.write(`${USAGE}\n`);
     return EXIT.usage;

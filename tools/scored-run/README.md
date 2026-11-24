@@ -13,10 +13,15 @@ no credentials and removes any key or token variable from the session's environm
 effect on the developer is that each test session counts against their own Claude plan, like any
 session they open themselves.
 
-Two tests in public CI hold this: `tools/src/no-key-no-network.test.ts` (no shipped file names a
-credential or a key, imports a networking module or calls `fetch`) and
+Three tests in public CI hold this: `tools/src/no-key-no-network.test.ts` (no shipped file names
+a credential or a key, imports a networking module or calls `fetch`),
 `tools/src/scored-run/run.test.ts` (the test session's environment holds no key or token
-variable).
+variable) and `tools/src/scored-run/no-model-call.test.ts` (the scripts of this test, its judge
+among them, name no key and no model library, reach no network, and start no program but the
+Claude Code the run names).
+
+This page describes three scored scripts: the agent-use test (below), the scored authoring test
+and the judge's calibration ([further down](#the-scored-authoring-test)).
 
 A scored run tests whether an AI agent can really use pychivalry's agent server (docs/MVP.md,
 "AI tests"; docs/PLAN.md, items 6.8 to 6.11). Each trial is one test session. A model's output is
@@ -32,8 +37,17 @@ sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed i
 | `tools/src/scored-run/graders.ts` | The five graders |
 | `tools/src/scored-run/stream.ts` | What is read from Claude Code's output stream |
 | `tools/src/scored-run/scored-record.ts` | The record's shape and its consistency checks |
+| `tools/src/scored-run/confinement.ts` | What every scored session may be offered, and the check that it was |
 | `tools/src/scored-run/fake-claude.ts` | A stand-in for Claude Code, for the tests |
 | [../../fixtures/defects/](../../fixtures/defects/README.md) | The planted-defect mod, its fixed copy and its manifest |
+| [authoring.prompt.md](authoring.prompt.md) | The authoring task given to the agent, with the request in its slot |
+| [judge.prompt.md](judge.prompt.md), [judge.schema.json](judge.schema.json) | The judge's prompt and the shape of its answer |
+| `tools/src/scored-run/authoring.ts` | The authoring run: the trials, the skills, Claude Code's arguments, the grades, the record |
+| `tools/src/scored-run/requests.ts`, `expectations.ts` | The request list, read and checked, and its expectations held against a result |
+| `tools/src/scored-run/judge.ts` | The judge: its prompt filled, its session, its answer parsed |
+| `tools/src/scored-run/authoring-record.ts` | The authoring record's shape, its measures and its consistency checks |
+| `tools/src/scored-run/calibration.ts` | The judge's calibration against hand grades, and its record |
+| [../../fixtures/requests/](../../fixtures/requests/README.md) | The content requests, their base mods and an example result of each |
 
 ## The agent-use task
 
@@ -429,3 +443,241 @@ a name once (300 files 0.09 s, 1,000 files 0.36 s). On the harder mod the first 
 and warnings) returns all 33 findings in one page of about 11,400 characters; on rice every
 result stays under the limit (the largest 27,990 characters). The harder mod has not been run
 by a test session yet.
+
+## The scored authoring test
+
+**In plain words.** The same kind of developer's test script as the agent-use test, never shipped
+and never run by CI: it starts the Claude Code program already installed on the developer's
+machine, as separate test sessions, with pychivalry's agent server and its skills, and asks each
+to write new content for a mod; then it grades what each wrote. The grading has two parts. The
+first is pychivalry's own checker. The second is the match to the request: part of it in code,
+and the rest by a **judge**, which is one more test session of the same Claude Code, started the
+same way, that reads the request and the result and answers a fixed set of questions. pychivalry
+makes no model call of its own, gives no session credentials, and removes key and token
+variables from every session's environment. Each test session, the judge's too, counts against
+the developer's own Claude plan, so a run is started only on the owner's word (docs/PLAN.md,
+items 9.4 to 9.6 and 9.8).
+
+### The requests
+
+The fixed list is `fixtures/requests/requests.json`: twelve requests, three each of events,
+decisions, scripted effects and scripted triggers, one easy, one medium and one hard of each
+([fixtures/requests/README.md](../../fixtures/requests/README.md)). Each names everything the
+result must define; each relies only on names the spec package has, or the request's base mod
+defines, which a test proves and the run checks again before it starts. Each holds what a correct
+result must contain twice over: **expectations** checked in code (files, namespaces, definitions,
+fields, names used, references that resolve, localization keys, base files left alone), and
+**judged dimensions** for the rest, from one closed set: `effects-as-asked`,
+`conditions-as-asked`, `scope-as-asked`, `text-as-asked` and `nothing-unasked`.
+
+### Starting a run
+
+```sh
+SCORED_SESSION_LIMIT=3 CK3_GAME_PATH=<game dir> task scored:authoring
+```
+
+Every request, 5 trials each: for each trial one authoring test session and then one judge test
+session. The variables of the agent-use test apply as they do there (`SCORED_SESSION_LIMIT`,
+required with no default, `SCORED_MODEL`, `SCORED_TRIALS`, `SCORED_SERVER`,
+`SCORED_SERVER_ARGS`, `SCORED_CLAUDE`, `SCORED_TIMEOUT_MINUTES`, `SCORED_KEEP`,
+`SCORED_CONTINUE`), with these beside them:
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `CK3_GAME_PATH` | The base game's `game` folder: the agent server, the checker and the expectations read it, as the game-file suites do | none: it must be given |
+| `SCORED_REQUESTS` | The requests to run, by id, comma-separated | every request |
+| `SCORED_SKILLS` | The skills folder, from the repository root: each folder holding a `SKILL.md` is a skill | `skills` (the three skills of item 9.1) |
+| `SCORED_SKILLS_IN` | Where each session is given the skills: `project` or `config` ([below](#the-skills)) | `project` |
+| `SCORED_JUDGE_MODEL` | The judge's model, by its full name | the authoring model |
+| `SCORED_JUDGE_SESSION_LIMIT` | The session limit of each judge session | `SCORED_SESSION_LIMIT` |
+| `SCORED_JUDGE_TIMEOUT_MINUTES` | A judge session still running after this is stopped | 10 |
+
+`SCORED_TRIALS` is the number of trials of each request. With `SCORED_CONTINUE=true` the run adds
+to the record already written, made the same way (the same commit, request list, prompts, judge,
+skills, base mods, Claude Code version, models, session limits, time limits and arguments), and
+brings each request named up to `SCORED_TRIALS` trials whose harness held.
+
+**A harness problem stops the run.** A trial whose authoring or judge session broke, or was
+offered more than the run allows, says nothing about pychivalry, and the trials after it would
+most likely say as little while each still counted against the developer's plan. The run stops
+after it, the record keeps it, and the run exits 1; once the fault is fixed, `SCORED_CONTINUE=true`
+carries on. The record is written again after every trial, so a run stopped by hand keeps what it
+did.
+
+### One trial
+
+1. The request's base mod (`fixtures/requests/bases/<base>/`) is copied into a fresh temporary
+   folder, with no git history, and the skills beside it (below).
+2. The base game's index is built once per run into the run's own cache folder before the first
+   trial, so that no session waits for it; every trial's agent server loads it from there, as
+   the checker does.
+3. One authoring test session starts in the mod's folder with the request in
+   [authoring.prompt.md](authoring.prompt.md), the agent server over `CK3_GAME_PATH`, and the
+   arguments below. Its environment is an agent-use trial's.
+4. **Grade one, validity:** pychivalry's checker on what the session left, over the same base
+   game, with its defaults: the core's one runner, as every surface runs it. Three measures, each
+   of its own: no error; no warning; and in pychivalry's format, no warning of the family
+   `style/` (the owner's principle, decision 101). The errors and warnings are recorded by code.
+5. **Grade two, the match to the request:** first each of the request's expectations, checked in
+   code on the index the checker built (`expectations.ts`), each met or not with its reason; then
+   the judge (below), on the result, when the authoring session's harness held.
+
+### The skills
+
+The three skills of `skills/` are given to every authoring session, each folder copied whole, as
+"pychivalry: Set up for Claude Code" copies them, into a configuration folder of the trial's own,
+never the developer's own:
+
+- **`project`** (the default): `.claude/skills/` of the trial's mod, where Claude Code finds a
+  project's skills, read with `--setting-sources project,local`. The session runs in the
+  developer's Claude Code as it already runs: its own configuration folder is left as it is and
+  none of its settings or skills are read.
+- **`config`**: `skills/` of a temporary Claude Code configuration folder of the trial's own,
+  named by `CLAUDE_CONFIG_DIR`, read with `--setting-sources user,project,local`: where the set-up
+  puts them in a person's own folder. Claude Code keeps the developer's sign-in in its
+  configuration folder on Linux and Windows, so a session given a temporary one starts without
+  it, and ends on an error before any model is reached: a harness problem, which stops the run at
+  its first trial. The script copies nothing from the developer's own folder into it.
+
+The judge, the checker and the expectations never see the skills' folder.
+
+### Claude Code's arguments
+
+Those of an agent-use trial ([above](#claude-codes-arguments)), each for the reason given there,
+with three differences:
+
+| Argument | As given | Why |
+| --- | --- | --- |
+| `--tools`, `--allowedTools` | `Read,Edit,Write,Skill`, and the server's tools | An authoring session writes new files, which the agent-use task forbids, and loads a skill with Claude Code's `Skill` tool |
+| `--disable-slash-commands` | left out | It switches every skill off, pychivalry's with Claude Code's own; no flag offers one set without the other |
+| `--setting-sources` | `project,local`, or `user,project,local` with `SCORED_SKILLS_IN=config` | The second reads the temporary configuration folder's skills |
+
+### The harness held (authoring)
+
+As for an agent-use trial: the session ended by itself, at its session limit or at its turn
+limit; its start offers only `Read`, `Edit`, `Write`, `Skill` and the `mcp__pychivalry__` tools,
+the one server and no plugin but Claude Code's own; a connected server offers all its tools. Two
+things differ. **The three pychivalry skills must be offered**, by name; other skills may be
+there and are recorded, since leaving Claude Code's own skills out would leave pychivalry's out
+too. **Every `Read`, `Edit` and `Write` names a file inside the trial's mod**, so that no session
+reads an example result or anything else outside it; the files a session named outside are
+printed for the person running the test and never recorded. And the session must leave the
+skills unchanged.
+
+### The judge
+
+One test session per result, started as a child process of the same Claude Code exactly as the
+trials are (`judge.ts`), in an empty folder of its own, with the trial's environment:
+
+- **No tool, no agent server, no skill:** `--tools ""`, `--strict-mcp-config` with no
+  configuration, `--disable-slash-commands`, `--setting-sources project,local`; its confinement
+  check allows nothing at all, and a session that ends at its session limit or turn limit before
+  answering is a harness problem.
+- **Its whole prompt on standard input** (`-p` with no prompt argument), so that no result is
+  bound by the length of a command line: [judge.prompt.md](judge.prompt.md) with its four slots
+  filled, the request's id, its text, its questions (one per judged dimension), and the result,
+  every file of the mod as the session left it, each marked as written, changed, removed or as
+  given, with `\n` line breaks and no byte-order mark. A result over 200,000 characters is not
+  judged, and its record says why.
+- **Its answer, fixed:** one JSON object of the shape of [judge.schema.json](judge.schema.json):
+  the request's id, and for each question `yes`, `no` or `cannot-tell` with a one-sentence
+  reason. The parsing is fixed too: the session's last words, trimmed; if they are one fenced code
+  block, its inside; JSON valid against the schema, about the request asked, answering exactly
+  its questions. Anything else is recorded as **malformed**, with what was wrong, and nothing is
+  guessed from it. The reasons are printed for the person running the test and never recorded.
+
+`judge.test.ts` holds the prompt's slots, the schema's closed set, the material, and every rule of
+the parsing, a malformed answer of each kind among them.
+
+### The record
+
+`records/scored/authoring.json`, suite `scored:authoring`, in the record format
+([records/README.md](../../records/README.md#scored-records)): the task (the request list, both
+prompts, the judge's schema, the base mods and the skills, each by its hash, where the skills were
+given, the dimensions and the answers), the harness, the authoring and judge models, session
+limits, time limits and arguments, the agent server; per trial what the agent-use record keeps of
+the session, its validity, its expectations and the judge's state and answers; and per request
+and over all, how many trials held and, of those, how many had no error, no warning, were in the
+format, met every expectation, and how the judge answered each dimension. No figure about the
+session's use of the developer's plan is kept, and there is no target: the owner sets the targets
+from the first run (item 9.8). `task records:check` holds the record to its schema and its figures
+to each other.
+
+### Tests
+
+`requests.test.ts`, `expectations.test.ts`, `judge.test.ts`, `authoring.test.ts`,
+`calibration.test.ts` and `no-model-call.test.ts` run in public CI with no model, key, network or
+display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
+it copies a request's example result into the trial's mod (or nothing, or a broken result) and
+plays back a stream in the shape Claude Code 2.1.330 writes; as a judge it reads its prompt from
+standard input and plays back an answer. They show a correct result graded valid with every
+expectation met and the judge's answers recorded; an empty result and a broken one measured three
+ways; a malformed judge recorded as such; an unconfined authoring session and an unconfined judge
+each stopping the run; both places of the skills; the continued run; and the record's checks.
+
+## The first scored authoring run (item 9.8)
+
+Not run: it waits for the owner's word. What it is, exactly:
+
+- **The command:**
+  `SCORED_SESSION_LIMIT=3 CK3_GAME_PATH=<game dir> task scored:authoring`, from the repository
+  root, on the machine with the game, after `task build` (the task builds first) and with Claude
+  Code 2.1.280 or later (`SCORED_CLAUDE` names it, as item 6.11's run did).
+- **What it does:** for each of the 12 requests, 5 trials; each trial one authoring test session
+  of the pinned model, `claude-opus-5-5`, in a fresh copy of the request's base mod, with the
+  agent server over the installed game and the three skills in the trial's own `.claude/skills/`,
+  then one judge test session of the same model on what it wrote.
+- **How many sessions:** at most **120 test sessions**: 60 authoring sessions and 60 judge
+  sessions. Fewer if a harness problem stops it, after the trial that had one.
+- **The session limit:** 3 for every session, the authoring sessions' and the judge's
+  (`SCORED_JUDGE_SESSION_LIMIT` is not given, so it is the same); the time limits 30 minutes for
+  an authoring session and 10 for a judge's.
+- **What it leaves:** `records/scored/authoring.json`, committed, from which the owner sets the
+  targets on the measures above.
+
+## Calibrating the judge (item 9.6)
+
+The judge is calibrated once against results graded by hand, and the agreement is recorded
+(`calibration.ts`). Like the runs, it starts test sessions, one judge session per graded result,
+and only on the owner's word:
+
+```sh
+SCORED_SESSION_LIMIT=3 SCORED_GRADES=<grades file> task scored:calibrate
+```
+
+**The hand grades** are one JSON file a person writes (`grades_format` 1): `about` (where the
+results came from, how they were chosen), and `items`, each a `request` (its id), a `result` (the
+folder of the mod as a session left it, from the grades file's own folder) and `grades`, the
+person's answer to every question the request's judge is asked, and no other, from the judge's
+closed set. Nothing in it names the person who graded.
+
+```json
+{
+    "grades_format": 1,
+    "about": "Results of the first scored authoring run, two per request, graded by hand.",
+    "items": [
+        {
+            "request": "effect-reward",
+            "result": "results/effect-reward-1",
+            "grades": { "effects-as-asked": "yes", "nothing-unasked": "no" }
+        }
+    ]
+}
+```
+
+**The procedure**, for the owner to start:
+
+1. Make a run with `SCORED_KEEP=true`: it prints the folder its trials are kept in, each trial's
+   mod in `<request>-<n>/mod/`.
+2. Copy the results to grade into a folder beside a new grades file (several per request, good
+   and bad ones), and grade each by hand on its request's questions, without reading the judge's
+   answers first.
+3. Run the command above. It checks the grades file against the requests before any session,
+   then runs the judge once per result.
+
+**The record**, `records/scored/calibration.json`, suite `scored:calibration`: the grades file by
+its hash, the judge's prompt, schema, model, session limit and arguments, each item's hand grades
+and the judge's answers with whether each agrees, and per dimension and over all: the grades, those
+the judge answered, those it agreed with, the agreement (agreed over answered), how often the
+person and the judge each said "cannot tell", and the full table of hand answer against judge
+answer. A judge session with a harness problem stops it, as in the runs.

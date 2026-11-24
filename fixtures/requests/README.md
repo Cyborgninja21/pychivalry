@@ -1,0 +1,99 @@
+# The content requests
+
+The fixed list of content requests of the scored authoring test (docs/PLAN.md items 9.4 and
+9.5; [tools/scored-run/README.md](../../tools/scored-run/README.md#the-scored-authoring-test)).
+Each request asks for new content of one of the four types the authoring skill writes: events,
+decisions, scripted effects and scripted triggers. A test session is given one request, word for
+word, in a fresh copy of the request's base mod, and what it leaves is graded three ways: by
+pychivalry's checker (validity), by the request's expectations, checked in code, and by a judge
+on the request's judged dimensions (the match to the request).
+
+```text
+fixtures/requests/
+  requests.json   the requests: each with its id, type, difficulty, base, text, the names it
+                  relies on, its expectations and its judged dimensions
+  bases/          the mods a trial starts as: empty/ (a descriptor only) and feast/ (an event,
+                  a scripted effect, a scripted trigger and their localization)
+  examples/       one correct result per request, for the tests only; never shown to a session
+```
+
+Nothing here is copied from the game or from a published mod. The script and localization files
+of `bases/` and `examples/` are in pychivalry's format (Windows line breaks, the byte-order mark,
+the formatter's layout), and `.gitattributes` keeps their bytes exact.
+
+## The requests
+
+Twelve, three of each type, one of each difficulty per type. An easy request asks for one
+record whose every name it gives; a medium one adds conditions, branches or a second record; a
+hard one spans several folders, follows references between records, or builds on a mod that
+already has content and must leave the rest of it alone.
+
+| Id | Type | Difficulty | Base | What it asks for |
+| --- | --- | --- | --- | --- |
+| `event-merchant-debt` | event | easy | empty | A character event with two options, 100 gold or 50 prestige, and its localization |
+| `event-sleepless-night` | event | medium | empty | A character event for an adult, free, stressed character, three options changing stress, gold, piety and prestige, the third shown only with 100 prestige |
+| `event-letter-from-spouse` | event | hard | empty | Two events: the first through the on-action `yearly_playable_pulse` for a married ruler, firing the second 3 days later, whose option rewards the spouse |
+| `decision-give-alms` | decision | easy | empty | A decision for rulers with 100 gold, taking the gold for 50 piety |
+| `decision-night-vigil` | decision | medium | empty | A decision for adults at peace with a cooldown and an AI weight, firing an event it also writes |
+| `decision-hold-feast` | decision | hard | feast | A decision built on the mod's scripted trigger, scripted effect and event, changing none of the mod's files |
+| `effect-reward` | scripted effect | easy | empty | 50 gold and 25 prestige |
+| `effect-war-chest` | scripted effect | medium | empty | Gold at war, prestige in peace (`if` and `else`), stress either way |
+| `effect-children-gift` | scripted effect | hard | empty | Gold for each adult child (`every_child`), prestige for the parent, and a second effect that runs the first |
+| `trigger-can-host` | scripted trigger | easy | empty | An adult ruler with 50 gold |
+| `trigger-family-ready` | scripted trigger | medium | empty | Married or the parent of an adult child (`any_child`), and not imprisoned |
+| `trigger-feast-guest` | scripted trigger | hard | feast | A trigger tested partly on the liege, then added to the mod's event's trigger, keeping what is there |
+
+## What each request holds
+
+The format is stated field by field in `tools/src/scored-run/requests.ts`, which reads it:
+
+- **`id`**: stable, lower-case words joined by hyphens. A record names a request by it, so an id
+  is never changed or given to another request.
+- **`request`**: the text the session is given. Every name it writes between backticks is either
+  a name it relies on, a name or key the result must define, or a folder the result writes into.
+- **`relies_on`**: each name of the game or of the base mod the request names: a name of a bucket
+  of the spec package (an effect, a trigger, a link, an on-action), an iterator (a prefix of the
+  package before one of its lists), a field of a folder's records and a value the base game
+  writes in it, or a definition of the base mod.
+- **`expect`**: what a correct result must contain, checked in code, each met or not on its own:
+  a new file in a folder; a top-level `key = value` (an event namespace); a name defined in a
+  database; a field written directly in a record, with a value or a number of times; a name used
+  inside a record; a name used there that the mod or the base game defines in a given database
+  (a reference that resolves); an English localization key; a file of the base left byte for
+  byte.
+- **`judged`**: the dimensions the judge answers for this request, each with the question it is
+  asked. The dimensions are one closed set, `dimensions` at the top of the file, shared by every
+  request so that the judge's agreement with hand grading can be measured per dimension:
+  `effects-as-asked`, `conditions-as-asked`, `scope-as-asked`, `text-as-asked` and
+  `nothing-unasked`. The judge answers each `yes`, `no` or `cannot-tell`.
+
+What a check of the result cannot say in code, such as whether 100 gold went to the right
+character or whether the texts tell the story asked for, is left to the judged dimensions.
+
+## What the tests hold
+
+`tools/src/scored-run/requests.test.ts`, in public CI, with no game, model or network:
+
+- the list is well formed, and covers the four types three times each, at every difficulty;
+- **every name a request relies on exists in the game as the spec package states it** (a bucket's
+  name, an iterator over one of its lists, a schema field and a value the base game writes in
+  it), or is defined by the request's base mod as the index reads it; the run checks the same
+  before it starts any session, and refuses to start if one is missing;
+- every name between backticks in a request's text is relied on, expected or a folder, and each
+  relied-on or expected name is in the text;
+- every field an expectation names is a field the spec package gives that folder, and every
+  dimension of the set is asked by some request;
+- each base mod and each example result is in pychivalry's format, and the checker reports
+  nothing on either (over an empty base game: the requests rely on no name of the base game's
+  own files);
+- **every request can be met**: its example result meets every one of its expectations.
+
+`tools/src/scored-run/expectations.test.ts` breaks the examples one way at a time and shows each
+kind of expectation failing, with its reason.
+
+## Adding a request
+
+Give it a new id, its type, difficulty and base, its text, the names it relies on, its
+expectations and its judged questions; write its example under `examples/<id>/`, in the format;
+run the tests. A request is never edited in place once a record names it: its id goes to a new
+request, and the record's `requests_sha256` says which list it was made on.

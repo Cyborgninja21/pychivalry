@@ -1,0 +1,20 @@
+﻿# Keep a night of prayer.
+authoring_vigil_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	ai_check_interval = 60
+
+	is_shown = { is_adult = yes }
+
+	is_valid = { is_at_war = no }
+
+	cooldown = { years = 3 }
+
+	effect = {
+		trigger_event = {
+			id = authoring_vigil.0001
+			days = 5
+		}
+	}
+
+	ai_will_do = { base = 10 }
+}

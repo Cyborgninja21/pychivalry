@@ -16,6 +16,7 @@ import { DEFECTS_DIR } from './manifest.js';
 import {
     claudeArgs,
     credentialVariable,
+    inRepository,
     PINNED_MODEL,
     PROMPT_FILE,
     runScored,
@@ -559,6 +560,13 @@ test('the flags of the plan, as the installed Claude Code takes them', () => {
             '--disable-slash-commands',
         ],
     );
+});
+
+test('a path is named from the repository root only when it is inside it', (t) => {
+    assert.equal(inRepository(root, path.join(root, 'skills', 'x'), '<x>'), 'skills/x');
+    // A temporary folder: above the repository on Linux, often on another drive on Windows.
+    assert.equal(inRepository(root, tempDir(t), '<x>'), '<x>');
+    assert.equal(inRepository(root, path.dirname(root), '<x>'), '<x>');
 });
 
 test('sanitize names the known folders and hides any other absolute path', () => {

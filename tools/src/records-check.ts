@@ -7,7 +7,8 @@
  * an index record's totals agree with its layers, and it was made on the committed rules table
  * (the spec package's part D1).
  *
- * A scored run's record (`scored:agent-use`, docs/PLAN.md item 6.10) is checked against the
+ * A scored run's record (`scored:agent-use`, docs/PLAN.md item 6.10; `scored:authoring` and
+ * the judge's calibration, `scored:calibration`, items 9.5 and 9.6) is checked against the
  * schema and with itself, not against the committed spec: it states the spec it was made on,
  * and re-making it means new test sessions of Claude Code, which only the owner starts.
  *
@@ -21,6 +22,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { Ajv2020, type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
 import { checkRulesTable } from './rules-table.js';
+import { AUTHORING_SUITE, authoringProblems } from './scored-run/authoring-record.js';
+import { CALIBRATION_SUITE, calibrationProblems } from './scored-run/calibration.js';
 import { SCORED_SUITE, scoredProblems } from './scored-run/scored-record.js';
 import { checkLegacySpec, checkSpec } from './spec.js';
 import { summarize } from './stats.js';
@@ -525,7 +528,8 @@ export function checkRecord(
     expected: Expected,
 ): string[] {
     const problems: string[] = [];
-    if (!validate(record)) {
+    const valid = validate(record);
+    if (!valid) {
         problems.push(...(validate.errors ?? []).map(describeError));
     }
     if (!isObject(record)) {
@@ -539,6 +543,16 @@ export function checkRecord(
         // it again means new test sessions, started only on the owner's word
         // (scored-run/scored-record.ts).
         problems.push(...scoredProblems(record['results']));
+    } else if (record['suite'] === AUTHORING_SUITE || record['suite'] === CALIBRATION_SUITE) {
+        // The same for the authoring run and the judge's calibration; their figures are read
+        // as the schema shapes them, so only a record valid against it is checked further.
+        if (valid) {
+            problems.push(
+                ...(record['suite'] === AUTHORING_SUITE
+                    ? authoringProblems(record['results'])
+                    : calibrationProblems(record['results'])),
+            );
+        }
     } else if (isObject(spec)) {
         if (spec['sha256'] !== expected.spec.sha256 || spec['version'] !== expected.spec.version) {
             problems.push(
