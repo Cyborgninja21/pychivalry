@@ -26,9 +26,9 @@ every word, number, quoted text, operator and comment stays as you wrote it, in 
 
 ## In VS Code
 
-- **Format Document** (Shift+Alt+F) formats the file; **Format Selection** formats the lines you
-  selected. To format every time you save, turn on VS Code's `editor.formatOnSave` for the
-  `ck3` and `ck3-localization` languages.
+- **Format Document** (Shift+Alt+F on Windows, Ctrl+Shift+I on Linux) formats the file;
+  **Format Selection** formats the lines you selected. To format every time you save, turn on
+  VS Code's `editor.formatOnSave` for the `ck3` and `ck3-localization` languages.
 - **On-type formatting**, when VS Code's `editor.formatOnType` is on (it is off by default):
   after Enter the new line is indented for the blocks open before it, after a `}` typed first on
   its line the line is indented as the line of its `{`, and after an `=` the operator gets one
