@@ -1,0 +1,49 @@
+﻿namespace = authoring_letter
+
+# A letter arrives from the spouse
+authoring_letter.0001 = {
+	type = character_event
+	title = authoring_letter.0001.t
+	desc = authoring_letter.0001.desc
+	theme = family
+	left_portrait = {
+		character = root.primary_spouse
+		animation = happiness
+	}
+
+	trigger = {
+		is_ruler = yes
+		is_married = yes
+	}
+
+	option = {
+		name = authoring_letter.0001.a
+		add_piety = 10
+		trigger_event = {
+			id = authoring_letter.0002
+			days = 3
+		}
+	}
+}
+
+# The character answers the letter
+authoring_letter.0002 = {
+	type = character_event
+	title = authoring_letter.0002.t
+	desc = authoring_letter.0002.desc
+	theme = family
+	left_portrait = {
+		character = root.primary_spouse
+		animation = personality_honorable
+	}
+
+	option = {
+		name = authoring_letter.0002.a
+		primary_spouse = { add_prestige = 20 }
+	}
+
+	option = {
+		name = authoring_letter.0002.b
+		add_stress = -10
+	}
+}

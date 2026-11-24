@@ -1,0 +1,19 @@
+﻿namespace = authoring_merchant
+
+authoring_merchant.0001 = {
+	type = character_event
+	title = authoring_merchant.0001.t
+	desc = authoring_merchant.0001.desc
+	theme = realm
+	left_portrait = root
+
+	option = {
+		name = authoring_merchant.0001.a
+		add_gold = 100
+	}
+
+	option = {
+		name = authoring_merchant.0001.b
+		add_prestige = 50
+	}
+}

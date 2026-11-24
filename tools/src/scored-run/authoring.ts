@@ -28,6 +28,9 @@
  * 5. the record, `records/scored/authoring.json`, is written again after every trial
  *    (`authoring-record.ts`).
  *
+ * When the run ends it prints its measures and, read from them, the owner's targets, each met or
+ * not (`authoring-targets.ts`); the record holds the measures only.
+ *
  * A trial whose authoring or judge session had a harness problem (it broke, or was offered
  * more than the run allows) stops the run there: the trials after it would say as little, and
  * each would still count against the developer's plan. Its record is kept; `SCORED_CONTINUE`
@@ -89,6 +92,7 @@ import {
     type MeasuredRequest,
     type Validity,
 } from './authoring-record.js';
+import { AUTHORING_TARGETS_DECISION, readTargets, targetLines } from './authoring-targets.js';
 import { callsOutside, sessionProblems, type Confinement } from './confinement.js';
 import { checkExpectations } from './expectations.js';
 import { filesIn } from './graders.js';
@@ -583,7 +587,7 @@ export function runAuthoring(
                     ? [
                           `Every authoring session, the agent server, the checker and the expectations read the base game at <game dir>, build ${game.build}.`,
                           'Each trial is one authoring test session of the Claude Code installed on the machine the run was made on, given the request in a fresh copy of its base mod with the agent server and the skills, then one judge test session given the request and what the first left; the script gave neither session credentials, and pychivalry itself makes no model call.',
-                          "Grade one is pychivalry's checker on the result: errors, warnings and whether it is in pychivalry's format, each a measure of its own. Grade two is the request's expectations, checked in code, and the judge's answer on each judged dimension. A trial whose harness did not hold is listed and not counted. No target is set yet: the owner sets the targets from the first run.",
+                          `Grade one is pychivalry's checker on the result: errors, warnings and whether it is in pychivalry's format, each a measure of its own. Grade two is the request's expectations, checked in code, and the judge's answer on each judged dimension. A trial whose harness did not hold is listed and not counted. The record states measures only: the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}) are read from them, by the run when it ends and by task scored:targets.`,
                       ]
                     : [
                           ...previous.notes,
@@ -665,6 +669,9 @@ export function runAuthoring(
     log(
         `scored:authoring: ${String(overall.harness_held)} of ${String(overall.trials)} trials held; of those, ${String(overall.zero_errors)} without an error, ${String(overall.no_warnings)} without a warning, ${String(overall.in_format)} in the format, ${String(overall.expectations_met)} meeting every expectation; record written to ${relativePosix(root, recordFile)}`,
     );
+    for (const line of targetLines(readTargets(record.results))) {
+        log(`scored:authoring: ${line}`);
+    }
     return { file: recordFile, record };
 }
 

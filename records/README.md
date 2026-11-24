@@ -21,12 +21,16 @@ enforces and this page is fixed.
 | `baseline-2.3.0/speed-mods.json`, `speed-base-game.json`, `speed-editor.json` | `task baseline:speed` |
 | `baseline-2.3.0/results-base-game.json`, `results-mods.json` | `task baseline:results` |
 | `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records)) |
-| `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code ([below](#authoring-records-scoredauthoring)) |
-| `scored/calibration.json` | `task scored:calibrate`, the judge's calibration against hand grades, in test sessions of the same ([below](#calibration-records-scoredcalibration)) |
+| `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code: the latest run ([below](#authoring-records-scoredauthoring)) |
+| `scored/authoring-run-<n>.json` | An earlier authoring run's record, kept unchanged when a later run replaced `authoring.json`: `authoring-run-1.json` is the first run's ([below](#authoring-records-scoredauthoring)) |
+| `scored/calibration.json`, or the file of `scored/` that `SCORED_RECORD` names | `task scored:calibrate`, the judge's calibration against hand grades, in test sessions of the same; one record per sheet graded (`calibration-hand-made.json`, `calibration-run-2.json`) ([below](#calibration-records-scoredcalibration)) |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
 
 Each run overwrites its suite's record; the history is git's. Records are written only by the
-tasks, never by hand.
+tasks, never by hand. One exception keeps a scored run's measures readable without git: when a
+new authoring run replaces `scored/authoring.json`, the record it replaces is kept beside it as
+`scored/authoring-run-<n>.json`, byte for byte as its run wrote it, `<n>` its run's number. A
+calibration writes the record `SCORED_RECORD` names, so that each sheet graded has its own.
 
 ## The format
 
@@ -351,8 +355,12 @@ is written again after every trial. `results`:
 | `tasks` | Per request run: its `name`, `content_type` and `difficulty`, its `trials` and those whose harness `held`, and of those the counts with `zero_errors`, `no_warnings`, `in_format` and `expectations_met`, and per dimension `judged` the counts of `yes`, `no`, `cannot_tell` and `unanswered` |
 | `overall` | The same counts over every trial |
 
-A trial whose harness did not hold is listed and counted in `trials` only. There is no target:
-the owner sets the targets from the first run (item 9.8).
+A trial whose harness did not hold is listed and counted in `trials` only. The record states
+measures only, no target: the owner's targets (docs/decisions.md, decision 127) are read from its
+`overall` measures by the run when it ends and by `task scored:targets`, which starts no session
+([tools/scored-run/README.md](../tools/scored-run/README.md#the-targets-item-98)), so a record
+made before the targets were set is read the same way as one made after. The first run's record
+is `authoring-run-1.json`, the second's `authoring.json`.
 
 ### Calibration records (`scored:calibration`)
 

@@ -26,8 +26,10 @@ quick fixes in the editor and `check --fix` on the command line, and the present
 GitHub pre-release (2026-11-23). Build step 9 has started: the three skills, in the form both AI
 harnesses load, given to VS Code's AI by the extension and installed for Claude Code by its
 set-up, and the hand checklist for VS Code's AI; and the scored authoring run, with its content
-requests, its judge and the judge's calibration, built and waiting for the owner's word. What
-waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
+requests, its judge and the judge's calibration. Two scored authoring runs are on record
+(2026-11-24), and the second meets the owner's targets; the calibration's hand grading and the
+hand checklist are the owner's, before the third preview. What waits on the owner or on the spec
+work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -68,7 +70,7 @@ lives unchanged in `legacy/`.
 | AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
-| Authoring bar | The authoring loop has a round limit of 5. Its pass-rate targets are set after the first scored run. The first run is on record (2026-11-24, decision 120); the owner sets the targets from it (decision 124). |
+| Authoring bar | The authoring loop has a round limit of 5. Its targets, set by the owner on 2026-11-24 (decision 127), are strict and hold before any release: every result with no error; every result with no warning and in pychivalry's format; at least 95% of results meeting every expectation checked in code; no judged dimension below 95% yes. The record states measures only; the targets are read from it (`task scored:targets`). The first run (decision 120) meets two of them, the second (decision 128) all four. |
 | Authoring judge | In the scored authoring run, Opus 5.5 (`claude-opus-5-5`) writes and Fable 5.2 (`claude-fable-5-2`) judges: the judge is another model than the one whose work it judges (decision 121). |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
@@ -161,10 +163,9 @@ The headline feature: describe content, get script the game accepts.
 - The MVP covers the content types modders write most: events (with their localization),
   decisions, scripted effects and scripted triggers.
 - The AI's edits go through its own harness, which shows them to the person for approval.
-  pychivalry's server writes nothing. *Since build step 9's first scored run, awaiting the
-  owner's confirmation ([decisions.md](decisions.md#awaiting-confirmation)):* but for
-  `apply_format`, which writes a file the AI names in pychivalry's format, whitespace only, and
-  which the harness asks about like any tool that writes.
+  pychivalry's server writes nothing but for `apply_format` (confirmed by the owner, decision
+  126), which writes a file the AI names in pychivalry's format, whitespace only, and which the
+  harness asks about like any tool that writes.
 
 **Zero checker errors is not the same as content that works.** The checker proves the script
 is valid. It does not prove an event can fire, does what was asked, or reads sensibly. Authored
@@ -380,8 +381,8 @@ default folder.
   then findings filtered by severity and code, limited, with a cursor for the next page.
   Results stay under about 10,000 tokens; Claude Code cuts a result off at 25,000.
 - **Errors are results.** Bad input comes back as a result that lists the valid values.
-- **Read-only.** The server reads the mod folder and the game folder and writes nothing. *Since
-  build step 9, awaiting the owner's confirmation:* but for `apply_format`, the one tool declared
+- **Read-only.** The server reads the mod folder and the game folder and writes nothing, but for
+  `apply_format` (since build step 9, confirmed by the owner, decision 126), the one tool declared
   not read-only, which writes the file it is given in pychivalry's format.
 - **Connection.** A local process spoken to over standard input and output. No network port.
 - **Several copies run at once.** Each AI harness starts its own copy, beside the language
@@ -537,7 +538,7 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
 | Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same.* |
 | Agent use | Planted defects `M` | See [AI tests](#ai-tests). |
-| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *The first run, 2026-11-24, is on record (`records/scored/authoring.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation; the owner sets the targets from it.* |
+| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *Two runs, 2026-11-24, are on record. The first (`records/scored/authoring-run-1.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation. The second, after its fixes (`records/scored/authoring.json`): 60 of 60 on every measure, the judge yes to all 180 questions, every target of the owner's met.* |
 | Speed | Benchmarks `G` | Within the stated tolerance of the 2.3.0 medians recorded in build step 1. |
 
 ## AI tests
@@ -580,12 +581,18 @@ rate, because a model's output is not repeatable.
   spec package has; validity as three measures (no error, no warning, in pychivalry's format);
   the match as expectations checked in code and a judge, one more test session of the
   developer's own Claude Code with no tool, answering each dimension yes, no or cannot tell;
-  the judge calibrated against hand grades by `task scored:calibrate`. *First run 2026-11-24*
-  (below); the calibration not run yet.
+  the judge calibrated against hand grades by `task scored:calibrate`. *Two runs 2026-11-24*
+  (below); the calibration waits for the owner's hand grades, on two sheets: ten hand-made
+  results, some deliberately wrong, and twelve real results of the second run.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
 - **The target (agent use).** Every test session passes: a release run of 10 test sessions must
   pass all 10, and a development run of 5 that passes fewer than 5 is looked into. The record
   states the target and whether the run met it.
+- **The targets (authoring).** Strict, and they hold before any release (decision 127): every
+  result with no error; every result with no warning and in pychivalry's format; at least 95% of
+  results meeting every expectation checked in code; no judged dimension below 95% yes. The record
+  states measures only; the run prints each target met or not when it ends, and
+  `task scored:targets` reads them from any authoring record.
 - **Each record states** the harness version, the model, the tool calls made, and the result.
 - **The first result.** Agent use, 2026-11-23: five test sessions of Claude Code 2.1.330 on
   `claude-opus-5-5`, each with session limit 3, all passed, each in about a minute
@@ -596,8 +603,15 @@ rate, because a model's output is not repeatable.
   held; 50 had no error, none had no warning, none was in the format, 58 met every expectation,
   and the judge said yes to all 180 of its questions. Its causes were pychivalry's own: no tool
   of a session could write the format (now `apply_format`), two requests' base clashed with the
-  game (now replaced), one expectation was stricter than the game (now corrected). The owner
-  sets the targets from it; a second run measures the fixes.
+  game (now replaced), one expectation was stricter than the game (now corrected). Its record is
+  kept as `records/scored/authoring-run-1.json`. The second run, the same day on the owner's word
+  with the fixes (`records/scored/authoring.json`): 60 of 60 trials held, and every one had no
+  error, no warning, was in the format and met every expectation; the judge said yes to all 180
+  questions; every target met, by a development run of 5 trials a request. Every measure is at
+  its ceiling: on twelve requests written with the skill they test, one model writing and one
+  judging, nothing harder tried, and no session needing to repair an error. It shows the fixes
+  hold; it cannot yet tell a better server or skill from a worse one, nor that the judge can say
+  no. Whether to add harder requests before the third preview is asked of the owner.
 
 ## Test data
 
@@ -671,8 +685,10 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    *2026-11-23:* the target is set (10 of 10). The first five test sessions passed 5 of 5 on
    the first planted mod; the harder mod that replaced it has not been run yet (not yet met).
 6. **Authoring.** The scored run meets its targets on all three measures.
-   *2026-11-24:* the first run is on record ([AI tests](#ai-tests)); the targets are not set yet
-   (not yet met).
+   *2026-11-24:* the targets are set (decision 127) and the second run meets every one on the
+   first two measures, validity and the match to the request, as a development run of 5 trials
+   a request ([AI tests](#ai-tests)); the third measure, the in-game load, waits for build step
+   11 (not yet met).
 7. **Speed.** Within tolerance of the 2.3.0 medians recorded in build step 1.
    *2026-11-23, after build step 7:* the editor reaches its first full result faster than 2.3.0
    on all five mods; the language server's peak memory is higher on four ([Speed](#speed)).
@@ -783,7 +799,7 @@ Each is settled by evidence inside the build, not by a choice.
 | 8 | Whether the game's command-line option for running a console command produces the documentation dumps unattended. | Step 0, on the analysis machine. |
 | 9 | Whether ck3-tiger and the CWTools rule files hold rules worth taking, and under what licences. | Build step 4, when the check inventory is written. |
 | 4 | Whether VS Code forwards an extension-registered local server to its default AI harness as documented, and whether one skills folder loads in both harnesses. | The VS Code half is answered by build step 7 (item 7.1, #142): on VS Code 1.146 and later, the definition the extension registers is forwarded unchanged to the Copilot harness, with no sign-in, on Linux and Windows; Claude Code reaches the same server through "Set up for Claude Code", and both keep working across an extension update. Whether a signed-in harness then calls the tools is the by-hand check before a release ([guide/by-hand-check.md](guide/by-hand-check.md)). The skills half is answered by build step 9 (items 9.1 and 9.3): one skills folder serves both unchanged. VS Code 1.147 lists the skills the extension contributes and syncs them, byte for byte, into the plugin it writes for its Copilot harness; "Set up for Claude Code" copies the same files into Claude Code's personal skills folder, read by every Claude Code session (2.1.220's code and documentation); editor tests show both on Linux and Windows. Whether a signed-in AI loads and follows them is the scored authoring run's and the hand checklist's to show ([guide/ai-checklist.md](guide/ai-checklist.md)). |
-| 5 | The targets for the scored agent and authoring runs. | After the first scored runs, in build steps 6 and 9. |
+| 5 | The targets for the scored agent and authoring runs. | Answered from the first scored runs: agent use, every test session passing (decision 82); authoring, the four targets of decision 127. |
 | 7 | What happens to the `ck3-language-support` 2.x listing and its users when 1.0.0 ships. | Before release 1.0.0. |
 
 Question 6, whether the spec package is committed compressed or raw, was closed on 2026-11-22:

@@ -1,0 +1,14 @@
+﻿# Gives each adult child of the scope character 25 gold, then the character 20 prestige.
+authoring_children_gift_effect = {
+	every_child = {
+		limit = { is_adult = yes }
+		add_gold = 25
+	}
+	add_prestige = 20
+}
+
+# Runs authoring_children_gift_effect, then lowers the scope character's stress by 15.
+authoring_family_feast_effect = {
+	authoring_children_gift_effect = yes
+	add_stress = -15
+}

@@ -1,0 +1,5 @@
+﻿# Rewards the host of a banquet.
+banquet_host_reward_effect = {
+	add_prestige = 25
+	add_piety = 10
+}

@@ -1,0 +1,4 @@
+﻿authoring_reward_effect = {
+	add_gold = 50
+	add_prestige = 25
+}

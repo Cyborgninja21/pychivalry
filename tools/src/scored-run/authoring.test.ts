@@ -194,6 +194,24 @@ test('a trial whose session writes a correct result: valid, every expectation me
     for (const kept of ['/somewhere/private', 'must-not-reach', 'session id']) {
         assert.ok(!JSON.stringify(record).includes(kept), kept);
     }
+    // The run ends by reading the owner's targets from its measures; the record holds none.
+    assert.ok(
+        log.includes(
+            "scored:authoring: the owner's targets (docs/decisions.md, decision 127), which hold before any release; a development run (1 trial of each request; a run before a release has 10 of each):",
+        ),
+        log.join('\n'),
+    );
+    assert.ok(
+        log.includes(
+            'scored:authoring:   every result with no error: no error 1 of 1 (100%); needs 100%: met',
+        ),
+    );
+    assert.equal(log.at(-1), 'scored:authoring: every target met');
+    assert.doesNotMatch(JSON.stringify(record), /"targets?":/);
+    assert.match(
+        record.notes.join(' '),
+        /The record states measures only: the owner's targets \(docs\/decisions\.md, decision 127\)/,
+    );
 
     // Two sessions: the authoring one, then the judge's.
     assert.equal(calls.length, 2);
@@ -282,7 +300,7 @@ test('a result with errors and a file out of the format is measured three ways',
         path.join(result, 'authoring_reward_effects.txt'),
         'authoring_reward_effect = {\n    add_gold = 50\n    add_prestiege = 25\n}\n',
     );
-    const { record } = run(
+    const { record, log } = run(
         t,
         { SCORED_REQUESTS: r.id, FAKE_CLAUDE_APPLY: path.join(dir, 'result') },
         { judge: judgeStream(judgeAnswer(r, ['no', 'cannot-tell'])) },
@@ -309,6 +327,14 @@ test('a result with errors and a file out of the format is measured three ways',
         { dimension: 'effects-as-asked', yes: 0, no: 1, cannot_tell: 0, unanswered: 0 },
         { dimension: 'nothing-unasked', yes: 0, no: 0, cannot_tell: 1, unanswered: 0 },
     ]);
+    // Read against the owner's targets, it meets none of them.
+    assert.ok(
+        log.includes(
+            'scored:authoring:   no judged dimension below 95% yes: effects-as-asked 0 of 1 (0%), nothing-unasked 0 of 1 (0%); needs 95%: not met',
+        ),
+        log.join('\n'),
+    );
+    assert.equal(log.at(-1), 'scored:authoring: 4 of 4 targets not met');
 });
 
 test('a session not confined stops the run after its trial, and the record says why', (t) => {

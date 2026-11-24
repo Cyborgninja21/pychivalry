@@ -1646,7 +1646,7 @@
             }
         },
         "authoringResults": {
-            "description": "A scored authoring run (records/README.md, \"Scored records\"): the harness, the models, each trial's session, grades and judge, and the measures per request and over all. No target: the owner sets the targets from the first run.",
+            "description": "A scored authoring run (records/README.md, \"Scored records\"): the harness, the models, each trial's session, grades and judge, and the measures per request and over all. No target: the record states measures only, and the owner's targets (docs/decisions.md, decision 127) are read from them.",
             "type": "object",
             "additionalProperties": false,
             "required": [

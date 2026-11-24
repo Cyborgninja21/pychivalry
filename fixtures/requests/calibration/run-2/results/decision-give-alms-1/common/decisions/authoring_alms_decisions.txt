@@ -1,0 +1,16 @@
+﻿authoring_alms_decision = {
+	desc = authoring_alms_decision_desc
+
+	is_shown = { is_ruler = yes }
+
+	is_valid = { gold >= 100 }
+
+	effect = {
+		add_gold = -100
+		add_piety = 50
+	}
+
+	ai_check_interval = 120
+
+	ai_will_do = { base = 0 }
+}

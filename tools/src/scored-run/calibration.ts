@@ -18,11 +18,13 @@
  *
  * Nothing in the format names the person who graded.
  *
- * **The record**, `records/scored/calibration.json`: the grades file by its hash, the judge's
- * prompt, schema, model, session limit and arguments, each item's hand grades and the judge's
- * answers with whether each agrees, and per dimension and over all: the grades, those the judge
- * answered, those it agreed with, the agreement (agreed / answered), how often the person and
- * the judge said "cannot tell", and the full table of hand answer against judge answer.
+ * **The record**, `records/scored/calibration.json`, or the file of `records/scored/` that
+ * `SCORED_RECORD` names, so that two sheets give two records (`calibrationRecordFile`): the
+ * grades file by its hash, the judge's prompt, schema, model, session limit and arguments, each
+ * item's hand grades and the judge's answers with whether each agrees, and per dimension and
+ * over all: the grades, those the judge answered, those it agreed with, the agreement (agreed /
+ * answered), how often the person and the judge said "cannot tell", and the full table of hand
+ * answer against judge answer.
  */
 
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
@@ -411,6 +413,31 @@ export function calibrationOptions(
     };
 }
 
+/**
+ * Where the calibration's record is written: `SCORED_RECORD`, a `.json` file of `records/scored/`
+ * named from the repository root, or `records/scored/calibration.json`. Anywhere else is refused
+ * before any session starts: `task records:check` reads records only under `records/`, and a
+ * calibration of one sheet must not overwrite another's by accident.
+ */
+export function calibrationRecordFile(
+    root: string,
+    env: Readonly<Record<string, string | undefined>>,
+): string {
+    const named = env['SCORED_RECORD'];
+    if (named === undefined || named === '') {
+        return path.join(root, ...CALIBRATION_RECORD_FILE.split('/'));
+    }
+    const file = path.resolve(root, named);
+    const folder = path.join(root, 'records', 'scored');
+    if (path.dirname(file) !== folder || !file.endsWith('.json') || file.endsWith('.schema.json')) {
+        throw new CommandError(
+            `SCORED_RECORD must name a .json file directly in records/scored/ (from the repository root), such as records/scored/calibration-hand-made.json; not ${named}`,
+            EXIT.usage,
+        );
+    }
+    return file;
+}
+
 /** Read the hand grades, or stop with every problem. */
 export function readGrades(file: string, list: RequestList): Grades {
     if (!existsSync(file)) {
@@ -440,9 +467,11 @@ export function runCalibration(
     root: string,
     env: Readonly<Record<string, string | undefined>>,
     log: (line: string) => void,
-    recordFile: string = path.join(root, ...CALIBRATION_RECORD_FILE.split('/')),
+    /** Where to write the record: `calibrationRecordFile` by default; a test writes it elsewhere. */
+    recordFile: string = calibrationRecordFile(root, env),
 ): { readonly file: string; readonly record: CalibrationRecord; readonly stopped: boolean } {
     const options = calibrationOptions(root, env);
+    const named = env['SCORED_RECORD'];
     const list = committedRequests(root);
     const grades = readGrades(options.gradesFile, list);
     const template = readFileSync(path.join(root, JUDGE_PROMPT_FILE), 'utf8');
@@ -523,7 +552,7 @@ export function runCalibration(
     const record: CalibrationRecord = {
         record_format: 1,
         suite: CALIBRATION_SUITE,
-        command: `SCORED_JUDGE_MODEL=${options.judgeModel} SCORED_SESSION_LIMIT=${String(options.judgeSessionLimit)} SCORED_GRADES=${gradesName}${options.claude.command !== 'claude' || options.claude.args.length > 0 ? ' SCORED_CLAUDE=<another Claude Code>' : ''} task scored:calibrate`,
+        command: `SCORED_JUDGE_MODEL=${options.judgeModel} SCORED_SESSION_LIMIT=${String(options.judgeSessionLimit)} SCORED_GRADES=${gradesName}${named === undefined || named === '' ? '' : ` SCORED_RECORD=${inRepository(root, recordFile, '<record file>')}`}${options.claude.command !== 'claude' || options.claude.args.length > 0 ? ' SCORED_CLAUDE=<another Claude Code>' : ''} task scored:calibrate`,
         made_at: now(),
         tool: toolInfo(root),
         machine: machineInfo(),
