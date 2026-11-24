@@ -1,7 +1,10 @@
 /**
  * A tool of the agent server: its name, what it is for, the shapes of what it takes and
- * returns, and what it does. Every tool only reads (docs/PLAN.md item 6.2): it is declared
- * read-only, never destructive, and the same arguments on the same files give the same answer.
+ * returns, and what it does. Every tool but one only reads (docs/PLAN.md item 6.2): it is
+ * declared read-only, never destructive, and the same arguments on the same files give the same
+ * answer. The one that writes, `apply_format` (item 9.8), says so (`writes`): it is declared not
+ * read-only, and still never destructive and the same on a second call, since it only writes a
+ * file of the mod in pychivalry's format.
  */
 
 import { drain, type Steps } from '@pychivalry/core';
@@ -18,6 +21,8 @@ export interface Tool<Args = Record<string, unknown>> {
     readonly input: Schema;
     /** The shape of its result, checked before it is sent. */
     readonly output: Schema;
+    /** True for the one tool that writes a file of the mod; every other tool only reads. */
+    readonly writes?: true | undefined;
     /**
      * The result, as structured data that fits the budget (`result.ts`); throws `BadInput`
      * for arguments the shape cannot rule out, its text naming the valid values.
@@ -38,6 +43,8 @@ export interface ListedTool {
     readonly description: string;
     readonly input: Schema;
     readonly output: Schema;
+    /** True when the tool writes a file of the mod (`Tool.writes`). */
+    readonly writes: boolean;
     /** `run`, with arguments its input shape has already checked. */
     readonly call: (args: Record<string, unknown>, session: Session) => Record<string, unknown>;
     /** `call` in steps: the tool's own steps, or its `run` as one step. */
@@ -55,6 +62,7 @@ export function listed<Args>(tool: Tool<Args>): ListedTool {
         description: tool.description,
         input: tool.input,
         output: tool.output,
+        writes: tool.writes === true,
         // The library checks the arguments against `input` before this runs (`schema.ts`).
         call: (args, session) =>
             tool.steps === undefined

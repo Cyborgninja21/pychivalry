@@ -1,14 +1,15 @@
 ---
 name: pychivalry-fix-error
-description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, format).
+description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, format, apply_format).
 ---
 
 # Fix what pychivalry finds
 
 pychivalry checks a Crusader Kings 3 mod the way the game itself reads it, and its agent server
 says what is wrong, what is valid instead and, often, the exact edit that fixes it. The server
-only reads: you make every edit with your own edit tool, and your harness shows the person the
-edits. Repair from what the tools return, never from memory of CK3.
+only reads, but for `apply_format`, which writes a file you name in pychivalry's format: you make
+every other edit with your own edit tool, and your harness shows the person the edits. Repair
+from what the tools return, never from memory of CK3.
 
 The tools are named here by their bare names. Your client may list them under a prefix of its
 own (Claude Code lists `check` as `mcp__pychivalry__check`): call each by the name your client
@@ -54,13 +55,15 @@ Claude Code" in VS Code once for the mod's folder.
 5. **Leave the files in the format.** pychivalry writes every file with Windows line breaks and
    the UTF-8 byte-order mark, and lays it out one way. A file not in the format is the warning
    `style/not-formatted`, with a safe fix; a file that is not valid UTF-8 is the warning
-   `style/not-utf8`, with a fix that converts it. For a file you changed, `format` gives the
-   whole file formatted (`changed` false when it is already in the format; its `bom` and
-   `line_ending` say how the file must be written): write that text back, with the byte-order
-   mark and Windows line breaks. When `pychivalry` runs in a terminal you can use,
-   `pychivalry format <file>` writes the file formatted, and `pychivalry check --fix .` in the
-   mod's folder applies every safe fix of the whole mod (run it only when the person wants
-   every safe fix applied).
+   `style/not-utf8`, with a fix that converts it. Run `apply_format` on each file you changed:
+   it writes the file in the format (`written` true), or says it already is (`changed` false),
+   or why it is left as it is (`reason`: a parse error to fix first, or a file not UTF-8, which
+   the fix of `style/not-utf8` converts). Do not write the text of `format` back yourself: your
+   own file tool may write bare line feeds or leave the byte-order mark out. Read a file again
+   before editing it after `apply_format` wrote it. When `pychivalry` runs in a terminal you can
+   use, `pychivalry format <file>` does the same, and `pychivalry check --fix .` in the mod's
+   folder applies every safe fix of the whole mod (run it only when the person wants every safe
+   fix applied).
 6. **Report.** What you changed and why, file by file; the last `check`'s totals; and anything
    left, as rule 5 says.
 

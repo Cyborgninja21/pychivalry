@@ -45,11 +45,14 @@ These hold for every request, whatever else it asks.
    fifth round, say that the content is not finished, and list what is left: code, file, line
    and message.
 7. **Format what you write.** pychivalry writes every file with Windows line breaks and the
-   UTF-8 byte-order mark, and lays it out one way. Run `format` on each file you wrote and write
-   its text back when `changed` is true (`bom` and `line_ending` say how the file must be
-   written), so that no `style/` finding is left: `style/not-formatted` and `style/not-utf8` are
-   warnings, and count as errors here. When `pychivalry` runs in a terminal you can use,
-   `pychivalry format <file>` writes the file formatted in place.
+   UTF-8 byte-order mark, and lays it out one way. Run `apply_format` on each file you wrote or
+   changed: it writes the file in the format (`written` true), or says it already is (`changed`
+   false), or why it is left as it is (`reason`). Do not write the text of `format` back
+   yourself: your own file tool may write bare line feeds or leave the byte-order mark out, and
+   the file then stays out of the format. No `style/` finding may be left: `style/not-formatted`
+   and `style/not-utf8` are warnings, and count as errors here. Read a file again before editing
+   it after `apply_format` wrote it. When `pychivalry` runs in a terminal you can use,
+   `pychivalry format <file>` does the same.
 
 ## What you can write
 
@@ -78,9 +81,9 @@ same.
    own, with a prefix the mod already uses if it has one. `find_definition` on each new name
    must find nothing: a definition of the same name replaces the base game's or another file's.
 4. **Draft,** looking up every name before you write it (rule 1), and writing the localization
-   with the script (rule 2). Write new files with the UTF-8 byte-order mark and Windows line
-   breaks.
-5. **Check, repair and format,** as rules 3 to 7 say, round by round.
+   with the script (rule 2).
+5. **Format, check and repair,** as rules 3 to 7 say, round by round: `apply_format` on each file
+   you wrote or changed, then `check`.
 6. **Report.** The files you wrote and the names you defined; the last `check`'s totals for
    those files; the choices you made; and anything left, as rule 6 says. Say also what a clean
    check does not prove: that the content does what was asked when it runs in the game.

@@ -103,6 +103,7 @@ export const TASK = 'agent-use';
  * `mcp__pychivalry__<name>`.
  */
 export const SERVER_TOOLS: readonly string[] = [
+    'apply_format',
     'check',
     'explain_code',
     'find_definition',

@@ -36,6 +36,7 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'find_references',
         'list_definitions',
         'format',
+        'apply_format',
     ],
     'pychivalry-write-content': [
         'check',
@@ -44,6 +45,7 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'list_definitions',
         'explain_code',
         'format',
+        'apply_format',
     ],
 };
 
@@ -332,8 +334,11 @@ test('the authoring skill states the rules of item 9.2, in order, for the four k
     // No style/ warning left: the format's two warnings are named as counting as errors.
     assert.match(
         body,
-        /`style\/not-formatted` and `style\/not-utf8` are\s+warnings, and count as errors here/,
+        /`style\/not-formatted`\s+and `style\/not-utf8` are\s+warnings, and count as errors here/,
     );
+    // Formatting is written by the agent server: an AI harness's own file tools may not write
+    // Windows line breaks (the first scored authoring run, item 9.8).
+    assert.match(body, /Run `apply_format` on each file you wrote or\s+changed/);
     for (const kind of [
         'An event, with its localization',
         'A decision',
