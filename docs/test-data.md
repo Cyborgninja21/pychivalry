@@ -166,8 +166,10 @@ configuration folders, on copies of committed test data written into a temporary
 - `smoke`: the packaged `.vsix`, installed by VS Code's own installer, on a copy of the
   planted-defect mod in a folder whose name holds a space, with `pychivalry.gamePath` naming its
   game stub. Its same-answers test compares the editor's, the command line's (typed into a
-  terminal of that VS Code) and the agent server's findings: 36, the same 26 errors, 9 warnings
-  and 1 hint as above, in its 16 checked files.
+  terminal of that VS Code) and the agent server's findings, in its 16 checked files; the mod
+  being in pychivalry's format, the copy writes one file, `events/harvest_faith_events.txt`, with
+  `\n` line breaks, so that the same-formatting test still proves Format Document turns a
+  document's `\n` into `\r\n` (that file then shows the formatter's findings too).
 - `update-1`, `update-2`: two versions of the extension written by test code as installable
   files, on the same fixture mod copy.
 

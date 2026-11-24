@@ -163,10 +163,20 @@ function modCopy(root: string): string {
     return mod;
 }
 
-/** The planted-defect mod, copied into a folder whose name holds a space. */
+/** The file of the planted copy written with `\n` line breaks (`plantedCopy`). */
+const LF_FILE = 'events/harvest_faith_events.txt';
+
+/**
+ * The planted-defect mod, copied into a folder whose name holds a space. The mod is in
+ * pychivalry's format, so one file of the copy is written with `\n` line breaks: the
+ * same-formatting test then proves that Format Document turns a document's `\n` to `\r\n`, which
+ * an edit's text cannot do in VS Code.
+ */
 function plantedCopy(root: string): string {
     const mod = path.join(root, 'smoke mods', 'harvest festival');
     cpSync(path.join(REPO, 'fixtures', 'defects', 'mod'), mod, { recursive: true });
+    const lf = path.join(mod, ...LF_FILE.split('/'));
+    writeFileSync(lf, readFileSync(lf, 'utf8').replaceAll('\r\n', '\n'), 'utf8');
     return mod;
 }
 
