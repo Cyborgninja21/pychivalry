@@ -72,6 +72,7 @@ lives unchanged in `legacy/`.
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
 | Authoring bar | The authoring loop has a round limit of 5. Its targets, set by the owner on 2026-11-24 (decision 127), are strict and hold before any release: every result with no error; every result with no warning and in pychivalry's format; at least 95% of results meeting every expectation checked in code; no judged dimension below 95% yes. The record states measures only; the targets are read from it (`task scored:targets`). The first run (decision 120) meets two of them, the second (decision 128) all four. |
 | Authoring judge | In the scored authoring run, Opus 5.5 (`claude-opus-5-5`) writes and Fable 5.2 (`claude-fable-5-2`) judges: the judge is another model than the one whose work it judges (decision 121). |
+| Authoring requests | Harder requests are added before the third preview (decision 131): twelve expert requests beside the first twelve, results read with and without them. The third preview's release run, 10 trials of each request, is made once, on the owner's word, after his hand calibration and hand checklist and once the request list is final (decision 132): with twenty-four requests, 480 test sessions. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
@@ -538,7 +539,7 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
 | Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same.* |
 | Agent use | Planted defects `M` | See [AI tests](#ai-tests). |
-| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *Two runs, 2026-11-24, are on record. The first (`records/scored/authoring-run-1.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation. The second, after its fixes (`records/scored/authoring.json`): 60 of 60 on every measure, the judge yes to all 180 questions, every target of the owner's met.* |
+| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *Two runs, 2026-11-24, are on record. The first (`records/scored/authoring-run-1.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation. The second, after its fixes (`records/scored/authoring.json`): 60 of 60 on every measure, the judge yes to all 180 questions, every target of the owner's met. Both on the first twelve requests; twelve expert requests were added after them (decision 131), 24 in all. The release run before the third preview, 10 trials of each of the 24 requests, is 240 trials and starts 480 test sessions: 240 authoring and 240 judge (decision 132).* |
 | Speed | Benchmarks `G` | Within the stated tolerance of the 2.3.0 medians recorded in build step 1. |
 
 ## AI tests
@@ -578,12 +579,15 @@ rate, because a model's output is not repeatable.
   checker and on the match to the request by a separate model call that may answer "cannot
   tell". The in-game load is the third grade once build step 11 exists. *Built in build step 9:*
   twelve requests in `fixtures/requests/`, three of each kind, each relying only on names the
-  spec package has; validity as three measures (no error, no warning, in pychivalry's format);
+  spec package has, and since the second run twelve expert ones more (decision 131), each with a
+  trap a first draft is likely to fall into, which a hand-made first draft of each shows the
+  code-checked side catching; validity as three measures (no error, no warning, in pychivalry's format);
   the match as expectations checked in code and a judge, one more test session of the
   developer's own Claude Code with no tool, answering each dimension yes, no or cannot tell;
   the judge calibrated against hand grades by `task scored:calibrate`. *Two runs 2026-11-24*
   (below); the calibration waits for the owner's hand grades, on two sheets: ten hand-made
-  results, some deliberately wrong, and twelve real results of the second run.
+  results, some deliberately wrong, and twelve real results of the second run; and a third, if
+  he chooses, of twenty-four hand-made results of the expert requests.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
 - **The target (agent use).** Every test session passes: a release run of 10 test sessions must
   pass all 10, and a development run of 5 that passes fewer than 5 is looked into. The record
@@ -611,7 +615,9 @@ rate, because a model's output is not repeatable.
   its ceiling: on twelve requests written with the skill they test, one model writing and one
   judging, nothing harder tried, and no session needing to repair an error. It shows the fixes
   hold; it cannot yet tell a better server or skill from a worse one, nor that the judge can say
-  no. Whether to add harder requests before the third preview is asked of the owner.
+  no. On the owner's word, twelve harder requests were added before the third preview (decision
+  131); no model has been run on them yet. The release run, made once when the list is final,
+  is 10 trials of each of the 24 requests: 480 test sessions (decision 132).
 
 ## Test data
 

@@ -482,6 +482,23 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   out (`fixtures/requests/calibration/run-2/`, 36 answers left for the owner); the hand-made
   sheet stays and is graded first. `task scored:calibrate` takes `SCORED_RECORD`, a file of
   `records/scored/`, so that each sheet's calibration writes a record of its own.
+- Twelve expert content requests, on the owner's word (decision 131), after the twelve the first
+  two runs were made on, which are unchanged: three of each kind, each setting a trap a first
+  draft is likely to fall into (a name 1.21.0.3 renamed or the game never had, described in words;
+  a scope a list leads into; a saved scope passed between events; a definition of the base to find
+  and use, or to change in place; a namespace a new file must declare again); four on a new base,
+  `granary`. Each has an example result clean over an empty and the installed game, and a
+  hand-made first draft with the mistake it invites, which a test holds to failing the
+  code-checked side for the reason `fixtures/requests/drafts/drafts.json` gives (eight on the
+  checker's errors and warnings). The request format gains names left `unnamed` in the text and
+  expectations `within` a block, with a `count` of definitions, and `kept` definitions of the base.
+- `tools/src/scored-run/repair.test.ts`: the authoring skill's steps played on those eight drafts
+  through the built agent server, with no model: their errors and warnings reported to `check`,
+  none after the repair.
+- A third calibration sheet, `fixtures/requests/calibration/expert/`: twenty-four hand-made
+  results of the expert requests, two of each, some right and some wrong on a judged dimension,
+  every one passing everything code checks (88 answers, 24 judge test sessions, graded only if the
+  owner chooses). The owner's two sheets are unchanged.
 
 ### Changed
 
@@ -679,6 +696,20 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The guide's page on the judge's calibration names both sheets, which to grade first, their
   answers (26 and 36), where to save them, the one command of each and its judge test sessions
   (10 and 12).
+- The targets of the scored authoring test are read with and without the expert requests, and
+  against the committed request list: a record made before the expert requests, as both committed
+  ones were, is read over the requests it has and names those it lacks, and a record that lacks
+  any is not a release run (`task scored:targets`).
+- The skills and the agent server's instructions say plainly which name to call: Claude Code's
+  full name of every tool a skill drives (`mcp__pychivalry__check` and so on), that a call of the
+  short name reaches nothing, and to call the same tool again by its listed name; both scored
+  authoring runs had sessions call tools by the short name (10 calls, then 13).
+- The paged tools' and `lookup`'s cursor say that a cursor only continues the answer it came from,
+  with exactly the same arguments, and that a lookup of other names never takes one; a refused
+  cursor says to repeat those arguments or to call again without cursor (the second run had 4
+  lookups given another call's cursor). The same calls are refused as before.
+- The guide's page on the judge's calibration names the third sheet, of the expert requests, its
+  88 answers, its command and its 24 judge test sessions.
 
 ### Fixed
 
@@ -703,8 +734,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
 - Build step 9: the judge's calibration (item 9.6), on its two sheets, and the hand checklist on
   VS Code's AI (item 9.7), on an extension file built from `main`, are the owner's to run, and
-  the third preview (9.9) waits for both. Whether to add harder requests before the third
-  preview is asked of the owner: the second run is at the ceiling on every measure.
+  the third preview (9.9) waits for both. The twelve expert requests have not been run by a test
+  session; whether the list of twenty-four is final, or the expert requests first get a
+  development run, is asked of the owner. The third preview's release run, 10 trials of each of
+  the 24 requests, 480 test sessions, is made once on his word (decision 132).
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

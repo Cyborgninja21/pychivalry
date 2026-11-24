@@ -462,13 +462,17 @@ items 9.4 to 9.6 and 9.8).
 
 ### The requests
 
-The fixed list is `fixtures/requests/requests.json`: twelve requests, three each of events,
-decisions, scripted effects and scripted triggers, one easy, one medium and one hard of each
-([fixtures/requests/README.md](../../fixtures/requests/README.md)). Each names everything the
+The fixed list is `fixtures/requests/requests.json`: twenty-four requests, six each of events,
+decisions, scripted effects and scripted triggers: one easy, one medium and one hard of each, the
+twelve the first two runs were made on, and three **expert** ones of each, added after the second
+run ([below](#the-expert-requests-decisions-131-and-132);
+[fixtures/requests/README.md](../../fixtures/requests/README.md)). Each names everything the
 result must define; each relies only on names the spec package has, or the request's base mod
-defines, which a test proves and the run checks again before it starts. Each holds what a correct
-result must contain twice over: **expectations** checked in code (files, namespaces, definitions,
-fields, names used, references that resolve, localization keys, base files left alone), and
+defines, which a test proves and the run checks again before it starts; an expert request may
+describe such a name in words instead of writing it, so that a session has to find it. Each holds
+what a correct result must contain twice over: **expectations** checked in code (files,
+namespaces, definitions and how many, fields, names used and the block they are used in,
+references that resolve, localization keys, base files and base definitions left alone), and
 **judged dimensions** for the rest, from one closed set: `effects-as-asked`,
 `conditions-as-asked`, `scope-as-asked`, `text-as-asked` and `nothing-unasked`.
 
@@ -612,9 +616,9 @@ readable without git's history.
 
 ### Tests
 
-`requests.test.ts`, `expectations.test.ts`, `judge.test.ts`, `authoring.test.ts`,
-`authoring-targets.test.ts`, `calibration.test.ts` and `no-model-call.test.ts` run in public CI
-with no model, key, network or display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
+`requests.test.ts`, `expectations.test.ts`, `repair.test.ts`, `judge.test.ts`,
+`authoring.test.ts`, `authoring-targets.test.ts`, `calibration.test.ts` and
+`no-model-call.test.ts` run in public CI with no model, key, network or display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
 it copies a request's example result into the trial's mod (or nothing, or a broken result) and
 plays back a stream in the shape Claude Code 2.1.330 writes; as a judge it reads its prompt from
 standard input and plays back an answer. They show a correct result graded valid with every
@@ -623,7 +627,10 @@ ways; a malformed judge recorded as such; an unconfined authoring session and an
 each stopping the run; both places of the skills; the continued run; and the record's checks.
 `authoring-targets.test.ts` reads the targets at their thresholds (95% met by 57 of 60 and 19 of
 20, not by 56 of 60 or 18 of 20; every result means every one), from the committed first run's
-record, and refuses a record whose figures disagree.
+record, with and without the expert requests, and from a record that lacks requests of the list,
+and refuses a record whose figures disagree. `requests.test.ts` holds each expert request's first
+draft to the reason it fails, and `repair.test.ts` shows the built agent server reporting the
+eight drafts' errors and warnings and none once each is repaired.
 
 ### The targets (item 9.8)
 
@@ -647,6 +654,16 @@ they were set and one made after are read the same way (`authoring-targets.ts`).
 the reading when it ends, each target met or not. `task scored:targets` reads it from a record
 without starting any session: the committed `records/scored/authoring.json`, or the one
 `SCORED_RECORD` names; it exits 1 when a target is not met.
+
+**With and without the expert requests.** The reading over every request of the record decides
+whether the targets are met. When a record has trials of the expert requests and of the others,
+the same targets are read a second time over the others alone, summed from the record's measures
+per request, which add up to its measures over all (a test holds it on the committed record); a
+record of one kind only is read once. A record is read against the committed request list: one
+made before the expert requests were added, as both committed records were, has no trial of them,
+so it is read over the twelve requests it has, and its reading names the twelve it lacks first. A
+record that lacks any request of the list is a development run whatever its trials: a release run
+covers the whole list.
 
 ```sh
 task scored:targets
@@ -909,8 +926,104 @@ What it does not show:
 4. **The repair loop.** No session had an error or a warning to repair (above).
 5. **A release run.** 5 trials of each request, not the 10 of a run before a release.
 
-Whether harder requests should be added before the third preview is the owner's question
-(docs/decisions.md, "Asked, awaiting the owner").
+The owner's answer (docs/decisions.md, decisions 131 and 132): harder requests are added now,
+before the third preview ([below](#the-expert-requests-decisions-131-and-132)), and the third
+preview's release run is made once, when the request list is final.
+
+## The expert requests (decisions 131 and 132)
+
+On the owner's word of 2026-11-24 (decision 131), harder requests were added before the third
+preview, because both runs were at the ceiling: no session's check after writing found an error
+or a warning, so the skill's repair loop and its five-round stop rule were never exercised, and
+the judge never said no. Twelve were added, three of each type, at a new difficulty level,
+`expert`, after the twelve the runs were made on, which are unchanged. Each sets a trap of a kind
+that matters to a modder and that the game files ground, and each can be met with what the spec
+package and the game define: its example result, in the format, has nothing the checker reports
+over an empty base game and over the installed game 1.21.0.3, and meets every expectation.
+
+| Request | What makes it hard | The first draft's mistake | Caught by |
+| --- | --- | --- | --- |
+| `event-granary-inspection` | A new event of the base's namespace in a new file; the base's effect found from its description and run on each adult vassal; the base's event changed in place to fire it | The new file does not declare the namespace again | checker: `structure/event-undeclared-namespace` |
+| `event-envoy-chain` | A trigger, an effect and two events that must agree; a courtier saved in one event and used in the other | The effect run on the character, not on the saved courtier | expectation: the effect inside `scope:envoy` |
+| `event-county-unrest` | A county of the sub-realm picked and saved; the county's opinion of its holder, renamed in 1.21.0.3, described in words | `county_opinion`, `add_county_opinion` | checker: `names/unknown-trigger` 2, `names/unknown-effect`; expectations |
+| `decision-fund-granaries` | The base's trigger and two effects, only described, to find and use | Names guessed from the description | checker: `names/unknown-trigger`, `names/unknown-effect`; expectations |
+| `decision-pardon-prisoners` | Being at peace and setting free described in words; the prisoners' iterator | `is_at_peace`, `release_prisoner` | checker: `names/unknown-trigger`, `names/unknown-effect`; expectations |
+| `decision-house-feast` | The house's power score (renamed in 1.21.0.3) and its members, in the house's scope; an event too | `house_power`; the members walked from the character | checker: `names/unknown-trigger`, `scope/wrong-scope-for-effect`; expectations |
+| `effect-realm-relief` | Counties changed in their own scope, gold to each county's holder (the link not named), prestige once | Gold given in the county's scope | checker: `scope/wrong-scope-for-effect`; expectations |
+| `effect-granary-gift-edit` | One of three effects in a file changed in place; the other two and every other file left byte for byte | The effect written again in a new file, overriding the base's | expectation: defined once |
+| `effect-heir-household` | The heir's own siblings, reached from the heir | The siblings walked from the ruler | expectation: `every_sibling` inside `primary_heir` |
+| `trigger-loyal-realm` | Three counties meeting two conditions together, one renamed in 1.21.0.3 | `county_opinion` | checker: `names/unknown-trigger`; expectation |
+| `trigger-granary-patron` | The base's two triggers, only described, one on the character and one on vassals | The triggers' conditions written again | expectations: both triggers used |
+| `trigger-settled-ruler` | At peace, married, adult children, said in words; the heir in its own scope | `is_at_peace`, `has_spouse` | checker: `names/unknown-trigger` 2; expectations |
+
+Three extensions of the request format carry them, each because code could not otherwise check
+what the request asks: a relied-on name may be `unnamed`, described in words and absent from the
+text (a test holds it so), and proved to exist like any other; an expectation `uses` or `resolves`
+may say `within`, the key of a block it must be used inside, at any depth (an iterator, a link, a
+saved scope, a field), which is how code tells the scope an effect or a condition is written in; a
+definition may be required `count` times (`1`: changed in place, not defined a second time); and a
+new kind, `kept`, holds a definition of the base byte for byte in a file the request changes
+elsewhere. The closed set of judged dimensions is unchanged: the five cover what these requests
+ask. The new base, `granary` (an event, three scripted effects, two scripted triggers, their
+localization), has no finding over an empty base game or over the installed game, and the run's
+own guard (`baseProblems`) passes it.
+
+### What shows they tell results apart, without a model
+
+- **A first draft of each** (`fixtures/requests/drafts/`), hand-made, with the mistake the request
+  invites, written over its base the way an example is. `drafts.json` gives what fails each, and
+  `requests.test.ts` holds each to exactly that: the errors and warnings the checker reports, by
+  code, and the expectations it does not meet, with their problems (above). Eight of the twelve
+  draw an error or a warning from the checker; the other four fail only expectations. Each draft
+  draws the same codes over the installed game as over an empty one.
+- **A result subtly wrong on a judged dimension** for each, beside a right one: the third
+  calibration sheet (`fixtures/requests/calibration/expert/`), twenty-four hand-made results, two
+  of each request, which is which written nowhere. Every one has nothing the checker reports and
+  meets every expectation, which a test holds: the code-checked side cannot tell them apart, and
+  only the judge, or a person, can. The owner's two sheets are unchanged. Calibrating this one is
+  the owner's choice: 88 answers to grade by hand, then 24 judge test sessions.
+
+### The repair loop
+
+No test can show a model repairing; only a real run can. What a test can show, `repair.test.ts`
+does: on each of the eight drafts the checker catches, the skill's documented steps played by the
+test, not chosen by a model. The built agent server, started as a trial's configuration starts it,
+reports to `check` at warning and above exactly the draft's errors and warnings, each in a file the
+draft wrote; after the repair (the example written over the draft) the same check reports none. So
+a session that falls into one of those traps is told so by the check the skill has it run, and the
+repair the request needs reaches a clean check. The requests expected to exercise the repair loop
+in a real run are those eight: `event-granary-inspection`, `event-county-unrest`,
+`decision-fund-granaries`, `decision-pardon-prisoners`, `decision-house-feast`,
+`effect-realm-relief`, `trigger-loyal-realm` and `trigger-settled-ruler`. The other four test what
+the session writes, not a repair: a check after writing finds nothing in their drafts.
+
+### The tool errors of the second run
+
+The second run's 17 tool errors, none a fault of the server, pointed at pychivalry's own wording:
+
+1. **13 calls by a short name** (`check`, `lookup`, `find_definition`), which Claude Code answers
+   with no such tool. The skills wrote every tool by its short name and said only that a client
+   "may" list it under a prefix, giving one example; the server's instructions said the same. The
+   first run had 10 such calls, the agent-use sessions 2. Each skill now lists Claude Code's full
+   name of every tool it drives (`mcp__pychivalry__check` and so on), says that a call of the short
+   name reaches nothing, and to call the same tool again by its listed name; the server's
+   instructions say the same. `skill-files.test.ts` holds every skill to it, tool by tool.
+2. **4 `lookup` calls given a cursor with other arguments.** `lookup`'s cursor was described as
+   "the next_cursor of the previous result", which a session can read as the last result of any
+   call; the paged tools' cursor said the same. Each now says a cursor only continues the answer
+   it came from, with exactly the same arguments, and is left out for any other question;
+   `lookup`'s description adds that a lookup of other names never takes one. A refused cursor now
+   says what to do: repeat exactly the same arguments to continue, or call again without cursor;
+   `lookup`'s refusal names its own arguments, the names and the language. The same calls are
+   refused as before: no check is weaker.
+
+### The release run (decision 132)
+
+The third preview's release run is made once, on the owner's word, after his hand calibration and
+hand checklist and once the request list is final: 10 trials of each request, the MVP's
+repetitions before a release. With the twenty-four requests that is 240 trials, each one authoring
+test session and one judge test session: **480 test sessions**. A record that lacks any request of
+the list is not a release run of it ([The targets](#the-targets-item-98)).
 
 ## Calibrating the judge (item 9.6)
 
@@ -930,7 +1043,7 @@ SCORED_SESSION_LIMIT=3 SCORED_GRADES=<grades file> SCORED_RECORD=records/scored/
 `SCORED_SESSION_LIMIT`, `SCORED_CLAUDE`, `SCORED_JUDGE_MODEL`, `SCORED_JUDGE_TIMEOUT_MINUTES` and
 `SCORED_KEEP` apply as in the authoring run.
 
-**Two sheets wait for the owner** ([docs/guide/judge-calibration.md](../../docs/guide/judge-calibration.md),
+**Three sheets wait for the owner** ([docs/guide/judge-calibration.md](../../docs/guide/judge-calibration.md),
 which gives the command of each):
 
 1. `fixtures/requests/calibration/grades.json`: ten **hand-made** results of six requests, some
@@ -942,6 +1055,10 @@ which gives the command of each):
    record `records/scored/calibration-run-2.json`). Each is the trial's mod with the skills
    folder taken out; a test holds each to the mod's own files, its base whole, in the format and
    holding nothing of the machine the run was made on.
+3. `fixtures/requests/calibration/expert/grades.json`: twenty-four **hand-made** results of the
+   twelve expert requests, two of each, some right and some wrong on a judged dimension, every one
+   passing everything code checks (88 answers, 24 judge test sessions, record
+   `records/scored/calibration-expert.json`). Graded last, and only if the owner chooses to.
 
 **The hand grades** are one JSON file a person writes (`grades_format` 1): `about` (where the
 results came from, how they were chosen), and `items`, each a `request` (its id), a `result` (the
