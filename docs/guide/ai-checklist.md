@@ -14,14 +14,16 @@ it, like any chat you start.
 
 - VS Code **1.146 or later**, signed in to its AI, with the chat in **agent mode** (the default
   Copilot harness). Note the model the chat uses: it is part of the result.
-- A build of pychivalry with the skills: the third preview or later, or `task vscode:package` on
-  `main`, installed with "Install from VSIX...".
+- A build of pychivalry with the skills and `apply_format`: the third preview or later, or until
+  then a `.vsix` made with `task vscode:package` on `main` (it is written to
+  `packages/vscode/dist/pychivalry-<version>.vsix`), installed with "Install from VSIX...". The
+  second preview, 0.2.0, has neither the skills nor `apply_format`: the check cannot be run on it.
 - Crusader Kings III installed (or `pychivalry.gamePath` set to its `game` folder).
 - Three mod folders, each a copy made for this check, never your own work:
   1. **An empty mod:** a copy of this repository's `fixtures/requests/bases/empty/`, a
      `descriptor.mod` alone. Three of the authoring requests run here.
-  2. **The feast mod:** a copy of `fixtures/requests/bases/feast/`, which already has an event,
-     a scripted effect and a scripted trigger. The decision request runs here.
+  2. **The banquet mod:** a copy of `fixtures/requests/bases/banquet/`, which already has an
+     event, a scripted effect and a scripted trigger. The decision request runs here.
   3. **The planted-defect mod:** a copy of this repository's `fixtures/defects/mod/`, opened
      with `pychivalry.gamePath` set to the repository's `fixtures/game/planted-defects` (the game
      stub its defects are written against, as the editor tests open it). The explain and fix
@@ -56,7 +58,7 @@ of the base mod the list names for it, and reads its expectations and questions 
 | Id | Mod | Request |
 | --- | --- | --- |
 | `event-letter-from-spouse` | Empty | Write two character events (`character_event`) in a new file under `events/`, in the namespace `authoring_letter`. The first, `authoring_letter.0001`, comes once a year through the on-action `yearly_playable_pulse`, which you hook in a new file under `common/on_action/`; it may happen only to a ruler (`is_ruler`) who is married (`is_married`): a letter arrives from the character's spouse. Its one option gives the character 10 piety (`add_piety`) and fires the second event, `authoring_letter.0002`, 3 days later (`trigger_event`). In the second event the character answers: one option gives the character's spouse (`primary_spouse`) 20 prestige (`add_prestige`), the other lowers the character's own stress by 10 (`add_stress`). Write the English localization of both events in a new file under `localization/english/`: `authoring_letter.0001.t`, `authoring_letter.0001.desc`, `authoring_letter.0001.a`, `authoring_letter.0002.t`, `authoring_letter.0002.desc`, `authoring_letter.0002.a` and `authoring_letter.0002.b`. |
-| `decision-hold-feast` | Feast | The mod in this folder already has the scripted trigger `feast_can_host_trigger`, the scripted effect `feast_host_reward_effect` and the character event `feast.0001`. Write a decision `authoring_hold_feast_decision` in a new file under `common/decisions/` that uses them. It is shown to characters for whom `feast_can_host_trigger` holds, and can be taken only with at least 100 gold (`gold`). Taking it takes 100 gold from the character (`add_gold`), runs `feast_host_reward_effect`, and fires `feast.0001` 7 days later (`trigger_event`). It can be taken again only 5 years after it was last taken (`cooldown`). Write its English localization in a new file under `localization/english/`: the title `authoring_hold_feast_decision` and the description `authoring_hold_feast_decision_desc`. Change none of the mod's other files. |
+| `decision-hold-banquet` | Banquet | The mod in this folder already has the scripted trigger `banquet_can_host_trigger`, the scripted effect `banquet_host_reward_effect` and the character event `banquet.0001`. Write a decision `authoring_hold_banquet_decision` in a new file under `common/decisions/` that uses them. It is shown to characters for whom `banquet_can_host_trigger` holds, and can be taken only with at least 100 gold (`gold`). Taking it takes 100 gold from the character (`add_gold`), runs `banquet_host_reward_effect`, and fires `banquet.0001` 7 days later (`trigger_event`). It can be taken again only 5 years after it was last taken (`cooldown`). Write its English localization in a new file under `localization/english/`: the title `authoring_hold_banquet_decision` and the description `authoring_hold_banquet_decision_desc`. Change none of the mod's other files. |
 | `effect-war-chest` | Empty | Write a scripted effect `authoring_war_chest_effect` in a new file under `common/scripted_effects/`, for a character. When the character is at war (`is_at_war`) it gives 100 gold (`add_gold`); otherwise it gives 50 prestige (`add_prestige`): write it with `if` and `else`. Either way it then raises the character's stress by 5 (`add_stress`). |
 | `trigger-can-host` | Empty | Write a scripted trigger `authoring_can_host_trigger` in a new file under `common/scripted_triggers/`. It holds for a character who is an adult (`is_adult`), is a ruler (`is_ruler`) and has at least 50 gold (`gold`). |
 | E1 | Planted | What does the first error pychivalry reports in this mod mean, and why is it reported there? |
@@ -72,7 +74,8 @@ Write down for each request: pass or fail on each line below, and what you saw.
   response's references): `pychivalry-write-content` for the authoring requests, `pychivalry-explain-error`
   for E1, `pychivalry-fix-error` for F1.
 - **The tools are pychivalry's.** The tool calls the chat shows are pychivalry's `lookup`,
-  `check`, `explain_code` and the others, not a web search or a guess.
+  `check`, `explain_code` and the others, not a web search or a guess. VS Code asks before
+  `apply_format`, the one pychivalry tool that writes a file: approve it.
 - **The report is honest.** If an error is left, the AI says so and names it. It never says the
   content works, or is fixed, while the Problems panel shows an error.
 
@@ -81,25 +84,27 @@ Write down for each request: pass or fail on each line below, and what you saw.
 - **Names looked up first.** `lookup` (or `find_definition`, `list_definitions`) is called before
   the first edit, and for the names the content then uses.
 - **The right place.** `event-letter-from-spouse` writes new files in `events/` and
-  `common/on_action/`, `decision-hold-feast` in `common/decisions/`, `effect-war-chest` in
+  `common/on_action/`, `decision-hold-banquet` in `common/decisions/`, `effect-war-chest` in
   `common/scripted_effects/`, `trigger-can-host` in `common/scripted_triggers/`, each a new file
   of the mod's own. Source Control shows nothing else changed but the localization (the event
-  and the decision); in the feast mod, none of its own files changed.
+  and the decision); in the banquet mod, none of its own files changed.
 - **Localization written with it (the event and the decision).** A file under `localization/english/` holds every
   key the event or decision uses, each with real English text, not the key repeated. Hovering
   the event's key shows its title as an inline hint.
-- **Checked and repaired.** `check` is called after the first write; every round of repairs is
-  followed by another `check`; there are at most five rounds.
+- **Formatted, checked and repaired.** `apply_format` is called on each file written; `check` is
+  called after the first write; every round of repairs is followed by another `check`; there are
+  at most five rounds.
 - **Clean.** In the Problems panel, the new files show **no error and no `style/` warning**.
   The status bar shows each new file as "UTF-8 with BOM" and "CRLF". In the terminal,
   `pychivalry check .` reports no error in them either.
 - **What was asked.** Read the script: each part of the request is there.
   `event-letter-from-spouse`: the first event comes through `yearly_playable_pulse` to a married
-  ruler, its one option gives 10 piety and fires the second event 3 days later; the second's two
-  options give the spouse 20 prestige and lower the character's stress by 10.
-  `decision-hold-feast`: shown where `feast_can_host_trigger` holds, valid with 100 gold, taking
-  the gold, running `feast_host_reward_effect`, firing `feast.0001` 7 days later, a cooldown of 5
-  years. `effect-war-chest`: 100 gold at war, 50 prestige otherwise, with `if` and `else`, and 5
+  ruler (listed in the on-action's own `events`, or in an on-action of the mod that it fires: the
+  game allows both), its one option gives 10 piety and fires the second event 3 days later; the
+  second's two options give the spouse 20 prestige and lower the character's stress by 10.
+  `decision-hold-banquet`: shown where `banquet_can_host_trigger` holds, valid with 100 gold,
+  taking the gold, running `banquet_host_reward_effect`, firing `banquet.0001` 7 days later, a
+  cooldown of 5 years. `effect-war-chest`: 100 gold at war, 50 prestige otherwise, with `if` and `else`, and 5
   stress either way. `trigger-can-host`: an adult ruler with at least 50 gold. Write down any
   part missing or done differently. A clean check does not prove this: it is what the scored
   run's expectations and judge grade, on the questions `fixtures/requests/requests.json` gives

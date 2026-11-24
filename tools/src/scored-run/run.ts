@@ -87,6 +87,13 @@ import {
  * tools/scored-run/README.md.
  */
 export const PINNED_MODEL = 'claude-opus-5-5';
+/**
+ * The judge's model when none is given, for the scored authoring run and the judge's
+ * calibration: another model than the one whose work it judges, by the owner's answer of
+ * 2026-11-24 (docs/decisions.md): Opus 5.5 writes, Fable 5.2 judges. The same rules as
+ * `PINNED_MODEL`.
+ */
+export const PINNED_JUDGE_MODEL = 'claude-fable-5-2';
 export const DEFAULT_TRIALS = 5;
 export const DEFAULT_SERVER = 'packages/mcp/dist/main.js';
 export const DEFAULT_SERVER_ARGS: readonly string[] = ['--mod', '{mod}', '--vanilla', '{game}'];

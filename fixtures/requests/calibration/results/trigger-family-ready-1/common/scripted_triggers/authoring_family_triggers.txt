@@ -1,0 +1,8 @@
+﻿# Married, or a parent of an adult child, and free.
+authoring_family_ready_trigger = {
+	OR = {
+		is_married = yes
+		any_child = { is_adult = yes }
+	}
+	is_imprisoned = no
+}

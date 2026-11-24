@@ -38,7 +38,7 @@ import {
     textFile,
 } from './authoring-testing.js';
 import { committedRequests, type ContentRequest } from './requests.js';
-import { PINNED_MODEL, SESSION_LIMIT_OPTION } from './run.js';
+import { PINNED_JUDGE_MODEL, PINNED_MODEL, SESSION_LIMIT_OPTION } from './run.js';
 
 const fake = fileURLToPath(new URL('./fake-claude.js', import.meta.url));
 const validate = compileRecordSchema(path.join(root, 'records', 'record.schema.json'));
@@ -125,7 +125,7 @@ test('a trial whose session writes a correct result: valid, every expectation me
     assert.equal(record.suite, 'scored:authoring');
     assert.equal(results.harness.version, '2.1.330');
     assert.equal(results.model, PINNED_MODEL);
-    assert.equal(results.judge_model, PINNED_MODEL);
+    assert.equal(results.judge_model, PINNED_JUDGE_MODEL);
     assert.equal(results.session_limit, 2);
     assert.equal(results.judge_session_limit, 2);
     assert.deepEqual(
@@ -135,7 +135,7 @@ test('a trial whose session writes a correct result: valid, every expectation me
     assert.deepEqual(results.task.answers, ['yes', 'no', 'cannot-tell']);
     assert.match(
         record.command,
-        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=1 SCORED_SESSION_LIMIT=2 SCORED_REQUESTS=effect-war-chest SCORED_SKILLS=<skills folder> SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring$/,
+        /^SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=1 SCORED_SESSION_LIMIT=2 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=effect-war-chest SCORED_SKILLS=<skills folder> SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring$/,
     );
     const [trial] = results.trials;
     assert.ok(trial !== undefined);
@@ -443,7 +443,7 @@ test("with SCORED_SKILLS_IN=config the skills are in a temporary configuration f
     assert.equal(record.results.trials[0]?.harness_held, true);
 });
 
-test('the parameters: the game and a session limit are required, the judge follows the run, requests are named by id', (t) => {
+test('the parameters: the game and a session limit are required, the judge is the pinned judge, requests are named by id', (t) => {
     const usage = (env: Record<string, string>, pattern: RegExp): void => {
         assert.throws(
             () => authoringOptions(root, env),
@@ -471,7 +471,9 @@ test('the parameters: the game and a session limit are required, the judge follo
         CK3_GAME_PATH: game,
         SCORED_REQUESTS: ' a , b ',
     });
-    assert.equal(options.judgeModel, PINNED_MODEL);
+    // Another model judges, by the owner's answer of 2026-11-24.
+    assert.equal(options.judgeModel, PINNED_JUDGE_MODEL);
+    assert.notEqual(PINNED_JUDGE_MODEL, PINNED_MODEL);
     assert.equal(options.judgeSessionLimit, 2);
     assert.equal(options.judgeTimeoutMinutes, 10);
     assert.equal(options.trials, 5);

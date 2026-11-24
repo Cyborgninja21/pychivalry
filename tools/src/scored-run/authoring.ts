@@ -43,7 +43,7 @@
  * | `SCORED_REQUESTS` | The requests to run, by id, comma-separated | every request |
  * | `SCORED_SKILLS` | The skills folder, from the repository root: each folder in it holding a `SKILL.md` is a skill | `skills` |
  * | `SCORED_SKILLS_IN` | Where each session is given the skills: `project` (the trial's own `.claude/skills/`) or `config` (`skills/` of a temporary `CLAUDE_CONFIG_DIR`; see `SkillPlace`) | `project` |
- * | `SCORED_JUDGE_MODEL` | The judge's model, by its full name | the authoring model |
+ * | `SCORED_JUDGE_MODEL` | The judge's model, by its full name | `PINNED_JUDGE_MODEL`, Fable 5.2 |
  * | `SCORED_JUDGE_SESSION_LIMIT` | The session limit of each judge session | `SCORED_SESSION_LIMIT` |
  * | `SCORED_JUDGE_TIMEOUT_MINUTES` | The time limit of each judge session | 10 |
  *
@@ -120,6 +120,7 @@ import {
     harnessVersion,
     inRepository,
     mcpConfig,
+    PINNED_JUDGE_MODEL,
     positive,
     recordToContinue,
     sanitize,
@@ -214,7 +215,10 @@ export function authoringOptions(
     }
     return {
         ...base,
-        judgeModel: fullModelName('SCORED_JUDGE_MODEL', env['SCORED_JUDGE_MODEL'] ?? base.model),
+        judgeModel: fullModelName(
+            'SCORED_JUDGE_MODEL',
+            env['SCORED_JUDGE_MODEL'] ?? PINNED_JUDGE_MODEL,
+        ),
         judgeSessionLimit:
             judgeLimit === undefined || judgeLimit === ''
                 ? base.sessionLimit

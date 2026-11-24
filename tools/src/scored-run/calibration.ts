@@ -65,7 +65,7 @@ import {
     fullModelName,
     harnessVersion,
     inRepository,
-    PINNED_MODEL,
+    PINNED_JUDGE_MODEL,
     positive,
     sanitize,
 } from './run.js';
@@ -396,7 +396,7 @@ export function calibrationOptions(
         gradesFile: path.resolve(root, grades),
         judgeModel: fullModelName(
             'SCORED_JUDGE_MODEL',
-            env['SCORED_JUDGE_MODEL'] ?? env['SCORED_MODEL'] ?? PINNED_MODEL,
+            env['SCORED_JUDGE_MODEL'] ?? PINNED_JUDGE_MODEL,
         ),
         judgeSessionLimit: positive('SCORED_SESSION_LIMIT', limit, false),
         judgeTimeoutMinutes: positive(
