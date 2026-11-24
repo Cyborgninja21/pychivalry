@@ -1,6 +1,6 @@
 # pychivalry: build plan
 
-Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 was built on the owner's word by agents in parallel (decisions 84 and 85): the language server, the extension that starts it and registers the agent server with both AI harnesses, the command line on the terminal's path, the same-answers test, the packaged `.vsix` and its smoke test. Its item 7.12, the first preview's pre-release, was published on the owner's word on 2026-11-23 (decision 86): step 7 is done. Then, on the owner's word (decision 87), the language server, the agent servers and the command line were made to share one copy of the base game's index ([shared-index.md](shared-index.md)). Step 8 has started on the owner's word, built by agents in parallel (decision 89). The Progress table says what is open.
+Status: plan for approval, 2026-11-22. Step 0 is done: the 1.21.0.3 spec package in format 8 is committed (2026-11-23, decision 68), its override rules table among its parts. Step 1 is complete, and steps 2 and 3 are built and merged, the index reading the override rules from the package. Item 4.1, the check inventory, is written and signed off. The rest of step 4 and step 5 were built in parallel on the owner's word (decisions 70 and 72) and brought together by an integration pull request: every item of step 4 and step 5 is built, but for two blocked rows of the inventory and the parts of four rows that wait on the owner or on the spec work. Step 4's "Done when" holds but for its first line (two blocked rows have no fixture pair); step 5's holds. Step 6 is built (decision 77): the agent server, the planted-defect mod, its graders and the scored-test script; item 6.11's first test sessions ran on the owner's word (decision 81), 5 of 5 passed, and the owner set the target from them: every test session passes, 10 of 10 before a release (decision 82). The five proposals of those sessions are done (decision 83): a harder planted mod, findings that say what is valid, and the rest. Step 7 was built on the owner's word by agents in parallel (decisions 84 and 85): the language server, the extension that starts it and registers the agent server with both AI harnesses, the command line on the terminal's path, the same-answers test, the packaged `.vsix` and its smoke test. Its item 7.12, the first preview's pre-release, was published on the owner's word on 2026-11-23 (decision 86): step 7 is done. Then, on the owner's word (decision 87), the language server, the agent servers and the command line were made to share one copy of the base game's index ([shared-index.md](shared-index.md)). Step 8 was built on the owner's word, by agents in parallel (decision 89): its formatting rules were signed off and then re-decided under a new principle, best practice over the author's layout (decisions 90 to 103), and items 8.1 to 8.9 are built; item 8.10, the second preview, waits for the owner's word. The Progress table says what is open.
 
 This is the "how" for the rebuild. The "what" and the "why" are in [MVP.md](MVP.md): the
 decisions, the scope, the tests each feature needs and the definition of done. Where the two
@@ -27,7 +27,7 @@ disagree, MVP.md is right and this plan is fixed.
 | 5 | Command line | Through step 4 | Built (#129, with the per-file cap in the integration pull request): `check`, `lookup` and `explain`, text and JSON, the filters, the exit codes, the on-disk index. "Done when" holds: the golden test passes, and on each of the five mods the command line's findings equal the core's and the `game:mods` record's. Open: the owner's questions on `--severity`, `--no-vanilla`, the folders checked and `mcp` (decisions.md) |
 | 6 | Agent server | Through step 4 | Items 6.1 to 6.6 built (the agent server, `packages/mcp/`): the six tools `check`, `lookup`, `find_definition`, `find_references`, `list_definitions` and `explain_code`, each read-only with its shapes declared, every result under 10,000 tokens (measured on rice), bad input as results naming the valid values, nothing written but the index cache, the on-disk index loaded; with them decisions 74 to 77 (`localization/unused-key` off by default). `call_graph`, `analyze_log` and `format` come with steps 10, 11 and 8. Items 6.7 to 6.10 built (#136): the planted-defect mod `fixtures/defects/` (27 defects, one per error and warning code, and 10 look-alikes, over the game stub `planted-defects`), the five graders, the scored-test script `task scored:agent-use` and its record format, all tested in CI without Claude Code; with them a CI test that no shipped package holds a key or reaches the network. Item 6.11 run on the owner's word (decision 81): the first five test sessions are on record, 5 of 5 passed (`records/scored/agent-use.json`), after two repair sessions that found harness faults, fixed; the owner set the target from them: every test session passes, a release run 10 of 10 (decision 82), which the record now states. Then, on the owner's word (decision 83), the sessions' five proposals: the planted mod made harder (32 defects, every error and warning code at least once, 29 look-alikes, 17 files; defects that need a lookup, interact or are fixed elsewhere; its reference's wrong-scope fix made right), scope findings that name the links that lead to the scope they need, field findings that carry the value type and the base game's values, the instructions naming the tools' prefix, and readable slots in every message `explain_code` shows; with them, the core's check on a name defined in many files no longer grows with the cube of the files (300 files: 7.5 s before, 0.09 s after). "Done when" holds: both lines. The harder mod has not been run by a test session yet |
 | 7 | Language server and extension | Through step 4 | Done. Built on the owner's word (decisions 84 and 85), by agents in parallel: the language server, server side (#140); the extension with its AI wiring, items 7.1, 7.2 and 7.8 (#142); the rest of items 7.3 to 7.11 in one more pull request. The extension starts the language server over IPC on VS Code's own runtime, declares its four settings, gives the agent server the game folder, registers it with VS Code's AI and sets it up for Claude Code, and puts the command line on the integrated terminal's path. The same-answers test passes on the planted-defect mod in CI and on the five real mods (0, 15, 627, 2,942 and 62 findings, the same on the editor, the command line and the agent server). The `.vsix` is 3.88 MB (2.3.0's: 1.8 MB) and its smoke test passes in a clean VS Code on Linux and Windows. Editor speed against the 2.3.0 baseline: faster on all five mods, more memory on four (MVP.md, "Speed"). "Done when" holds: 2 to 4 in full, 1 for everything a test can show (a signed-in harness calling the tools is the owner's by-hand check). The first preview is published (decision 86): the GitHub pre-release `v0.1.0`, "pychivalry 0.1.0 (preview)", with the `.vsix` ([preview-release.md](preview-release.md)). The VS Code floor stays 1.146 (decision 88). After it, on the owner's word (decision 87), the three programs share one copy of the base game's index: the language server lends it to the agent servers and the command line, which load their own only when it cannot answer ([shared-index.md](shared-index.md)); on rice their peak memory went from 3.02 GiB to 1.83 GiB (the medians of five runs and six) in all, with the same findings on every surface. Open: the owner's questions on step 7 in decisions.md |
-| 8 | Formatter and fixes | No, but follows step 7 | In progress: started on the owner's word (decision 89), built by agents in parallel, each in its own worktree and pull request. Item 8.1, the formatting rules, is proposed (#145) and awaits the owner's sign-off, which items 8.2 to 8.5 wait on; 8.6, fix data in the core, is built and 8.7, quick fixes, built in part (#146: every finding carries its fix; `check --fix`; the language server's quick fixes; the formatting fixes wait for the formatter); 8.8, the presentation data, is built (#144). Not started: 8.2 to 8.5, 8.9, 8.10 |
+| 8 | Formatter and fixes | No, but follows step 7 | Built but for item 8.10, the second preview, which waits for the owner's word. Built on the owner's word (decision 89) by agents in parallel: the presentation data (#144), fix data and quick fixes (#146), the shared index (#147), and one more pull request for the rest. The formatting rules were signed off (decisions 90 to 100), then re-decided under the owner's new principle, best practice and cleanliness over anything a mod author did (decisions 101 to 103): the formatter decides the layout, joins and splits, writes Windows line breaks and the byte-order mark in every file, and the `style/` family flags a file not in the format (one warning) and each untidy place (a hint), each with a safe fix. The round trip on the base game passes on all 4,851 script files it formats (3 left: a parse error) and its 12,171 localization files: trees, tokens, second format and comments (502,890, none lost or moved) the same; it changes 4,656 script files. `format` on the command line, the agent server and the language server give the same text (the same-answers test). "Done when" holds: 1 to 3 |
 | 9 | Skills and the authoring run | Through step 4 | Not started |
 | 10 | GUI files, graphics check, call graph | Partly | Not started |
 | 11 | Game-log analysis, in-game load | Yes | Not started |
@@ -1210,17 +1210,48 @@ blank lines. It had no golden files and no written rules, and its settings were 
   behaviour is the starting point and each rule is checked against how the base game is
   written.
 
-  *Proposed (#145), awaiting the owner's sign-off:* [formatting.md](formatting.md) proposes 13
-  rules, each checked against the base game, with 11 decisions for the owner at its end. It
-  measured 2.3.0's formatter on the base game: it changes the tree of 3,203 of 4,842 files, and
-  its output does not parse in 540 (it drops quotes, `?=`, the `rgb`, `hsv`, `list` and
-  `scripted_trigger` value forms and 3,301 comments). No rule is decided until the owner signs
-  it off; items 8.2 to 8.5 wait on it.
+  *Proposed (#145), then decided:* [formatting.md](formatting.md) proposed 13 rules, each checked
+  against the base game, with 11 decisions; it measured 2.3.0's formatter on the base game (it
+  changes the tree of 3,203 of 4,842 files). The owner signed the eleven off (decisions 90 to
+  100), then set a new principle the same day, best practice and cleanliness over anything a mod
+  author did, and decided again where it differs (decisions 101 to 103): the formatter decides
+  the layout (a block of one simple pair, a list of plain values and an empty block on one line
+  when the line fits in 120 columns, every other block broken, one item a line), writes Windows
+  line breaks and the byte-order mark in every file, and a file not in the format is flagged.
+  formatting.md is now the decided rules, with the record of both.
 - 8.2 The formatter, working from the tree and keeping every comment and token.
+
+  *Built:* `packages/core/src/format/`: every token kept, only the whitespace between tokens
+  decided, gap by gap, from one table of layout rules (`FORMAT_RULES`) that every surface uses;
+  it joins lines as well as splitting them, and leaves a file with a parse error as it is, with
+  the reason. With it the `style/` family ([checks.md](checks.md#formatting-the-style-family)):
+  `style/not-formatted`, one warning a file not in the format, whose safe fix formats the whole
+  file, and eight hints, one a rule, each with a safe fix for its place, through the one runner,
+  on pychivalry's own formatting rules (evidence `formatting-rules`, decision 103). A fixture
+  pair for each of the nine codes.
 - 8.3 The round-trip suite on the base game: after formatting, every file re-parses to the same
   tree. Part of `task game:parse`.
+
+  *Built:* `task game:parse` formats every script file it parses, and the game's localization
+  files, and fails on a file whose tree, tokens or comments change, whose comment moves, or that
+  a second format changes (`records/game/parse.json`). On game 1.21.0.3: 4,854 script files, 4,851
+  formatted (3 left, each with a parse error), 4,851 trees and token lists the same, 4,851 second
+  formats unchanged, 502,890 comments before and after, none moved; 4,656 files changed, 3,280,071
+  of 8,301,399 lines touched (by rule: layout 4,073 files, blank lines 2,749, trailing whitespace
+  2,365, spacing 1,609, line breaks 1,551, indentation 1,493, comment spacing 683, the mark 645).
+  12,171 localization files, all formatted, readings the same, 74,238 comments kept, 12,064
+  changed. The 120-column rule: 26,560 lines over it before, 9,784 after (nothing left to break),
+  990 files changed by it alone. On the five corpus mods (not committed): MODS_ROUND_TRIP.
 - 8.4 Golden files for each rule; formatting twice changes nothing.
+
+  *Built:* `fixtures/format/`, 21 pairs written by hand, one a rule (and the files left as they
+  are), in CI: each `before` formatted is its `after` byte for byte, a second format changes
+  nothing, the tree and the comments are kept.
 - 8.5 On-type formatting, derived from the same rules, tested for agreement with the formatter.
+
+  *Built:* after Enter, `}` and `=` in a script file (`format/on-type.ts`), never inside quoted
+  text or a comment, never on another line. On every golden output, typing it key by key ends in
+  the formatter's text, and Enter, `}` and `=` typed again at every place give it back.
 - 8.6 Fix data in the core: where a finding has a mechanical fix, the fix is part of the
   finding.
 
@@ -1247,9 +1278,15 @@ blank lines. It had no golden files and no written rules, and its settings were 
   (`source.fixAll`), all from fix data. Of 2.3.0's ten, the localization stub for a missing key
   is built (into one localization file of the mod: English if it has one, otherwise its first
   language; the text is the key), and the renames to a near name are built for the unknown-name
-  name. Not built: indentation, operator spacing and trailing whitespace wait for the formatter
-  (8.2); an empty block removed and a missing `ai_chance` have no built check that reports them;
-  the three refactors.
+  name. Not built: an empty block removed and a missing `ai_chance` have no built check that
+  reports them; the three refactors.
+
+  *The formatting quick fixes, with 8.2:* 2.3.0's indentation, operator spacing and trailing
+  whitespace quick fixes are retired as quick fixes of their own: no check of the signed-off
+  inventory reports such a finding (2.3.0's `CK3301`, `CK3303`, `CK3304` and `CK3306` were not
+  carried over in item 4.1), so they are what Format Document does. Since the owner's decision
+  103 the `style/` family's safe fixes, `style/indentation`, `style/spacing` and
+  `style/trailing-whitespace` among them, made by the formatter, are offered as quick fixes too.
 - 8.8 `presentation/`: outline rules, snippets, field order and inline hints, brought back from
   the pre-2.0 schema files as pychivalry's own data. Loaded by the language server only. A
   test proves no check reads it.
@@ -1266,7 +1303,20 @@ blank lines. It had no golden files and no written rules, and its settings were 
   extension's bundle carries the data beside the language server
   (`dist/bundle/lsp/presentation/`). New fixture `presentation-outline-and-hints`.
 - 8.9 `format` in the command line and the agent server, filled in.
+
+  *Built:* the command line's `format <file|folder>...` (in place; `--check`, exit 1 when a file
+  would change; `--diff`; nothing outside the mod, no file with a parse error or not valid UTF-8
+  touched), the agent server's read-only `format` tool (the text as a proposal, paged; tool schema
+  version 2) and the language server's Format Document, Format Selection and on-type formatting,
+  all from the core. The extension makes UTF-8 with the mark and `\r\n` the defaults of CK3 files
+  and turns a document's `\n` to `\r\n` with Format Document. The same-answers test covers
+  formatting: on the planted-defect mod each file formatted by the editor, the command line in a
+  terminal and the agent server, with the shared index on and off, gives the same text. Speed:
+  SPEED_TEXT
 - 8.10 The second preview build.
+
+  *Open: waits for the owner's word.* The text is drafted in
+  [preview-release-0.2.0.md](preview-release-0.2.0.md); the extension's version is 0.2.0.
 
 **Tests.** Rows "Formatter", "On-type formatting" and "Quick fixes" in MVP.md's table.
 
@@ -1274,11 +1324,17 @@ blank lines. It had no golden files and no written rules, and its settings were 
 
 **Done when.**
 
-1. The round-trip suite passes on every base-game file.
-2. Every golden file and every fix fixture passes.
-3. The same-answers test is extended to formatting and passes.
+1. The round-trip suite passes on every base-game file. *Holds:* on all 4,851 script files the
+   formatter formats (the 3 with a parse error are left as they are, byte for byte) and all
+   12,171 localization files.
+2. Every golden file and every fix fixture passes. *Holds:* the 21 golden pairs, the nine
+   `style/` pairs, and every fix of every fixture mod (`task ci`).
+3. The same-answers test is extended to formatting and passes. *Holds:* in a real VS Code on the
+   planted-defect mod (`task vscode:test`).
 
 **Not yet known.** Whether a recognised community formatting convention exists beyond "tabs".
+*Answered by item 8.1: beyond one tab per block, none
+([formatting.md](formatting.md#is-there-a-community-convention)).*
 
 ---
 

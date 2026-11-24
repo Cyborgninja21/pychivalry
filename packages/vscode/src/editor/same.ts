@@ -25,6 +25,7 @@ import assert from 'node:assert/strict';
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
+import { formattingFixTooLong, type WorkspaceFinding } from '@pychivalry/core';
 import type { PychivalryApi } from '../extension.js';
 import { checkAll, formatAll } from './agent.js';
 import {
@@ -222,6 +223,27 @@ function assertSame(
     );
 }
 
+/**
+ * A finding as the agent server gives it: a formatting fix too long for a result has its edits
+ * left out and marked (`formattingFixTooLong`; the agent server's `check`).
+ */
+function asTheAgentGives(f: WorkspaceFinding): WorkspaceFinding {
+    if (f.fix === null || !formattingFixTooLong(f.fix)) {
+        return f;
+    }
+    return {
+        ...f,
+        fix: {
+            ...f.fix,
+            alternatives: f.fix.alternatives.map((a) => ({
+                title: a.title,
+                edits: [],
+                edits_omitted: true,
+            })),
+        },
+    } as WorkspaceFinding;
+}
+
 /** The variable that turns sharing the base game's index off (docs/shared-index.md). */
 const SHARING_OFF = { PYCHIVALRY_SHARED_INDEX: 'off' } as const;
 
@@ -245,8 +267,10 @@ export async function assertSameAnswers(
     assert.ok(full.done.complete && !full.done.limited, JSON.stringify(full.done));
     const files = full.done.total;
 
-    // The editor: every file's findings from the language server.
+    // The editor: every file's findings from the language server; and as the agent server gives
+    // them, a formatting fix too long for a result without its edits.
     const editor: Answer[] = [];
+    const forAgent: Answer[] = [];
     for (const rel of filesUnder(mod)) {
         const result = await api.language.findings(
             vscode.Uri.file(path.join(mod, ...rel.split('/'))),
@@ -254,6 +278,7 @@ export async function assertSameAnswers(
         if (result.file !== null) {
             assert.equal(result.file, rel);
             editor.push(...result.findings.map(fromCore));
+            forAgent.push(...result.findings.map((f) => fromCore(asTheAgentGives(f))));
         }
     }
     // What VS Code shows is what the server found, once its last diagnostics have arrived.
@@ -301,7 +326,7 @@ export async function assertSameAnswers(
         env: definition.env,
         ...(definition.cwd === undefined ? {} : { cwd: definition.cwd.fsPath }),
     });
-    assertSame(only(editor, { data: true, evidence: false }), agent.findings.map(fromAgent), [
+    assertSame(only(forAgent, { data: true, evidence: false }), agent.findings.map(fromAgent), [
         'the editor',
         'the agent server',
     ]);
@@ -332,10 +357,11 @@ export async function assertSameAnswers(
         env: { ...definition.env, ...SHARING_OFF },
         ...(definition.cwd === undefined ? {} : { cwd: definition.cwd.fsPath }),
     });
-    assertSame(only(editor, { data: true, evidence: false }), agentAlone.findings.map(fromAgent), [
-        'the editor',
-        'the agent server alone',
-    ]);
+    assertSame(
+        only(forAgent, { data: true, evidence: false }),
+        agentAlone.findings.map(fromAgent),
+        ['the editor', 'the agent server alone'],
+    );
     const after = await api.language.sharing();
     assert.deepEqual(
         after.answered,

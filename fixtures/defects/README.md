@@ -25,6 +25,14 @@ extension's smoke test and same-answers test (`task vscode:test`, build step 7) 
 Neither `mod/` nor `reference/` holds a README of its own: everything in `mod/` is handed to the
 agent, and this page would tell it where the defects are.
 
+
+**The `style/` family is not planted.** The mod is not in pychivalry's format, so the checker
+reports `style/` findings on its files beside the planted defects (build step 8,
+[docs/formatting.md](../../docs/formatting.md)); they rest on pychivalry's own formatting rules,
+not on the game, and the manifest, the graders and the mod's tests leave them out. Whether the mod
+and its reference copy should be brought into the format is a question for the owner
+([docs/decisions.md](../../docs/decisions.md#asked-awaiting-the-owner)).
+
 ## Why it is this hard
 
 The first mod, of 27 defects (one per code) and 10 look-alikes in 254 lines, was fixed whole by

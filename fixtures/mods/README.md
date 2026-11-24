@@ -70,6 +70,12 @@ that report nothing without a base game (`scope/undefined-event-target`,
 game folder at all, to show that no finding then depends on a name the base game might define
 (`packages/core/src/check/limits.test.ts`).
 
+The `style/` pairs (item 8.2) are the formatter's: their `expected.json` lists the `style/`
+findings of the bad half alone, read with no base game (`packages/core/src/check/style.test.ts`),
+and the good half has none. The other pairs keep the layout they were written in, so they carry
+`style/` findings too; the tests of every other check leave the family out. A pair's files are
+in pychivalry's format where its README says so, their bytes kept exact by `.gitattributes`.
+
 ## Carried over from release 2.3.0
 
 The old tests' fixture mods are data and are carried over by the step that owns the behaviour,
@@ -101,7 +107,7 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | [names-unknown-link-bad](names-unknown-link-bad/README.md), [-good](names-unknown-link-good/README.md) | Scope chains with a segment that is no link, as a key and as a value | Item 4.2 |
 | [names-unknown-modifier-bad](names-unknown-modifier-bad/README.md), [-good](names-unknown-modifier-good/README.md) | A modifier block with a made-up and a removed modifier; a template and a marked-only name | Item 4.2 |
 | [names-unknown-on-action-bad](names-unknown-on-action-bad/README.md), [-good](names-unknown-on-action-good/README.md) | On-actions named nowhere, in an on-action's lists and fallback and in `trigger_event` | Item 4.2 |
-| [names-unknown-trigger-bad](names-unknown-trigger-bad/README.md), [-good](names-unknown-trigger-good/README.md) | Keys in trigger blocks that are no trigger: made up, an effect, an iterator over no list, removed, a scripted trigger defined nowhere | Item 4.2 |
+| [names-unknown-trigger-bad](names-unknown-trigger-bad/README.md), [-good](names-unknown-trigger-good/README.md) | Keys in trigger blocks that are no trigger: made up, an effect, an iterator over no list, removed, a scripted trigger defined nowhere. In pychivalry's format since item 8.2 (`\r\n`, the byte-order mark), so that the command line's tests show no `style/` finding | Item 4.2 |
 | [override-rules](override-rules/README.md) | Every rule of docs/overrides.md one mod can exercise, over the stub `game/override-rules` | Step 3 |
 | [override-rules-folder-case](override-rules-folder-case/README.md) | A folder spelled in upper case (rule 9) | Step 3 |
 | [override-rules-replace-path](override-rules-replace-path/README.md) | `replace_path` in the descriptor (rule 8) | Step 3 |
@@ -125,6 +131,15 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | [scope-undefined-event-target-bad](scope-undefined-event-target-bad/README.md), [-good](scope-undefined-event-target-good/README.md) | `scope:` reads of names no effect saves in the file, the mod or the base game; read over the stub [event-targets-and-localization](../game/event-targets-and-localization/README.md) | Item 4.6 |
 | [scope-wrong-scope-for-effect-bad](scope-wrong-scope-for-effect-bad/README.md), [-good](scope-wrong-scope-for-effect-good/README.md) | Effects written in a scope their scope data does not list, in a character event: `add_county_modifier` at the root, `add_gold` and the iterator `every_vassal` after the link `primary_title`, and `add_trait` in an option after the link `capital_province` | Item 4.4 |
 | [scope-wrong-scope-for-trigger-bad](scope-wrong-scope-for-trigger-bad/README.md), [-good](scope-wrong-scope-for-trigger-good/README.md) | Triggers written in a scope their scope data does not list: in a decision, whose root is a character, `tier` at the root, `is_adult` and the iterator `any_vassal` after the link `primary_title`, `has_trait` in the iterator `any_held_title`, and `has_county_modifier` after the link `capital_province`; in an event whose `scope = province` makes its root a province, `is_adult` | Item 4.4 |
+| [style-blank-lines-bad](style-blank-lines-bad/README.md), [-good](style-blank-lines-good/README.md) | Blank lines the format does not keep: at the start, after `{`, before `}`, three in a row, at the end; and in a localization file | Item 8.2 |
+| [style-block-layout-bad](style-block-layout-bad/README.md), [-good](style-block-layout-good/README.md) | A block of two pairs on one line, a block of one simple pair over several lines, an `if` whose `{` is on the line after its `=` | Item 8.2 |
+| [style-byte-order-mark-bad](style-byte-order-mark-bad/README.md), [-good](style-byte-order-mark-good/README.md) | A script file without the UTF-8 byte-order mark | Item 8.2 |
+| [style-comment-spacing-bad](style-comment-spacing-bad/README.md), [-good](style-comment-spacing-good/README.md) | Comments at the end of a line after two tabs and after no space | Item 8.2 |
+| [style-indentation-bad](style-indentation-bad/README.md), [-good](style-indentation-good/README.md) | Lines indented with spaces, too many tabs, a space at the top level; localization lines with a tab, nothing, three spaces | Item 8.2 |
+| [style-line-endings-bad](style-line-endings-bad/README.md), [-good](style-line-endings-good/README.md) | A script file with `\n` line breaks, and a localization file with no line break at its end | Item 8.2 |
+| [style-not-formatted-bad](style-not-formatted-bad/README.md), [-good](style-not-formatted-good/README.md) | A file of scripted effects written without the format's layout, line breaks and mark: the warning and its hints | Item 8.2 |
+| [style-spacing-bad](style-spacing-bad/README.md), [-good](style-spacing-good/README.md) | Tokens not one space apart (`add_gold=10`, `{is_adult  = yes}`); localization keys and their text three spaces and no space apart | Item 8.2 |
+| [style-trailing-whitespace-bad](style-trailing-whitespace-bad/README.md), [-good](style-trailing-whitespace-good/README.md) | Spaces and tabs at the end of lines, of a comment, on a blank line; and in a localization file | Item 8.2 |
 | [structure-casus-belli-without-outcome-bad](structure-casus-belli-without-outcome-bad/README.md), [-good](structure-casus-belli-without-outcome-good/README.md) | A casus belli with its descriptions and none of `on_victory`, `on_defeat`, `on_white_peace` | Item 4.7 |
 | [structure-else-without-if-bad](structure-else-without-if-bad/README.md), [-good](structure-else-without-if-good/README.md) | A scripted effect whose `else` follows an effect, not an `if` or `else_if` | Item 4.7 |
 | [structure-event-after-without-option-bad](structure-event-after-without-option-bad/README.md), [-good](structure-event-after-without-option-good/README.md) | An event that is not hidden, with an `after` and no `option` | Item 4.7 |

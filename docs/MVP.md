@@ -75,6 +75,7 @@ lives unchanged in `legacy/`.
 | VS Code only | pychivalry is always used through VS Code. The command line and the agent server ship inside the extension and are never installed separately. Nothing is published to npm. |
 | Marketplace | Not in the MVP. 1.0.0 ships as a downloadable file on GitHub, which means no automatic updates for its users. |
 | CI | A new root workflow arrives with the repository skeleton (build step 1). Until then nothing runs, and `legacy/` is not re-tested. |
+| Formatting | Best practice and cleanliness take precedence over anything a mod author did (decision 101): a poorly laid out, unformatted mod is fixed by the formatter and flagged as issues. One formatting, by the rules of [formatting.md](formatting.md), for every surface and with no setting: the formatter decides the layout, joins and splits lines, writes Windows line breaks and the UTF-8 byte-order mark in every file, and never changes a token or loses or moves a comment; a file not in the format is a `style/` warning, each untidy place a hint, each with a safe fix (decisions 102 and 103). |
 | Encoding | A script file that is not valid UTF-8 is read and parsed in full, each bad byte the replacement character, with one information note per file, never an error or a warning. A fallback encoding (Windows-1252, off by default) can be named to decode the bad bytes of such a file, and only those. Written in [encoding.md](encoding.md). |
 
 ## Principles
@@ -82,7 +83,11 @@ lives unchanged in `legacy/`.
 1. **The engine is the authority.** An error or a warning exists only when there is evidence the
    game raises it: a message in the spec's error catalogue, a required schema field, the game's
    `script_docs` output, or a reproduced in-game error. Anything else pychivalry says is its own
-   advice, shown as information or a hint and labelled as advice, never as an error.
+   advice, shown as information or a hint and labelled as advice, never as an error. The one
+   exception, by the owner's decision (decision 103): the `style/` findings, whose evidence is
+   pychivalry's own formatting rules ([formatting.md](formatting.md)), not the game; a file not
+   in the format is a warning. They are labelled as such, and the game-file suites never count
+   them as the game's errors.
 2. **One core, many surfaces.** Parsing, indexing, checking and lookup live in one package with
    no dependencies and no knowledge of VS Code. The editor, the command line and the agent
    server are thin shells over it and give the same answers.
@@ -94,6 +99,9 @@ lives unchanged in `legacy/`.
    [Tests per feature](#tests-per-feature)).
 5. **Fast enough to run on every keystroke and on every agent turn.** How is in
    [Speed](#speed).
+6. **Best practice over the author's layout.** Best practice and cleanliness take precedence over
+   anything a mod author did. A poorly laid out, unformatted mod is fixed by the formatter and
+   flagged as issues (decision 101).
 
 ## AI first
 
@@ -499,8 +507,8 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | Engine checks | Base game `G`; real mods `G`; one fixture pair per check | Records match; each check fires on its bad fixture and is silent on its good one. |
 | Lookup | Golden answers for a fixed list of names | Each answer equals the spec's own text; a name the spec says nothing about answers "unknown". |
 | Completion and hover | Fixture positions with expected items | The expected items are offered, nothing invalid at that position is, and hover text equals the spec description. |
-| Formatter | Golden files; format twice; base-game round trip `G` | Output equals the golden file, a second pass changes nothing, and every base-game file re-parses to the same tree after formatting. |
-| On-type formatting | Fixture keystrokes | Agrees with the formatter on the same text. |
+| Formatter | Golden files; format twice; base-game round trip `G`; a fixture pair per `style/` code | Output equals the golden file, a second pass changes nothing, and every base-game file re-parses to the same tree after formatting, no comment lost or moved. Each `style/` code fires on its bad pair and is silent on its good one. *After build step 8: 21 golden pairs and 9 style pairs in CI; the round trip holds on all 4,851 base-game script files it formats and 12,171 localization files.* |
+| On-type formatting | Fixture keystrokes | Agrees with the formatter on the same text. *After build step 8: on every golden output, typed key by key, and Enter, `}` and `=` typed again at every place.* |
 | Quick fixes | Fixture per fix | Applying the fix removes the finding and adds none. |
 | Localization | Fixture mod | Missing keys and unbalanced brackets are warnings; unused keys are advice; entries with and without a version number are read. |
 | GUI files | Base-game GUI files `G`; fixtures | Every base-game GUI file parses; types and templates are found; go to definition lands on them. |
@@ -509,7 +517,7 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | Call graph, call hierarchy | Fixture mod | Callers and callees equal the known graph, for all five kinds of link. |
 | Selection ranges, document symbols | Fixture positions | Ranges and symbols equal the expected ones. |
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
-| Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. |
+| Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same.* |
 | Agent use | Planted defects `M` | See [AI tests](#ai-tests). |
 | Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). |
 | Speed | Benchmarks `G` | Within the stated tolerance of the 2.3.0 medians recorded in build step 1. |
@@ -623,7 +631,10 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    findings (the language server's, and the diagnostics VS Code shows), the command line's
    `check --json` typed into its terminal, and the agent server's `check` paged to the end are
    the same findings, on the planted-defect mod in CI on Linux and Windows and on each of the
-   five real mods locally (met).
+   five real mods locally (met). *After build step 8:* it covers formatting too: each file of
+   the planted-defect mod formatted by the editor's Format Document, the command line's `format`
+   and the agent server's `format`, with the shared index on and off, gives the same text; and
+   the `style/` findings are among the findings the three report alike.
 5. **Agent use.** The scored run meets its target: a release run of 10 test sessions passes all
    10 ([AI tests](#ai-tests)).
    *2026-11-23:* the target is set (10 of 10). The first five test sessions passed 5 of 5 on

@@ -243,7 +243,7 @@ export class RoundTrip {
         const starts = lineStartsOf(body);
         const seen = new Set<StyleCode>();
         const lines = new Map<StyleCode, Set<number>>();
-        for (const place of styleOf(this.kind, body, bom)) {
+        for (const place of styleOf(this.kind, body, bom, { merge: false })) {
             if (place.code === 'style/not-formatted') {
                 continue;
             }

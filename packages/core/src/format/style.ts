@@ -123,11 +123,54 @@ function shortened(text: string): string {
     return flat.length <= 60 ? flat : `${flat.slice(0, 57)}...`;
 }
 
+/**
+ * Edits merged where little text lies between them: two edits closer than `MERGE_GAP`
+ * characters become one, its text holding the unchanged text between them. A fix of a whole
+ * file, or of every line break of a file, is then a few edits, not one per gap, so that a large
+ * file's fixes stay small in memory. The byte-order mark's insertion stays an edit of its own.
+ */
+export const MERGE_GAP = 2048;
+
+function compact(body: string, edits: readonly FormatEdit[]): FormatEdit[] {
+    const out: FormatEdit[] = [];
+    let open: { start: number; end: number; parts: string[] } | null = null;
+    const close = (): void => {
+        if (open !== null) {
+            out.push({ start: open.start, end: open.end, text: open.parts.join('') });
+            open = null;
+        }
+    };
+    for (const edit of [...edits].sort((a, b) => a.start - b.start || a.end - b.end)) {
+        if (edit.start === 0 && edit.end === 0 && edit.text === '\uFEFF') {
+            close();
+            out.push(edit);
+            continue;
+        }
+        if (open !== null && edit.start - open.end <= MERGE_GAP) {
+            open.parts.push(body.slice(open.end, edit.start), edit.text);
+            open.end = edit.end;
+            continue;
+        }
+        close();
+        open = { start: edit.start, end: edit.end, parts: [edit.text] };
+    }
+    close();
+    return out;
+}
+
 /** The places, with the warning for the file first when there is any. */
-function withWarning(places: StylePlace[], whole: readonly FormatEdit[]): StylePlace[] {
-    if (places.length === 0) {
+function withWarning(
+    body: string,
+    found: readonly StylePlace[],
+    whole: readonly FormatEdit[],
+    merge = true,
+): StylePlace[] {
+    if (found.length === 0) {
         return [];
     }
+    const places = found.map((p) =>
+        merge && p.edits.length > 1 ? { ...p, edits: compact(body, p.edits) } : p,
+    );
     const counts = new Map<StyleCode, number>();
     for (const p of places) {
         counts.set(p.code, (counts.get(p.code) ?? 0) + 1);
@@ -145,7 +188,7 @@ function withWarning(places: StylePlace[], whole: readonly FormatEdit[]): StyleP
                 `${String(places.length)} ${places.length === 1 ? 'place' : 'places'} (${summary})`,
             ],
             title: STYLE_TITLES['style/not-formatted'],
-            edits: whole,
+            edits: merge ? compact(body, whole) : [...whole],
         },
         ...places,
     ];
@@ -176,11 +219,7 @@ function markPlace(rules: LayoutRules, bom: boolean): StylePlace | null {
  * The style findings of a script file: `body` is its text without the byte-order mark, `bom`
  * whether the file has the mark; `parsed`, the parse of `body` when the caller has it.
  */
-export function scriptStyle(
-    body: string,
-    bom: boolean,
-    options: { readonly rules?: LayoutRules; readonly parsed?: ParseResult } = {},
-): StylePlace[] {
+export function scriptStyle(body: string, bom: boolean, options: StyleOptions = {}): StylePlace[] {
     const rules = options.rules ?? DEFAULT_RULES;
     const layout = layoutScript(body, {
         rules: { ...rules, bom: 'keep' },
@@ -348,7 +387,7 @@ export function scriptStyle(
         places.push(mark);
     }
     const whole = [...(mark?.edits ?? []), ...layout.result.edits];
-    return withWarning(sortPlaces(places), whole);
+    return withWarning(body, sortPlaces(places), whole, options.merge !== false);
 }
 
 /** Places in the order of where each starts. */
@@ -361,6 +400,7 @@ export function localizationStyle(
     body: string,
     bom: boolean,
     rules: LayoutRules = DEFAULT_RULES,
+    merge = true,
 ): StylePlace[] {
     const layout = layoutLocalization(body, { ...rules, bom: 'keep' });
     const mark = layout.result.text === '' ? null : markPlace(rules, bom);
@@ -464,7 +504,16 @@ export function localizationStyle(
         places.push(mark);
     }
     const whole = [...(mark?.edits ?? []), ...layout.result.edits];
-    return withWarning(sortPlaces(places), whole);
+    return withWarning(body, sortPlaces(places), whole, merge);
+}
+
+/** What the style findings are computed with. */
+export interface StyleOptions {
+    readonly rules?: LayoutRules;
+    /** The parse of the text, when the caller has it. */
+    readonly parsed?: ParseResult;
+    /** False to keep each edit as the formatter makes it, for measuring (`MERGE_GAP`). */
+    readonly merge?: boolean;
 }
 
 /** The style findings of a file of either kind. */
@@ -472,9 +521,9 @@ export function styleOf(
     kind: FormatKind,
     body: string,
     bom: boolean,
-    options: { readonly rules?: LayoutRules; readonly parsed?: ParseResult } = {},
+    options: StyleOptions = {},
 ): StylePlace[] {
     return kind === 'script'
         ? scriptStyle(body, bom, options)
-        : localizationStyle(body, bom, options.rules);
+        : localizationStyle(body, bom, options.rules, options.merge !== false);
 }

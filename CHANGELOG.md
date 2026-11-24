@@ -323,8 +323,42 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   with it off. `check --fix` is never sent to the language server, and the language server
   refuses one: the edits are made by the command line's own process.
 
+- Build step 8, items 8.2 to 8.5 and 8.9: the formatter, by the rules the owner decided
+  (`docs/formatting.md`, decisions 90 to 103): best practice and cleanliness over the author's
+  layout. `packages/core/src/format/` keeps every token and comment and decides only the
+  whitespace between tokens, from one table of layout rules: tabs, one space between tokens, no
+  alignment; a block of one simple pair, a list of plain values and an empty block on one line
+  when the line fits in 120 columns, every other block broken, one item a line, lines joined as
+  well as split; at most one blank line; one space before an end-of-line comment; no trailing
+  whitespace; Windows line breaks and the UTF-8 byte-order mark in every file. A file with a
+  parse error is left untouched, with the reason; localization files get whitespace only. Format
+  Selection, on-type formatting after Enter, `}` and `=`. `pychivalry format <file|folder>...`
+  (in place, `--check`, `--diff`), the agent server's read-only `format` tool (tool schema
+  version 2) and the language server's document, range and on-type formatting give the same
+  text; the extension sets `editor.insertSpaces` false, `files.encoding` `utf8bom` and
+  `files.eol` `\r\n` for CK3 files and turns a document's `\n` to `\r\n` with Format Document.
+- The `style/` family (decision 103), nine new rows of `docs/checks.md`, on pychivalry's own
+  formatting rules (evidence `formatting-rules`): `style/not-formatted`, a warning for each file
+  not in the format, whose safe fix formats it, and a hint at each untidy place, each with a safe
+  fix: `style/indentation`, `style/spacing`, `style/comment-spacing`,
+  `style/trailing-whitespace`, `style/blank-lines`, `style/block-layout`, `style/line-endings`,
+  `style/byte-order-mark`. A fixture pair for each.
+- The formatter's round trip in `task game:parse` (item 8.3): on game 1.21.0.3 all 4,851 script
+  files it formats (3 left, each with a parse error) and all 12,171 localization files keep their
+  tree, tokens and comments (502,890 and 74,238, none lost or moved), and a second format changes
+  nothing; the record says what it changes, by rule. Golden files under `fixtures/format/`
+  (item 8.4), 21 pairs, and on-type formatting proved against them (item 8.5).
+- The same-answers test covers formatting: each file of the planted-defect mod formatted by the
+  editor, the command line and the agent server, with the shared index on and off, is the same.
+
 ### Changed
 
+- The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
+  again under the owner's new principle (decisions 101 to 102): the document is now the rules as
+  built. The command line, the agent server and the editor report the `style/` findings with the
+  others; `task game:check` and `task game:mods` count them by code and classify none. The fixture
+  pair `names-unknown-trigger-*` is in the format. The game-file record of `game:parse` holds the
+  round trip.
 - AGENTS.md rule 12's test (`tools/src/no-key-no-network.test.ts`) allows Node's `node:net` in
   exactly one shipped file, the local channel of the shared index
   (`packages/core/src/share/channel.ts`), with its reason, and holds that file to binding and
@@ -482,7 +516,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 8 is in progress (decision 89).
+- Build step 8 is built but for item 8.10, the second preview, which waits for the owner's word
+  (`docs/preview-release-0.2.0.md`, its drafted text).
+- The planted-defect mod, the fixture mods but `names-unknown-trigger-*` and the presentation
+  data's snippets are not in pychivalry's format; questions for the owner (`docs/decisions.md`).
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its

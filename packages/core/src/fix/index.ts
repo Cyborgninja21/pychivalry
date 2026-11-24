@@ -13,6 +13,8 @@ import { verifySafeFixes, type Recheck } from './verify.js';
 export { applyEdits, applyFixes, joinBom, splitBom, type FileText } from './apply.js';
 export {
     asSuggestion,
+    FORMATTING_FIX_CHARS,
+    formattingFixTooLong,
     MAX_FIX_ALTERNATIVES,
     overlapsAny,
     rangesOverlap,

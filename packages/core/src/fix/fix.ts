@@ -97,6 +97,19 @@ export interface FindingFix {
     readonly alternatives_total?: number;
 }
 
+/**
+ * The most characters of a formatting fix's JSON (basis `formatting`, a `style/` finding's) that
+ * a surface with a budget for each result lists in full: the agent server gives a longer one's
+ * title and safety, and points to its `format` tool for the text. Every other surface gives every
+ * fix whole.
+ */
+export const FORMATTING_FIX_CHARS = 2000;
+
+/** True for a formatting fix too long to list in full where results have a budget. */
+export function formattingFixTooLong(fix: FindingFix): boolean {
+    return fix.basis === 'formatting' && JSON.stringify(fix).length > FORMATTING_FIX_CHARS;
+}
+
 /** A safe fix: one alternative. */
 export function safeFix(basis: FixBasis, alternative: FixAlternative): FindingFix {
     return { safety: 'safe', basis, alternatives: [alternative] };
