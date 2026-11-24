@@ -11,7 +11,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { connect, gameStub, scratch, write } from './testing.js';
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 test('format returns the formatter’s text as a proposal, in pages, and writes nothing', async (t) => {
     const dir = scratch(t);

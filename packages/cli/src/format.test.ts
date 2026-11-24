@@ -12,7 +12,7 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { runCli, scratch, write, type Result } from './testing.js';
 
-const BOM = '﻿';
+const BOM = '\uFEFF';
 
 const EFFECTS =
     'my_effect = {\n    add_gold = 10   remove_trait = shy\n}\nother_effect = {\n\tadd_gold = 1\n}\n';

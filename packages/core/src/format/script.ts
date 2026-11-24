@@ -413,7 +413,9 @@ export function layoutScript(source: string, options: FormatOptions = {}): Scrip
         const after = tokens[b] as Token;
         const blankAllowed = before.kind !== 'open' && after.kind !== 'close';
         const lineBreak = (blank: boolean): number =>
-            blank && blankAllowed ? Math.max(0, Math.min(rules.blankLines, (breaks[b] ?? 0) - 1)) : 0;
+            blank && blankAllowed
+                ? Math.max(0, Math.min(rules.blankLines, (breaks[b] ?? 0) - 1))
+                : 0;
         if (before.kind === 'comment') {
             return lineBreak(role[b] !== CONTINUES);
         }
@@ -421,7 +423,7 @@ export function layoutScript(source: string, options: FormatOptions = {}): Scrip
             return (breaks[b] ?? 0) > 0 ? lineBreak(true) : SPACE;
         }
         if (after.kind === 'close') {
-            const open = (match[b] ?? -1);
+            const open = match[b] ?? -1;
             if (open >= 0 && flat(open)) {
                 return open === a ? NONE : SPACE;
             }
@@ -430,7 +432,7 @@ export function layoutScript(source: string, options: FormatOptions = {}): Scrip
         if (before.kind === 'open') {
             return flat(a) ? SPACE : 0;
         }
-        const holder = (container[b] ?? -1);
+        const holder = container[b] ?? -1;
         switch (role[b]) {
             case CONTINUES:
                 return openEnded(a) ? 0 : SPACE;
@@ -484,13 +486,13 @@ export function layoutScript(source: string, options: FormatOptions = {}): Scrip
                 column++;
             } else {
                 endLine();
-                gaps[i] = eol.repeat(gap + 1) + '\t'.repeat((depth[i] ?? 0));
+                gaps[i] = eol.repeat(gap + 1) + '\t'.repeat(depth[i] ?? 0);
                 column = (depth[i] ?? 0) * TAB_COLUMNS;
             }
             const token = tokens[i] as Token;
             if (token.kind === 'open' && insideFlat < 0 && flat(i)) {
                 candidates.push(i);
-                insideFlat = (match[i] ?? -1);
+                insideFlat = match[i] ?? -1;
             }
             const text = tokenText(i);
             if (token.kind === 'string' && /[\r\n]/.test(text)) {

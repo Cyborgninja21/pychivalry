@@ -29,9 +29,9 @@ function fixed(body: string, bom: boolean, place: StylePlace): string {
 const DIR = path.join(REPO_ROOT, 'fixtures', 'format');
 const inputs = readdirSync(DIR)
     .filter((f) => f.includes('.before.'))
-    .map((f) => ({
+    .map((f): { name: string; kind: FormatKind; text: string } => ({
         name: f,
-        kind: (f.endsWith('.yml') ? 'localization' : 'script') as FormatKind,
+        kind: f.endsWith('.yml') ? 'localization' : 'script',
         text: readFileSync(path.join(DIR, f), 'utf8'),
     }));
 

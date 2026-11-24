@@ -241,7 +241,7 @@ function asTheAgentGives(f: WorkspaceFinding): WorkspaceFinding {
                 edits_omitted: true,
             })),
         },
-    } as WorkspaceFinding;
+    };
 }
 
 /** The variable that turns sharing the base game's index off (docs/shared-index.md). */

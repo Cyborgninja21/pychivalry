@@ -493,7 +493,7 @@ export function runParseSuite(
             const bytes = readFileSync(path.join(gameDir, ...rel.split('/')));
             const started = performance.now();
             let findings: readonly Finding[];
-            let parsed: ReturnType<typeof readScript> | undefined;
+            let parsed: ReturnType<typeof readScript>;
             try {
                 const file = readScript(bytes, { catalogue: options.catalogue });
                 findings = file.allFindings;
@@ -512,9 +512,7 @@ export function runParseSuite(
                 row.parse_ms += performance.now() - started;
             }
             // The formatter's round trip, timed apart from the parse.
-            if (parsed !== undefined) {
-                roundTrip.add(rel, (parsed.bom ? '\uFEFF' : '') + parsed.text);
-            }
+            roundTrip.add(rel, (parsed.bom ? '\uFEFF' : '') + parsed.text);
             for (const finding of findings) {
                 const line = finding.range.start.line + 1;
                 const column = finding.range.start.character + 1;

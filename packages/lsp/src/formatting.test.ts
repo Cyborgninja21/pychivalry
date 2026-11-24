@@ -49,7 +49,7 @@ test('Format Document, Format Selection and on-type formatting answer from the c
     });
     assert.equal(
         applied(text, whole),
-        formatText(text, 'script').text.replace(/^﻿/, ''),
+        formatText(text, 'script').text.replace(/^\uFEFF/, ''),
         'the core formatter, but the mark: the encoding in the editor',
     );
 
