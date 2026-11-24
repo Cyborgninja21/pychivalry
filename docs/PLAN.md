@@ -1413,10 +1413,12 @@ accepts, in both harnesses, and a scored run says how well. Third preview build.
   ([references/editors-and-agents.md](references/editors-and-agents.md#skills-checked-for-build-step-9-2026-11-23)).
   The bundle copies the folder to `dist/bundle/skills/`, the manifest lists each `SKILL.md`
   under `contributes.chatSkills`, and the `.vsix` holds them. Each skill drives the agent
-  server's tools by their bare names (a client may prefix them), names the command line where a
-  terminal helps (`pychivalry format <file>`, `pychivalry check --fix .`), and holds no CK3
-  vocabulary of its own. `packages/vscode/src/skill-files.test.ts` holds the three skills and the
-  manifest's list together; each file to both harnesses' rules on its frontmatter; every tool,
+  server's tools by their bare names, and since #155 gives Claude Code's full name of each
+  (`mcp__pychivalry__check` and so on) and says a call of the bare name reaches nothing; it
+  names the command line where a terminal helps (`pychivalry format <file>`,
+  `pychivalry check --fix .`), and holds no CK3 vocabulary of its own.
+  `packages/vscode/src/skill-files.test.ts` holds the three skills and the manifest's list
+  together; each file to both harnesses' rules on its frontmatter; every tool,
   command and option a skill names to the agent server's registry (`TOOLS`) and the command
   line's (`COMMANDS`), with the tools each skill must drive; and everything a skill writes as
   code to pychivalry's own vocabulary or a name the spec package has, with no such name outside
