@@ -118,6 +118,7 @@ import {
 import {
     fullModelName,
     harnessVersion,
+    inRepository,
     mcpConfig,
     positive,
     recordToContinue,
@@ -402,9 +403,9 @@ function commandOf(root: string, options: AuthoringOptions): string {
     if (options.requests !== null) {
         parts.push(`SCORED_REQUESTS=${options.requests.join(',')}`);
     }
-    const skills = relativePosix(root, options.skillsDir);
+    const skills = inRepository(root, options.skillsDir, '<skills folder>');
     if (skills !== DEFAULT_SKILLS) {
-        parts.push(`SCORED_SKILLS=${skills.startsWith('..') ? '<skills folder>' : skills}`);
+        parts.push(`SCORED_SKILLS=${skills}`);
     }
     if (options.skillPlace !== DEFAULT_SKILL_PLACE) {
         parts.push(`SCORED_SKILLS_IN=${options.skillPlace}`);
@@ -493,9 +494,7 @@ export function runAuthoring(
             sessionLimit: options.judgeSessionLimit,
         }),
         server: {
-            entry: relativePosix(root, options.server).startsWith('..')
-                ? '<agent server>'
-                : relativePosix(root, options.server),
+            entry: inRepository(root, options.server, '<agent server>'),
             arguments: options.serverArgs.map((a) =>
                 a.replaceAll('{mod}', '<trial mod>').replaceAll('{game}', '<game dir>'),
             ),

@@ -61,7 +61,14 @@ import {
     type ContentRequest,
     type RequestList,
 } from './requests.js';
-import { fullModelName, harnessVersion, PINNED_MODEL, positive, sanitize } from './run.js';
+import {
+    fullModelName,
+    harnessVersion,
+    inRepository,
+    PINNED_MODEL,
+    positive,
+    sanitize,
+} from './run.js';
 
 export const CALIBRATION_SUITE = 'scored:calibration';
 export const CALIBRATION_RECORD_FILE = 'records/scored/calibration.json';
@@ -442,7 +449,7 @@ export function runCalibration(
     const validate = compileJudgeSchema(path.join(root, JUDGE_SCHEMA_FILE));
     const version = harnessVersion(options.claude);
     const gradesDir = path.dirname(options.gradesFile);
-    const inRepository = !relativePosix(root, options.gradesFile).startsWith('..');
+    const gradesName = inRepository(root, options.gradesFile, '<grades file>');
     log(
         `scored:calibrate: Claude Code ${version}, judge ${options.judgeModel}; ${String(grades.items.length)} hand-graded results: up to ${String(grades.items.length)} judge test sessions, each with session limit ${String(options.judgeSessionLimit)} and time limit ${String(options.judgeTimeoutMinutes)} minutes`,
     );
@@ -516,7 +523,7 @@ export function runCalibration(
     const record: CalibrationRecord = {
         record_format: 1,
         suite: CALIBRATION_SUITE,
-        command: `SCORED_JUDGE_MODEL=${options.judgeModel} SCORED_SESSION_LIMIT=${String(options.judgeSessionLimit)} SCORED_GRADES=${inRepository ? relativePosix(root, options.gradesFile) : '<grades file>'}${options.claude.command !== 'claude' || options.claude.args.length > 0 ? ' SCORED_CLAUDE=<another Claude Code>' : ''} task scored:calibrate`,
+        command: `SCORED_JUDGE_MODEL=${options.judgeModel} SCORED_SESSION_LIMIT=${String(options.judgeSessionLimit)} SCORED_GRADES=${gradesName}${options.claude.command !== 'claude' || options.claude.args.length > 0 ? ' SCORED_CLAUDE=<another Claude Code>' : ''} task scored:calibrate`,
         made_at: now(),
         tool: toolInfo(root),
         machine: machineInfo(),
@@ -529,7 +536,7 @@ export function runCalibration(
         ],
         results: {
             grades: {
-                file: inRepository ? relativePosix(root, options.gradesFile) : '<grades file>',
+                file: gradesName,
                 sha256: sha256OfFile(options.gradesFile),
                 items: items.length,
             },

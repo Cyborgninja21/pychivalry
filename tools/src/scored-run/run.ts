@@ -142,6 +142,18 @@ export function positive(name: string, value: string, integer: boolean): number 
     return n;
 }
 
+/**
+ * A file's path from the repository root, written with `/`, as a record may name it; `named`
+ * (such as `<agent server>`) when the file is outside the repository: above it, or on another
+ * drive, where the path between them is absolute.
+ */
+export function inRepository(root: string, file: string, named: string): string {
+    const rel = path.relative(root, file);
+    return rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)
+        ? named
+        : rel.split(path.sep).join('/');
+}
+
 /** A model's full name, never an alias, so that a record names the model it measured. */
 export function fullModelName(variable: string, model: string): string {
     if (!/^claude-[a-z0-9]+(-[a-z0-9]+)*$/.test(model)) {
@@ -521,9 +533,9 @@ function commandOf(root: string, options: ScoredOptions): string {
         `SCORED_TRIALS=${String(options.trials)}`,
         `SCORED_SESSION_LIMIT=${String(options.sessionLimit)}`,
     ];
-    const server = relativePosix(root, options.server);
+    const server = inRepository(root, options.server, '<agent server>');
     if (server !== DEFAULT_SERVER) {
-        parts.push(`SCORED_SERVER=${server.startsWith('..') ? '<agent server>' : server}`);
+        parts.push(`SCORED_SERVER=${server}`);
     }
     if (options.claude.command !== 'claude' || options.claude.args.length > 0) {
         parts.push('SCORED_CLAUDE=<another Claude Code>');
@@ -667,9 +679,7 @@ export function runScored(
         timeout_minutes: options.timeoutMinutes,
         arguments: recordedArgs(options),
         server: {
-            entry: relativePosix(root, options.server).startsWith('..')
-                ? '<agent server>'
-                : relativePosix(root, options.server),
+            entry: inRepository(root, options.server, '<agent server>'),
             arguments: options.serverArgs.map((a) =>
                 a.replaceAll('{mod}', '<trial mod>').replaceAll('{game}', '<game stub>'),
             ),
