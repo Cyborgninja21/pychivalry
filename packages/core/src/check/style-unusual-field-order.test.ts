@@ -24,7 +24,6 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
         found.map((f) => [f.code, f.severity, f.data['record'], f.data['field'], f.data['after']]),
         [
             [CODE, 'hint', 'fixture_on_action', 'trigger', 'effect'],
-            [CODE, 'hint', 'fixture_one_line', 'trigger', 'effect'],
             [CODE, 'hint', 'fixture_unclear', 'trigger', 'effect'],
         ],
     );
@@ -39,7 +38,7 @@ test(`${CODE} is a best-practice rule, at hint, with no game evidence`, () => {
     assert.equal(CHECK_KINDS[CODE].bestPractice, true);
 });
 
-test('the fix writes each record as the good fixture does, comments with their fields', () => {
+test('the fix writes the record as the good fixture does, comments with their fields', () => {
     const bad = readFileSync(path.join(MODS, 'style-unusual-field-order-bad', FILE), 'utf8');
     const good = readFileSync(path.join(MODS, 'style-unusual-field-order-good', FILE), 'utf8');
     const run = checkFixtureMod(path.join(MODS, 'style-unusual-field-order-bad'));
@@ -47,15 +46,30 @@ test('the fix writes each record as the good fixture does, comments with their f
     // The record whose comment's field is not clear has no fix.
     assert.deepEqual(
         fixes.map((f) => f?.safety ?? null),
-        ['safe', 'safe', null],
+        ['safe', null],
     );
-    const edits = fixes.flatMap((f) => f?.alternatives[0]?.edits ?? []);
-    const fixed = applyEdits(bad, edits);
-    // The two fixed records read as the good fixture's; the third keeps its order. (The files'
+    const fixed = applyEdits(bad, fixes[0]?.alternatives[0]?.edits ?? []);
+    // The fixed record reads as the good fixture's; the other keeps its order. (The files'
     // first lines, a comment saying which they are, differ.)
-    const records = (text: string): string[] => text.slice(text.indexOf('\n') + 1).split('\n\n');
-    assert.deepEqual(records(fixed).slice(0, 2), records(good).slice(0, 2));
-    assert.equal(records(fixed)[2], records(bad)[2]);
+    const records = (text: string): string[] =>
+        text.slice(text.indexOf('\n') + 1).split('\r\n\r\n');
+    assert.equal(records(fixed)[0], records(good)[0]);
+    assert.equal(records(fixed)[1], records(bad)[1]);
+});
+
+test('on a record written on one line the fix rewrites the line, its spaces kept', () => {
+    const text = 'x = { effect = { add_gold = 1 } trigger = { is_adult = yes } }\n';
+    const found = checkText(FILE, text, {}, {}, { style: true }).filter((f) => f.code === CODE);
+    assert.equal(found.length, 1);
+    const run = checkFixtureMod(path.join(MODS, 'style-unusual-field-order-good'), undefined, {
+        [FILE]: new TextEncoder().encode(text),
+    });
+    const fix = run.findings.find((f) => f.code === CODE)?.fix;
+    assert.equal(fix?.safety, 'safe');
+    assert.equal(
+        applyEdits(text, fix.alternatives[0]?.edits ?? []),
+        'x = { trigger = { is_adult = yes } effect = { add_gold = 1 } }\n',
+    );
 });
 
 test('the field-order data names only fields of its folders, each once; the judged folders are read by name', () => {

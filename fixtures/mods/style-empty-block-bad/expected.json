@@ -14,7 +14,7 @@
         },
         {
             "file": "common/scripted_effects/fixture_effects.txt",
-            "line": 8,
+            "line": 9,
             "column": 2,
             "code": "style/empty-block",
             "severity": "hint",

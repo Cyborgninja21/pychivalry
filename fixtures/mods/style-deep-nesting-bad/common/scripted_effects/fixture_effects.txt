@@ -1,4 +1,4 @@
-# A scripted effect nested deeper than six blocks.
+﻿# A scripted effect nested deeper than six blocks.
 fixture_deep_effect = {
 	if = {
 		limit = { is_adult = yes }

@@ -1,14 +1,13 @@
-# On-actions whose fields are written out of the usual order.
+﻿# On-actions whose fields are written out of the usual order.
 fixture_on_action = {
 	# What it does.
 	effect = {
 		add_gold = 10
+		add_prestige = 10
 	}
 	trigger = { is_adult = yes } # Only adults.
-	on_actions = { fixture_one_line }
+	on_actions = { fixture_unclear }
 }
-
-fixture_one_line = { effect = { add_gold = 1 } trigger = { is_adult = yes } }
 
 fixture_unclear = {
 	effect = { add_gold = 1 }

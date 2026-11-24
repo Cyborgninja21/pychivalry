@@ -64,9 +64,10 @@ test('the fix writes the file as UTF-8 with the byte-order mark, read either way
         const files = converted('style-not-utf8-bad', fallback);
         const good = (file: string): string =>
             readFileSync(path.join(MODS, 'style-not-utf8-good', ...file.split('/')), 'utf8');
+        // The good fixture is in pychivalry's format: the byte-order mark and Windows line breaks.
         assert.equal(
             files.get('common/scripted_effects/fixture_effects.txt'),
-            `\uFEFF${good('common/scripted_effects/fixture_effects.txt')}`,
+            good('common/scripted_effects/fixture_effects.txt'),
         );
         assert.equal(
             files.get('localization/english/fixture_l_english.yml'),

@@ -6,5 +6,8 @@ the defect. A scripted effect with two blocks that hold nothing: a `limit` with 
 and an `else` that holds only a comment.
 
 A correct tool reports two hints, one at each block. The empty `limit` carries a fix, a
-suggestion that takes it away (the `if` around it keeps its effect); the `else` carries none,
-since taking it away would delete its comment. `expected.json` holds the findings.
+suggestion that takes its line away (the `if` around it keeps its two effects); the `else`
+carries none, since taking it away would delete its comment. `expected.json` holds the
+findings. Its files are in pychivalry's format (Windows line breaks, the byte-order mark;
+`.gitattributes` keeps their bytes exact): the formatter finds nothing here, and nothing after
+the fix.
