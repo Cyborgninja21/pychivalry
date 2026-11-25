@@ -1151,7 +1151,9 @@ The second run's 17 tool errors, none a fault of the server, pointed at pychival
 ### The release run (decision 132)
 
 The third preview's release run is made once, on the owner's word, after his hand calibration of
-all three sheets (decision 135) and his hand checklist and once the request list is final: 10
+all three sheets (decision 135) and his hand checklist, after the development run of the expert
+requests on tool schema version 4 ([below](#the-next-development-run-decision-141)), and once the
+request list is final: 10
 trials whose harness held of each request, the MVP's repetitions before a release. With the
 twenty-four requests that is 240 trials, each one authoring test session and one judge test
 session: **480 test sessions**, and two more for each trial that does not hold and is tried again.
@@ -1439,7 +1441,94 @@ results](#re-judging-kept-results)). The calibration's three sheets then measure
 the owner's hand grades. The three changes to what a session is given that this run's first part
 raised are proposals for the owner (docs/decisions.md,
 [Asked, awaiting the owner](../../docs/decisions.md#asked-awaiting-the-owner)), with what these 61
-trials say of each.
+trials say of each. Both were then answered on the owner's word: the results judged again
+([below](#judged-again-with-version-2-decision-139)) and the three changes built
+([What a session is given](#what-a-session-is-given-tool-schema-version-4)).
+
+### Judged again with version 2 (decision 139)
+
+On the owner's word of 2026-11-25 the run's kept results were judged again, with no authoring
+session: `task scored:rejudge` over `records/scored/authoring-expert-run-1.json` and the run's two
+kept folders, 61 judge test sessions of Claude Code 2.1.330 on Fable 5.2, each with session limit
+3, with version 2 of the judge's prompt
+(`SCORED_FROM=records/scored/authoring-expert-run-1.json SCORED_KEPT=<first kept folder>:<second kept folder> SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<the same Claude Code> CK3_GAME_PATH=<game dir> task scored:rejudge`).
+Its record, as the run wrote it, is
+[`records/scored/authoring-expert-run-1-judge-2.json`](../../records/scored/authoring-expert-run-1-judge-2.json),
+beside the record it judged again, which stays as made. Every stream and result matched the
+record before any session; `event-county-unrest` 4, not judged under the rule of its time, was
+judged.
+
+| | Version 1 (the run) | Version 2 (judged again) |
+| --- | --- | --- |
+| Trials, held | 61, 60 | 61, 60 |
+| No error, no warning, in the format, every expectation | 60 of 60 each | 60 of 60 each |
+| `effects-as-asked` | 45 of 45 | 45 of 45 |
+| `scope-as-asked` | 55 of 55 | 55 of 55 |
+| `text-as-asked` | 30 of 30 | 30 of 30 |
+| `nothing-unasked` | 35 of 35 | 35 of 35 |
+| `conditions-as-asked` | 52 of 55 (94.5%): not met | **55 of 55: met** |
+| The four targets | 3 of 4 met | **all 4 met** |
+
+`task scored:targets` with `SCORED_RECORD` set to the new record reads it so. **The judge again
+answered yes to every question, 220 of 220.** Version 2 no longer says no where the game says yes
+(the three answers on `trigger-loyal-realm` now yes); no run has yet shown that it says no where it
+should. That rests on the owner's three hand-graded calibration sheets (decision 135), whose
+results include ones that are wrong on purpose.
+
+## What a session is given (tool schema version 4)
+
+On the owner's word of 2026-11-25 (decision 140), before the release run, the three proposals the
+development run raised were built (#158): what every session of a run is given changed, and the
+agent server's tool schema version is 4.
+
+1. **`lookup` answers every name whole.** Each name asked is answered whole in one result, its
+   readings first (what it is, the game's description, its scopes, what it takes, its removal or
+   replacement), then its definitions (at most 3 places a group) and its uses (counted, the first
+   3), or it is named in `not_answered`, to look up in another call. There is no cursor. A field
+   of more than three folders comes in brief, and `folder` gives a folder's field in full. The
+   run's 61 first `lookup` calls, replayed with no model over the installed game
+   (`packages/mcp/src/lookup-whole.test.ts`): 45 answered whole in one call and the rest in 2 or 3,
+   where each first page had held 1 to 3 of their 2 to 20 names, and no name is ever cut.
+2. **`source`**, read-only: the base game's own text (or the mod's) around a place another
+   result named, by its layer, file and line, at most 40 lines, of a file the index read, never by
+   an address. `event-county-unrest` 4's session wanted exactly this, the game's use of
+   `add_popular_opinion`, and reached for its own `Read`.
+3. **Places that say their layer.** Every place every tool names has its `layer`; one outside the
+   mod says `"read_with": "source"`. The server's instructions and the three skills say that a
+   game place is read with `source`, never with a session's own file tools.
+
+**What a trial is offered.** The run's list of the server's tools (`SERVER_TOOLS` in `run.ts`)
+gains `source`, so a session is offered nine `mcp__pychivalry__*` tools, and a start that does not
+offer one is a harness problem, as before. What counts as held is unchanged: a `Read`, `Edit` or
+`Write` that names a file outside the mod, refused or not, makes a trial not held.
+
+**How a record marks what its sessions were given.** A record now names the agent server's tool
+schema version, `server.schema_version` (4), beside its `entry` and `arguments`. Every record made
+before has none: its sessions were given version 3 or earlier. `task scored:targets` and the run's
+own reading say first which version a record's sessions were given, and, for any but the
+committed one, that its measures are not comparable with a record of the committed version
+without saying so; a run continuing a record refuses one of another version, or of none (the
+server is compared), so a record never holds sessions of two versions. The judge's version is named
+the same way, by its prompt's hash. So the committed records, `authoring-run-1.json`,
+`authoring.json`, `authoring-expert-run-1.json` and its re-judged copy, are read as made with
+version 3 or earlier, and the next run's as made with version 4.
+
+### The next development run (decision 141)
+
+Before the release run, on the owner's word, a development run of the twelve expert requests
+measures the change: 5 trials of each, **120 test sessions** (60 authoring of Opus 5.5, 60 judge of
+Fable 5.2 with version 2 of its prompt), each with session limit 3, the trials kept, from a clone
+of `main` holding #158, written to its own record:
+
+```sh
+SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=5 SCORED_SESSION_LIMIT=3 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=event-granary-inspection,event-envoy-chain,event-county-unrest,decision-fund-granaries,decision-pardon-prisoners,decision-house-feast,effect-realm-relief,effect-granary-gift-edit,effect-heir-household,trigger-loyal-realm,trigger-granary-patron,trigger-settled-ruler SCORED_RECORD=records/scored/authoring-expert-run-2.json SCORED_KEEP=true SCORED_CLAUDE=<the same Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring
+```
+
+A trial that does not hold and is tried again by a continuing run adds two sessions each. Its
+record states `server.schema_version` 4; the first expert run's record, of version 3, is not
+continued and stays as made. What to read from it beside the targets: how many first lookups
+were answered whole, how often `source` was called and on what, whether any `Read` left the mod,
+and the tool errors.
 
 ## Re-judging kept results
 

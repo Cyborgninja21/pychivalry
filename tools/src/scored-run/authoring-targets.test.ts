@@ -32,6 +32,7 @@ import { JUDGE_PROMPT_VERSION, JUDGE_PROMPT_VERSIONS } from './judge.js';
 import type { Stopped } from './confinement.js';
 import type { JudgeAnswer } from './judge.js';
 import { committedRequests, type Difficulty } from './requests.js';
+import { SERVER_SCHEMA_VERSION } from './run.js';
 
 function dimension(
     name: string,
@@ -252,9 +253,73 @@ test("the expert requests' development run: filed, read over its twelve requests
         version: 1,
         committed: false,
     });
-    assert.equal(
-        targetLines(reading)[0],
+    // Its sessions were given the agent server before tool schema version 4, which the reading
+    // says first, then the judge.
+    assert.deepEqual(reading.server, { schema_version: null, committed: false });
+    assert.deepEqual(targetLines(reading).slice(0, 2), [
+        `its sessions were given the agent server's tool schema version 3 or earlier (the record was made before records named it: no source tool, lookup answered in pages cut inside a name, game places that did not say how to read them), not the committed version ${String(SERVER_SCHEMA_VERSION)}: they were given other tools and answers, so its measures are not comparable with those of a record of version ${String(SERVER_SCHEMA_VERSION)} without saying so`,
         "judged with version 1 of the judge's prompt, not the committed version 2: its judged parts are that judge's, and are not comparable with those of a record judged with version 2",
+    ]);
+});
+
+test("the expert run's kept results judged again with version 2: every target met, the sessions' server unchanged", () => {
+    // records/scored/authoring-expert-run-1-judge-2.json, written by task scored:rejudge on the
+    // owner's word of 2026-11-25: the same trials, sessions and grades, only the judge new.
+    const { reading } = readRecordTargets(root, {
+        SCORED_RECORD: 'records/scored/authoring-expert-run-1-judge-2.json',
+    });
+    assert.equal(reading.trials, 61);
+    assert.equal(reading.held, 60);
+    assert.deepEqual(met(reading), {
+        'no-error': true,
+        'no-warning-in-format': true,
+        expectations: true,
+        judged: true,
+    });
+    assert.deepEqual(
+        reading.targets
+            .find((t) => t.id === 'judged')
+            ?.parts.map((p) => `${p.measure} ${String(p.count)}/${String(p.of)}`),
+        [
+            'effects-as-asked 45/45',
+            'scope-as-asked 55/55',
+            'text-as-asked 30/30',
+            'nothing-unasked 35/35',
+            'conditions-as-asked 55/55',
+        ],
+    );
+    assert.equal(reading.judge?.version, 2);
+    assert.equal(reading.judge.committed, true);
+    assert.deepEqual(reading.server, { schema_version: null, committed: false });
+});
+
+test("the agent server a record's sessions were given: the committed schema version, another, or none named", () => {
+    const record = JSON.parse(
+        readFileSync(path.join(root, 'records', 'scored', 'authoring-run-1.json'), 'utf8'),
+    ) as { results: AuthoringResults };
+    const lineFor = (schema: number | undefined): string | undefined =>
+        targetLines(
+            readTargets({
+                ...record.results,
+                server: {
+                    ...record.results.server,
+                    ...(schema === undefined ? {} : { schema_version: schema }),
+                },
+            }),
+        )[0];
+    assert.equal(
+        lineFor(SERVER_SCHEMA_VERSION),
+        `its sessions were given the agent server's tool schema version ${String(SERVER_SCHEMA_VERSION)}, the committed one`,
+    );
+    assert.match(
+        lineFor(SERVER_SCHEMA_VERSION + 1) ?? '',
+        /^its sessions were given the agent server's tool schema version \d+, not the committed version \d+: they were given other tools and answers/,
+    );
+    assert.match(lineFor(undefined) ?? '', /tool schema version 3 or earlier/);
+    // Measures alone name no server.
+    assert.equal(
+        readTargets({ tasks: record.results.tasks, overall: record.results.overall }).server,
+        null,
     );
 });
 
@@ -262,13 +327,14 @@ test("the judge's prompt a record names: the committed one, an earlier one, or o
     const record = JSON.parse(
         readFileSync(path.join(root, 'records', 'scored', 'authoring-run-1.json'), 'utf8'),
     ) as { results: AuthoringResults };
+    // The judge's line comes after the server's.
     const lineFor = (sha256: string): string | undefined =>
         targetLines(
             readTargets({
                 ...record.results,
                 task: { ...record.results.task, judge_prompt_sha256: sha256 },
             }),
-        )[0];
+        )[1];
     assert.equal(
         lineFor(JUDGE_PROMPT_VERSION.sha256),
         "judged with version 2 of the judge's prompt, the committed one",

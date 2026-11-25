@@ -32,6 +32,7 @@ import {
     writeAddress,
 } from './address.js';
 import { BaseRefused } from './base.js';
+import { listenLocal, localAddress, type LocalConnection } from './channel.js';
 import { askHost, IndexHost, type HostRequest, type Place } from './host.js';
 
 const SPEC = 'a'.repeat(64);
@@ -57,7 +58,7 @@ async function lender(
     t: TestContext,
     place: Place,
     handle: (request: HostRequest) => Promise<unknown>,
-    options: { claimMs?: number; heartbeatMs?: number } = {},
+    options: { claimMs?: number; heartbeatMs?: number; probeMs?: number } = {},
 ): Promise<IndexHost> {
     const host = await IndexHost.start({ ...place, specSha256: SPEC, handle, ...options });
     t.after(async () => {
@@ -207,6 +208,69 @@ test('a lender that dies in the middle of a request takes nothing with it', asyn
     // Its address file is left behind, naming a program that is gone: the next one takes over.
     const host = await lender(t, place, echo);
     assert.equal(host.lending, true);
+});
+
+test('a program that takes a connection on the address but does not say it lends is taken over', async (t) => {
+    // What a lender being killed looks like for a moment (on Windows, another instance of its
+    // named pipe the system has not closed yet): the address takes a connection, and nothing
+    // answers on it, or it closes. A connection alone was taken as a lender alive, so the next
+    // program did not lend until it looked again (CLAIM_MS later): the cause of the flaky
+    // "a lender that dies in the middle of a request takes nothing with it". Now it must answer
+    // a probe with the address file's token.
+    for (const behaviour of ['silent', 'closes'] as const) {
+        const dir = scratch(t);
+        const place = placeIn(dir);
+        const folder = hostFolder(place.env, place.platform, place.home);
+        assert.ok(privateFolder(folder, true));
+        const address = localAddress(folder, randomHex());
+        const held: LocalConnection[] = [];
+        const dying = await listenLocal(address, (connection) => {
+            held.push(connection);
+            if (behaviour === 'closes') {
+                connection.onMessage(() => {
+                    connection.close();
+                });
+            }
+        });
+        t.after(async () => {
+            for (const c of held) {
+                c.close();
+            }
+            await dying.close();
+        });
+        writeAddress(addressFile(folder, SPEC), {
+            format: 1,
+            pid: process.pid,
+            address,
+            token: randomHex(),
+            started: new Date().toISOString(),
+        });
+        const { value: host, ms } = await timed(lender(t, place, echo, { probeMs: 500 }));
+        assert.equal(host.lending, true, `${behaviour}: the next program lends at once`);
+        assert.ok(ms < 3000, `${behaviour}: ${String(ms)} ms`);
+        assert.equal(held.length > 0, true, `${behaviour}: the address was asked`);
+        assert.deepEqual(await askHost(SPEC, { kind: 'test' }, place), {
+            answered: true,
+            answer: { echo: { kind: 'test' } },
+        });
+    }
+});
+
+test('a lender busy with a request still says it lends, and is not taken over', async (t) => {
+    const place = placeIn(scratch(t));
+    const first = await lender(t, place, () => new Promise(() => undefined), {
+        claimMs: 60_000,
+        heartbeatMs: 60_000,
+    });
+    assert.equal(first.lending, true);
+    // A request it will not finish: it is busy until the asker gives up.
+    const asked = askHost(SPEC, { kind: 'test' }, { ...place, silenceMs: 1_500 });
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    const second = await lender(t, place, echo, { probeMs: 1_000, claimMs: 60_000 });
+    assert.equal(second.lending, false, 'the busy lender answered the probe');
+    assert.deepEqual(first.status().answered, {}, 'a probe is not counted as a request');
+    assert.equal(first.status().refused, 0);
+    assert.equal((await asked).answered, false);
 });
 
 test('a second lender waits while the first lends, and takes over when it stops', async (t) => {

@@ -12,5 +12,10 @@ export const SERVER_NAME = 'pychivalry';
 /** This package's version. */
 export const VERSION = '0.0.0';
 
-/** The version of the tools' input and output shapes. */
-export const SCHEMA_VERSION = 3;
+/**
+ * The version of the tools' input and output shapes: 1, the six tools of step 6; 2, `format`
+ * (step 8); 3, `apply_format` (item 9.8); 4, `source`, `lookup` answering each name whole (no
+ * cursor), and every place saying its layer, a place outside the mod saying `read_with: "source"`
+ * (the owner's decision of 2026-11-25).
+ */
+export const SCHEMA_VERSION = 4;

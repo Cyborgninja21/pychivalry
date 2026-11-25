@@ -7,7 +7,8 @@
  *   --json`) give the core's own finding: a range counted from 0, the severity, the code, the
  *   message, the evidence, the data and the fix (build step 8).
  * - The agent server's `check` gives lines and columns counted from 1, the severity, the code,
- *   the message, the data and the fix, its edits' places in lines and columns from 1 too; no
+ *   the message, the data and the fix, its edits' places in lines and columns from 1 too, each
+ *   place with its layer, always `mod` (`withoutModLayer` holds it and takes it off); no
  *   evidence (its tools leave it to `explain_code`).
  * - VS Code's diagnostics give the range, the severity, the code and the message.
  *
@@ -129,9 +130,36 @@ export function withRanges(value: unknown): unknown {
     return out;
 }
 
+/**
+ * A value of the agent server's with the layer of every place in it taken off, after it is shown
+ * to be `mod`: since tool schema version 4 every place a tool names says its layer (`places.ts`
+ * of the agent server), and every place of a finding or its fix is a file of the mod. A place of
+ * another layer, or one that says how to read a game file, is a difference, not dropped.
+ */
+export function withoutModLayer(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(withoutModLayer);
+    }
+    if (typeof value !== 'object' || value === null) {
+        return value;
+    }
+    const o = value as Record<string, unknown>;
+    const placed = typeof o['file'] === 'string' && typeof o['line'] === 'number';
+    if (placed && (o['layer'] !== 'mod' || 'read_with' in o)) {
+        throw new Error(`a place of a finding is not the mod's: ${JSON.stringify(o)}`);
+    }
+    const out: Record<string, unknown> = {};
+    for (const [key, inner] of Object.entries(o)) {
+        if (!(placed && key === 'layer')) {
+            out[key] = withoutModLayer(inner);
+        }
+    }
+    return out;
+}
+
 /** A finding as the agent server's `check` gives it: lines and columns from 1, no evidence. */
 export function fromAgent(value: unknown): Answer {
-    const f = record(value, 'a finding');
+    const f = withoutModLayer(record(value, 'a finding')) as Record<string, unknown>;
     return {
         file: str(f['file'], 'its file'),
         line: num(f['line'], 'its line') - 1,

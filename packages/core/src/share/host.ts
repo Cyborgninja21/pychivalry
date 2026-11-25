@@ -11,7 +11,8 @@
  *   other program lends one for the same spec package (or the one that did is gone), listens on
  *   a fresh local address, and answers each request with `handle`, one at a time, in the order
  *   they came. It looks again every `CLAIM_MS`: it takes the address over when the lender is
- *   gone, and stops lending when another program holds it.
+ *   gone, and stops lending when another program holds it. "Gone" is a program that does not
+ *   answer a probe with the address file's token within `PROBE_MS`.
  * - **Off:** `PYCHIVALRY_SHARED_INDEX=off` (`sharingOff`) and a program neither lends nor asks.
  */
 
@@ -51,6 +52,13 @@ export const SILENCE_MS = 10_000;
 
 /** How often a lending program, or one that would lend, looks at the address file. */
 export const CLAIM_MS = 5_000;
+
+/**
+ * How long a program that would lend waits for the program an address file names to say it
+ * lends, before it takes the address over. A lender says so at once, whatever it is working on:
+ * the probe is answered as it arrives, never queued behind a request.
+ */
+export const PROBE_MS = 2_000;
 
 /** How old a socket file no lender holds must be before a new lender removes it. */
 const STALE_SOCKET_MS = 60_000;
@@ -180,9 +188,13 @@ export interface HostOptions extends Place {
     readonly handle: (request: HostRequest) => Promise<unknown>;
     /** Where to say what happens (a server's log); nothing is said without it. */
     readonly log?: ((text: string) => void) | undefined;
-    /** For the tests: how often to look at the address file, and to say it is working. */
+    /**
+     * For the tests: how often to look at the address file, to say it is working, and how long
+     * to wait for another program to say it lends (`PROBE_MS`).
+     */
     readonly claimMs?: number | undefined;
     readonly heartbeatMs?: number | undefined;
+    readonly probeMs?: number | undefined;
 }
 
 function sameToken(a: string, b: string): boolean {
@@ -275,18 +287,47 @@ export class IndexHost {
         return here;
     }
 
-    /** True when another program, alive, answers on the address the file names. */
+    /**
+     * True when another program lends on the address the file names: it answers a probe with the
+     * file's token (`PROBE_MS`). A connection alone is no proof: a program being killed can
+     * still take one on an address it held (on Windows, another instance of its named pipe that
+     * the system has not closed yet; the flaky test of #156 and #157, "a lender that dies in the
+     * middle of a request takes nothing with it"), and one that takes a connection and never
+     * answers lends nothing either way.
+     */
     private async otherLender(record: AddressRecord): Promise<boolean> {
         if (record.token === this.token) {
             return false;
         }
+        let connection: LocalConnection;
         try {
-            const connection = await connectLocal(record.address, CONNECT_MS);
-            connection.close();
-            return true;
+            connection = await connectLocal(record.address, CONNECT_MS);
         } catch {
             return false;
         }
+        return new Promise<boolean>((resolve) => {
+            let settled = false;
+            const settle = (lends: boolean): void => {
+                if (!settled) {
+                    settled = true;
+                    clearTimeout(timer);
+                    connection.close();
+                    resolve(lends);
+                }
+            };
+            const timer = setTimeout(() => {
+                settle(false);
+            }, this.options.probeMs ?? PROBE_MS);
+            // Any word from it is an answer: "lending", or a refusal from a program of another
+            // protocol, which is alive and holds the address all the same.
+            connection.onMessage(() => {
+                settle(true);
+            });
+            connection.onClose(() => {
+                settle(false);
+            });
+            connection.send({ v: PROTOCOL, token: record.token, probe: true });
+        });
     }
 
     private async claim(): Promise<void> {
@@ -390,6 +431,7 @@ export class IndexHost {
                 v?: unknown;
                 token?: unknown;
                 request?: unknown;
+                probe?: unknown;
             };
             if (typeof envelope.token !== 'string' || !sameToken(envelope.token, this.token)) {
                 this.refused++;
@@ -403,6 +445,13 @@ export class IndexHost {
                     t: 'refused',
                     reason: `another protocol (${String(envelope.v)})`,
                 });
+                connection.close();
+                return;
+            }
+            if (envelope.probe === true) {
+                // Another program asks whether this one lends: it does, whatever it is working
+                // on. Not a request: nothing is counted.
+                connection.send({ t: 'lending' });
                 connection.close();
                 return;
             }

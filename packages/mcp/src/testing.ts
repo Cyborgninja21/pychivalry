@@ -157,6 +157,9 @@ export async function connect(
     };
 }
 
+/** The most characters a whole result may hold: 10,000 tokens at three characters a token. */
+export const MAX_RESULT_CHARACTERS = 30_000;
+
 /**
  * The size of a result as a model could be given it: the characters of its text and of its
  * structured output's JSON, both copies counted.

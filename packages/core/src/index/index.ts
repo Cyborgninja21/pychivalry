@@ -151,6 +151,15 @@ export {
     type RulesTable,
 } from './rules.js';
 export { LayeredMap } from './layered.js';
+export {
+    checkGivenPath,
+    findListedFile,
+    readListedFile,
+    rootOf,
+    SourceRefused,
+    type ListedFile,
+    type SourceText,
+} from './source-text.js';
 export { StringTable } from './strings.js';
 export {
     fileKindOf,

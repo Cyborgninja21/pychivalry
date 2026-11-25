@@ -1,78 +1,60 @@
 /**
- * `lookup`: for each name, everything the core's lookup (docs/PLAN.md item 4.8) answers, the
- * answer the command line's `lookup --json` prints: every reading the spec package has of the
- * name, with its description, scopes, what it takes, its version and its removal; where the
- * base game and the mod define and use it, and which definition is in force; and, for a name
- * nothing knows, the names close to it. Its places are written as every tool writes them
- * (`places.ts`).
+ * `lookup`: for each name asked, what it is and where it is valid, answered whole in one call
+ * (docs/PLAN.md item 9.8, the owner's decision of 2026-11-25).
  *
- * One name can have many readings: `trait` is a trigger, an effect, a link, a list, a field of
- * nine folders and a scope type, about 21,000 characters in all. To fit one result the answer
- * is a list of parts, each name's head (everything but its readings) and then its readings one
- * by one, paged like every long list: a page holds the parts that fit, and `next_cursor` gives
- * the rest. A name whose readings go on to the next page says `readings_total`; its next part
- * comes back as `{ name, continued: true, readings }`. The uses a head lists are cut from 20 to
- * 5 and then to none when the head alone would not fit (their count stays whole).
+ * Each name's answer is the core's lookup (docs/PLAN.md item 4.8), the answer the command line's
+ * `lookup --json` prints, written compactly (`lookup-answer.ts`): its readings first, every one
+ * with its facts (what it is, the game's own description, its scopes, what it takes, its version,
+ * its removal and replacement); then where the base game and the mod define it, with the rule
+ * that decides which definition is in force; then how many places use it, by layer, and the
+ * first few; for a name nothing knows, the names close to it.
+ *
+ * **No answer is ever cut inside a name, and there is no cursor.** Until schema version 4 the
+ * answer was a list of parts paged by a cursor, each name's head (its definitions and its first
+ * 20 uses, each a place) before its readings: in the expert requests' development run the first
+ * `lookup` of every session asked for 2 to 20 names and got 1 to 3 on its first page, 78 of 101
+ * answers with a next page were never continued, and 9 of the run's 12 tool errors were a cursor
+ * given with other names (tools/scored-run/README.md). Now every name either is answered whole or
+ * is named in `not_answered`, with what to do: look those names up in another call. A result holds
+ * as many whole names as fit, in the order asked; every name fits a result alone, written smaller
+ * when it must (`answerOf`).
  */
 
 import {
-    DEFAULT_USES_LIMIT,
     diskFileSource,
     languageOf,
     lookup,
-    type LookupResult,
     type SourceListing,
     type WorkspaceIndex,
 } from '@pychivalry/core';
-import { withSpans } from '../places.js';
-import {
-    BadInput,
-    page,
-    questionKey,
-    readCursor,
-    RESULT_BUDGET,
-    sizeOf,
-    valueList,
-} from '../result.js';
+import { BadInput, RESULT_BUDGET, sizeOf, valueList } from '../result.js';
 import type { Schema } from '../schema.js';
 import type { Session } from '../session.js';
-import { NEXT_CURSOR, NOTES, type Tool } from '../tool.js';
-import { fitDefinitions } from './definitions.js';
+import { NOTES, PLACE, type Tool } from '../tool.js';
+import { answerOf, FIELDS_IN_FULL, PLACES_SHOWN, USES_SHOWN } from './lookup-answer.js';
 
 export interface LookupArgs {
     readonly names: readonly string[];
     readonly language?: string;
-    readonly cursor?: string;
+    readonly folder?: string;
 }
 
 /** The most names one call may ask about. */
 export const MAX_NAMES = 20;
 
-/** The uses listed per name, tried in turn until a head fits. */
-const USES_LIMITS: readonly number[] = [DEFAULT_USES_LIMIT, 5, 0];
+/** The longest name asked: no name of the game or a mod is longer. */
+export const MAX_NAME_LENGTH = 120;
 
-/** The room a head may take of a result: the rest is for the list around it. */
-const HEAD_ROOM = RESULT_BUDGET - 1_000;
+/** What `not_answered` says to do. */
+export const ASK_AGAIN =
+    'These names did not fit in this result: look them up in another call of lookup, with the same language and folder. lookup has no cursor and no pages: every name it answers is answered whole';
 
-const STATUS: Schema = {
-    type: 'object',
-    properties: { status: { type: 'string' } },
-    required: ['status'],
-};
+const COUNT: Schema = { type: 'integer', minimum: 0 };
 
 const ANSWER: Schema = {
     type: 'object',
     properties: {
         name: { type: 'string' },
-        continued: {
-            type: 'boolean',
-            description: 'True for the rest of a name begun on an earlier page: its readings only',
-        },
-        spec: {
-            type: 'object',
-            properties: { version: { type: 'string' }, sha256: { type: 'string' } },
-            required: ['version', 'sha256'],
-        },
         unknown: {
             type: 'boolean',
             description: 'True when the spec package has no reading of the name',
@@ -85,26 +67,84 @@ const ANSWER: Schema = {
                 required: ['kind'],
             },
             description:
-                'The readings of the name in the spec package on this page (a trigger, an effect, a field of a folder, a scope type...), each with its description, scopes and what it takes',
+                "Every reading of the name in the spec package (a trigger, an effect, a scope link, a modifier, a field of a folder, an iterator...): what it is, the game's own description, the scopes it is valid in (and leads to), what it takes, its version, its removal and replacement; a field's kind, value type and the values the base game writes",
         },
-        readings_total: {
-            type: 'integer',
-            minimum: 0,
-            description: 'How many readings the name has in all, on this page and others',
+        fields_in_brief: {
+            type: 'boolean',
+            description: `True when the name is a field of more than ${String(FIELDS_IN_FULL)} folders and no folder was given: each field reading is in brief (its folder, path, kind and value type); lookup with folder gives the field of that folder in full`,
+        },
+        field_of: {
+            type: 'array',
+            items: { type: 'string' },
+            description:
+                'The folders the name is a field of, when its answer was written smaller (detail): lookup with folder gives the field of one folder in full',
+        },
+        fields_elsewhere: {
+            ...COUNT,
+            description:
+                'How many field readings of other folders than the folder given were left out',
         },
         definitions: {
-            ...STATUS,
+            type: 'object',
+            properties: {
+                count: COUNT,
+                groups: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            database: { type: 'string' },
+                            container: { type: ['string', 'null'] },
+                            in_force: {
+                                type: 'object',
+                                properties: {
+                                    status: { type: 'string' },
+                                    rule: { type: 'string' },
+                                },
+                                required: ['status'],
+                            },
+                            count: COUNT,
+                            first: {
+                                type: 'array',
+                                items: PLACE,
+                                description: `At most ${String(PLACES_SHOWN)} places, the one in force first; find_definition lists every one`,
+                            },
+                        },
+                        required: ['database', 'container', 'in_force', 'count'],
+                    },
+                },
+            },
+            required: ['count', 'groups'],
             description:
-                'Where the base game and the mod define it, by database, and which definition is in force',
+                'Where the base game and the mod define it, by database, and what the override rules say is in force',
         },
         uses: {
-            ...STATUS,
-            description: 'How many uses, by layer, and the first of them (limit says how many)',
+            type: 'object',
+            properties: {
+                count: COUNT,
+                by_layer: { type: 'object', additionalProperties: COUNT },
+                first: {
+                    type: 'array',
+                    items: PLACE,
+                    description: `At most ${String(USES_SHOWN)} places that use it; find_references lists every one, a page at a time`,
+                },
+            },
+            required: ['count', 'by_layer'],
+            description: 'How many places use it, by layer, and the first few',
         },
-        dataTypes: STATUS,
-        suggestions: { ...STATUS, description: 'For a name nothing knows: the names close to it' },
+        did_you_mean: {
+            type: 'array',
+            items: { type: 'string' },
+            description: 'For a name nothing knows: the names close to it',
+        },
+        detail: {
+            type: 'string',
+            enum: ['field-folders', 'counts'],
+            description:
+                "Present when the name's whole answer would not fit one result and it is written smaller: field-folders, its fields listed by folder (ask with folder for one in full); counts, also its definitions and uses as counts only (find_definition and find_references list them)",
+        },
     },
-    required: ['name', 'readings', 'readings_total'],
+    required: ['name', 'unknown', 'readings'],
 };
 
 /** The languages the workspace's localization is in (`l_english`), sorted. */
@@ -119,88 +159,25 @@ function languagesOf(index: WorkspaceIndex): string[] {
     return [...out].sort();
 }
 
-/** One part of the answer: a name's head, or one of its readings. */
-interface Part {
-    readonly name: string;
-    readonly total: number;
-    readonly head: Record<string, unknown> | null;
-    readonly reading: unknown;
-}
-
-/** A name's answer without its readings, its places as spans, small enough for one result. */
-function headOf(answer: (usesLimit: number) => LookupResult): Record<string, unknown> {
-    const headFrom = (result: LookupResult): Record<string, unknown> => ({
-        name: result.name,
-        spec: result.spec,
-        unknown: result.unknown,
-        definitions: withSpans(result.definitions),
-        uses: withSpans(result.uses),
-        dataTypes: result.dataTypes,
-        suggestions: result.suggestions,
-    });
-    let result: LookupResult | null = null;
-    for (const usesLimit of USES_LIMITS) {
-        result = answer(usesLimit);
-        if (sizeOf(headFrom(result)) <= HEAD_ROOM) {
-            return headFrom(result);
-        }
-    }
-    // Still too large: a name defined in very many places. Its definitions are cut to fit,
-    // the count of those left out given; find_definition and list_definitions list them.
-    result ??= answer(0);
-    const head = headFrom(result);
-    if (result.definitions.status !== 'read') {
-        return head;
-    }
-    return fitDefinitions(
-        result.definitions.groups,
-        (groups, notShown) => ({
-            ...head,
-            definitions: { status: 'read', groups, not_shown: notShown },
-        }),
-        HEAD_ROOM,
-    );
-}
-
-/** The parts of a page as results: a name's parts together, its head first when it is there. */
-function resultsOf(parts: readonly Part[]): Record<string, unknown>[] {
-    const out: Record<string, unknown>[] = [];
-    let current: { name: string; readings: unknown[]; result: Record<string, unknown> } | null =
-        null;
-    for (const part of parts) {
-        if (current === null || current.name !== part.name || part.head !== null) {
-            const readings: unknown[] = [];
-            const result: Record<string, unknown> =
-                part.head === null
-                    ? { name: part.name, continued: true, readings, readings_total: part.total }
-                    : {
-                          name: part.head['name'],
-                          spec: part.head['spec'],
-                          unknown: part.head['unknown'],
-                          readings,
-                          readings_total: part.total,
-                          definitions: part.head['definitions'],
-                          uses: part.head['uses'],
-                          dataTypes: part.head['dataTypes'],
-                          suggestions: part.head['suggestions'],
-                      };
-            current = { name: part.name, readings, result };
-            out.push(result);
-        }
-        if (part.head === null) {
-            current.readings.push(part.reading);
-        }
-    }
-    return out;
+/** The folders a `folder` may name: the spec package's folders and its record schemas'. */
+function foldersOf(session: Session, index: WorkspaceIndex): string[] {
+    return [
+        ...new Set([
+            ...index.folders.folders.map((f) => f.path),
+            ...Object.keys(session.spec.data.schema),
+        ]),
+    ].sort();
 }
 
 export const lookupTool: Tool<LookupArgs> = {
     name: 'lookup',
     title: 'Look up names',
     description: [
-        "What each name is: every reading the spec package has of it (trigger, effect, scope link, modifier, on-action, field of a folder...), with the game's own description, the scopes it is valid in and what it takes;",
-        'where the base game and the mod define and use it, and which definition is in force; for a name nothing knows, the names close to it.',
-        'Use it before writing a keyword, and to understand a finding. Most answers fit in one result, with next_cursor null; when one does not, call lookup again with exactly the same names and language and that next_cursor for the rest. A lookup of other names never takes a cursor.',
+        "What each name is, every name answered whole: every reading the spec package has of it (trigger, effect, scope link, modifier, on-action, field of a folder...), with the game's own description, the scopes it is valid in, what it takes and its removal or replacement;",
+        `then where the base game and the mod define it, which definition is in force, and how many places use it with the first ${String(USES_SHOWN)} (find_references lists every use of one name);`,
+        'for a name nothing knows, the names close to it. Use it before writing a keyword, and to understand a finding.',
+        `A name that is a field of more than ${String(FIELDS_IN_FULL)} folders comes in brief: give folder (common/decisions, events...) to have its field in that folder in full, as when learning the fields of the folder you write in.`,
+        'There is no cursor and no next page: names that do not fit one result are listed in not_answered; look them up in another call.',
     ].join(' '),
     input: {
         type: 'object',
@@ -217,10 +194,11 @@ export const lookupTool: Tool<LookupArgs> = {
                 description:
                     "Only this language's localization text, as its files' header names it (l_english); every language when left out",
             },
-            cursor: {
+            folder: {
                 type: 'string',
+                minLength: 1,
                 description:
-                    'Only for the rest of one answer: the next_cursor that answer gave, with exactly the same names and language. Leave it out to look up other names',
+                    'Only the field readings of this folder (common/decisions, events...), in full; the readings that are not fields are all kept',
             },
         },
         required: ['names'],
@@ -229,17 +207,36 @@ export const lookupTool: Tool<LookupArgs> = {
     output: {
         type: 'object',
         properties: {
-            results: { type: 'array', items: ANSWER },
-            next_cursor: NEXT_CURSOR,
+            results: {
+                type: 'array',
+                items: ANSWER,
+                description: 'Each name answered, whole, in the order asked',
+            },
+            not_answered: {
+                type: ['object', 'null'],
+                properties: {
+                    names: { type: 'array', items: { type: 'string' } },
+                    ask: { type: 'string' },
+                },
+                required: ['names', 'ask'],
+                description:
+                    'The names asked that did not fit in this result, and what to do: look them up in another call. Null when every name is answered',
+            },
             notes: NOTES,
         },
-        required: ['results', 'next_cursor', 'notes'],
+        required: ['results', 'not_answered', 'notes'],
     },
     run(args: LookupArgs, session: Session): Record<string, unknown> {
         const names = [...new Set(args.names)];
+        for (const [i, name] of names.entries()) {
+            if (name.length > MAX_NAME_LENGTH) {
+                throw new BadInput(
+                    `names[${String(i)}]: longer than ${String(MAX_NAME_LENGTH)} characters; no name of the game or a mod is that long`,
+                );
+            }
+        }
         const language = args.language ?? null;
-        const key = questionKey('lookup', { names, language });
-        const offset = readCursor(args.cursor, key, 'names or language');
+        const folder = args.folder ?? null;
         const workspace = session.workspace();
         if (language !== null) {
             const languages = languagesOf(workspace.index);
@@ -251,39 +248,61 @@ export const lookupTool: Tool<LookupArgs> = {
                 );
             }
         }
-        // The next page of the same question, on an unchanged mod, does not look up again.
-        const parts = session.remember('lookup', key, () => {
-            const listings: SourceListing[] = [];
-            if (workspace.game !== null) {
-                listings.push(workspace.game.listing);
+        if (folder !== null) {
+            const folders = foldersOf(session, workspace.index);
+            if (!folders.includes(folder)) {
+                const close = folders.filter((f) => f.endsWith(`/${folder}`) || f.includes(folder));
+                throw new BadInput(
+                    `folder: ${folder} is not a folder the game reads${close.length > 0 ? `; did you mean ${valueList(close, 1_000)}` : ''}; give the folder's path from the mod's top (common/decisions, events, common/scripted_effects)`,
+                );
             }
-            if (workspace.mod !== null) {
-                listings.push(workspace.mod);
-            }
-            const files = session.game.dir === null ? null : diskFileSource(listings);
-            const out: Part[] = [];
-            for (const name of names) {
-                const answer = (usesLimit: number): LookupResult =>
+        }
+        const listings: SourceListing[] = [];
+        if (workspace.game !== null) {
+            listings.push(workspace.game.listing);
+        }
+        if (workspace.mod !== null) {
+            listings.push(workspace.mod);
+        }
+        const files = session.game.dir === null ? null : diskFileSource(listings);
+        const notes = session.notes();
+        const answers = names.map(
+            (name) =>
+                answerOf(
                     lookup(name, {
                         spec: session.spec,
                         index: workspace.index,
                         files,
                         language,
-                        usesLimit,
-                    });
-                const readings = answer(0).readings.map(withSpans);
-                out.push({ name, total: readings.length, head: headOf(answer), reading: null });
-                for (const reading of readings) {
-                    out.push({ name, total: readings.length, head: null, reading });
-                }
-            }
-            return out;
-        });
-        const notes = session.notes();
-        return page(parts, offset, parts.length, key, (taken, nextCursor) => ({
-            results: resultsOf(taken),
-            next_cursor: nextCursor,
+                        usesLimit: USES_SHOWN,
+                    }),
+                    folder,
+                    language,
+                ).answer,
+        );
+        const build = (
+            taken: readonly Record<string, unknown>[],
+            left: readonly string[],
+        ): Record<string, unknown> => ({
+            results: taken,
+            not_answered: left.length === 0 ? null : { names: left, ask: ASK_AGAIN },
             notes,
-        }));
+        });
+        // Whole names, in the order asked: a name that does not fit is named, and the names
+        // after it are still tried. The first name always fits (`NAME_ROOM`).
+        const taken: Record<string, unknown>[] = [];
+        const left: string[] = [];
+        for (const [i, answer] of answers.entries()) {
+            const rest = names.slice(i + 1);
+            if (sizeOf(build([...taken, answer], [...left, ...rest])) <= RESULT_BUDGET) {
+                taken.push(answer);
+            } else {
+                left.push(names[i] ?? '');
+            }
+        }
+        if (taken.length === 0 && answers.length > 0) {
+            throw new Error('no name of the call fits a result: NAME_ROOM is too large');
+        }
+        return build(taken, left);
     },
 };

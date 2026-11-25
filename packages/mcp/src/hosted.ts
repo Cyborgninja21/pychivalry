@@ -18,6 +18,7 @@ import {
 import { explainTool } from './tools/explain.js';
 import { applyFormatTool, formatTool } from './tools/format.js';
 import { lookupTool } from './tools/lookup.js';
+import { sourceTool } from './tools/source.js';
 
 /** Every tool, in the order a client lists them. */
 export const TOOLS: readonly ListedTool[] = [
@@ -26,6 +27,7 @@ export const TOOLS: readonly ListedTool[] = [
     listed(findDefinitionTool),
     listed(findReferencesTool),
     listed(listDefinitionsTool),
+    listed(sourceTool),
     listed(explainTool),
     listed(formatTool),
     listed(applyFormatTool),

@@ -41,7 +41,10 @@ field one of them does not know is left out
   field of a tool, a check code, a command line) or a name the spec package has, and no such
   name is written outside code: a skill makes no claim about a CK3 keyword the spec cannot back.
   The skills hold no script example for that reason; the AI learns each name from `lookup`;
-- the authoring skill states the rules of item 9.2 in order, for the four kinds of content.
+- the authoring skill states the rules of item 9.2 in order, for the four kinds of content;
+- each says when to read the game's own text with the agent server's `source`, that a place
+  outside the mod is never read with the harness's own file tools, and that `lookup` names the
+  names it did not answer (tool schema version 4, decision 140).
 
 The editor tests (`task vscode:test`) show VS Code listing the three, handing them to its
 Copilot harness, and the set-up copying, keeping up to date and removing Claude Code's copies.

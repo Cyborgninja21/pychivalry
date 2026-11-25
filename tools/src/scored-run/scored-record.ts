@@ -92,7 +92,12 @@ export interface ScoredResults {
     readonly timeout_minutes: number;
     /** Claude Code's arguments, the prompt and the configuration file named, not given. */
     readonly arguments: readonly string[];
-    readonly server: { readonly entry: string; readonly arguments: readonly string[] };
+    readonly server: {
+        readonly entry: string;
+        readonly arguments: readonly string[];
+        /** The agent server's tool schema version; absent in a record made before it was named (`SERVER_SCHEMA_VERSION`). */
+        readonly schema_version?: number;
+    };
     readonly trials: readonly TrialRecord[];
     /**
      * Per task: trials, trials passed, the pass rate (passed / trials, to 4 places), and the

@@ -15,7 +15,13 @@ import { tempDir } from '../testing.js';
 import { repoRoot } from '../util.js';
 import { filesIn } from './graders.js';
 import { committedManifest, DEFECTS_DIR, reportedAt } from './manifest.js';
-import { mcpConfig, scoredOptions, SERVER_NAME, SERVER_TOOLS } from './run.js';
+import {
+    mcpConfig,
+    scoredOptions,
+    SERVER_NAME,
+    SERVER_SCHEMA_VERSION,
+    SERVER_TOOLS,
+} from './run.js';
 import { converse, type ServerEntry } from '../agent-server-testing.js';
 
 const root = repoRoot();
@@ -69,10 +75,20 @@ test(
             assert.equal(byId.get(id)?.error, undefined, `request ${String(id)} succeeded`);
         }
 
-        const tools = (byId.get(2)?.result?.['tools'] as { name: string }[])
-            .map((x) => x.name)
-            .sort();
+        const listed = byId.get(2)?.result?.['tools'] as {
+            name: string;
+            _meta?: Record<string, unknown>;
+        }[];
+        const tools = listed.map((x) => x.name).sort();
         assert.deepEqual(tools, [...SERVER_TOOLS]);
+        // The schema version a record states is the one the built server declares on every tool.
+        for (const tool of listed) {
+            assert.equal(
+                tool._meta?.['pychivalry/schema-version'],
+                SERVER_SCHEMA_VERSION,
+                tool.name,
+            );
+        }
 
         const call = byId.get(3)?.result ?? {};
         assert.notEqual(call['isError'], true);

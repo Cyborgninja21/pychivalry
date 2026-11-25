@@ -1,6 +1,7 @@
 /**
  * The tools that answer about names and codes, against fixture mods over a real round trip
- * (docs/PLAN.md item 6.2): `lookup` returns the core's lookup; `find_definition` by name and by
+ * (docs/PLAN.md item 6.2): `lookup` answers every name whole with the core's facts (since tool
+ * schema version 4, compactly: `lookup-answer.ts`); `find_definition` by name and by
  * place; `find_references` and `list_definitions` page by page, the mod's places first;
  * `explain_code` the inventory's rows. The mod `lookup-definitions-and-uses` read over the game
  * stub `lookup` (fixtures/mods/lookup-definitions-and-uses/README.md says what is in it).
@@ -14,12 +15,15 @@ import {
     lookup,
     openSpec,
     openWorkspace,
+    type FieldReading,
+    type LookupResult,
+    type Reading,
     type SourceListing,
 } from '@pychivalry/core';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { defaultSpecDir } from './args.js';
-import { withSpans } from './places.js';
+import { placeOf } from './places.js';
 import { connect, GAMES, MODS, scratch, type Connection } from './testing.js';
 import { rowOutput } from './tools/explain.js';
 
@@ -34,32 +38,73 @@ async function server(t: TestContext): Promise<Connection> {
 
 const json = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
-/** Every page of a lookup, each name's parts joined: its head and all its readings. */
-async function lookupAll(
-    s: Connection,
-    args: Record<string, unknown>,
-): Promise<{ results: Record<string, unknown>[]; pages: number }> {
-    const results: Record<string, unknown>[] = [];
-    let cursor: unknown = undefined;
-    let pages = 0;
-    do {
-        const out = await s.output('lookup', cursor === undefined ? args : { ...args, cursor });
-        pages++;
-        for (const part of out['results'] as Record<string, unknown>[]) {
-            const last = results.at(-1);
-            if (part['continued'] === true) {
-                assert.equal(last?.['name'], part['name'], 'a name continues where it stopped');
-                (last?.['readings'] as unknown[]).push(...(part['readings'] as unknown[]));
-            } else {
-                results.push({ ...part, readings: [...(part['readings'] as unknown[])] });
-            }
-        }
-        cursor = out['next_cursor'];
-    } while (cursor !== null);
-    return { results, pages };
+/** The core's lookup of a name over the fixture mod and its game stub. */
+function coreLookup(name: string, language: string | null = null): LookupResult {
+    const workspace = openWorkspace({ spec, modDir: MOD, gameDir: GAME, cacheDir: null });
+    const listings: SourceListing[] = [];
+    if (workspace.game !== null) {
+        listings.push(workspace.game.listing);
+    }
+    if (workspace.mod !== null) {
+        listings.push(workspace.mod);
+    }
+    return lookup(name, {
+        spec,
+        index: workspace.index,
+        files: diskFileSource(listings),
+        language,
+        usesLimit: 3,
+    });
 }
 
-test("lookup returns the core's lookup of each name, its places counted from 1, page by page", async (t) => {
+/**
+ * The facts of a core reading that the agent server's compact reading must state, each held
+ * against it: its kind, its folder for a field, its description, its scopes, what it takes and its
+ * removal. The evidence behind them is left to the command line's lookup --json.
+ */
+function sameFacts(name: string, got: Record<string, unknown>, r: Reading, brief: boolean): void {
+    const at = `${name}: ${r.kind}`;
+    assert.equal(got['kind'], r.kind, at);
+    if (r.kind === 'field') {
+        assert.equal(got['folder'], r.directory, at);
+        if (brief) {
+            assert.equal(got['description'], undefined, `${at}: in brief`);
+            return;
+        }
+    }
+    if (r.kind === 'bucket') {
+        assert.equal(got['bucket'], r.bucket, at);
+    }
+    if (r.description.status === 'known') {
+        for (const text of got['description'] as string[]) {
+            assert.ok(
+                r.description.texts.some((t) => t.text === text),
+                `${at}: a description of the core's`,
+            );
+        }
+        for (const t of r.description.texts) {
+            assert.ok(
+                (got['description'] as string[]).some((text) => text.includes(t.text)),
+                `${at}: every description of the core's is stated`,
+            );
+        }
+    } else {
+        assert.equal(got['description'], undefined, at);
+    }
+    if (r.scopes.status === 'supported') {
+        assert.deepEqual(got['scopes'], r.scopes.scopes, at);
+    }
+    if (r.takes.status === 'known') {
+        assert.deepEqual(got['takes'], r.takes.forms, at);
+    }
+    assert.deepEqual(
+        ((got['removed'] ?? []) as { removed_in: string }[]).map((x) => x.removed_in),
+        r.retired.map((x) => x.removed_in),
+        at,
+    );
+}
+
+test("lookup answers every name whole in one call, with the core's facts, its places counted from 1", async (t) => {
     const s = await server(t);
     const names = [
         'fixture_scripted_trigger',
@@ -69,51 +114,89 @@ test("lookup returns the core's lookup of each name, its places counted from 1, 
         'add_trait',
         'trait',
     ];
-    const { results, pages } = await lookupAll(s, { names });
-    assert.ok(pages > 1, 'trait alone is longer than one result');
-    const workspace = openWorkspace({ spec, modDir: MOD, gameDir: GAME, cacheDir: null });
-    const listings: SourceListing[] = [];
-    if (workspace.game !== null) {
-        listings.push(workspace.game.listing);
-    }
-    if (workspace.mod !== null) {
-        listings.push(workspace.mod);
-    }
+    const out = await s.output('lookup', { names });
+    assert.equal(out['not_answered'], null, 'every name answered');
+    assert.equal('next_cursor' in out, false, 'lookup has no cursor');
+    const results = out['results'] as Record<string, unknown>[];
+    assert.deepEqual(
+        results.map((r) => r['name']),
+        names,
+        'in the order asked',
+    );
     for (const [i, name] of names.entries()) {
         const got = results[i] ?? {};
-        // The uses a head lists may be cut to fit (the answer says how many); the rest is the
-        // core's answer, with its places as spans.
-        const limit = (got['uses'] as { limit: number }).limit;
-        assert.ok([20, 5, 0].includes(limit));
-        const core = lookup(name, {
-            spec,
-            index: workspace.index,
-            files: diskFileSource(listings),
-            language: null,
-            usesLimit: limit,
-        });
-        const expected = json(withSpans(core)) as Record<string, unknown>;
-        assert.equal(got['readings_total'], core.readings.length);
-        const answer = Object.fromEntries(
-            Object.entries(got).filter(([field]) => field !== 'readings_total'),
+        const core = coreLookup(name);
+        assert.equal(got['unknown'], core.unknown, name);
+        const readings = got['readings'] as Record<string, unknown>[];
+        assert.equal(readings.length, core.readings.length, `${name}: every reading`);
+        const brief = got['fields_in_brief'] === true;
+        assert.equal(
+            brief,
+            core.readings.filter((r) => r.kind === 'field').length > 3,
+            `${name}: fields in brief only for a field of many folders`,
         );
-        assert.deepEqual(answer, expected, name);
+        core.readings.forEach((r, j) => {
+            sameFacts(name, readings[j] ?? {}, r, brief);
+        });
+        // Where it is defined and used: the counts whole, the places by the one writer.
+        const definitions = got['definitions'] as {
+            count: number;
+            groups: { database: string; count: number; first: Record<string, unknown>[] }[];
+        };
+        const coreGroups = core.definitions.status === 'read' ? core.definitions.groups : [];
+        assert.equal(
+            definitions.count,
+            coreGroups.reduce((n, g) => n + g.definitions.length, 0),
+            `${name}: definitions counted whole`,
+        );
+        assert.deepEqual(
+            definitions.groups.map((g) => [g.database, g.count]),
+            coreGroups.map((g) => [g.database, g.definitions.length]),
+            name,
+        );
+        for (const group of definitions.groups) {
+            assert.ok(group.first.length <= 3, `${name}: at most three places a group`);
+        }
+        const uses = got['uses'] as {
+            count: number;
+            by_layer: Record<string, number>;
+            first: Record<string, unknown>[];
+        };
+        assert.ok(core.uses.status === 'read');
+        assert.equal(uses.count, core.uses.count, `${name}: uses counted whole`);
+        assert.deepEqual(uses.by_layer, core.uses.byLayer, name);
+        assert.deepEqual(
+            uses.first,
+            json(core.uses.first.map((u) => placeOf(u.layer, u.file, u.range))),
+            `${name}: the first three uses, by the one writer`,
+        );
     }
+    // A name nothing knows: the names close to it.
+    assert.ok(
+        ((results[3]?.['did_you_mean'] ?? []) as string[]).includes('fixture_scripted_trigger'),
+    );
+    // A use in the base game: a place outside the mod, which says it is read with source.
     const one = await s.output('lookup', { names: ['fixture_scripted_trigger'] });
-    const [first] = one['results'] as { uses: { limit: number; first: object[] } }[];
-    assert.equal(first?.uses.limit, 20);
-    assert.deepEqual(Object.keys(first.uses.first[0] ?? {}), [
+    const [first] = one['results'] as { uses: { first: Record<string, unknown>[] } }[];
+    assert.equal(first?.uses.first[0]?.['layer'], 'game');
+    assert.deepEqual(Object.keys(first.uses.first[0] as object), [
         'layer',
         'file',
         'line',
         'column',
         'end_line',
         'end_column',
-        'read',
+        'read_with',
     ]);
-    // The language chooses the localization text shown, not the definitions listed.
+    assert.equal(first.uses.first[0]['read_with'], 'source');
+    // The language chooses the localization text shown, and the definitions of localization
+    // keys: those of other languages are counted, not listed.
     const texts = async (args: Record<string, unknown>): Promise<string> =>
-        JSON.stringify((await lookupAll(s, args)).results.map((r) => r['readings']));
+        JSON.stringify(
+            ((await s.output('lookup', args))['results'] as Record<string, unknown>[]).map(
+                (r) => r['readings'],
+            ),
+        );
     assert.match(await texts({ names: ['monthly_prestige'] }), /"language":"l_french"/);
     const english = await texts({ names: ['monthly_prestige'], language: 'l_english' });
     assert.match(english, /"language":"l_english"/);
@@ -123,8 +206,32 @@ test("lookup returns the core's lookup of each name, its places counted from 1, 
         bad,
         /language: english is not a language .*; the languages are l_english, l_french/,
     );
-    const other = await s.error('lookup', { names: ['trait'], cursor: one['next_cursor'] ?? 'x' });
-    assert.match(other, /cursor/);
+    assert.match(
+        await s.error('lookup', { names: ['trait'], cursor: 'x' }),
+        /cursor: no such argument; the arguments are names, language, folder/,
+    );
+});
+
+test('lookup with folder gives the field readings of that folder in full, the others counted', async (t) => {
+    const s = await server(t);
+    const core = coreLookup('trait');
+    const fields = core.readings.filter((r): r is FieldReading => r.kind === 'field');
+    assert.ok(fields.length > 3, 'trait is a field of many folders');
+    const folder = fields[0]?.directory ?? '';
+    const out = await s.output('lookup', { names: ['trait'], folder });
+    const [answer] = out['results'] as Record<string, unknown>[];
+    const readings = answer?.['readings'] as Record<string, unknown>[];
+    const kept = core.readings.filter((r) => r.kind !== 'field' || r.directory === folder);
+    assert.equal(readings.length, kept.length);
+    kept.forEach((r, j) => {
+        sameFacts('trait', readings[j] ?? {}, r, false);
+    });
+    assert.equal(answer?.['fields_in_brief'], undefined, 'in full');
+    assert.equal(answer?.['fields_elsewhere'], fields.filter((r) => r.directory !== folder).length);
+    assert.match(
+        await s.error('lookup', { names: ['trait'], folder: 'traits' }),
+        /folder: traits is not a folder the game reads; did you mean .*common\/traits/,
+    );
 });
 
 test('find_definition by name: every definition, the one in force first, and the rule that decides', async (t) => {
@@ -162,6 +269,7 @@ test('find_definition by place: the name written there, then its definitions', a
     });
     assert.equal(out['name'], 'fixture_scripted_trigger');
     assert.deepEqual(out['at'], {
+        layer: 'mod',
         file: 'events/fixture_lookup_mod_events.txt',
         line: 5,
         column: 14,
@@ -190,13 +298,18 @@ test('find_references: the count by layer, the mod first, a page at a time', asy
     const first = await s.output('find_references', { name: 'fixture_scripted_trigger', limit: 3 });
     assert.equal(first['count'], 5);
     assert.deepEqual(first['by_layer'], { game: 3, mod: 2 });
-    const refs = first['references'] as { layer: string; file: string; line: number }[];
+    const refs = first['references'] as {
+        layer: string;
+        file: string;
+        line: number;
+        read_with?: string;
+    }[];
     assert.deepEqual(
-        refs.map((r) => [r.layer, r.line]),
+        refs.map((r) => [r.layer, r.line, r.read_with]),
         [
-            ['mod', 5],
-            ['mod', 10],
-            ['game', 6],
+            ['mod', 5, undefined],
+            ['mod', 10, undefined],
+            ['game', 6, 'source'],
         ],
     );
     const next = await s.output('find_references', {

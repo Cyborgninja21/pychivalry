@@ -49,6 +49,16 @@ async function everyTool(s: Connection): Promise<void> {
     });
     await s.output('find_references', { name: 'fixture_scripted_trigger' });
     await s.output('list_definitions', { kind: 'common/scripted_triggers' });
+    await s.output('source', {
+        layer: 'game',
+        file: 'common/scripted_triggers/00_base_triggers.txt',
+        line: 1,
+    });
+    await s.output('source', {
+        layer: 'mod',
+        file: 'events/fixture_lookup_mod_events.txt',
+        line: 5,
+    });
     await s.output('explain_code', { codes: ['*'] });
     await s.error('list_definitions', { kind: 'nothing' });
 }

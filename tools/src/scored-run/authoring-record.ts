@@ -135,7 +135,12 @@ export interface AuthoringResults {
     readonly judge_timeout_minutes: number;
     readonly arguments: readonly string[];
     readonly judge_arguments: readonly string[];
-    readonly server: { readonly entry: string; readonly arguments: readonly string[] };
+    readonly server: {
+        readonly entry: string;
+        readonly arguments: readonly string[];
+        /** The agent server's tool schema version; absent in a record made before it was named (`SERVER_SCHEMA_VERSION`). */
+        readonly schema_version?: number;
+    };
     readonly trials: readonly AuthoringTrial[];
     readonly tasks: readonly AuthoringTask[];
     readonly overall: Measures;

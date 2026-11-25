@@ -2,8 +2,8 @@
  * The server as a client sees it (docs/PLAN.md items 6.1 and 6.2), through a real round trip
  * over standard input and output: its name and version, its written instructions, and its
  * tools, each named in lower case with underscores, declaring what it takes and returns, and
- * marked read-only but `apply_format`, the one that writes; the tools later steps fill in are not
- * there yet. Also the protocol as a
+ * marked read-only but `apply_format`, the one that writes (`source` came with schema version 4);
+ * the tools later steps fill in are not there yet. Also the protocol as a
  * client of the 2025 revisions speaks it, by hand, which is how today's harnesses start.
  */
 
@@ -22,6 +22,7 @@ const TOOL_NAMES = [
     'find_definition',
     'find_references',
     'list_definitions',
+    'source',
     'explain_code',
     'format',
     'apply_format',
@@ -60,10 +61,17 @@ test('the server names itself, its version and its schema version, and says how 
     assert.match(instructions, /mcp__pychivalry__lookup/);
     assert.match(instructions, /a call of the short name reaches nothing/);
     assert.match(instructions, new RegExp(`tool schema version ${String(SCHEMA_VERSION)}`));
+    // Since schema version 4: a place outside the mod is read with source, never with the
+    // session's own file tools (the expert run's one trial that did not hold), and lookup answers
+    // every name whole, with no cursor.
+    assert.match(instructions, /mcp__pychivalry__source/);
+    assert.match(instructions, /says read_with: source: your own file tools cannot reach it/);
+    assert.match(instructions, /every name asked answered whole/);
+    assert.match(instructions, /lookup has no cursor/);
     assert.ok(instructions.includes(dir), 'it names the mod folder it works on');
 });
 
-test('the eight tools, each read-only but apply_format, declaring what it takes and what it returns', async (t) => {
+test('the nine tools, each read-only but apply_format, declaring what it takes and what it returns', async (t) => {
     const dir = scratch(t);
     const { client } = await connect(t, ['--mod', dir, '--no-vanilla'], path.join(dir, 'cache'));
     const { tools } = (await client.listTools()) as { tools: ListedTool[] };

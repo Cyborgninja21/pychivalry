@@ -21,7 +21,7 @@ import {
     type Use,
     type WorkspaceIndex,
 } from '@pychivalry/core';
-import { positionOf, spanOf, withSpans } from '../places.js';
+import { modPlaceOf, placeOf as writePlace, positionOf, withPlaces } from '../places.js';
 import {
     BadInput,
     DEFAULT_LIMIT,
@@ -36,12 +36,12 @@ import {
 import type { Schema } from '../schema.js';
 import type { Session } from '../session.js';
 import {
+    MOD_PLACE_PROPERTIES,
+    MOD_PLACE_REQUIRED,
     NEXT_CURSOR,
     NOTES,
     pagedInput,
     PLACE,
-    SPAN_PROPERTIES,
-    SPAN_REQUIRED,
     type Tool,
 } from '../tool.js';
 
@@ -137,7 +137,7 @@ function askedName(
     }
     return {
         name: found.name,
-        at: { file: target.relative, ...spanOf(found.range), written_as: found.kind },
+        at: { ...modPlaceOf(target.relative, found.range), written_as: found.kind },
         note: null,
     };
 }
@@ -172,8 +172,8 @@ export function fitDefinitions(
             .map((group, g) => ({
                 database: group.database,
                 container: group.container,
-                inForce: withSpans(group.inForce),
-                definitions: taken.filter((t) => t.g === g).map((t) => withSpans(t.d)),
+                inForce: withPlaces(group.inForce),
+                definitions: taken.filter((t) => t.g === g).map((t) => withPlaces(t.d)),
             }))
             .filter((group) => group.definitions.length > 0);
     return fit(flat, (taken) => build(shownOf(taken), flat.length - taken.length), room).output;
@@ -211,15 +211,14 @@ export const findDefinitionTool: Tool<FindDefinitionArgs> = {
             at: {
                 type: ['object', 'null'],
                 properties: {
-                    file: { type: 'string' },
-                    ...SPAN_PROPERTIES,
+                    ...MOD_PLACE_PROPERTIES,
                     written_as: {
                         type: 'string',
                         enum: ['definition', 'use'],
                         description: 'Whether the place defines the name or uses it',
                     },
                 },
-                required: ['file', ...SPAN_REQUIRED, 'written_as'],
+                required: [...MOD_PLACE_REQUIRED, 'written_as'],
                 description: 'The name found at the place given, or null when a name was given',
             },
             definitions: {
@@ -306,7 +305,7 @@ export interface FindReferencesArgs {
 }
 
 function placeOf(use: Use | Definition): Record<string, unknown> {
-    return { layer: use.layer, file: use.file, ...spanOf(use.range) };
+    return writePlace(use.layer, use.file, use.range);
 }
 
 export const findReferencesTool: Tool<FindReferencesArgs> = {
