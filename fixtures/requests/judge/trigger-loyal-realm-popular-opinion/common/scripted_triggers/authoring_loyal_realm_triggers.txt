@@ -1,0 +1,8 @@
+﻿# Hand-made: the logic of every trigger-loyal-realm result of the expert run.
+authoring_loyal_realm_trigger = {
+	any_sub_realm_county = {
+		count >= 3
+		county_control >= 50
+		popular_opinion >= 20
+	}
+}

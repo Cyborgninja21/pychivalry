@@ -28,6 +28,7 @@ import {
     type TargetsReading,
 } from './authoring-targets.js';
 import { root } from './authoring-testing.js';
+import { JUDGE_PROMPT_VERSION, JUDGE_PROMPT_VERSIONS } from './judge.js';
 import type { Stopped } from './confinement.js';
 import type { JudgeAnswer } from './judge.js';
 import { committedRequests, type Difficulty } from './requests.js';
@@ -212,6 +213,78 @@ test("the first run's record, read against the targets set after it: two met, tw
             'conditions-as-asked 50/50',
             'scope-as-asked 20/20',
         ],
+    );
+});
+
+test("the expert requests' development run: filed, read over its twelve requests, conditions-as-asked 52 of 55, judged with version 1 of the judge's prompt", () => {
+    // records/scored/authoring-expert-run-1.json, the run continued from its record (decision 137)
+    // and filed as the run wrote it.
+    const { reading, made_at } = readRecordTargets(root, {
+        SCORED_RECORD: 'records/scored/authoring-expert-run-1.json',
+    });
+    assert.equal(made_at.slice(0, 10), '2026-11-25');
+    assert.equal(reading.trials, 61);
+    assert.equal(reading.held, 60);
+    assert.deepEqual(
+        reading.not_held.map((t) => `${t.task} ${String(t.trial)} ${t.against.join(', ')}`),
+        ['event-county-unrest 4 '],
+    );
+    assert.deepEqual(met(reading), {
+        'no-error': true,
+        'no-warning-in-format': true,
+        expectations: true,
+        judged: false,
+    });
+    const judged = reading.targets.find((t) => t.id === 'judged');
+    assert.deepEqual(
+        judged?.parts.map((p) => `${p.measure} ${String(p.count)}/${String(p.of)}`),
+        [
+            'effects-as-asked 45/45',
+            'scope-as-asked 55/55',
+            'text-as-asked 30/30',
+            'nothing-unasked 35/35',
+            'conditions-as-asked 52/55',
+        ],
+    );
+    // Judged with the first version of the judge's prompt, which the reading says first.
+    assert.deepEqual(reading.judge, {
+        sha256: JUDGE_PROMPT_VERSIONS[0]?.sha256,
+        version: 1,
+        committed: false,
+    });
+    assert.equal(
+        targetLines(reading)[0],
+        "judged with version 1 of the judge's prompt, not the committed version 2: its judged parts are that judge's, and are not comparable with those of a record judged with version 2",
+    );
+});
+
+test("the judge's prompt a record names: the committed one, an earlier one, or one this checkout does not know", () => {
+    const record = JSON.parse(
+        readFileSync(path.join(root, 'records', 'scored', 'authoring-run-1.json'), 'utf8'),
+    ) as { results: AuthoringResults };
+    const lineFor = (sha256: string): string | undefined =>
+        targetLines(
+            readTargets({
+                ...record.results,
+                task: { ...record.results.task, judge_prompt_sha256: sha256 },
+            }),
+        )[0];
+    assert.equal(
+        lineFor(JUDGE_PROMPT_VERSION.sha256),
+        "judged with version 2 of the judge's prompt, the committed one",
+    );
+    assert.match(
+        lineFor(JUDGE_PROMPT_VERSIONS[0]?.sha256 ?? '') ?? '',
+        /^judged with version 1 of the judge's prompt, not the committed version 2:/,
+    );
+    assert.match(
+        lineFor('ab'.repeat(32)) ?? '',
+        /^judged with a judge's prompt no version of this checkout has \(sha256 abababababab…\), not the committed version 2:/,
+    );
+    // Measures alone name no prompt.
+    assert.equal(
+        readTargets({ tasks: record.results.tasks, overall: record.results.overall }).judge,
+        null,
     );
 });
 

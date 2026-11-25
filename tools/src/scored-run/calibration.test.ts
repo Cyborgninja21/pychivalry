@@ -15,6 +15,7 @@ import { tempDir } from '../testing.js';
 import { CommandError } from '../util.js';
 import {
     checkOver,
+    emptyGame,
     exampleDir,
     judgeAnswer,
     judgeStream,
@@ -87,15 +88,18 @@ function calibrate(
     t: TestContext,
     grades: string,
     judge: string,
-): { record: CalibrationRecord; log: string[]; stopped: boolean } {
+): { record: CalibrationRecord; log: string[]; stopped: boolean; prompts: string[] } {
     const log: string[] = [];
+    const argv = path.join(tempDir(t), 'argv.jsonl');
     const { record, stopped } = runCalibration(
         root,
         {
             SCORED_SESSION_LIMIT: '1',
             SCORED_GRADES: grades,
             SCORED_CLAUDE: fake,
+            CK3_GAME_PATH: emptyGame(t),
             FAKE_CLAUDE_JUDGE_STREAM: textFile(t, 'judge.jsonl', judge),
+            FAKE_CLAUDE_ARGV: argv,
             ANTHROPIC_API_KEY: 'must-not-reach-the-session',
         },
         (line) => log.push(line),
@@ -105,21 +109,40 @@ function calibrate(
         checkRecord(JSON.parse(JSON.stringify(record)) as unknown, validate, expected),
         [],
     );
-    return { record, log, stopped };
+    const prompts = existsSync(argv)
+        ? readFileSync(argv, 'utf8')
+              .trim()
+              .split('\n')
+              .map((l) => (JSON.parse(l) as { stdin: string }).stdin)
+        : [];
+    return { record, log, stopped, prompts };
 }
 
 test('the judge over hand-graded results: agreement per dimension and over all, with the cannot-tell rates', (t) => {
     const r = request('event-letter-from-spouse');
     // The person: yes, no, cannot-tell, yes. The judge: yes, yes, cannot-tell, no.
     const grades = gradesFor(t, r, ['yes', 'no', 'cannot-tell', 'yes'], 2);
-    const { record, log, stopped } = calibrate(
+    const { record, log, stopped, prompts } = calibrate(
         t,
         grades,
         judgeStream(judgeAnswer(r, ['yes', 'yes', 'cannot-tell', 'no'])),
     );
     assert.equal(stopped, false);
     assert.equal(record.suite, 'scored:calibration');
-    assert.equal(record.game, null);
+    // The checker read each result over the installed game, as a run's does, for the judge.
+    assert.equal(record.game.build, '1.21.0.3');
+    assert.match(record.command, / CK3_GAME_PATH=<game dir> task scored:calibrate$/);
+    assert.ok(record.notes.some((n) => n.includes('judge prompt version 2')));
+    // The judge was given what a run's judge is given: the checker's report and the keywords.
+    assert.equal(prompts.length, 2);
+    for (const prompt of prompts) {
+        assert.ok(
+            prompt.includes(
+                "<checker>\npychivalry's checker, over the installed game (version 1.21.0.3), reports no error and no warning in this result.\n</checker>",
+            ),
+        );
+        assert.match(prompt, /<keywords>\nThe game's own description \(version 1\.21\.0\.3\)/);
+    }
     assert.equal(record.results.grades.file, '<grades file>');
     assert.equal(record.results.grades.items, 2);
     assert.equal(record.results.items.length, 2);
@@ -241,6 +264,16 @@ test('the grades file is checked against the requests before any session', (t) =
         (e: unknown) =>
             e instanceof CommandError && /SCORED_SESSION_LIMIT must be given/.test(e.message),
     );
+    // The judge is given the checker's report over the installed game: the game is required.
+    assert.throws(
+        () =>
+            runCalibration(
+                root,
+                { SCORED_GRADES: 'x.json', SCORED_SESSION_LIMIT: '1' },
+                () => undefined,
+            ),
+        (e: unknown) => e instanceof CommandError && /CK3_GAME_PATH is not set/.test(e.message),
+    );
 });
 
 /** The hand-made stand-ins and their sheet (docs/guide/judge-calibration.md). */
@@ -282,6 +315,7 @@ test('the hand-grading sheet: every result there, every question of its request 
                 {
                     SCORED_SESSION_LIMIT: '1',
                     SCORED_GRADES: path.join(SHEET_DIR, 'grades.json'),
+                    CK3_GAME_PATH: emptyGame(t),
                     SCORED_CLAUDE: fake,
                     FAKE_CLAUDE_ARGV: argv,
                 },
@@ -357,6 +391,7 @@ test('the sheet of real results: trial 1 of each request, every question asked, 
                 {
                     SCORED_SESSION_LIMIT: '1',
                     SCORED_GRADES: path.join(RUN_2_DIR, 'grades.json'),
+                    CK3_GAME_PATH: emptyGame(t),
                     SCORED_CLAUDE: fake,
                     FAKE_CLAUDE_ARGV: argv,
                 },
@@ -471,6 +506,7 @@ test('the sheet of the expert requests: two hand-made results of each, every que
                 {
                     SCORED_SESSION_LIMIT: '1',
                     SCORED_GRADES: path.join(EXPERT_DIR, 'grades.json'),
+                    CK3_GAME_PATH: emptyGame(t),
                     SCORED_CLAUDE: fake,
                     FAKE_CLAUDE_ARGV: argv,
                 },
@@ -569,6 +605,7 @@ test('SCORED_RECORD: the calibration of each sheet writes a record of its own, i
                 {
                     SCORED_SESSION_LIMIT: '1',
                     SCORED_GRADES: path.join(SHEET_DIR, 'grades.json'),
+                    CK3_GAME_PATH: emptyGame(t),
                     SCORED_RECORD: 'calibration.json',
                     SCORED_CLAUDE: fake,
                     FAKE_CLAUDE_ARGV: argv,
@@ -586,6 +623,7 @@ test('SCORED_RECORD: the calibration of each sheet writes a record of its own, i
         {
             SCORED_SESSION_LIMIT: '1',
             SCORED_GRADES: gradesFor(t, r, ['yes', 'yes']),
+            CK3_GAME_PATH: emptyGame(t),
             SCORED_RECORD: 'records/scored/calibration-run-2.json',
             SCORED_CLAUDE: fake,
             FAKE_CLAUDE_JUDGE_STREAM: textFile(
@@ -657,20 +695,9 @@ test('the record check finds a calibration whose figures disagree', (t) => {
     assert.deepEqual(checkRecord(copy, validate, expected), [
         "/results/items/0/agrees: does not agree with its grades and the judge's answers",
     ]);
-    // A calibration with a game is not one.
+    // A calibration states the game its checker read the results over: one without is refused.
     assert.ok(
-        checkRecord(
-            {
-                ...JSON.parse(JSON.stringify(record)),
-                game: {
-                    build: '1.0',
-                    manifest_sha256: '0'.repeat(64),
-                    files: 0,
-                    content_hashed_files: 0,
-                },
-            },
-            validate,
-            expected,
-        ).length > 0,
+        checkRecord({ ...JSON.parse(JSON.stringify(record)), game: null }, validate, expected)
+            .length > 0,
     );
 });

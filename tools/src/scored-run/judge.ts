@@ -9,7 +9,13 @@
  * Three fixed files make it, each held by `judge.test.ts`:
  *
  * - the prompt, `tools/scored-run/judge.prompt.md`: the instructions, then the request, its
- *   questions and the result, filled into its four slots (`judgePrompt`);
+ *   questions, the material from the installed game and the result, filled into its six slots
+ *   (`judgePrompt`). The material from the game (`judgeMaterial`) is what pychivalry's checker
+ *   reports in the result over the installed game, and the game's own description of every
+ *   trigger, effect, iterator and link the result's script files write, from the spec package:
+ *   the judge takes whether a name exists and what it means from them, never from its memory of
+ *   another version of the game. Each version of the prompt and its material is a row of
+ *   `JUDGE_PROMPT_VERSIONS`, named in a record by the prompt's SHA-256;
  * - the answer's schema, `tools/scored-run/judge.schema.json`: one JSON object naming the
  *   request and answering each question `yes`, `no` or `cannot-tell`, with a reason;
  * - the parsing (`parseJudgeAnswer`): the session's last words, trimmed, and if they are one
@@ -32,6 +38,16 @@ import {
     statSync,
 } from 'node:fs';
 import path from 'node:path';
+import {
+    folderTableFromSpec,
+    parse,
+    readContext,
+    type BucketName,
+    type RetiredEntry,
+    type ScopeRecord,
+    type Spec,
+    type WorkspaceFinding,
+} from '@pychivalry/core';
 import { Ajv2020, type ValidateFunction } from 'ajv/dist/2020.js';
 import { CommandError, EXIT, isObject } from '../util.js';
 import { sessionProblems, type Confinement, type Stopped } from './confinement.js';
@@ -47,7 +63,55 @@ export const JUDGE_ANSWERS = ['yes', 'no', 'cannot-tell'] as const;
 export type JudgeAnswer = (typeof JUDGE_ANSWERS)[number];
 
 /** The slots of the judge's prompt, each written `{{name}}` once in the template. */
-export const JUDGE_SLOTS = ['request_id', 'request', 'questions', 'result'] as const;
+export const JUDGE_SLOTS = [
+    'request_id',
+    'request',
+    'questions',
+    'checker',
+    'keywords',
+    'result',
+] as const;
+
+/** One version of the judge's prompt and of the material it is given. */
+export interface JudgePromptVersion {
+    readonly version: number;
+    /** The SHA-256 of `judge.prompt.md` at that version: what a record names it by. */
+    readonly sha256: string;
+    /** What the judge was given, in words. */
+    readonly given: string;
+}
+
+/**
+ * Every version of the judge's prompt, oldest first; the last is the committed one, which a test
+ * holds to the committed file's hash. A record names the prompt its judge was given by that hash
+ * (`judge_prompt_sha256`), so records judged with different versions are never read as one: a
+ * run continuing a record refuses another prompt (`continuation.ts`), and `task scored:targets`
+ * names the version a record was judged with and says so when it is not the committed one. A
+ * change to the prompt, or to the material `judgeMaterial` builds (which `judge.test.ts` holds
+ * on a fixed case), is a new version: a new row, and the prompt's text changed with it.
+ */
+export const JUDGE_PROMPT_VERSIONS: readonly JudgePromptVersion[] = [
+    {
+        version: 1,
+        sha256: 'a34c62cea292bf3cb384c43948c099ff19566f07e9a4ae59f52e47cd725978b0',
+        given: 'the request, its questions and the result; whether a name exists and what it means came from its own memory of the game',
+    },
+    {
+        version: 2,
+        sha256: '766c318c92d3f1ec8b75e7b64200ad815ed65fa8cb396049d29975d4117fbdaa',
+        given: "the request, its questions and the result, with what pychivalry's checker reports in the result over the installed game and the game's own description of every trigger, effect, iterator and link the result writes, from which it takes whether a name exists and what it means, never from memory",
+    },
+];
+
+/** The committed version of the judge's prompt. */
+export const JUDGE_PROMPT_VERSION: JudgePromptVersion = JUDGE_PROMPT_VERSIONS[
+    JUDGE_PROMPT_VERSIONS.length - 1
+] as JudgePromptVersion;
+
+/** The version of the judge's prompt a record names by its hash; null for a hash no row has. */
+export function judgePromptVersion(sha256: string): JudgePromptVersion | null {
+    return JUDGE_PROMPT_VERSIONS.find((v) => v.sha256 === sha256) ?? null;
+}
 
 /**
  * The most characters of result a judge is given. A larger result is not judged (its record
@@ -188,17 +252,314 @@ export function fillTemplate(template: string, values: Readonly<Record<string, s
     return out.join('');
 }
 
+/** An error or a warning the checker reports in a result, as the judge is told it. */
+export interface CheckerFinding {
+    readonly severity: 'error' | 'warning';
+    readonly code: string;
+    /** Inside the mod, with `/`. */
+    readonly file: string;
+    /** From 1. */
+    readonly line: number;
+    readonly message: string;
+}
+
+/** The most findings the judge is shown one by one; the rest are counted. */
+export const CHECKER_FINDINGS_SHOWN = 50;
+
+/** The errors and warnings of a check of the result, in file and line order; advice left out. */
+export function checkerFindings(
+    findings: readonly Pick<WorkspaceFinding, 'severity' | 'code' | 'file' | 'range' | 'message'>[],
+): CheckerFinding[] {
+    const out: CheckerFinding[] = [];
+    for (const f of findings) {
+        if (f.severity === 'error' || f.severity === 'warning') {
+            out.push({
+                severity: f.severity,
+                code: f.code,
+                file: f.file,
+                line: f.range.start.line + 1,
+                message: f.message,
+            });
+        }
+    }
+    return out.sort(
+        (a, b) =>
+            (a.file < b.file ? -1 : a.file > b.file ? 1 : 0) ||
+            a.line - b.line ||
+            (a.code < b.code ? -1 : a.code > b.code ? 1 : 0),
+    );
+}
+
+function counted(n: number, one: string): string {
+    return `${String(n)} ${one}${n === 1 ? '' : 's'}`;
+}
+
+/**
+ * What the judge is told of the checker: what it reports in the result over the installed game
+ * (`game`, its version), every error and warning with its file, line and message.
+ */
+export function checkerText(game: string, findings: readonly CheckerFinding[]): string {
+    const errors = findings.filter((f) => f.severity === 'error').length;
+    const warnings = findings.length - errors;
+    const head = `pychivalry's checker, over the installed game (version ${game}), reports`;
+    if (findings.length === 0) {
+        return `${head} no error and no warning in this result.`;
+    }
+    const shown = findings
+        .slice(0, CHECKER_FINDINGS_SHOWN)
+        .map(
+            (f) =>
+                `- ${f.severity} ${f.code} at ${f.file} line ${String(f.line)}: ${f.message.replace(/\s+/g, ' ').trim()}`,
+        );
+    const rest = findings.length - shown.length;
+    return [
+        `${head} ${counted(errors, 'error')} and ${counted(warnings, 'warning')} in this result:`,
+        ...shown,
+        ...(rest > 0 ? [`- and ${counted(rest, 'more finding')}`] : []),
+    ].join('\n');
+}
+
+/** One keyword of the result, with what the spec package says of it. */
+export interface KeywordLine {
+    readonly name: string;
+    /** Its kind, the scopes it works in and the game's description, or that the version lacks it. */
+    readonly text: string;
+}
+
+/** The most characters of a keyword's description the judge is shown. */
+export const KEYWORD_DESCRIPTION_LIMIT = 300;
+
+/** The game's description of a name, on one line and quoted, or that it gives none. */
+function described(text: string): string {
+    const flat = text
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l !== '')
+        .join(' ')
+        .replace(/\s+/g, ' ');
+    if (flat === '') {
+        return 'the game gives no description';
+    }
+    const cut =
+        flat.length > KEYWORD_DESCRIPTION_LIMIT
+            ? `${flat.slice(0, KEYWORD_DESCRIPTION_LIMIT - 1)}…`
+            : flat;
+    return `the game's description: "${cut}"`;
+}
+
+/** The scopes a trigger or an effect works in, as the game's documentation lists them. */
+function supported(scopes: readonly string[]): string {
+    return scopes.length === 0 ? '' : `; supported scopes: ${scopes.join(', ')}`;
+}
+
+/** From which scope to which a link or an iterator leads. */
+function fromTo(from: readonly string[], to: readonly string[]): string {
+    return [
+        from.length === 0 ? '' : ` from ${from.join(' or ')}`,
+        to.length === 0 ? '' : ` to ${to.join(' or ')}`,
+    ].join('');
+}
+
+/** A bucket's name in the singular, with its article, as a line says it. */
+const KIND_OF: Readonly<Partial<Record<BucketName, string>>> = {
+    triggers: 'a trigger',
+    effects: 'an effect',
+    links: 'a link',
+    lists: 'the list of an iterator',
+};
+
+/** One name of the result, read as the checker reads it in its place. */
+type Read =
+    | { readonly kind: 'keyword'; readonly bucket: 'triggers' | 'effects' }
+    | { readonly kind: 'link' }
+    | { readonly kind: 'iterator'; readonly prefix: string; readonly base: string }
+    | { readonly kind: 'retired'; readonly entries: readonly RetiredEntry[] };
+
+/**
+ * Every trigger, effect, iterator and link the result's script files write (`.txt`, in path
+ * order, each name once, in the order first written), read as pychivalry's checker reads it in
+ * its place (`readContext`: a key of a trigger or effect block, a link of a scope chain), with
+ * what the spec package says of it: its kind, the scopes it works in, and the game's own
+ * description; and every key of such a block the spec package lists as no longer in the game's
+ * version, with the version that removed it. A record's own fields (an event's `type`, its
+ * `title`) and plain values are not keywords and are left out. The names come from the spec
+ * package, never from a list here.
+ */
+export function resultKeywords(spec: Spec, files: readonly ResultFile[]): KeywordLine[] {
+    const folders = folderTableFromSpec(spec.data);
+    // Names the mod defines are not keywords of the game: nothing is read as defined.
+    const names = { isDefined: (): boolean => false };
+    const found: { readonly start: number; readonly name: string; readonly read: Read }[][] = [];
+    for (const file of files) {
+        if (file.text === null || !file.path.toLowerCase().endsWith('.txt')) {
+            continue;
+        }
+        const reading = readContext({
+            spec,
+            folders,
+            file: file.path,
+            tree: parse(file.text).file,
+            names,
+        });
+        const here: { start: number; name: string; read: Read }[] = [];
+        for (const key of reading.keys) {
+            const r = key.reading;
+            const name = key.folded ?? key.pair.key.value;
+            if (r.kind === 'keyword' && (r.bucket === 'triggers' || r.bucket === 'effects')) {
+                here.push({
+                    start: key.pair.start,
+                    name,
+                    read: { kind: 'keyword', bucket: r.bucket },
+                });
+            } else if (r.kind === 'link') {
+                here.push({ start: key.pair.start, name, read: { kind: 'link' } });
+            } else if (r.kind === 'iterator') {
+                here.push({
+                    start: key.pair.start,
+                    name,
+                    read: { kind: 'iterator', prefix: r.prefix, base: r.base },
+                });
+            } else if (r.kind === 'unknown' && r.retired.length > 0) {
+                here.push({
+                    start: key.pair.start,
+                    name,
+                    read: { kind: 'retired', entries: r.retired },
+                });
+            }
+        }
+        for (const chain of reading.chains) {
+            if (chain.block !== 'trigger' && chain.block !== 'effect') {
+                continue;
+            }
+            const segments = chain.scalar.segments ?? [];
+            segments.forEach((segment, i) => {
+                // A saved scope or another head with data (`scope:x`) is no keyword.
+                if (segment.includes(':')) {
+                    return;
+                }
+                if (spec.data.scope_validity.links[segment] !== undefined) {
+                    here.push({ start: chain.scalar.start, name: segment, read: { kind: 'link' } });
+                } else if (
+                    i === segments.length - 1 &&
+                    spec.data.buckets.triggers[segment] !== undefined
+                ) {
+                    // A chain that ends in a value: the trigger it compares.
+                    here.push({
+                        start: chain.scalar.start,
+                        name: segment,
+                        read: { kind: 'keyword', bucket: 'triggers' },
+                    });
+                }
+            });
+        }
+        found.push(here.sort((a, b) => a.start - b.start));
+    }
+    const data = spec.data;
+    const validity = data.scope_validity;
+    const kinds = data.iterator_kinds;
+    const bodies = new Map(
+        kinds.status === 'not_built' ? [] : kinds.data.prefixes.map((p) => [p.prefix, p.body]),
+    );
+    const out: KeywordLine[] = [];
+    const seen = new Set<string>();
+    for (const { name, read } of found.flat()) {
+        const id = `${name}\u0000${read.kind === 'keyword' ? read.bucket : read.kind}`;
+        if (seen.has(id)) {
+            continue;
+        }
+        seen.add(id);
+        if (read.kind === 'keyword') {
+            const records: Readonly<Record<string, ScopeRecord>> = validity[read.bucket];
+            const record = records[name];
+            out.push({
+                name,
+                text: `${KIND_OF[read.bucket] ?? read.bucket}${supported(record?.supported_scopes ?? [])}; ${described(record?.description ?? data.buckets[read.bucket][name]?.doc ?? '')}`,
+            });
+        } else if (read.kind === 'link') {
+            const forms = validity.links[name]?.forms ?? [];
+            const where = [
+                ...new Set(forms.map((f) => fromTo(f.supported_scopes, f.supported_targets))),
+            ].filter((w) => w !== '');
+            out.push({
+                name,
+                text: `a link${where.join(', or')}; ${described(forms[0]?.description ?? data.buckets.links[name]?.doc ?? '')}`,
+            });
+        } else if (read.kind === 'iterator') {
+            const record = validity.lists[read.base];
+            const body = bodies.get(read.prefix);
+            out.push({
+                name,
+                text: `an iterator${body === undefined ? '' : ` (${body === 'effect' ? 'an' : 'a'} ${body})`} over the list ${read.base}${fromTo(record?.supported_scopes ?? [], record?.supported_targets ?? [])}; ${described(record?.description ?? data.buckets.lists[read.base]?.doc ?? '')}`,
+            });
+        } else {
+            for (const r of read.entries) {
+                out.push({
+                    name,
+                    text: `not ${KIND_OF[r.bucket] ?? r.bucket} in version ${data.manifest.version}: the game removed it in ${r.removed_in}${r.replacement === null || r.replacement.length === 0 ? '' : `, replaced by ${r.replacement.join(', ')}`}`,
+                });
+            }
+        }
+    }
+    return out;
+}
+
+/** The keywords as the judge is shown them, one line each, for the spec package's version. */
+export function keywordsText(version: string, lines: readonly KeywordLine[]): string {
+    if (lines.length === 0) {
+        return `The result's script files write no trigger, effect, iterator or link of the game (version ${version}).`;
+    }
+    return [
+        `The game's own description (version ${version}) of each trigger, effect, iterator and link the result's script files write:`,
+        ...lines.map((l) => `- ${l.name}: ${l.text}`),
+    ].join('\n');
+}
+
+/** What the judge is given of one result: its files, and the material from the installed game. */
+export interface JudgeMaterial {
+    readonly files: readonly ResultFile[];
+    /** `checkerText` of the checker's report on the result. */
+    readonly checker: string;
+    /** `keywordsText` of the result's keywords. */
+    readonly keywords: string;
+}
+
+/**
+ * The judge's material for one result: its files, what the checker reported in it over the
+ * installed game (`game`, its build), and the result's keywords from the spec package. The run,
+ * the calibration and the re-judging of kept results all build it here, the same way.
+ */
+export function judgeMaterial(options: {
+    readonly spec: Spec;
+    readonly files: readonly ResultFile[];
+    readonly game: string;
+    readonly findings: readonly Pick<
+        WorkspaceFinding,
+        'severity' | 'code' | 'file' | 'range' | 'message'
+    >[];
+}): JudgeMaterial {
+    return {
+        files: options.files,
+        checker: checkerText(options.game, checkerFindings(options.findings)),
+        keywords: keywordsText(
+            options.spec.data.manifest.version,
+            resultKeywords(options.spec, options.files),
+        ),
+    };
+}
+
 /** The judge's whole prompt for one result of a request. */
 export function judgePrompt(
     template: string,
     request: ContentRequest,
-    files: readonly ResultFile[],
+    material: JudgeMaterial,
 ): string {
     return fillTemplate(template, {
         request_id: request.id,
         request: request.request,
         questions: request.judged.map((q) => `- ${q.dimension}: ${q.question}`).join('\n'),
-        result: resultText(files),
+        checker: material.checker,
+        keywords: material.keywords,
+        result: resultText(material.files),
     });
 }
 

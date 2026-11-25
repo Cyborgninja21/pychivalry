@@ -50,8 +50,8 @@
         "tool": { "$ref": "#/$defs/tool" },
         "machine": { "$ref": "#/$defs/machine" },
         "game": {
-            "description": "The installed game the run read; null for the judge's calibration (scored:calibration), which reads no game.",
-            "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/game" }]
+            "description": "The installed game the run read. The judge's calibration (scored:calibration) states the game its checker read each result over, as the authoring run does.",
+            "$ref": "#/$defs/game"
         },
         "spec": { "$ref": "#/$defs/spec" },
         "corpus": {
@@ -69,14 +69,6 @@
         }
     },
     "allOf": [
-        {
-            "if": {
-                "properties": { "suite": { "const": "scored:calibration" } },
-                "required": ["suite"]
-            },
-            "then": { "properties": { "game": { "type": "null" } } },
-            "else": { "properties": { "game": { "$ref": "#/$defs/game" } } }
-        },
         {
             "if": {
                 "properties": { "suite": { "const": "baseline:speed" } },

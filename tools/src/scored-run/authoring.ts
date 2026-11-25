@@ -109,6 +109,7 @@ import {
     JUDGE_PROMPT_FILE,
     JUDGE_SCHEMA_FILE,
     judgeArgs,
+    judgeMaterial,
     judgePrompt,
     judgeRecord,
     MATERIAL_LIMIT,
@@ -749,6 +750,7 @@ export function runAuthoring(
                     promptTemplate,
                     judgeTemplate,
                     validate,
+                    game: fixed.game.build,
                     env,
                     log,
                 });
@@ -815,6 +817,8 @@ interface TrialContext {
     readonly promptTemplate: string;
     readonly judgeTemplate: string;
     readonly validate: ReturnType<typeof compileJudgeSchema>;
+    /** The installed game's build, as the judge is told it with the checker's report. */
+    readonly game: string;
     readonly env: Readonly<Record<string, string | undefined>>;
     readonly log: (line: string) => void;
 }
@@ -950,6 +954,7 @@ function runTrial(ctx: TrialContext): { trial: AuthoringTrial; outcome: TrialOut
         trialDir,
         modDir,
         givenDir,
+        check.findings,
         setUp.length === 0 && endedByItself,
         folders,
     );
@@ -999,6 +1004,7 @@ function judgeTrial(
     trialDir: string,
     modDir: string,
     givenDir: string,
+    findings: readonly WorkspaceFinding[],
     judgeable: boolean,
     folders: readonly { path: string; name: string }[],
 ): { judge: JudgeRecord; setUp: string[] } {
@@ -1025,7 +1031,11 @@ function judgeTrial(
         timeoutMinutes: ctx.options.judgeTimeoutMinutes,
         env: ctx.env,
         dir: trialDir,
-        prompt: judgePrompt(ctx.judgeTemplate, ctx.request, files),
+        prompt: judgePrompt(
+            ctx.judgeTemplate,
+            ctx.request,
+            judgeMaterial({ spec: ctx.spec, files, game: ctx.game, findings }),
+        ),
         request: ctx.request,
         validate: ctx.validate,
     });

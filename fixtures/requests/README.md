@@ -24,6 +24,8 @@ fixtures/requests/
                   their sheet: each the trial's mod, its skills folder taken out
     expert/       twenty-four hand-made results of the expert requests, two of each, and their
                   sheet: the third, graded last, before the release run
+  judge/          hand-made, labelled cases of what the judge is given, each from a case a run
+                  found it getting wrong; for the tests only (judge/README.md)
 ```
 
 Nothing here is copied from the game or from a published mod. The real results of

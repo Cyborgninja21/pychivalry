@@ -5,31 +5,50 @@
  */
 
 import assert from 'node:assert/strict';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import { tempDir, writeTree } from '../testing.js';
-import { exampleResult, judgeStream, root } from './authoring-testing.js';
+import type { AuthoringRecord } from './authoring-record.js';
+import {
+    checkOver,
+    DRAFTS_DIR,
+    exampleResult,
+    judgeStream,
+    root,
+    spec,
+} from './authoring-testing.js';
+import { checkExpectations } from './expectations.js';
 import { sessionProblems } from './confinement.js';
 import {
+    checkerFindings,
+    checkerText,
+    CHECKER_FINDINGS_SHOWN,
     compileJudgeSchema,
     fillTemplate,
     JUDGE_ANSWERS,
     JUDGE_CONFINEMENT,
     JUDGE_PROMPT_FILE,
+    JUDGE_PROMPT_VERSION,
+    JUDGE_PROMPT_VERSIONS,
     JUDGE_SCHEMA_FILE,
     JUDGE_SLOTS,
     judgeArgs,
+    judgeMaterial,
     judgePrompt,
+    judgePromptVersion,
     judgeRecord,
     notJudged,
     parseJudgeAnswer,
     resultFiles,
+    resultKeywords,
     resultText,
     type JudgeRun,
+    type ResultFile,
 } from './judge.js';
 import { baseDir, committedRequests, type ContentRequest } from './requests.js';
 import { SESSION_LIMIT_OPTION } from './run.js';
+import { sha256OfFile } from '../util.js';
 import { readStream } from './stream.js';
 
 const list = committedRequests(root);
@@ -60,7 +79,7 @@ function answerTo(
     };
 }
 
-test('the prompt has each of its four slots once, and the answer schema its closed set of answers', () => {
+test('the prompt has each of its six slots once, and the answer schema its closed set of answers', () => {
     for (const slot of JUDGE_SLOTS) {
         assert.equal(template.split(`{{${slot}}}`).length, 2, slot);
     }
@@ -100,7 +119,11 @@ test('a filled prompt holds the request, its questions and every file of the res
             'localization/english/banquet_l_english.yml as given',
         ],
     );
-    const prompt = judgePrompt(template, r, files);
+    const prompt = judgePrompt(
+        template,
+        r,
+        judgeMaterial({ spec, files, game: '1.21.0.3', findings: [] }),
+    );
     assert.ok(prompt.includes(`<request id="${r.id}">\n${r.request}\n</request>`));
     for (const q of r.judged) {
         assert.ok(prompt.includes(`- ${q.dimension}: ${q.question}`), q.dimension);
@@ -132,6 +155,227 @@ test('a filled prompt holds the request, its questions and every file of the res
         ),
     );
     assert.equal(resultText([]), '(the mod holds no file)');
+});
+
+/** The labelled case of `fixtures/requests/judge/` (its README), or a draft, over its request's base. */
+function resultOver(t: TestContext, dir: string, base: string): string {
+    const mod = path.join(tempDir(t), 'mod');
+    cpSync(baseDir(root, base), mod, { recursive: true });
+    cpSync(dir, mod, { recursive: true });
+    return mod;
+}
+
+const JUDGE_CASES = path.join(root, 'fixtures', 'requests', 'judge');
+
+/** What the judge is given for one result over an empty base game, as a run builds it. */
+function materialOf(t: TestContext, r: ContentRequest, mod: string) {
+    const check = checkOver(t, mod);
+    return {
+        check,
+        material: judgeMaterial({
+            spec,
+            files: resultFiles(mod, baseDir(root, r.base)),
+            game: '1.21.0.3',
+            findings: check.findings,
+        }),
+    };
+}
+
+test("the labelled case: what every trigger-loyal-realm result of the expert run wrote is given to the judge with the game's own meaning of popular_opinion", (t) => {
+    // fixtures/requests/judge/README.md: five results of this logic were judged yes twice,
+    // cannot-tell once and no twice, the judge saying from memory that popular_opinion is not a
+    // trigger. In game 1.21.0.3 it is, and county_opinion is not.
+    const r = request('trigger-loyal-realm');
+    assert.deepEqual(readdirSync(JUDGE_CASES).sort(), [
+        'README.md',
+        'trigger-loyal-realm-popular-opinion',
+    ]);
+    const mod = resultOver(
+        t,
+        path.join(JUDGE_CASES, 'trigger-loyal-realm-popular-opinion'),
+        r.base,
+    );
+    const { check, material } = materialOf(t, r, mod);
+    // The checker finds nothing, and every expectation is met: the result is right.
+    assert.deepEqual(
+        check.findings.map((f) => `${f.severity} ${f.code}`),
+        [],
+    );
+    assert.ok(
+        checkExpectations(
+            { index: check.index, modDir: mod, givenDir: baseDir(root, r.base) },
+            r.expect,
+        ).every((e) => e.met),
+    );
+    // What the judge is given, word for word: version 2 of its material.
+    assert.equal(
+        material.checker,
+        "pychivalry's checker, over the installed game (version 1.21.0.3), reports no error and no warning in this result.",
+    );
+    assert.equal(
+        material.keywords,
+        [
+            "The game's own description (version 1.21.0.3) of each trigger, effect, iterator and link the result's script files write:",
+            '- any_sub_realm_county: an iterator (a trigger) over the list sub_realm_county from character to landed_title; the game\'s description: "Iterate through all counties in sub-realm, counting only titles that either hold land or have dejure vassals that hold land. any_sub_realm_county = { <count=num/all> / <percent=fixed_point> <triggers> }"',
+            '- county_control: a trigger; supported scopes: landed_title; the game\'s description: "does the county title have the required county countrol?"',
+            '- popular_opinion: a trigger; supported scopes: landed_title; the game\'s description: "Compares the county\'s current opinion of its holder"',
+        ].join('\n'),
+    );
+    const prompt = judgePrompt(template, r, material);
+    assert.ok(prompt.includes(`<checker>\n${material.checker}\n</checker>`));
+    assert.ok(prompt.includes(`<keywords>\n${material.keywords}\n</keywords>`));
+    assert.ok(prompt.includes('popular_opinion >= 20'));
+    // The instruction: names and their meanings from the material, never from memory.
+    const words = template.replace(/\s+/g, ' ');
+    for (const sentence of [
+        'what you remember of the game may be of another version.',
+        "Take whether a name exists, what it means and which scope it works in from the checker's report and the list of keywords below, never from your memory of the game.",
+        'A name the list describes exists in the installed game and means what its line says, whatever another version called it.',
+        'A name the checker reports as unknown does not exist there.',
+        'Whether the game accepts the files is the checker\'s to say, not yours: do not answer "no" or "cannot-tell" for it.',
+    ]) {
+        assert.ok(words.includes(sentence), sentence);
+    }
+
+    // Its first draft writes county_opinion: the checker's report and the keywords say so.
+    const draft = resultOver(t, path.join(root, ...DRAFTS_DIR.split('/'), r.id), r.base);
+    const wrong = materialOf(t, r, draft).material;
+    assert.equal(
+        wrong.checker,
+        [
+            "pychivalry's checker, over the installed game (version 1.21.0.3), reports 1 error and 0 warnings in this result:",
+            "- error names/unknown-trigger at common/scripted_triggers/authoring_loyal_realm_triggers.txt line 6: Unknown trigger 'county_opinion'",
+        ].join('\n'),
+    );
+    assert.ok(
+        wrong.keywords.includes(
+            '- county_opinion: not a trigger in version 1.21.0.3: the game removed it in 1.21.0.3',
+        ),
+    );
+    assert.ok(!wrong.keywords.includes('- popular_opinion:'));
+});
+
+test("the result's keywords: read in their place as the checker reads them, each once, from the spec package", () => {
+    const file = (
+        p: string,
+        text: string | null,
+        state: ResultFile['state'] = 'written',
+    ): ResultFile => ({
+        path: p,
+        state,
+        text,
+    });
+    const lines = resultKeywords(spec, [
+        file(
+            'events/x_events.txt',
+            [
+                'namespace = x',
+                'x.0001 = {',
+                '\ttype = character_event',
+                '\ttitle = x.0001.t',
+                '\ttrigger = {',
+                '\t\tis_ruler = yes',
+                '\t\tcapital_county.popular_opinion >= 10',
+                '\t\tcounty_opinion > 0',
+                '\t\tis_ruler = yes',
+                '\t}',
+                '\timmediate = { add_gold = 5 }',
+                '\toption = { name = x.0001.a }',
+                '}',
+            ].join('\n'),
+        ),
+        // Localization and removed files hold no keyword.
+        file('localization/english/x_l_english.yml', 'l_english:\n add_gold: "x"\n'),
+        file('events/gone.txt', null, 'removed'),
+    ]).map((l) => `${l.name}: ${l.text.split(';')[0] ?? ''}`);
+    assert.deepEqual(lines, [
+        'is_ruler: a trigger',
+        'capital_county: a link from character to landed_title',
+        'popular_opinion: a trigger',
+        'county_opinion: not a trigger in version 1.21.0.3: the game removed it in 1.21.0.3',
+        'add_gold: an effect',
+    ]);
+    // Nothing of the game's: a result with no keyword says so.
+    assert.equal(
+        judgeMaterial({ spec, files: [], game: '1.21.0.3', findings: [] }).keywords,
+        "The result's script files write no trigger, effect, iterator or link of the game (version 1.21.0.3).",
+    );
+});
+
+test("the checker's report: errors and warnings by file and line, advice left out, at most CHECKER_FINDINGS_SHOWN shown", () => {
+    const at = (line: number) => ({
+        start: { line: line - 1, character: 0 },
+        end: { line: line - 1, character: 1 },
+    });
+    const findings = checkerFindings([
+        {
+            severity: 'hint',
+            code: 'style/unusual-field-order',
+            file: 'a.txt',
+            range: at(1),
+            message: 'hint',
+        },
+        {
+            severity: 'warning',
+            code: 'style/not-formatted',
+            file: 'b.txt',
+            range: at(1),
+            message: 'Not\n formatted',
+        },
+        {
+            severity: 'error',
+            code: 'names/unknown-trigger',
+            file: 'a.txt',
+            range: at(3),
+            message: "Unknown trigger 'x'",
+        },
+    ]);
+    assert.equal(
+        checkerText('1.21.0.3', findings),
+        [
+            "pychivalry's checker, over the installed game (version 1.21.0.3), reports 1 error and 1 warning in this result:",
+            "- error names/unknown-trigger at a.txt line 3: Unknown trigger 'x'",
+            '- warning style/not-formatted at b.txt line 1: Not formatted',
+        ].join('\n'),
+    );
+    const many = Array.from({ length: CHECKER_FINDINGS_SHOWN + 2 }, (_, i) => ({
+        severity: 'error' as const,
+        code: 'names/unknown-effect',
+        file: 'c.txt',
+        line: i + 1,
+        message: 'm',
+    }));
+    const text = checkerText('1.21.0.3', many);
+    assert.match(text, /reports 52 errors and 0 warnings in this result:/);
+    assert.equal(text.split('\n').length, 1 + CHECKER_FINDINGS_SHOWN + 1);
+    assert.ok(text.endsWith('- and 2 more findings'));
+});
+
+test("the judge's prompt is versioned: the committed file is the last version, and every committed authoring record names its version", () => {
+    assert.deepEqual(
+        JUDGE_PROMPT_VERSIONS.map((v) => v.version),
+        JUDGE_PROMPT_VERSIONS.map((_, i) => i + 1),
+    );
+    assert.equal(
+        new Set(JUDGE_PROMPT_VERSIONS.map((v) => v.sha256)).size,
+        JUDGE_PROMPT_VERSIONS.length,
+    );
+    // A change to the prompt is a new version: this fails until a row names the new hash.
+    assert.equal(sha256OfFile(path.join(root, JUDGE_PROMPT_FILE)), JUDGE_PROMPT_VERSION.sha256);
+    assert.equal(JUDGE_PROMPT_VERSION.version, 2);
+    assert.equal(judgePromptVersion('0'.repeat(64)), null);
+    // The three committed authoring records were judged with version 1.
+    const scored = path.join(root, 'records', 'scored');
+    const records = readdirSync(scored).filter((f) => f.startsWith('authoring'));
+    assert.deepEqual(records.sort(), [
+        'authoring-expert-run-1.json',
+        'authoring-run-1.json',
+        'authoring.json',
+    ]);
+    for (const name of records) {
+        const record = JSON.parse(readFileSync(path.join(scored, name), 'utf8')) as AuthoringRecord;
+        assert.equal(judgePromptVersion(record.results.task.judge_prompt_sha256)?.version, 1, name);
+    }
 });
 
 test('a slot is filled once, and a value written into another is not filled again', () => {

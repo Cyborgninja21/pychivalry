@@ -30,6 +30,10 @@
  *                                  scored:calibrate; never in CI, only on the owner's word)
  *   scored targets                 an authoring record read against the owner's targets, each
  *                                  met or not; starts no test session (task scored:targets)
+ *   scored rejudge                 the judge run again, with the committed judge's prompt, over
+ *                                  an authoring record's kept results: a judge's test session
+ *                                  on each, no authoring session (task scored:rejudge; never in
+ *                                  CI, only on the owner's word)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -45,6 +49,7 @@ import { checkRulesTable, RULES_SOURCE, rulesUse } from './rules-table.js';
 import { runAuthoring } from './scored-run/authoring.js';
 import { readRecordTargets, targetLines } from './scored-run/authoring-targets.js';
 import { runCalibration } from './scored-run/calibration.js';
+import { runRejudge } from './scored-run/rejudge.js';
 import { runScored } from './scored-run/run.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
@@ -60,7 +65,7 @@ const USAGE = `usage: pychivalry-tools <command>
   wiki check|build|publish
   advice proof
   docs checks
-  scored agent-use|authoring|calibrate|targets`;
+  scored agent-use|authoring|calibrate|targets|rejudge`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -218,6 +223,12 @@ function run(args: readonly string[]): number {
             process.stdout.write(`${line}\n`);
         });
         return stopped ? EXIT.failed : EXIT.ok;
+    }
+    if (group === 'scored' && command === 'rejudge') {
+        const { stopped } = runRejudge(root, process.env, (line) => {
+            process.stdout.write(`${line}\n`);
+        });
+        return stopped === null ? EXIT.ok : EXIT.failed;
     }
     process.stderr.write(`${USAGE}\n`);
     return EXIT.usage;

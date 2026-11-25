@@ -63,23 +63,28 @@ answers in `records/scored/authoring.json`.
    The hand-made sheet, **10 judge test sessions**:
 
    ```sh
-   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/grades.json SCORED_RECORD=records/scored/calibration-hand-made.json task scored:calibrate
+   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/grades.json SCORED_RECORD=records/scored/calibration-hand-made.json CK3_GAME_PATH=<game dir> task scored:calibrate
    ```
 
    The real sheet, **12 judge test sessions**:
 
    ```sh
-   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/run-2/grades.json SCORED_RECORD=records/scored/calibration-run-2.json task scored:calibrate
+   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/run-2/grades.json SCORED_RECORD=records/scored/calibration-run-2.json CK3_GAME_PATH=<game dir> task scored:calibrate
    ```
 
    The expert sheet, last, **24 judge test sessions**:
 
    ```sh
-   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/expert/grades.json SCORED_RECORD=records/scored/calibration-expert.json task scored:calibrate
+   SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<that Claude Code> SCORED_GRADES=fixtures/requests/calibration/expert/grades.json SCORED_RECORD=records/scored/calibration-expert.json CK3_GAME_PATH=<game dir> task scored:calibrate
    ```
 
    Each judge session has session limit 3 and runs on Fable 5.2 (the judge you chose;
-   `SCORED_JUDGE_MODEL` names another). Each command writes its own record, named by
+   `SCORED_JUDGE_MODEL` names another). `CK3_GAME_PATH` is the game's `game` folder, as for a
+   run: since 2026-11-25 the judge is given, with each result, what pychivalry's checker reports
+   in it over the installed game and the game's own description of every keyword it writes, and
+   takes names from them, never from its memory of the game (version 2 of its prompt). That is
+   what a run's judge is given, so the calibration measures the judge the runs use. Your grades
+   are unaffected: you grade the results, not the judge. Each command writes its own record, named by
    `SCORED_RECORD`, so the second does not replace the first: for each question and over all,
    how often the judge agreed with you, and how often each of you said "cannot tell". The three
    sheets are **46 judge test sessions** in all. A command with no `SCORED_RECORD` writes

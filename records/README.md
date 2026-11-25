@@ -23,6 +23,8 @@ enforces and this page is fixed.
 | `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records)) |
 | `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code: the latest run ([below](#authoring-records-scoredauthoring)) |
 | `scored/authoring-run-<n>.json` | An earlier authoring run's record, kept unchanged when a later run replaced `authoring.json`: `authoring-run-1.json` is the first run's ([below](#authoring-records-scoredauthoring)) |
+| `scored/authoring-<set>-run-<n>.json` | A run of some requests only, filed beside `authoring.json`: `authoring-expert-run-1.json` is the expert requests' development run ([below](#authoring-records-scoredauthoring)) |
+| `scored/<record>-judge-<version>.json` | `task scored:rejudge`: an authoring record's kept results judged again with version `<version>` of the judge's prompt, written beside the record, never over it ([below](#authoring-records-scoredauthoring)) |
 | `scored/calibration.json`, or the file of `scored/` that `SCORED_RECORD` names | `task scored:calibrate`, the judge's calibration against hand grades, in test sessions of the same; one record per sheet graded (`calibration-hand-made.json`, `calibration-run-2.json`) ([below](#calibration-records-scoredcalibration)) |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
 
@@ -44,7 +46,7 @@ Every record is one JSON object, four-space indented, with a final newline.
 | `made_at` | When it was made, ISO 8601 in UTC. |
 | `tool` | The build that made it: `name` (`pychivalry`), `version`, the git `commit`, and `dirty`, true when tracked files outside `records/` differed from that commit. A 2.3.0 baseline names release 2.3.0 and the commit that last changed `legacy/`; its `dirty` is true when the build copy differs from `legacy/` in a file other than those the baseline writes on purpose (the export's `spec.config.json`, and the records 2.3.0's own tools write into their tree). |
 | `machine` | The machine, generically: `os` (family), `arch`, `logical_cpus`, `memory_gib`, `node`. Nothing that identifies it or its owner. |
-| `game` | The installed game: `build` (from the launcher's settings file, `rawVersion`), `manifest_sha256` (below), `files`, `content_hashed_files`. `null` for the judge's calibration, which reads no game, and only for it. |
+| `game` | The installed game: `build` (from the launcher's settings file, `rawVersion`), `manifest_sha256` (below), `files`, `content_hashed_files`. The judge's calibration states the game its checker read each result over, as the authoring run does (until 2026-11-25 it read none and wrote `null`; no calibration record was made then). |
 | `spec` | The spec package the run used: `version`, `sha256` (of the uncompressed bytes), `package_format`. For a 2.3.0 baseline, the format 4 copy it ran on ([Baselines](#baselines)). |
 | `corpus` | `null` for a suite that reads no mods; otherwise `manifest_sha256`, the SHA-256 of `corpus/MANIFEST.tsv` as committed, and `slugs`, the mods it read. |
 | `notes` | Optional sentences a reader needs to interpret the results. Required on a speed record. |
@@ -382,14 +384,26 @@ that name writes it there itself; one that wrote `authoring.json` is filed by co
 the name, byte for byte, and giving `authoring.json` back as committed (`git restore`), in the same
 commit. `task records:check` checks every one of them like any record, and `task scored:targets`
 reads one with `SCORED_RECORD`. The expert requests' development run (decision 134), continued
-from the record its first part wrote into `authoring.json`, is filed so as
-`authoring-expert-run-1.json` once it has finished.
+from the record its first part wrote into `authoring.json`, finished on 2026-11-25 and is filed so,
+as `authoring-expert-run-1.json`; `authoring.json` is the second run's, as committed.
+
+**A re-judged record** (`task scored:rejudge`) is an authoring record whose kept results were
+judged again, with no authoring session, by a later version of the judge's prompt: written beside
+the record it read, never over it, as `<record>-judge-<version>.json` (or the file `SCORED_RECORD`
+names). Its trials are the record's (sessions, results and grades, checked to the letter against
+the kept trials before any session) with a new judge; its `tool` and `made_at` are the record's,
+and a note says when, at which commit and with which version of the judge's prompt it was judged
+again ([tools/scored-run/README.md](../tools/scored-run/README.md#re-judging-kept-results)). Every
+record names the judge's prompt it was judged with by its hash (`judge_prompt_sha256`), and
+`task scored:targets` names its version.
 
 ### Calibration records (`scored:calibration`)
 
 `task scored:calibrate` (build step 9, item 9.6): one judge test session on each result a person
 graded by hand ([tools/scored-run/README.md](../tools/scored-run/README.md#calibrating-the-judge-item-96)).
-Its `game` is null: the results were made over a game already. `results`:
+Its `game` is the installed game its checker read each result over, so that the judge is given
+what an authoring run's judge is given (the checker's report and the game's own description of
+each keyword). `results`:
 
 | Field | What it states |
 | --- | --- |
