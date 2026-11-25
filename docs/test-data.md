@@ -15,7 +15,7 @@ uses it. A step that adds test data adds it here.
 | The base game | The local install, in the folder `CK3_GAME_PATH` names | Never | `task game:parse`, `task game:index`, `task game:check` and the suites above | No |
 | Classifications | `tools/data/`: what the base game's parse errors and check findings are, and the five mods' check errors, each with its reason | Yes | `task game:parse`, `task game:check`, `task game:mods` | No |
 | Records | [`records/`](../records/README.md) | Yes | Public CI checks each one against the committed spec and corpus (a 2.3.0 baseline against the committed format 4 copy) | The check, yes |
-| The spec package | [`spec/`](../spec/README.md): the 1.21.0.3 package in format 8 (its override rules are part D1), its companions, and the format 4 copy for 2.3.0 | Yes, gzipped | Every reader of the spec; the index and its override fixtures; the parse and index suites; the 2.3.0 baselines (the format 4 copy) | Its check, yes; the tests read the package file |
+| The spec package | [`spec/`](../spec/README.md): the 1.21.0.3 package in format 9 (its override rules are part D1), its companions, and the format 4 copy for 2.3.0 (the format 8 pass's, which 2.3.0 reads) | Yes, gzipped | Every reader of the spec; the index and its override fixtures; the parse and index suites; the 2.3.0 baselines (the format 4 copy) | Its check, yes; the tests read the package file |
 | Release 2.3.0's tests and records | [`legacy/`](../legacy/) | Yes, unchanged | Carried over by the step that owns each behaviour | No |
 
 ## The rules
@@ -60,7 +60,11 @@ spec package's rules table (part D1) decides the rule, every definition and no w
 row decides it; a case that differs by platform (letter case) is written once for each. Item
 4.2 added to them a landed title nested in another, a culture history named by its file, a
 constant in two files, a define written twice in one block, two files under `replace`, and files
-below subfolders of a folder read without them and of one whose depth is not settled. A fourth
+below subfolders of a folder read without them and of one whose depth is not settled. The format
+9 adoption (2026-11-25) added a gene the mod replaces, whose templates go with it (`on_replace`),
+and a province id written `003` where the stub writes `3`, one key compared as an integer
+(`key_identity`); a `MOD_` key of a modifier to the lookup stub; and `scope:actor`, a name the
+game saves from its own code, to the event-target pair. A fourth
 mod, `index-definitions-and-uses`, lists every definition and every use of a defined name the
 index must find, and none it must not. The list is in
 [fixtures/mods/README.md](../fixtures/mods/README.md).

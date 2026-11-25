@@ -1527,6 +1527,30 @@ earlier**: `task scored:targets` says so first, and a run refuses to continue a 
 another version. The command line's `source` (decision 143) changes nothing a session is given:
 a scored session has no terminal.
 
+### The spec package in format 9 (2026-11-25)
+
+The spec package a session's tools read changed on 2026-11-25 from format 8 to format 9
+(docs/decisions.md, row 147), the same game version, 1.21.0.3. Every record already names the
+package it was made on, by its SHA-256 (`spec`: `version`, `sha256`, `package_format`): the five
+committed scored records name format 8 (`b72678cc...`), and a run made now names format 9
+(`61343931...`). The tools' shapes did not change, so the tool schema version stays 5, but what
+they answer did, where the package says more: `lookup` gives a modifier's localization key
+`MOD_<NAME>` (or the executable's own literal) before a format record's key, `has_trait`'s value
+names traits and trait groups (confirmed now), laws root at a character and `history/titles` at a
+landed title, scripted modifiers have no root, a saved value (`save_scope_value_as`) and the 409
+names the game saves from its own code are saved scopes, and `check` no longer reports what
+format 8's gaps made it report (docs/decisions.md, row 149). So:
+
+- **A record made on format 8 and one made on format 9 are not compared without saying so**,
+  as with two tool schema versions. The next development run (below) is the first made on
+  format 9.
+- `SCORED_CONTINUE=true` refuses to continue a record made on another spec, and
+  `task scored:rejudge` refuses to judge again the kept results of one: both compare the
+  record's `spec` with the committed package before any session. The committed records stay as
+  made; judging their results again would need the format 8 package back.
+- `task scored:targets` reads a record as before; its figures are those of the package the
+  record names.
+
 ### The next development run (decisions 141 and 145)
 
 Before the release run, a development run of the twelve expert requests measures what a session

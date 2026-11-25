@@ -6,12 +6,14 @@ checksums ([spec/README.md](../../spec/README.md)). The core holds no keyword li
 
 ## What is committed today
 
-The package for game 1.21.0.3 in package format 8, adopted on 2026-11-23 (format 5 adopted in
-PLAN.md item 1.6, format 7 replacing it on 2026-11-22 and format 8 replacing that, each on the
-owner's go): one package file and three companion files, each gzipped with the SHA-256 of its
-uncompressed bytes, and the JSON Schema of all four (`schema.format8.json`). Beside them, in `spec/legacy/`, the same game
-version in format 4, which only release 2.3.0 reads, for the baselines. Facts measured from the
-committed files:
+The package for game 1.21.0.3 in package format 9, adopted on 2026-11-25 (format 5 adopted in
+PLAN.md item 1.6, format 7 replacing it on 2026-11-22, format 8 on 2026-11-23 and format 9 on
+2026-11-25, each on the owner's go): one package file and three companion files, each gzipped
+with the SHA-256 of its uncompressed bytes, and the JSON Schema of all four
+(`schema.format9.json`). Beside them, in `spec/legacy/`, the same game version in format 4, which
+only release 2.3.0 reads, for the baselines: the copy the format 8 pass built, kept because 2.3.0
+cannot read the one the format 9 pass built (docs/decisions.md, 2026-11-25). Facts measured from
+the committed files:
 
 | Part | What it holds |
 | --- | --- |
@@ -20,13 +22,15 @@ committed files:
 | What a keyword takes | A structured reading of the usage line for 2,075 of the 2,703 triggers and effects (`takes`) |
 | Scope data | From the game's own `script_docs` output: 2,163 trigger and 2,399 effect entries. 63 triggers and 118 effects of the buckets have no entry; 181 and 363 entries have `none` as their supported scope |
 | Modifier use areas | For all 778 modifiers (`use_areas`) and the 198 template tags |
-| Record schemas | A field list for 198 of the 239 folders the package lists (five religion folders left the list in format 7): 8,179 fields and 14,685 sub-fields, each with a measured value type, how often vanilla sets it, the values where there are at most 20, and for 372 that it holds a localization key. 3 fields are marked required. Nothing for `gui`, `gfx` or `localization`. 47 field kinds changed in format 7, 14 of them marked `kind suspect:` in their `note`; `config` of `common/pool_character_selectors` is now a block |
-| Error catalogue | 2,023 messages from the executable, each with a script-facing mark: 257 yes, 874 no, 892 unknown; and a finer subject (34 values) |
-| Tables | The 19 tables release 2.3.0 kept in code, with their evidence and candidates kept apart; format 7 adds `court_event` to `event_types` and ten keys to `value_block_keys` (18 now) |
+| Record schemas | A field list for 198 of the 239 folders the package lists (five religion folders left the list in format 7): 8,179 fields and 14,685 sub-fields, each with a measured value type, how often vanilla sets it, the values where there are at most 20, and for 372 that it holds a localization key. 3 fields are marked required. Nothing for `gui`, `gfx` or `localization`. 47 field kinds changed in format 7, 14 of them marked `kind suspect:` in their `note`; `config` of `common/pool_character_selectors` is now a block. Format 9: the root rule of 36 folders (25 `fixed`), `open_keys` on 6 blocks whose keys are names (an ethnicity's are genes), `key_of` on the 104 gene fields of `common/ethnicities` |
+| Folders | Format 9: which files of each of the 239 folders are script (`directories[].files`): the script extensions, whether sub-folders are read, the files present that are not script (`sound/GUIDs.txt`, `gfx/models/buildings/naming.txt`, `*.info` and the like); 197 confirmed by the reader's listing call, 18 partial, 24 measured only |
+| Scope types | 87 (format 9 adds `court_position`, which the game's own list of scope types names and no keyword does); `none` is no scope type (part O2) |
+| Error catalogue | 2,671 messages from the executable (2,023 until format 8; the 648 more are the script-facing and cited ones of a sweep of the Linux executable), each with a script-facing mark: 826 yes, 874 no, 971 unknown; and a finer subject (35 values). 132 carry `since: <=1.21.0.3` (first version not known) |
+| Tables | The 19 tables release 2.3.0 kept in code, with their evidence and candidates kept apart, and since format 9 a twentieth, `variables` (75 keywords that set, change, test, read or iterate variables); format 7 adds `court_event` to `event_types` and ten keys to `value_block_keys` (18 now); format 9 adds the four keys that save a value under a name to `save_keys` (6 entries, each saying what it saves and where its name is written) and the lists the game documents to five `iterator_params` entries |
 | Companions | Paradox's 214 `.info` files with their full text (C1), the GUI vocabulary measured from the base game's GUI files (C2), the game's data-types dump (C3) |
 
-The four files are 55.7 MB uncompressed and 3.18 MB gzipped; the package file alone is 26.9 MB
-and 1.61 MB. The package's evidence items quote the executable's own source paths (455 strings
+The four files are 57.4 MB uncompressed and 3.32 MB gzipped; the package file alone is 28.6 MB
+and 1.75 MB. The package's evidence items quote the executable's own source paths (455 strings
 of the form `/mnt/gsg/ck3/...`, the game's build tree, kept in its strings); no path of this
 machine and no person is named.
 
@@ -65,11 +69,45 @@ committed package.
 | D1 | `override_rules` | The override rules: 95 rows, 70 `settled`, 15 `partial`, 7 `open`, 3 `derived`, read in the Windows executable (and, for the localization reader, the Linux one); 40 of pychivalry's nine kinds and 55 of eight kinds the spec work added (`extensions`, each with its reason); `platform_basis` per platform; `coverage` of all 239 folders (187 generic, 19 with a rule of their own, 32 unknown, 1 open); `stand_in` (row by row against the stand-in it retired); `measured_cases` (each duplicate case of docs/overrides.md mapped to the row that decides it) |
 | D2 | `declarations` | Declarations that are not records: 62 rows (60 in 33 folders and 2 that hold in every folder), 22 `confirmed`, 28 `measured-only`, 12 `unknown`. `namespace` in an event file declares a namespace for its file; an `@name` constant holds for its file; all six top-level keys of `common/genes` are containers; a coat of arms line `key = value` is an alias (`alias`, format 8) |
 | D3 | `definitions` | Nested definitions, 41 rows in 24 folders (33 confirmed; 27,111 names), each with the scope of its name (format 8: 19 `global`, 20 `parent`, 2 `unknown`; 28 of them `confirmed`, 11 `measured-only`, 2 `unknown`), among them a landed title at any depth below another; 10 nested keys that are fields or references; file-named folders, 6 rows: `history/cultures` names its records by the file's stem, `history/situations` and `history/struggles` by none |
-| D4 | `keyword_roles` | What a structural keyword does: 61 rows for 52 keywords, 35 `confirmed`, 19 `measured-only`, 7 `stated-elsewhere`; 90 roles added (67 confirmed, 23 measured-only); every context a row states is stated as an existing table entry |
-| D5 | `implicit_loc_keys` | Localization keys a record has by its name: 710 rows in 160 folders; requirement `required` 12, `optional` 17, `always-present-in-base-game` 227 (a measurement, not a game rule), `unknown` 454 |
-| D6 | `field_references` | The database a value names: 922 rows (144 confirmed, 656 measured-only, 122 unknown), 147 databases named; 13 rows name on-actions (11 confirmed: 5 fields of `common/council_tasks` and `common/on_action`, 6 effect parameters such as `trigger_event.on_action`) |
+| D4 | `keyword_roles` | What a structural keyword does: 68 rows for 59 keywords, 47 `confirmed`, 19 `measured-only`, 2 `stated-elsewhere` (61 rows, 35 confirmed, until format 9); 105 roles added (82 confirmed); every context a row states is stated as an existing table entry. Format 9: how `AND`, `OR`, `NOT`, `NOR`, `NAND` and four kin combine their conditions (`combination`, `child_always_true`, `child_always_false`), `always` (`holds_with: yes`), `ai_chance` and `ai_will_select` (`ai_weight`) |
+| D5 | `implicit_loc_keys` | Localization keys a record has by its name: 710 rows in 160 folders; requirement `required` 12, `optional` 17, `always-present-in-base-game` 227 (a measurement, not a game rule), `unknown` 454. Format 9: `buckets.modifiers`, a modifier's key, `MOD_` and its name in upper case (confirmed; 119 literal keys of another word) and a template's `<name>` (measured only) |
+| D6 | `field_references` | The database a value names: 925 rows (144 confirmed, 659 measured-only, 121 unknown, 1 `not-a-key`), 148 of 269 databases named; 13 rows name on-actions (11 confirmed: 5 fields of `common/council_tasks` and `common/on_action`, 6 effect parameters such as `trigger_event.on_action`). Format 9: what the base game writes there that is no key (`miss_values`, with why), the words accepted there (`sentinels`: `none`, `auto`, `0`); a row with an undefined value is confirmed only by rank 1 or 2 evidence |
 | D7 | `modifier_block_areas` | The use areas a modifier block accepts: 208 rows (167 confirmed, 24 measured-only, 17 unknown), for a record body, a field or sub-field, a family of them, or a block at depth 3 or deeper by its key; `engine_check` quotes the executable's own message for a modifier outside its block's area |
 | D8 | `iterator_kinds` | `any_` a trigger, `every_`, `random_` and `ordered_` effects, each confirmed by the game's own documentation output; the documented forms of all 436 lists; 146 departures (17 confirmed); `limit` of an effect block is a trigger context |
+
+## Format 9: three parts, and keys on the folders, the schema and inside C4, D1, D4, D5 and D6
+
+Format 9 (`pdx-parser-re` merge `e3ced9c`, adopted 2026-11-25) answers the seventeen items
+pychivalry sent back on 2026-11-25 (docs/decisions.md, rows 147 to 150). It is format 8 plus
+additions; nothing is removed or reshaped. The top level of format 8, its directories, schema
+entries, fields, scope types and the rows of C4, D4, D5 and D6 are closed in
+`schema.format8.json`, so the number changes.
+
+| Where | Key | What it says |
+| --- | --- | --- |
+| Part D9 | `localization_forms` | The bracket forms of localization text that name something by a name: 36 forms (4 confirmed: the game concept `[key\|E]`, `Concept`, `ConceptByKey` and the head of a chain; 6 measured-only, `TopScope.sC` among them; 26 unknown), 36 formatting suffixes (2 confirmed) |
+| Part O1 | `saved_from_code` | The 409 names the game's own code saves as scopes for script with no script statement (`scope:actor`, `scope:recipient`, `scope:duel_value`), from its own documentation of event targets |
+| Part O2 | `not_scope_types` | The scope values the package names that are no scope type: `none`, "no scope requirement" (181 triggers, 363 effects, 71 lists and 437 on-actions carry it), and the rule that every scope value is a key of `scope_types` or of O2 |
+| `directories[]` | `files` | Which files of the folder are script: `script.extensions`, `script.recursive`, `not_script` |
+| `directories[]`, `schema.<dir>` | `root_scope_rule`, `root_scope_from`, `root_scope_evidence` | What the root of a record is: `fixed`, `caller`, `record-field`, `per-record`, `no-script`; absent, not examined (36 folders examined). `common/laws` roots at a character, `history/titles` at a landed title, `common/scripted_modifiers` has no root |
+| `schema.<dir>`, fields | `open_keys`, `key_of` | A block whose keys are names of another database (an ethnicity's keys are genes; five more blocks); a "field" that is such a name |
+| `scope_types.<type>` | `listed_in`, `named_by_keywords` | Where the game's own list of scope types names the type, and whether a keyword does (`court_position`: no) |
+| C4 | `save_keys` entries' `saves`, `source`, `name_in` (a list), `temporary`, `parameter_of`; the table `variables` | What each save key saves and where its name is written; 75 keywords of variables, each with what it does, on what, in which namespace, where the name is written and the duration keys |
+| D1 rows | `key_identity`, `on_replace`, `within`, `merge`, `path_match`, `compare_unit`, `hides_scope`, `among`, `pack`, `read_first` | What makes two keys one key (a province id compares as an integer), what a replacement takes with it (a gene's templates), how ties and merges go, the file layer; `about.text_only` lists the 25 rows whose rule is still words only |
+| D4 rows | `combination`, `child_always_true`, `child_always_false`, `holds_with`, `fails_with` | How a logical operator combines its conditions, what a constant child does to it, the value that makes a condition hold or fail |
+| D5 | `buckets.modifiers` | A modifier's localization key (`MOD_<name>`, `transform: upper`, `literal_keys`) and a template's (`<name>`) |
+| D6 rows | `miss_values`, `sentinels`, `value_is`, `contradicted`, `named_by_evidence`; the status `not-a-key` | The values that are no key and why, the words accepted there, a value that is no key of any database |
+| `errors[]` | 648 more rows; `since: <=1.21.0.3` | The localization reader's "Unterminated ..." messages, "The body of triggered_desc can only take desc and/or trigger. %s" and 646 more; two rows of format 8 have the subject `game_object` now (`invalid_court_position`, `attempt_to_destroy_an_court_position_that_is_already_invalid`), which nothing in pychivalry reads |
+
+**Still open in format 9, and not built on as facts:** the listing calls of the 18 partial and
+24 measured-only folders (which files are script); the 6 roots only the wiki-era seed gives
+(`wiki-only`: `common/bookmark_portraits`, `common/dynasties`, `common/dynasty_houses`,
+`common/nicknames`, `common/opinion_modifiers`, `common/terrain_types`), and the folders no root
+rule covers; 26 of D9's 36 forms and 34 of its 36 suffixes; what an empty `AND` or `OR` block
+evaluates to; a template modifier's localization key (`<name>`, measured only); which key texts
+the lexer gives the province id token; the colour gene's destructor; D6's 659 measured-only and
+121 unknown rows; the candidates of `save_keys` (effects that save under a fixed name) and of
+`iterator_params`.
 
 ## Format 8: keys inside D1, D2 and D3
 

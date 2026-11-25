@@ -3,7 +3,7 @@
 Status: draft, 2026-11-22. Decisions are answered, the scope is confirmed, and every build step
 has been checked against real data: the spec package, the 2.3.0 code and its records, the game
 installed today, and the current VS Code, Claude Code and GitHub documentation. Step 0, the
-spec work, is done: the 1.21.0.3 package in format 8 is committed, the override rules table
+spec work, is done: the 1.21.0.3 package in format 9 is committed, the override rules table
 among its parts. Build step 1, the repository skeleton, is complete, with that package and the
 2.3.0 baselines recorded on its format 4 copy; build step 2, the parser, is built; build step 3,
 the workspace index, is built, with the override rules as data, read from the package. Build
@@ -60,7 +60,7 @@ lives unchanged in `legacy/`.
 | Derived names | A name the derivation produced is never dropped because the game's own documentation omits it. The doubt is documented instead. |
 | Identity | A new extension, named `pychivalry`, starting at 1.0.0. It does not update `ck3-language-support` 2.x in place; people on 2.3.0 install the new one by hand. |
 | Spec delivery | The built spec package is committed in this repository as it was built, with Paradox's full `.info` text, gzipped, with the checksum of each file's uncompressed bytes. `pdx-parser-re` stays private. |
-| Spec version | The spec is re-derived for the current game, 1.21, before building starts. The committed package is for 1.21.0.3, in format 8. |
+| Spec version | The spec is re-derived for the current game, 1.21, before building starts. The committed package is for 1.21.0.3, in format 9. |
 | Hand-kept tables | The tables 2.3.0 kept in code (about 100 entries: iterator parameters, structural keywords, block names) move into the spec package as a new format, with their evidence. The core holds none. |
 | Grounding | Everything is grounded in the game: its executable, its files, its own documentation and its own output. Community tools and the wiki may supply a hint or an idea for a rule, and nothing rests on them alone. |
 | Spec additions | The 1.21 spec keeps every part of the current package and adds thirteen things (see [What the 1.21 spec adds](#what-the-121-spec-adds)). |
@@ -240,8 +240,8 @@ its error log.
 
 ## The spec package
 
-Facts about the committed package, format 8, for game 1.21.0.3 (one package file of 26.9 MB and
-three companion files, 55.7 MB in all uncompressed, 3.18 MB gzipped), measured from the
+Facts about the committed package, format 9, for game 1.21.0.3 (one package file of 28.6 MB and
+three companion files, 57.4 MB in all uncompressed, 3.32 MB gzipped), measured from the
 package itself:
 
 | Part | What it holds |
@@ -250,7 +250,7 @@ package itself:
 | Descriptions | The executable's own text for 1,563 triggers, 1,028 effects, 359 links and 436 lists. None for modifiers or on-actions. A structured "what it takes" for 2,075 of the 2,703 triggers and effects. |
 | Scope data | Which scopes a trigger or effect is valid in, from the game's own `script_docs` output: 2,163 trigger and 2,399 effect entries. 63 triggers and 118 effects have no entry; 181 and 363 entries declare no requirement (`none`). Where each modifier may be used, for all 778. |
 | Record schemas | 198 of the 239 game folders the package lists have a field list: 8,179 fields and 14,685 sub-fields (22,864 in all), each with a measured value type and how often the base game sets it. Only 3 are marked required, all three with the game's message: `on_invalidated_desc` of casus belli types, `index` of character interaction categories, `chain` of tutorial lessons. No schema for `gui`, `gfx` or `localization`. |
-| Error catalogue | 2,023 message texts taken from the game executable, each marked as script-facing or not: 257 yes, 874 no, 892 unknown. Still no condition. |
+| Error catalogue | 2,671 message texts taken from the game executable (2,023 until format 9), each marked as script-facing or not: 826 yes, 874 no, 971 unknown. Still no condition. |
 
 Every part of the 1.20.0.2 package is kept, with the same shape. Release 2.3.0's engine read
 all of it; it runs on the same game version's format 4 copy, committed apart for the baselines
@@ -258,16 +258,18 @@ all of it; it runs on the same game version's format 4 copy, committed apart for
 
 ### What the 1.21 spec adds
 
-The 1.21.0.3 package in format 8 carries all thirteen additions below, each marked built in its
+The 1.21.0.3 package in format 9 carries all thirteen additions below, each marked built in its
 `parts` list: A1 modifier use areas, A2 how often each field is set, A3 the wiki descriptions,
 A4 the cleaned catalogue, A5 what triggers and effects take, B1 value types, B2 observed values,
 B3 localization-key fields, C1 the `.info` files, C2 the GUI vocabulary, C3 the data-types dump
-and C4 the hand-kept tables (19 tables with their evidence); and, the thirteenth, **the override
-rules** (D1, 82 rows read out of the executable). It also carries the other requests of
-[decisions.md](decisions.md): declarations that are not records (D2), nested and file-named
-definitions (D3), keyword roles (D4), implicit localization keys (D5), the database a field's
-value names (D6), the use areas of modifier blocks (D7) and the kind of block each iterator
-prefix belongs in (D8). [references/spec-package.md](references/spec-package.md) has their
+and C4 the hand-kept tables (19 tables with their evidence, and since format 9 a twentieth, the
+keywords of variables); and, the thirteenth, **the override rules** (D1, 95 rows read out of the
+executable). It also carries the other requests of [decisions.md](decisions.md): declarations
+that are not records (D2), nested and file-named definitions (D3), keyword roles (D4), implicit
+localization keys (D5), the database a field's value names (D6), the use areas of modifier
+blocks (D7), the kind of block each iterator prefix belongs in (D8), and since format 9 the
+forms of localization text that name something (D9), the names the game saves from its own code
+(O1), the scope values that are no scope type (O2), and which files of each folder are script. [references/spec-package.md](references/spec-package.md) has their
 counts and what is still open in each.
 
 The pre-2.0 pychivalry had 32 hand-written schema files, taken from the wiki. The extractor
