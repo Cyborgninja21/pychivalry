@@ -52,16 +52,26 @@ import {
 } from '../index/localization.js';
 import {
     indexModSteps,
+    installFolders,
+    listInstall,
+    listMod,
     unreadWords,
     type ModListing,
     type SourceListing,
 } from '../index/read-game.js';
-import { currentPlatform, rulesFromSpec, type Platform, type RulesTable } from '../index/rules.js';
+import {
+    currentPlatform,
+    decidingRules,
+    rulesFromSpec,
+    type Platform,
+    type RulesTable,
+} from '../index/rules.js';
+import type { SourceSet } from '../index/source-text.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
 import { forkBaseSteps, type SharedBase } from '../share/base.js';
 import type { Spec } from '../spec/reader.js';
 import { drain, type Steps } from '../steps.js';
-import type { FallbackEncoding } from '../syntax/decode.js';
+import { decodeScript, type FallbackEncoding } from '../syntax/decode.js';
 import {
     catalogueFromSpec,
     fillPlaceholders,
@@ -565,6 +575,54 @@ export function* openWorkspaceSteps(
     }
     const mod = options.modDir === null ? null : yield* indexModSteps(index, options.modDir);
     return { index, game, mod };
+}
+
+/**
+ * What `readSource` reads in an opened workspace (the agent server's `source`): the mod's
+ * listing and the base game's, the game folder it was opened on, and the index's own decoding.
+ */
+export function workspaceSources(workspace: Workspace, gameDir: string | null): SourceSet {
+    const listings: SourceListing[] = [];
+    if (workspace.mod !== null) {
+        listings.push(workspace.mod);
+    }
+    if (workspace.game !== null) {
+        listings.push(workspace.game.listing);
+    }
+    return { listings, gameDir, mod: workspace.mod !== null, decoder: workspace.index };
+}
+
+/**
+ * What `readSource` reads, with nothing indexed (the command line's `source`): the base game's
+ * install folders and the mod listed as `openWorkspace` lists them (the spec's folders, the
+ * override rules that decide on the platform), and files decoded as the index decodes them. The
+ * same folders give the same set as `workspaceSources`, without loading or building the base
+ * game's index.
+ */
+export function openSources(options: {
+    readonly spec: Spec;
+    readonly gameDir: string | null;
+    readonly modDir: string | null;
+    readonly platform?: Platform | undefined;
+    readonly fallbackEncoding?: FallbackEncoding | undefined;
+}): SourceSet {
+    const { folders, rules } = specContext(options.spec);
+    const platform = 'platform' in options ? options.platform : currentPlatform();
+    const listings: SourceListing[] = [];
+    if (options.modDir !== null) {
+        listings.push(listMod(options.modDir, folders));
+    }
+    if (options.gameDir !== null) {
+        const deciding = platform === undefined ? [] : decidingRules(rules, platform);
+        listings.push(listInstall(installFolders(options.gameDir), folders, deciding));
+    }
+    const fallbackEncoding = options.fallbackEncoding;
+    return {
+        listings,
+        gameDir: options.gameDir,
+        mod: options.modDir !== null,
+        decoder: { decode: (bytes) => decodeScript(bytes, { fallbackEncoding }) },
+    };
 }
 
 export interface WorkspaceCheckOptions extends WorkspaceOptions {

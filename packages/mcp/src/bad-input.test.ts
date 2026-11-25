@@ -62,7 +62,7 @@ test('bad arguments are results that name the valid values', async (t) => {
         [
             'source',
             { layer: 'nope', file: 'x.txt', line: 1 },
-            /layer: nope is not a layer this server reads; the layers are mod, game/,
+            /layer: nope is not a layer read here; the layers are mod, game/,
         ],
         [
             'source',

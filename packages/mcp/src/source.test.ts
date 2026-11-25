@@ -214,7 +214,7 @@ test('only a place a result could name: no .., no absolute path, no backslash, n
         ],
         [
             { layer: 'jomini', file: 'common/x.txt' },
-            /layer: jomini is not a layer this server reads/,
+            /layer: jomini is not a layer read here; the layers are mod, game/,
         ],
     ];
     for (const [args, expected] of refused) {
@@ -292,7 +292,7 @@ test('a file gone since the index read it, and a server without the base game', 
     const alone = await connect(t, ['--mod', mod, '--no-vanilla'], path.join(dir, 'cache2'));
     assert.match(
         await alone.error('source', { layer: 'game', file: EFFECTS, line: 1 }),
-        /layer: game is not a layer of this server, which runs without the base game; the only layer is mod/,
+        /layer: game is not a layer read here: the base game is not read, so the only layer is mod/,
     );
     const own = await alone.output('source', { layer: 'mod', file: 'events/e.txt', line: 1 });
     assert.deepEqual(textOf(own), ['namespace = alone', '']);
