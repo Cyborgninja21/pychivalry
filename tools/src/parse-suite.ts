@@ -23,6 +23,7 @@ import {
     readScript,
     tokenize,
     type Finding,
+    type FolderTable,
     type MessageCatalogue,
 } from '@pychivalry/core';
 import { RoundTrip, type RoundTripResults } from './round-trip.js';
@@ -36,14 +37,20 @@ export interface SuiteFolder {
     /** How many files the folder holds with that extension, less the excluded ones. */
     readonly expected: number;
     readonly why: string;
-    /** Files in the folder that are not script, each with the reason. */
+    /**
+     * Files in the folder that are not script, each with the reason, beyond those the spec
+     * package names (`runParseSuite`'s `notScript`): for a folder list written for a test.
+     */
     readonly excluded?: readonly { readonly file: string; readonly why: string }[];
 }
 
 /**
  * What the suite reads in game 1.21.0.3. Evidence that a folder holds script the game loads:
  * the spec's directory list (`directories[].path`), the game's own `paths.settings` and
- * `checksum_manifest.txt`, and the DLC folders, which repeat the game's own layout.
+ * `checksum_manifest.txt`, and the DLC folders, which repeat the game's own layout. The files
+ * of these folders that are not script are the spec package's to name (format 9,
+ * `directories[].files.not_script`: `gfx/models/buildings/naming.txt`, `sound/GUIDs.txt`), and
+ * the counts expected leave them out.
  */
 export const BASE_GAME_FOLDERS: readonly SuiteFolder[] = [
     {
@@ -69,12 +76,6 @@ export const BASE_GAME_FOLDERS: readonly SuiteFolder[] = [
         extension: '.txt',
         expected: 271,
         why: 'The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.',
-        excluded: [
-            {
-                file: 'gfx/models/buildings/naming.txt',
-                why: "Not script: a plain list of model names, one per line, with no '='.",
-            },
-        ],
     },
     {
         folder: 'map_data',
@@ -93,12 +94,6 @@ export const BASE_GAME_FOLDERS: readonly SuiteFolder[] = [
         extension: '.txt',
         expected: 8,
         why: 'In the spec; paths.settings names sound/map/ambience.',
-        excluded: [
-            {
-                file: 'sound/GUIDs.txt',
-                why: 'Not script: a table of sound-bank identifiers, one `{guid} path` per line.',
-            },
-        ],
     },
     {
         folder: 'dlc',
@@ -443,6 +438,24 @@ function classify(
     );
 }
 
+/**
+ * Why the spec package says a file of the game folder is no script (format 9,
+ * `directories[].files.not_script`, read with the folder table), in words a record can hold:
+ * the entry's own `what`, the file or pattern it names and its status; or undefined.
+ */
+export function notScriptOf(folders: FolderTable): (file: string) => string | undefined {
+    return (file) => {
+        const status = folders.scriptStatus(file);
+        if (status === undefined || status.script) {
+            return undefined;
+        }
+        if (status.rule === null) {
+            return `Not script: the spec package says the reader of ${status.folder} takes other extensions (directories[].files).`;
+        }
+        return `Not script, the spec package says (${status.folder}, not_script ${status.rule.written}, ${status.rule.status}): ${status.rule.what}`;
+    };
+}
+
 /** Run the parse suite on a game folder. */
 export function runParseSuite(
     gameDir: string,
@@ -450,6 +463,11 @@ export function runParseSuite(
         catalogue: MessageCatalogue;
         classifications: readonly ClassificationEntry[];
         folders?: readonly SuiteFolder[];
+        /**
+         * Why the spec package says a file is no script (format 9, `directories[].files`), or
+         * undefined when it does not: such a file is not parsed, and is listed as excluded.
+         */
+        notScript?: (file: string) => string | undefined;
     },
 ): ParseSuiteResults {
     const folders = options.folders ?? BASE_GAME_FOLDERS;
@@ -463,14 +481,20 @@ export function runParseSuite(
     const roundTrip = new RoundTrip('script');
     for (const entry of folders) {
         const dir = path.join(gameDir, ...entry.folder.split('/'));
-        const excluded = new Set((entry.excluded ?? []).map((e) => e.file));
-        const list = (
+        const all = (
             statSync(dir, { throwIfNoEntry: false })?.isDirectory() === true
                 ? filesUnder(gameDir, dir)
                 : []
-        ).filter(
-            (rel) => path.extname(rel).toLowerCase() === entry.extension && !excluded.has(rel),
-        );
+        ).filter((rel) => path.extname(rel).toLowerCase() === entry.extension);
+        const excludedList = [...(entry.excluded ?? [])];
+        for (const rel of all) {
+            const why = options.notScript?.(rel);
+            if (why !== undefined && !excludedList.some((e) => e.file === rel)) {
+                excludedList.push({ file: rel, why });
+            }
+        }
+        const excluded = new Set(excludedList.map((e) => e.file));
+        const list = all.filter((rel) => !excluded.has(rel));
         const row: FolderResult = {
             folder: entry.folder,
             extension: entry.extension,
@@ -482,7 +506,7 @@ export function runParseSuite(
             errors: 0,
             parse_ms: 0,
             why: entry.why,
-            excluded: (entry.excluded ?? []).map((e) => ({ file: e.file, why: e.why })),
+            excluded: excludedList.map((e) => ({ file: e.file, why: e.why })),
         };
         if (list.length !== entry.expected) {
             failures.push(

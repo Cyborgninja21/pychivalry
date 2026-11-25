@@ -129,3 +129,29 @@ test('every finding is in the structured shape: id, severity, offsets, range, ar
         'start',
     ]);
 });
+
+test('format 9: the catalogue holds the messages the blocked checks wait for', () => {
+    const catalogue = committedCatalogue();
+    // structure/triggered-desc-other-field (docs/decisions.md, row 74).
+    assert.equal(
+        catalogue.get('the_body_of_triggered_desc_can_only_take_desc_and_or_trigger'),
+        'The body of triggered_desc can only take desc and/or trigger. %s',
+    );
+    // The localization reader's "Unterminated ..." messages (localization/unbalanced-brackets).
+    const unterminated = [...catalogue].filter(([, text]) => text.includes('Unterminated'));
+    assert.ok(unterminated.length >= 5, String(unterminated.length));
+    assert.ok(unterminated.some(([, text]) => text.startsWith('Loc key `{}`: Unterminated')));
+    assert.ok(
+        unterminated.some(([, text]) => text === "Unterminated '[' when reading property '%.*s'"),
+    );
+});
+
+test('format 9: two catalogue rows of format 8 changed their subject, and nothing reads a subject', () => {
+    const errors = (committedSpecPackage() as { errors: { id: string; subject: string }[] }).errors;
+    const subject = (id: string): string | undefined => errors.find((e) => e.id === id)?.subject;
+    assert.equal(subject('invalid_court_position'), 'game_object');
+    assert.equal(
+        subject('attempt_to_destroy_an_court_position_that_is_already_invalid'),
+        'game_object',
+    );
+});

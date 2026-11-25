@@ -107,7 +107,11 @@ export interface NotScriptFile {
     readonly folder: string;
     readonly why: 'not-script' | 'extension';
     /** The `not_script` entry that names it (a file or a pattern), its words and status. */
-    readonly entry: { readonly written: string; readonly what: string; readonly status: string } | null;
+    readonly entry: {
+        readonly written: string;
+        readonly what: string;
+        readonly status: string;
+    } | null;
 }
 
 /** Every regular file under `dir`, relative to it with `/`, sorted; links are not followed. */
@@ -254,7 +258,11 @@ function addSource(
             entry:
                 status.rule === null
                     ? null
-                    : { written: status.rule.written, what: status.rule.what, status: status.rule.status },
+                    : {
+                          written: status.rule.written,
+                          what: status.rule.what,
+                          status: status.rule.status,
+                      },
         });
         return;
     }

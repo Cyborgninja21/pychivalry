@@ -1691,7 +1691,13 @@ export class WorkspaceIndex {
                 }
                 if (kept.length === 1) {
                     const winner = kept[0] as Definition;
-                    return { status: 'winner', definitions, winner, combine: 'whole', rule: replace.rule.id };
+                    return {
+                        status: 'winner',
+                        definitions,
+                        winner,
+                        combine: 'whole',
+                        rule: replace.rule.id,
+                    };
                 }
                 live = kept;
             }
@@ -1857,10 +1863,18 @@ export class WorkspaceIndex {
                     if (tie === undefined || ordered === undefined) {
                         return { status: 'clash', definitions, rule: rule.id };
                     }
-                    const kept = (tie.resolve === 'earlier-wins' ? ordered[0] : ordered.at(-1)) as Definition;
+                    const kept = (
+                        tie.resolve === 'earlier-wins' ? ordered[0] : ordered.at(-1)
+                    ) as Definition;
                     return tie.message === undefined
                         ? { status: 'clash', definitions, rule: rule.id, kept }
-                        : { status: 'clash', definitions, rule: rule.id, kept, message: tie.message };
+                        : {
+                              status: 'clash',
+                              definitions,
+                              rule: rule.id,
+                              kept,
+                              message: tie.message,
+                          };
                 }
                 return {
                     status: 'winner',
@@ -2281,7 +2295,8 @@ export class WorkspaceIndex {
             }
             const own = found.find((r) => (r.nested_kinds ?? []).includes(kind));
             if (own !== undefined && (own.nested === 'dropped' || own.nested === 'unknown')) {
-                const status = own.status !== undefined && oneOfStatus(own.status) ? own.status : rule.status;
+                const status =
+                    own.status !== undefined && oneOfStatus(own.status) ? own.status : rule.status;
                 return { folder, nested: own.nested, status, rule };
             }
         }
@@ -2765,7 +2780,11 @@ function folderPathTest(rule: FolderWinsRule): ((file: string) => boolean) | und
     if (match === undefined) {
         return (file) => segmentsOf(parentOf(file)).includes(rule.segment);
     }
-    if (match.compare === 'bytes' && match.where === 'anywhere-in-path' && match.text !== undefined) {
+    if (
+        match.compare === 'bytes' &&
+        match.where === 'anywhere-in-path' &&
+        match.text !== undefined
+    ) {
         const text = match.text;
         return (file) => file.includes(text);
     }

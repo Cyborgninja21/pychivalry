@@ -127,9 +127,10 @@ test('format 9: the keys and parts it adds are read and typed', () => {
     const dirs = new Map(data.directories.map((d) => [d.path, d]));
     assert.ok(data.directories.every((d) => d.files !== undefined));
     const sound = dirs.get('sound')?.files;
-    assert.deepEqual(sound?.script.extensions, ['.txt']);
+    assert.ok(sound);
+    assert.deepEqual(sound.script.extensions, ['.txt']);
     assert.deepEqual(
-        sound?.not_script.map((n) => [n.file, n.status]),
+        sound.not_script.map((n) => [n.file, n.status]),
         [['GUIDs.txt', 'confirmed']],
     );
     assert.deepEqual(
@@ -188,8 +189,9 @@ test('format 9: the keys and parts it adds are read and typed', () => {
         ['auto', 'none'],
     );
     const forms = spec.part('localization_forms');
-    assert.equal(forms?.forms.length, 36);
-    assert.equal(forms?.forms.find((f) => f.id === 'game_concept')?.suffix, 'E');
+    assert.ok(forms);
+    assert.equal(forms.forms.length, 36);
+    assert.equal(forms.forms.find((f) => f.id === 'game_concept')?.suffix, 'E');
 });
 
 function tempDir(t: { after: (fn: () => void) => void }): string {

@@ -36,6 +36,22 @@ export interface RoleRow {
     readonly follows: readonly string[];
     readonly needs: readonly string[];
     readonly range: string | null;
+    /**
+     * Format 9, a row with the role `combines_conditions`: how the block combines the conditions
+     * it holds (`all`, `any`, `negation`, `none`, `not_all`, `count`, `weighted_count`), and what a
+     * child that always holds or always fails does to it (`neutral`, `makes_it_hold`,
+     * `makes_it_fail`; null where the part gives no answer). No check reads them yet
+     * (docs/checks.md: a redundant `always = yes`).
+     */
+    readonly combination: string | null;
+    readonly childAlwaysTrue: string | null;
+    readonly childAlwaysFalse: string | null;
+    /**
+     * Format 9, a row with the role `constant_condition`: the value that makes the condition
+     * hold, and the one that makes it fail (`always = yes`, `always = no`).
+     */
+    readonly holdsWith: string | null;
+    readonly failsWith: string | null;
     readonly row: KeywordRoleRow;
 }
 
@@ -151,6 +167,11 @@ export class KeywordRoles {
                 follows: strings(row['follows']),
                 needs: strings(row['needs']),
                 range: typeof row['range'] === 'string' ? row['range'] : null,
+                combination: row.combination ?? null,
+                childAlwaysTrue: row.child_always_true ?? null,
+                childAlwaysFalse: row.child_always_false ?? null,
+                holdsWith: row.holds_with ?? null,
+                failsWith: row.fails_with ?? null,
                 row,
             });
         }

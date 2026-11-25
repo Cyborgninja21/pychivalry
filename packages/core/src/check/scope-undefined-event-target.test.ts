@@ -64,7 +64,9 @@ test(`${CODE}: the index records where a scope is saved and read, and the templa
     // Format 9: a value saved under a name (`save_scope_value_as = { name = x }`) is a save,
     // its name where the entry's `name_in` says.
     assert.deepEqual(
-        index.savedScopes('fixture_target_saved_value').map((s) => [s.file, s.range.start.line + 1]),
+        index
+            .savedScopes('fixture_target_saved_value')
+            .map((s) => [s.file, s.range.start.line + 1]),
         [['common/scripted_effects/fixture_target_effects.txt', 5]],
     );
     // A name the game saves from its own code is saved by no script, and is read all the same.

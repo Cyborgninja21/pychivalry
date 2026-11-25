@@ -55,7 +55,7 @@ test(`${CODE} reads only D6 rows that are confirmed, not the on-action ones, who
     assert.ok(!ids.includes('events::theme'));
     const byId = new Map(spec.part('field_references')?.fields.map((r) => [r.id, r]));
     // Format 9: `holding = none` is a sentinel of a confirmed row, which is read and accepts it.
-    const holding = [...places.fields.get('history/provinces') ?? []].find(
+    const holding = [...(places.fields.get('history/provinces') ?? [])].find(
         (p) => p.row.id === 'history/provinces::holding',
     );
     assert.ok(holding !== undefined);
@@ -79,20 +79,21 @@ test(`${CODE} reads only D6 rows that are confirmed, not the on-action ones, who
 });
 
 test(`${CODE}: a confirmed row with an undefined miss needs evidence of rank 1 or 2`, () => {
-    const row = committedSpec().part('field_references')?.fields.find(
-        (r) => r.id === 'triggers::has_court_position',
-    );
+    const row = committedSpec()
+        .part('field_references')
+        ?.fields.find((r) => r.id === 'triggers::has_court_position');
     assert.ok(row !== undefined);
     assert.equal(confirmedEnough(row), true);
     assert.equal(
         confirmedEnough({ ...row, evidence: row.evidence.filter((e) => e.rank > 2) }),
         false,
     );
-    assert.equal(confirmedEnough({ ...row, miss_values: [] , evidence: [] }), true);
+    assert.equal(confirmedEnough({ ...row, miss_values: [], evidence: [] }), true);
 });
 
 test(`${CODE}: a sentinel is accepted where its row says, and is no key elsewhere`, () => {
-    const province = '1 = {\n\tholding = none\n\tholding = auto\n\tholding = fixture_no_holding\n}\n';
+    const province =
+        '1 = {\n\tholding = none\n\tholding = auto\n\tholding = fixture_no_holding\n}\n';
     assert.deepEqual(
         checkText('history/provinces/x.txt', province)
             .filter((f) => f.code === CODE)

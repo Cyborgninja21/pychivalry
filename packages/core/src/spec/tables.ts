@@ -131,7 +131,10 @@ function saveRuleOf(entry: TableEntry): SaveRule {
 
 /** An entry of `variables` (format 9). */
 function variableOf(entry: TableEntry): VariableKeyword {
-    const text = (key: string): string => (typeof entry[key] === 'string' ? (entry[key] as string) : '');
+    const text = (key: string): string => {
+        const value = entry[key];
+        return typeof value === 'string' ? value : '';
+    };
     return {
         kind: text('kind'),
         does: text('does'),

@@ -790,13 +790,15 @@ function format9Problems(row: Json, at: string): string[] {
     const merge = row['merge'];
     if (
         'merge' in row &&
-        (!isJson(merge) ||
-            !['unit', 'how', 'applied', 'same_target'].every((k) => text(merge[k])))
+        (!isJson(merge) || !['unit', 'how', 'applied', 'same_target'].every((k) => text(merge[k])))
     ) {
         problems.push(`${at}.merge: must give unit, how, applied and same_target`);
     }
     const match = row['path_match'];
-    if ('path_match' in row && (!isJson(match) || !text(match['compare']) || !text(match['where']))) {
+    if (
+        'path_match' in row &&
+        (!isJson(match) || !text(match['compare']) || !text(match['where']))
+    ) {
         problems.push(`${at}.path_match: must give compare and where`);
     }
     if ('compare_unit' in row && !text(row['compare_unit'])) {

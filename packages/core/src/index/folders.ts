@@ -29,7 +29,7 @@
  * script is not read as script (`FolderTable.scriptStatus`).
  */
 
-import type { DeclarationRow, DirectoryFiles, NestedRow } from '../spec/package.js';
+import type { DeclarationRow, DirectoryFiles, NestedRow, NotScriptEntry } from '../spec/package.js';
 import type { SaveRule } from '../spec/tables.js';
 
 /**
@@ -246,11 +246,15 @@ export function folderFilesOf(files: DirectoryFiles | undefined): FolderFiles | 
     if (files === undefined || !isJson(files) || !isJson(files.script)) {
         return null;
     }
-    const extensions = Array.isArray(files.script.extensions)
-        ? files.script.extensions.map((e) => foldCase(e))
+    const written: unknown = files.script.extensions;
+    const extensions = Array.isArray(written)
+        ? written.filter((e): e is string => typeof e === 'string').map((e) => foldCase(e))
         : null;
     const notScript: NotScriptRule[] = [];
-    for (const entry of Array.isArray(files.not_script) ? files.not_script : []) {
+    const entries: readonly NotScriptEntry[] = Array.isArray(files.not_script)
+        ? files.not_script
+        : [];
+    for (const entry of entries) {
         if (typeof entry.file === 'string' && entry.file !== '') {
             notScript.push({
                 file: foldCase(segmentsOf(entry.file).join('/')),

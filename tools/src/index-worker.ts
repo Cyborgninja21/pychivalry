@@ -42,6 +42,17 @@ function specRoots(folders: FolderTable): Set<string> {
     return new Set(folders.folders.map((f) => f.path.split('/')[0] ?? ''));
 }
 
+/** The script files the spec package says are not script (format 9), in the order listed. */
+function notScript(listing: SourceListing): Record<string, unknown>[] {
+    return listing.notScript.map((f) => ({
+        layer: f.layer,
+        file: f.path,
+        folder: f.folder,
+        why: f.why,
+        entry: f.entry,
+    }));
+}
+
 function notDescribed(listing: SourceListing, folders: FolderTable): Record<string, unknown>[] {
     const roots = specRoots(folders);
     return counts(listing.notDescribed).map(({ key, files }) => ({
@@ -145,6 +156,7 @@ function describeBase(index: WorkspaceIndex, listing: SourceListing): Record<str
             .filter((f) => !byFolder.has(f.path))
             .map((f) => f.path),
         not_described: notDescribed(listing, index.folders),
+        not_script: notScript(listing),
         not_read: counts(listing.notRead).map(({ key, files: n }) => ({
             extension: key,
             files: n,
@@ -191,6 +203,7 @@ function describeMod(index: WorkspaceIndex, listing: ModListing): Record<string,
         game_files_read_unknown: unknownBase,
         mod_files_read_unknown: unknownMod,
         not_described: notDescribed(listing, index.folders),
+        not_script: notScript(listing),
         not_read_files: [...listing.notRead.values()].reduce((a, b) => a + b, 0),
         defined_more_than_once: duplicates(index, 'mod'),
     };

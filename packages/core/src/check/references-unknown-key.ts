@@ -205,7 +205,9 @@ export function withAddedDatabases(spec: Spec, refersTo: readonly string[]): str
             : {};
     const out: string[] = [];
     for (const db of refersTo) {
-        const entry = Object.prototype.hasOwnProperty.call(databases, db) ? databases[db] : undefined;
+        const entry = Object.prototype.hasOwnProperty.call(databases, db)
+            ? databases[db]
+            : undefined;
         const added =
             typeof entry === 'object' && entry !== null
                 ? (entry as Record<string, unknown>)['add_databases']

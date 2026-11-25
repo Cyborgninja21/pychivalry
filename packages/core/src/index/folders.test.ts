@@ -14,18 +14,21 @@ test('a folder new in game 1.21 is described by the committed format 9 package, 
     const spec = committedSpecPackage() as { package_format: number };
     assert.equal(spec.package_format, 9);
     const districts = specFolders().get('common/districts');
-    assert.deepEqual({ ...districts, files: undefined }, {
-        path: 'common/districts',
-        contentType: 'district',
-        schema: true,
-        schemaFields: 14,
-        specRecords: 352,
-        specFiles: 11,
-        notDefinitions: [],
-        nested: [],
-        fileNamed: false,
-        files: undefined,
-    });
+    assert.deepEqual(
+        { ...districts, files: undefined },
+        {
+            path: 'common/districts',
+            contentType: 'district',
+            schema: true,
+            schemaFields: 14,
+            specRecords: 352,
+            specFiles: 11,
+            notDefinitions: [],
+            nested: [],
+            fileNamed: false,
+            files: undefined,
+        },
+    );
     assert.deepEqual(districts?.files?.extensions, ['.txt']);
     const textures = specFolders().get('gfx/map/textures');
     assert.equal(textures?.schema, false);
@@ -78,12 +81,10 @@ test('format 9: which files of a folder are script; GUIDs.txt and naming.txt are
     assert.deepEqual(folders.scriptStatus('sound/map/ambience/fixture.txt'), { script: true });
     const guids = folders.scriptStatus('sound/GUIDs.txt');
     assert.ok(guids !== undefined && !guids.script);
-    assert.deepEqual([guids.why, guids.folder, guids.rule?.written, guids.rule?.status], [
-        'not-script',
-        'sound',
-        'GUIDs.txt',
-        'confirmed',
-    ]);
+    assert.deepEqual(
+        [guids.why, guids.folder, guids.rule?.written, guids.rule?.status],
+        ['not-script', 'sound', 'GUIDs.txt', 'confirmed'],
+    );
     // In any letter case: the package says the file is no script.
     assert.equal(folders.scriptStatus('sound/guids.txt')?.script, false);
     const naming = folders.scriptStatus('gfx/models/buildings/naming.txt');

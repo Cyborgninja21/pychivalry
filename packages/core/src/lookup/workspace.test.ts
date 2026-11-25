@@ -149,7 +149,12 @@ test("a modifier's localization: the D5 key of its bucket (format 9), then that 
     assert.ok(bucketKey);
     assert.equal(bucketKey.key, 'MOD_MONTHLY_PRESTIGE');
     assert.deepEqual(
-        [bucketKey.row.directory, bucketKey.row.nameFrom, bucketKey.row.pattern, bucketKey.row.status],
+        [
+            bucketKey.row.directory,
+            bucketKey.row.nameFrom,
+            bucketKey.row.pattern,
+            bucketKey.row.status,
+        ],
         [null, 'bucket:modifiers', 'MOD_<name>', 'confirmed'],
     );
     assert.deepEqual(bucketKey.records, []);
@@ -195,7 +200,7 @@ test("a modifier's localization: the D5 key of its bucket (format 9), then that 
     );
 });
 
-test("format 9: a modifier whose executable literal is another word has that key (literal_keys)", () => {
+test('format 9: a modifier whose executable literal is another word has that key (literal_keys)', () => {
     const rows = committedSpec().part('implicit_loc_keys')?.buckets?.['modifiers'] ?? [];
     const literal = rows[0]?.literal_keys ?? {};
     const [name, expected] = Object.entries(literal)[0] ?? [];
