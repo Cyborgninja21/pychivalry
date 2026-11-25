@@ -115,7 +115,12 @@ Options of `lookup`: `--vanilla`, `--no-vanilla`, `--spec` and `--json` as for `
 | `--language <language>` | Only this language's localization text, as its files' header names it (`l_english`) |
 
 With `--json`, `lookup` prints one object per name: the whole answer, each part saying where it
-comes from or why the spec package has nothing for it.
+comes from or why the spec package has nothing for it, with the evidence behind each part and the
+first 20 uses. The text output writes a place as `<layer> <file>:<line>:<column>`: a place of the
+layer `game` (or `jomini`, `clausewitz`, `dlc:<pack>`) is a file of the installed game, which you
+can open there. The agent server's `lookup` gives the same facts, compactly so that every name it
+is asked fits one result: each reading's facts without their evidence, the first 3 uses, its own
+`source` tool for the game's text around a place ([The agent server](agent-server.md)).
 
 What `check` prints:
 

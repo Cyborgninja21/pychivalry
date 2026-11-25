@@ -1000,7 +1000,7 @@ function specNames(): string[] {
         }
     };
     for (const directory of Object.values(spec.data.schema)) {
-        walk(directory.fields as Readonly<Record<string, { readonly fields?: unknown }>>);
+        walk(directory.fields);
     }
     for (const name of Object.keys(spec.data.scope_types)) {
         names.add(name);

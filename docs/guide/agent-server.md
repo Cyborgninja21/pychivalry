@@ -92,17 +92,26 @@ and columns count from 1, as an editor shows them.
 | Tool | Takes | Returns |
 | --- | --- | --- |
 | `check` | `path`: a file or folder of the mod (the whole mod when left out); `min_severity` (`error` by default; `hint` lists everything); `codes`: codes, families (`names/*`) or `*`; `limit` (50 by default, at most 200); `cursor`; `unused_keys` (true by default; `false` turns it off) | `totals` by severity and by code over every finding of the path, always; `matched`; the `findings` (file, place, severity, code, message, data, fix); `next_cursor`; what the per-file cap left out; the game read; notes |
-| `lookup` | `names` (at most 20); `language` (`l_english`); `cursor` | For each name, the command line's `lookup --json` answer: every reading of the spec package, with its description, scopes and what it takes; where the mod and the base game define and use it, and which definition is in force; for a name nothing knows, names close to it |
+| `lookup` | `names` (at most 20); `language` (`l_english`); `folder` (`common/decisions`: a field's reading in that folder in full) | Every name answered whole, in the order asked: first its readings, every reading the spec package has with what it is, the game's own description, its scopes, what it takes, its version and its removal or replacement (a field's kind, value type and the values the base game writes); then where the mod and the base game define it, which definition is in force, and at most 3 places of each kind; then how many places use it, by layer, and the first 3; for a name nothing knows, names close to it. `not_answered` names the names that did not fit in the result, to look up in another call; there is no cursor |
 | `find_definition` | `name`, or `file`, `line` and `column` of a place in the mod | The name written there, and its definitions by kind, the one in force first, with the rule that decides |
 | `find_references` | `name`; `limit`; `cursor` | The count by layer, then the places it is written, the mod's first |
 | `list_definitions` | `kind`: the folder that holds the definitions (`common/scripted_effects`, `events`) or a localization language (`localization:l_english`); `limit`; `cursor` | The count by layer, then the definitions, the mod's first, each with whether it is in force |
+| `source` | A place as results write it: `layer`, `file` (its path inside the layer) and `line`; `end_line`; `context` (10 lines by default, at most 20) | The text around it, at most 40 lines, each its number, a tab and its text, of a script or localization file pychivalry reads, in the base game or the mod: to see how the game itself writes a name. Never by an address on disk: an absolute path, `..`, a link or a file outside its layer is refused |
 | `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default or can be turned off |
 | `format` | `file`: a script or localization file of the mod the game reads; `cursor` | The file formatted by pychivalry's rules ([Formatting](formatting.md)), as a proposal: nothing is written. `formatted` (false for a file with a parse error or not valid UTF-8, with the `reason`), `changed`, `bom` and `line_ending` (`crlf`), `total_lines`, and the `text` from `first_line`, without the byte-order mark, a page at a time with `next_cursor`; no text when nothing changes |
 | `apply_format` | `file`: a script or localization file of the mod the game reads | The same formatting **written to the file**, as `pychivalry format <file>` writes it: Windows line breaks and the UTF-8 byte-order mark, whitespace only, never a token or a comment changed. `written` (false when the file is already in the format, or is left as it is), `formatted`, `changed`, `reason`, `bom`, `line_ending`, `total_lines`. It exists because an AI harness's own file tools may not write Windows line breaks or the mark: the first scored authoring run left every file it wrote out of the format |
 
 Two more tools come with the steps that build them: `call_graph` (step 10) and `analyze_log`
-(step 11). The tools' shapes are schema version 3 since `apply_format` came (step 9; version 2
-came with `format`, step 8).
+(step 11). The tools' shapes are schema version 4 since `source` came, with `lookup` answering
+every name whole and places that say their layer (step 9; version 3 came with `apply_format`,
+version 2 with `format`, step 8).
+
+**Places.** Every place a tool names, a finding's, a definition's, a use's, is written the same
+way: its `layer`, its `file` (the path inside that layer, with `/`), and `line`, `column`,
+`end_line` and `end_column`. A place of the layer `mod` is a file of your mod. A place of any
+other layer (`game`, `jomini`, `clausewitz`, `dlc:<pack>`) is a file of the installed game,
+outside the mod, and says `"read_with": "source"`: an agent reads it with `source`, never with
+its own file tools, which in a scored test session must not leave the mod.
 
 **Tool names.** The names here, and in the server's own instructions, are the bare ones. A
 client may list them under a prefix of its own: Claude Code lists `check` as
@@ -158,10 +167,14 @@ does not make: an event with no option, a definition two files share.
 A result never holds more than about 10,000 tokens: Claude Code cuts a tool's result off at
 25,000. Fixes count: a page of `check` holds as many findings, fixes and all, as fit. A list
 that does not fit gives `next_cursor`; the same call with `cursor` set to it gives
-the next page. `lookup` pages the same way when one name's answer is long (`trait` is a trigger,
-an effect, a link, a list, a field of nine folders and a scope type): the rest of a name comes
-back as `{ "name": ..., "continued": true, "readings": [...] }`. `explain_code` names the codes it
-left out, to ask for again.
+the next page, and a cursor continues only the answer it came from. `lookup` never pages: each
+name it answers is answered whole, and the names that did not fit are listed in `not_answered`,
+to look up in another call. A name that is a field of more than three folders (`trait` is a
+trigger, an effect, a link, a list, a field of nine folders and a scope type) has its fields in
+brief, `folder` giving one folder's field in full; a name whose answer is still too large for a
+result has its fields listed by folder (`detail`). The rest of a name's uses is
+`find_references`, a page at a time. `explain_code` names the codes it left out, to ask for
+again.
 
 ## Bad input
 
@@ -172,7 +185,8 @@ error, and its text says what is wrong and what would be valid:
 min_severity: "fatal" is not one of the valid values: error, warning, information, hint
 codes: names/no-such-check matches no code of this build; the codes are definitions/clash, ...; a whole family is written definitions/*, ...
 kind: scripted_effects holds no definition in the mod or the base game; did you mean common/scripted_effects; ...
-cursor: it was given for other arguments; repeat the arguments of the call that gave it, or leave it out to start from the first
+cursor: it was given for other arguments. A cursor only continues the answer of the call that gave it, repeated with exactly the same arguments; to ask anything else, call again without cursor
+file: the path may hold no empty, . or .. part; give the path inside its layer, as a result names it
 ```
 
 ## An example exchange
@@ -193,6 +207,7 @@ An agent checks a mod with an unknown trigger, two findings at a time:
     "matched": 5,
     "findings": [
         {
+            "layer": "mod",
             "file": "common/scripted_triggers/fixture_triggers.txt",
             "line": 16, "column": 2, "end_line": 16, "end_column": 25,
             "severity": "error",
@@ -202,6 +217,7 @@ An agent checks a mod with an unknown trigger, two findings at a time:
             "fix": null
         },
         {
+            "layer": "mod",
             "file": "common/scripted_triggers/fixture_triggers.txt",
             "line": 17, "column": 2, "end_line": 17, "end_column": 10,
             "severity": "error",
@@ -246,6 +262,8 @@ the code means and what the game's evidence is; each value of a message is a nam
 
 Then it looks up a trigger it means to use instead (`lookup` with `"names": ["is_adult"]`): the
 answer's first reading is the trigger, `"Is the scope character adult?"`, valid in the
-`character` scope and taking `yes/no`. It edits the file, then calls `check` again, which reads
-the file as it now is. Had it wanted the rest of the list first, the same call with
+`character` scope and taking `yes/no`, and its uses list places of the base game such as
+`{ "layer": "game", "file": "common/...", "line": 12, ..., "read_with": "source" }`; to see how
+the game writes it there, it calls `source` with that layer, file and line. It edits the file,
+then calls `check` again, which reads the file as it now is. Had it wanted the rest of the list first, the same call with
 `"cursor": "MjoyMDVkZjU5NTg3M2E"` would have given the third finding on.

@@ -15,6 +15,7 @@ import {
     lookup,
     openSpec,
     openWorkspace,
+    type FieldReading,
     type LookupResult,
     type Reading,
     type SourceListing,
@@ -178,7 +179,7 @@ test("lookup answers every name whole in one call, with the core's facts, its pl
     const one = await s.output('lookup', { names: ['fixture_scripted_trigger'] });
     const [first] = one['results'] as { uses: { first: Record<string, unknown>[] } }[];
     assert.equal(first?.uses.first[0]?.['layer'], 'game');
-    assert.deepEqual(Object.keys(first.uses.first[0] ?? {}), [
+    assert.deepEqual(Object.keys(first.uses.first[0] as object), [
         'layer',
         'file',
         'line',
@@ -187,7 +188,7 @@ test("lookup answers every name whole in one call, with the core's facts, its pl
         'end_column',
         'read_with',
     ]);
-    assert.equal(first.uses.first[0]?.['read_with'], 'source');
+    assert.equal(first.uses.first[0]['read_with'], 'source');
     // The language chooses the localization text shown, and the definitions of localization
     // keys: those of other languages are counted, not listed.
     const texts = async (args: Record<string, unknown>): Promise<string> =>
@@ -214,9 +215,9 @@ test("lookup answers every name whole in one call, with the core's facts, its pl
 test('lookup with folder gives the field readings of that folder in full, the others counted', async (t) => {
     const s = await server(t);
     const core = coreLookup('trait');
-    const fields = core.readings.filter((r) => r.kind === 'field');
+    const fields = core.readings.filter((r): r is FieldReading => r.kind === 'field');
     assert.ok(fields.length > 3, 'trait is a field of many folders');
-    const folder = fields[0]?.kind === 'field' ? fields[0].directory : '';
+    const folder = fields[0]?.directory ?? '';
     const out = await s.output('lookup', { names: ['trait'], folder });
     const [answer] = out['results'] as Record<string, unknown>[];
     const readings = answer?.['readings'] as Record<string, unknown>[];
@@ -228,7 +229,7 @@ test('lookup with folder gives the field readings of that folder in full, the ot
     assert.equal(answer?.['fields_in_brief'], undefined, 'in full');
     assert.equal(
         answer?.['fields_elsewhere'],
-        fields.filter((r) => r.kind === 'field' && r.directory !== folder).length,
+        fields.filter((r) => r.directory !== folder).length,
     );
     assert.match(
         await s.error('lookup', { names: ['trait'], folder: 'traits' }),

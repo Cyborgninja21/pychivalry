@@ -518,6 +518,26 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - `fixtures/requests/judge/`: a hand-made, labelled case of what the judge is given, the logic all
   five `trigger-loyal-realm` results of the expert run wrote; `judge.test.ts` holds what the judge
   is given for it and for its first draft, word for word.
+- `records/scored/authoring-expert-run-1-judge-2.json`: the expert requests' development run's
+  kept results judged again with version 2 of the judge's prompt, on the owner's word (decision
+  139), as `task scored:rejudge` wrote it: 61 judge test sessions of Fable 5.2, no authoring
+  session; 61 trials, 60 held; no error, no warning, in the format and every expectation 60 of 60;
+  `effects-as-asked` 45 of 45, `scope-as-asked` 55 of 55, `text-as-asked` 30 of 30,
+  `nothing-unasked` 35 of 35, `conditions-as-asked` 55 of 55 (52 of 55 under version 1): every
+  target met. The judge again said yes to all 220 questions: whether it says no where it should
+  still rests on the owner's hand-graded calibration sheets.
+- The agent server's `source` tool (decision 140, tool schema version 4), read-only: the base
+  game's own text, or the mod's, around a place another result named, by its layer, its file's
+  path inside the layer and a line, at most 40 lines, each numbered, a line cut after 400
+  characters; only a script or localization file the index read, decoded and split as the index
+  reads it, never by an address (an absolute path, a backslash, `..`, a link, a file outside its
+  layer's folder: refused, saying why). In the core, `readListedFile` and
+  `WorkspaceIndex.decode`.
+- `lookup` of the agent server takes `folder`: a field's reading in that folder in full, the
+  fields of other folders counted.
+- A scored record names the agent server's tool schema version (`server.schema_version`); `task
+  scored:targets` says which version a record's sessions were given and that records of different
+  versions are not comparable without saying so, and a run refuses to continue a record of another.
 
 ### Changed
 
@@ -760,8 +780,35 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - `task scored:calibrate` gives its judge the same material, so it needs `CK3_GAME_PATH` and its
   record states the game (a calibration record's `game` is no longer `null`; none had been made).
   The guide's three commands name it; the sheets are unchanged.
+- **The agent server's `lookup` answers every name whole** (decision 140, tool schema version 4):
+  each name asked is answered whole in one result, its readings first, each with what it is, the
+  game's description, its scopes, what it takes, its version and its removal, then its
+  definitions (at most 3 places a group, counted whole) and its uses (counted by layer, the first
+  3; `find_references` lists all), or it is named in `not_answered`, to look up in another call.
+  There is no cursor. The spec package's evidence is left to the command line's `lookup --json`;
+  a field of more than three folders comes in brief; every name of the spec package fits a result
+  alone. In the expert run, every session's first lookup got 1 to 3 of its 2 to 20 names and 9 of
+  its 12 tool errors were cursors given with other names; replayed over the installed game, 45 of
+  those 61 first lookups are answered whole in one call and the rest in 2 or 3.
+- **Every place every tool names says its layer** (decision 140): one writer writes `layer`,
+  `file` and the span, and a place outside the mod `"read_with": "source"`; `check`'s findings and
+  fix edits and `find_definition`'s `at` say `layer: "mod"`. The same-answers comparison holds
+  every place of a finding to the mod before it takes the layer off.
+- The server's instructions and the three skills say when to read the game's own text with
+  `source`, that a game place is never read with a session's own file tools, and that `lookup`
+  names what it did not answer; the write-content skill learns a folder's fields with `folder`.
+  The scored runs offer `source`.
 
 ### Fixed
+
+- The shared index's test "a lender that dies in the middle of a request takes nothing with it"
+  failed once on Windows in #156 and #157: the program that starts lending right after the first
+  one is killed did not lend at its first look. A race in the code, not a timeout: it took a
+  successful connection to the address as the old lender alive, and a program being killed can
+  still take one for a moment (on Windows, another instance of its named pipe). A program that
+  would lend now probes with the address file's token and takes the address over unless the lender
+  answers within 2 seconds; a lender answers a probe at once, busy or not. A new test of an address
+  that takes a connection and never answers, or closes, fails with the old check.
 
 - The judge of the scored authoring test answered from its memory of the game: in the expert
   requests' development run it said three times that `popular_opinion`, the trigger game 1.21.0.3
@@ -792,14 +839,9 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Build step 9: the judge's calibration (item 9.6), on its three sheets, all before the release
   run (decision 135), and the hand checklist on VS Code's AI (item 9.7), on an extension file
   built from `main`, are the owner's to run, and the third preview (9.9) waits for both. The
-  expert requests' development run finished (decision 138); re-judging its kept results with
-  version 2 of the judge is 61 judge test sessions and no authoring session, asked of the owner.
-  Three proposals of what a session is given are asked too, with what the run's 61 trials say of
-  each: a read-only tool for the game's own text around a place, game places that do not read as
-  files of the mod, and `lookup`'s pages kept whole by name with the readings first (the first
-  page of every session held 1 to 3 of the 2 to 20 names asked). The third preview's release run,
-  10 trials of each of the 24 requests, 480 test sessions, is made once on his word (decision
-  132).
+  development run of the expert requests on tool schema version 4, 120 test sessions, comes next,
+  on his word (decision 141). The third preview's release run, 10 trials of each of the 24
+  requests, 480 test sessions, is made once on his word after it (decision 132).
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

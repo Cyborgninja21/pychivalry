@@ -321,7 +321,7 @@ on the owner's word. `results`:
 | `model` | The model, by its full name |
 | `session_limit`, `timeout_minutes` | The session limit each test session was given (`SCORED_SESSION_LIMIT`, at which Claude Code ends the session), and the time limit after which the run stops one |
 | `arguments` | Claude Code's arguments, with the prompt file and the agent-server configuration named instead of given |
-| `server` | The agent server's `entry` point, from the repository root, and its `arguments` with `<trial mod>` and `<game stub>` |
+| `server` | The agent server's `entry` point, from the repository root, its `arguments` with `<trial mod>` and `<game stub>`, and `schema_version`, its tool schema version (since version 4; absent before) |
 | `trials` | Per trial: `task`, `trial` (from 1), `passed`, `stopped` (`finished`, `session-limit`, `turns`, `error`, `timeout`, `no-result`), `harness_problems`, the five `graders` each with `passed` and its `problems`, `tool_calls` (per tool: `calls` and `errors`), `tool_errors` (the tool and its text, folders named, no other path), `permission_denials`, `session` (what the session was offered: the harness version, the model, the permission mode, the tools, the agent servers with their status, the skills, and the plugins by their source, of which only Claude Code's own, `<name>@builtin`, may be there; null when the stream had no start), `turns`, `duration_ms`, `exit_code`, and `findings_left` (what the checker still reports, by severity) |
 | `tasks` | Per task: `trials`, `passed`, `pass_rate` (passed / trials, to 4 places), and `target`, the owner's target and whether the run met it (decision 82): `run` (`release` for 10 trials or more, else `development`), `needs` (the trials that must pass: all of them) and `met`. A record made before the target was set, item 6.11's, has none |
 
@@ -352,7 +352,7 @@ is written again after every trial. `results`:
 | `model`, `judge_model` | The authoring sessions' model and the judge's, by their full names |
 | `session_limit`, `judge_session_limit`, `timeout_minutes`, `judge_timeout_minutes` | The session limit and the time limit of each kind of session |
 | `arguments`, `judge_arguments` | Claude Code's arguments for each, the prompt and the agent-server configuration named instead of given |
-| `server` | The agent server's `entry` and `arguments`, with `<trial mod>` and `<game dir>` |
+| `server` | The agent server's `entry` and `arguments`, with `<trial mod>` and `<game dir>`, and `schema_version`, its tool schema version (since version 4; absent before) |
 | `trials` | Per trial: `task` (the request's id), `content_type`, `difficulty`, `trial` (from 1 within its request), `harness_held`, then what an agent-use trial keeps of the session (`stopped`, `harness_problems`, `tool_calls`, `tool_errors`, `permission_denials`, `session`, `turns`, `duration_ms`, `exit_code`); `validity`, grade one: the `errors`, `warnings`, `information` and `hints`, `zero_errors`, `no_warnings`, `in_format` (no `style/` warning) and the errors and warnings `by_code`; `expectations`, each `expectation` in words, `met` and its `problem`, and `expectations_met`; `judge`: its `state` (`answered`, `malformed` or `not-judged`), `why` when not answered, its session's `stopped`, `harness_problems`, `turns`, `duration_ms` and `exit_code`, and its `answers`, one per dimension the request asks (`yes`, `no` or `cannot-tell`) |
 | `tasks` | Per request run: its `name`, `content_type` and `difficulty`, its `trials` and those whose harness `held`, and of those the counts with `zero_errors`, `no_warnings`, `in_format` and `expectations_met`, and per dimension `judged` the counts of `yes`, `no`, `cannot_tell` and `unanswered` |
 | `overall` | The same counts over every trial |
@@ -395,7 +395,15 @@ the kept trials before any session) with a new judge; its `tool` and `made_at` a
 and a note says when, at which commit and with which version of the judge's prompt it was judged
 again ([tools/scored-run/README.md](../tools/scored-run/README.md#re-judging-kept-results)). Every
 record names the judge's prompt it was judged with by its hash (`judge_prompt_sha256`), and
-`task scored:targets` names its version.
+`task scored:targets` names its version. The first is `authoring-expert-run-1-judge-2.json`: the
+expert requests' development run judged again with version 2 (decision 139).
+
+**The agent server a record's sessions were given.** Since tool schema version 4 (decision 140) a
+scored record names the agent server's tool schema version in `server.schema_version`; a record
+without it, every one committed before, was made with version 3 or earlier (no `source`, `lookup`
+in pages, game places that did not say how they are read). `task scored:targets` says which a
+record's sessions were given and that records of different versions are not comparable without
+saying so, and a run refuses to continue a record of another version.
 
 ### Calibration records (`scored:calibration`)
 
