@@ -30,8 +30,11 @@ requests, its judge and the judge's calibration. Two scored authoring runs are o
 (2026-11-24), and the second meets the owner's targets; so does the expert requests'
 development run (2026-11-25), its kept results judged again with version 2 of the judge's prompt
 (decision 139). Since decision 140 the agent server has nine tools, `source` among them, and
-answers every name `lookup` is asked whole. The calibration's hand grading and the hand checklist
-are the owner's, before the third preview. What waits on the owner or on the spec
+answers every name `lookup` is asked whole; since decisions 143 and 144 the command line has
+`source` too, from the same code, and `lookup` gives one name's evidence on request (tool schema
+version 5). The development run of the expert requests on it waits for the owner's word (decision
+145). The calibration's hand grading and the hand checklist are the owner's, before the third
+preview. What waits on the owner or on the spec
 work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
@@ -70,12 +73,12 @@ lives unchanged in `legacy/`.
 | Machines | This laptop runs the game-file suites: it has the game and the five test mods. The analysis machine, a Windows desktop with the analysis tools, is used only to re-derive the spec and to load content in the running game. |
 | VS Code floor | Recent editors only. The floor is the release where VS Code's Copilot harness is the default: **1.146**, pinned in build step 7 (item 7.2), the lowest release on which the extension's agent server was seen forwarded to that harness (1.142 to 1.145 start no harness session without a sign-in). The owner kept it at 1.146 on 2026-11-23 (decision 88). |
 | Shared index | The language server, the agent servers and the command line hold one copy of the base game's index between them, not one each (decision 87): the language server lends it; the others load their own only when it cannot answer. Every surface gives the same findings either way ([shared-index.md](shared-index.md)). |
-| AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. Since decision 140 the agent server's `lookup` answers every name whole, a read-only `source` gives the base game's own text around a place, and every place says its layer, so that an agent reads the game's files only through the server. |
+| AI surface | One bundled agent server (MCP) plus a set of skills. It serves both Claude Code and VS Code's built-in AI. There is no chat participant and no separate set of language-model tools. Since decision 140 the agent server's `lookup` answers every name whole, a read-only `source` gives the base game's own text around a place, and every place says its layer, so that an agent reads the game's files only through the server. Since decisions 143 and 144 the command line's `source` reads the same text from the same code, and `lookup` gives one name's spec package evidence on request. |
 | AI harness | The AI that uses pychivalry is always another program that connects to it: Claude Code running in VS Code, or VS Code's built-in AI, signed in however its user already signed it in. pychivalry contains no API key, no token and no login, and no shipped package makes a network call or a model call; a test in CI holds every shipped package to it. |
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
 | Authoring bar | The authoring loop has a round limit of 5. Its targets, set by the owner on 2026-11-24 (decision 127), are strict and hold before any release: every result with no error; every result with no warning and in pychivalry's format; at least 95% of results meeting every expectation checked in code; no judged dimension below 95% yes. The record states measures only; the targets are read from it (`task scored:targets`). The first run (decision 120) meets two of them, the second (decision 128) all four. |
 | Authoring judge | In the scored authoring run, Opus 5.5 (`claude-opus-5-5`) writes and Fable 5.2 (`claude-fable-5-2`) judges: the judge is another model than the one whose work it judges (decision 121). The judge is never the authority on whether a name exists or what it means: it is given pychivalry's checker's report on the result over the installed game and the game's own description of every keyword the result writes, and takes names from them (version 2 of its prompt, decision 138). |
-| Authoring requests | Harder requests are added before the third preview (decision 131): twelve expert requests beside the first twelve, results read with and without them, which first get a development run of their own (decision 134). The third preview's release run, 10 trials of each request, is made once, on the owner's word, after his hand calibration of all three sheets (decision 135) and hand checklist and once the request list is final (decision 132): with twenty-four requests, 480 test sessions. After the three changes of decision 140, a development run of the expert requests measures them before the release run (decision 141). |
+| Authoring requests | Harder requests are added before the third preview (decision 131): twelve expert requests beside the first twelve, results read with and without them, which first get a development run of their own (decision 134). The third preview's release run, 10 trials of each request, is made once, on the owner's word, after his hand calibration of all three sheets (decision 135) and hand checklist and once the request list is final (decision 132): with twenty-four requests, 480 test sessions. After the three changes of decision 140, a development run of the expert requests measures them before the release run (decision 141); it is not started until the owner says so (decision 145), and is made on tool schema version 5. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
@@ -367,7 +370,9 @@ default folder.
 
 ### Command line
 
-`check`, `lookup`, `format`, `explain`, `log` and `mcp`.
+`check`, `lookup`, `source`, `format`, `explain`, `log` and `mcp`. *Since decision 143:*
+`source <layer> <file> <line>`, the text around a place a result named, the same lines as the
+agent server's `source` from the same core code.
 
 - `check` keeps what 2.3.0 had, so results stay comparable: the mod folder, `--vanilla`,
   `--spec`, `--json`, and exit codes 0 (no errors), 1 (errors) and 2 (bad usage).
@@ -381,17 +386,20 @@ default folder.
 
 - **Tools.** About nine: check; look up names (several at once); find a definition; find
   references; list definitions of a kind; call graph; analyse a log; explain codes; format.
-  *Built, tool schema version 4 (decision 140):* nine tools, exactly `check`, `lookup`,
+  *Built, tool schema version 5 (decisions 140 and 144):* nine tools, exactly `check`, `lookup`,
   `find_definition`, `find_references`, `list_definitions`, `source`, `explain_code`, `format`
   and `apply_format`; `call_graph` and `analyze_log` come with build steps 10 and 11. Besides the
   tools that search (`lookup`, `find_definition`, `find_references`, `list_definitions`) and
   `check`, two read text for an agent: `format`, a file of the mod in the format, and `source`,
   the base game's own text (or the mod's) around a place another result named, at most 40 lines,
-  of a file the index read, never by an address. `apply_format` is the only tool that writes.
+  of a file the index read, never by an address, the same lines the command line's `source`
+  shows. `apply_format` is the only tool that writes.
 - **Answers whole, places that say where.** `lookup` answers every name asked whole, its
   readings first, or names it in `not_answered`, with no cursor; every place every tool names
   says its layer, and a place of the base game says it is read with `source`, not with an
-  agent's own file tools (decision 140).
+  agent's own file tools (decision 140). On request (`evidence`, off by default), `lookup` gives
+  one name's readings with the spec package's evidence behind each part, as the command line's
+  `lookup --json` prints them, as many as fit a result and the rest counted (decision 144).
 - **Results fit a context window.** Check returns totals by severity and by code every time,
   then findings filtered by severity and code, limited, with a cursor for the next page.
   Results stay under about 10,000 tokens; Claude Code cuts a result off at 25,000.
@@ -551,9 +559,9 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | Call graph, call hierarchy | Fixture mod | Callers and callees equal the known graph, for all five kinds of link. |
 | Selection ranges, document symbols | Fixture positions | Ranges and symbols equal the expected ones. |
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
-| Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same.* |
+| Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same. Step 9 extends it to `source` and `lookup`'s evidence: the command line's `source --json` and the agent server's `source` give the same lines and the same refusals for every place of the planted-defect mod and its game stub, and `lookup`'s evidence of one name is `lookup --json`'s readings.* |
 | Agent use | Planted defects `M` | See [AI tests](#ai-tests). |
-| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *Two runs, 2026-11-24, are on record. The first (`records/scored/authoring-run-1.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation. The second, after its fixes (`records/scored/authoring.json`): 60 of 60 on every measure, the judge yes to all 180 questions, every target of the owner's met. Both on the first twelve requests; twelve expert requests were added after them (decision 131), 24 in all. The expert requests' development run, 2026-11-25 (`records/scored/authoring-expert-run-1.json`, decision 138): 61 trials, 60 held; 60 of 60 without an error, without a warning, in the format and meeting every expectation; every judged dimension 100% yes but `conditions-as-asked`, 52 of 55 (94.5%), short of its 95% target. Its three answers that were not yes were the judge's error, not the results': it said from memory that the game's `popular_opinion` is not a trigger, which in 1.21.0.3 it is. Since then the judge takes names and their meanings from the checker and the game's own documentation (version 2 of its prompt); the run's kept results judged again with it, 61 judge test sessions and no authoring session (decision 139, `records/scored/authoring-expert-run-1-judge-2.json`): `conditions-as-asked` 55 of 55 and every target met, the judge saying yes to all 220 questions, so that whether it can say no still rests on the owner's hand-graded calibration sheets. Since decision 140 what a session is given has changed (tool schema version 4: `source`, `lookup` whole by name, places that say their layer); a development run of the expert requests on it, 120 test sessions, comes before the release run (decision 141), and a record names the server's tool schema version so that records made before and after are not read as one. The release run before the third preview, 10 trials of each of the 24 requests, is 240 trials and starts 480 test sessions: 240 authoring and 240 judge (decision 132).* |
+| Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *Two runs, 2026-11-24, are on record. The first (`records/scored/authoring-run-1.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation. The second, after its fixes (`records/scored/authoring.json`): 60 of 60 on every measure, the judge yes to all 180 questions, every target of the owner's met. Both on the first twelve requests; twelve expert requests were added after them (decision 131), 24 in all. The expert requests' development run, 2026-11-25 (`records/scored/authoring-expert-run-1.json`, decision 138): 61 trials, 60 held; 60 of 60 without an error, without a warning, in the format and meeting every expectation; every judged dimension 100% yes but `conditions-as-asked`, 52 of 55 (94.5%), short of its 95% target. Its three answers that were not yes were the judge's error, not the results': it said from memory that the game's `popular_opinion` is not a trigger, which in 1.21.0.3 it is. Since then the judge takes names and their meanings from the checker and the game's own documentation (version 2 of its prompt); the run's kept results judged again with it, 61 judge test sessions and no authoring session (decision 139, `records/scored/authoring-expert-run-1-judge-2.json`): `conditions-as-asked` 55 of 55 and every target met, the judge saying yes to all 220 questions, so that whether it can say no still rests on the owner's hand-graded calibration sheets. Since decision 140 what a session is given has changed (tool schema version 4: `source`, `lookup` whole by name, places that say their layer; version 5 since decision 144: `lookup`'s `evidence` on request); a development run of the expert requests on it, 120 test sessions, comes before the release run (decision 141), on the owner's word, not yet given (decision 145), and a record names the server's tool schema version so that records made before and after are not read as one. The release run before the third preview, 10 trials of each of the 24 requests, is 240 trials and starts 480 test sessions: 240 authoring and 240 judge (decision 132).* |
 | Speed | Benchmarks `G` | Within the stated tolerance of the 2.3.0 medians recorded in build step 1. |
 
 ## AI tests
@@ -638,7 +646,7 @@ rate, because a model's output is not repeatable.
   judge's error (decision 138); judged again with version 2 of the judge's prompt, every target
   is met (decision 139). The three changes to what a session is given that the run raised are
   built (decision 140), and a development run of the expert requests on them, 120 test sessions,
-  comes first (decision 141). The release run, made once when the list is final, is 10 trials of
+  comes first (decision 141), when the owner says (decision 145), on tool schema version 5. The release run, made once when the list is final, is 10 trials of
   each of the 24 requests: 480 test sessions (decision 132).
 
 ## Test data

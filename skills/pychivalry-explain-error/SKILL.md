@@ -50,6 +50,14 @@ up for Claude Code" in VS Code once for the mod's folder.
    `style/` findings say where a file is not in pychivalry's format or breaks one of its
    best-practice rules; they rest on pychivalry's own rules, not on the game, which does not
    care. Where `lookup` says a part is not documented, say that it is not documented.
+6. **Show where a name's reading comes from, when it is asked.** If the person wants to know why
+   a name is wrong, or how pychivalry knows what a name is (removed in this version of the game,
+   in another bucket, valid in other scopes), run `lookup` with that one name and `evidence` set
+   to true. Its answer then also holds `evidence`: the name's readings again, each with the
+   spec package's evidence behind each part (what the game's own documentation, output or files
+   say, and where it was read), to cite. It is given for one name a call; readings that do not
+   fit are counted in `left_out`, which says what to ask instead. Leave it out otherwise: the
+   plain answer already holds every fact.
 
 Change no file. If the person then wants the finding fixed, the pychivalry-fix-error skill does
 that.

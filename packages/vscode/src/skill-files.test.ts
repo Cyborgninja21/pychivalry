@@ -349,6 +349,26 @@ test('each skill says when to read the game itself with source, and never a game
     assert.match(prose, /with `folder` set to that folder/);
 });
 
+test("lookup's evidence is named only where it helps: the explain-error skill, for one name", () => {
+    // Tool schema version 5 (the owner's decision of 2026-11-25): the spec package's evidence of
+    // one name, on request. A session explaining why a name is wrong may need to cite it; one
+    // fixing or writing content has every fact it needs in the plain answer, and an answer that
+    // grows costs it room.
+    for (const skill of skills) {
+        const { body } = parse(skill.name, textOf(skill));
+        const named = spans(body).includes('evidence');
+        const prose = body.replace(/\s+/g, ' ');
+        if (skill.name === 'pychivalry-explain-error') {
+            assert.ok(named, `${skill.name} names evidence`);
+            assert.match(prose, /run `lookup` with that one name and `evidence` set to true/);
+            assert.match(prose, /It is given for one name a call/);
+            assert.match(prose, /`left_out`/);
+        } else {
+            assert.ok(!named, `${skill.name} does not name evidence`);
+        }
+    }
+});
+
 test("everything a skill writes as code is pychivalry's own or a name the spec package has", () => {
     const spec = openSpec(path.join(REPO, 'spec'));
     assert.deepEqual(Object.fromEntries(unbacked(spec)), {});

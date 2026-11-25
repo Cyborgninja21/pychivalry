@@ -92,19 +92,42 @@ and columns count from 1, as an editor shows them.
 | Tool | Takes | Returns |
 | --- | --- | --- |
 | `check` | `path`: a file or folder of the mod (the whole mod when left out); `min_severity` (`error` by default; `hint` lists everything); `codes`: codes, families (`names/*`) or `*`; `limit` (50 by default, at most 200); `cursor`; `unused_keys` (true by default; `false` turns it off) | `totals` by severity and by code over every finding of the path, always; `matched`; the `findings` (file, place, severity, code, message, data, fix); `next_cursor`; what the per-file cap left out; the game read; notes |
-| `lookup` | `names` (at most 20); `language` (`l_english`); `folder` (`common/decisions`: a field's reading in that folder in full) | Every name answered whole, in the order asked: first its readings, every reading the spec package has with what it is, the game's own description, its scopes, what it takes, its version and its removal or replacement (a field's kind, value type and the values the base game writes); then where the mod and the base game define it, which definition is in force, and at most 3 places of each kind; then how many places use it, by layer, and the first 3; for a name nothing knows, names close to it. `not_answered` names the names that did not fit in the result, to look up in another call; there is no cursor |
+| `lookup` | `names` (at most 20); `language` (`l_english`); `folder` (`common/decisions`: a field's reading in that folder in full); `evidence` (false by default; true with exactly one name) | Every name answered whole, in the order asked: first its readings, every reading the spec package has with what it is, the game's own description, its scopes, what it takes, its version and its removal or replacement (a field's kind, value type and the values the base game writes); then where the mod and the base game define it, which definition is in force, and at most 3 places of each kind; then how many places use it, by layer, and the first 3; for a name nothing knows, names close to it. `not_answered` names the names that did not fit in the result, to look up in another call; there is no cursor. With `evidence`, the one name's answer also holds `evidence`: its readings as `pychivalry lookup --json` prints them, with the spec package's evidence behind each part ([below](#evidence)) |
 | `find_definition` | `name`, or `file`, `line` and `column` of a place in the mod | The name written there, and its definitions by kind, the one in force first, with the rule that decides |
 | `find_references` | `name`; `limit`; `cursor` | The count by layer, then the places it is written, the mod's first |
 | `list_definitions` | `kind`: the folder that holds the definitions (`common/scripted_effects`, `events`) or a localization language (`localization:l_english`); `limit`; `cursor` | The count by layer, then the definitions, the mod's first, each with whether it is in force |
-| `source` | A place as results write it: `layer`, `file` (its path inside the layer) and `line`; `end_line`; `context` (10 lines by default, at most 20) | The text around it, at most 40 lines, each its number, a tab and its text, of a script or localization file pychivalry reads, in the base game or the mod: to see how the game itself writes a name. Never by an address on disk: an absolute path, `..`, a link or a file outside its layer is refused |
+| `source` | A place as results write it: `layer`, `file` (its path inside the layer) and `line`; `end_line`; `context` (10 lines by default, at most 20) | The text around it, at most 40 lines, each its number, a tab and its text, of a script or localization file pychivalry reads, in the base game or the mod: to see how the game itself writes a name. Never by an address on disk: an absolute path, `..`, a link or a file outside its layer is refused. The same lines, and the same refusals, as `pychivalry source <layer> <file> <line>` on the terminal ([Commands](commands.md#options-of-source)), from the same code |
 | `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default or can be turned off |
 | `format` | `file`: a script or localization file of the mod the game reads; `cursor` | The file formatted by pychivalry's rules ([Formatting](formatting.md)), as a proposal: nothing is written. `formatted` (false for a file with a parse error or not valid UTF-8, with the `reason`), `changed`, `bom` and `line_ending` (`crlf`), `total_lines`, and the `text` from `first_line`, without the byte-order mark, a page at a time with `next_cursor`; no text when nothing changes |
 | `apply_format` | `file`: a script or localization file of the mod the game reads | The same formatting **written to the file**, as `pychivalry format <file>` writes it: Windows line breaks and the UTF-8 byte-order mark, whitespace only, never a token or a comment changed. `written` (false when the file is already in the format, or is left as it is), `formatted`, `changed`, `reason`, `bom`, `line_ending`, `total_lines`. It exists because an AI harness's own file tools may not write Windows line breaks or the mark: the first scored authoring run left every file it wrote out of the format |
 
 Two more tools come with the steps that build them: `call_graph` (step 10) and `analyze_log`
-(step 11). The tools' shapes are schema version 4 since `source` came, with `lookup` answering
-every name whole and places that say their layer (step 9; version 3 came with `apply_format`,
-version 2 with `format`, step 8).
+(step 11). The tools' shapes are schema version 5 since `lookup` took `evidence` (step 9): its
+answers are otherwise unchanged, and without `evidence` no answer holds more than under version
+4, which came with `source`, `lookup` answering every name whole and places that say their layer
+(step 9; version 3 came with `apply_format`, version 2 with `format`, step 8).
+
+### Evidence
+
+`lookup`'s answer gives each reading's facts, not the evidence behind them, so that every name a
+session asks about fits one result. When an agent has to show where a fact comes from, why a name
+is wrong for one, it asks for one name with `"evidence": true`. The answer is the same, and holds
+`evidence` beside it:
+
+- `spec`: the spec package the evidence is from, its version and checksum;
+- `readings`: the name's readings whole, in order, as `pychivalry lookup --json` prints them in
+  its `readings`: what the game's own documentation, output, `.info` files and base game say of
+  each part, and where the package read it (with `folder`, only that folder's field readings, as
+  the answer has them). Every place in them is written as every other place here, from line 1,
+  with its layer and `read_with`;
+- `readings_total`: how many readings the name has;
+- `left_out`: null when every reading is given; otherwise the readings after those given, whose
+  evidence did not fit the result, never cut inside one: how many, the characters they hold, and
+  `ask`, what to ask instead (`folder`, for a field of many folders). Of the spec package's 15,852
+  names, the evidence of 15,758 fits whole.
+
+It is given for one name a call; asked for with more, `lookup` says so and how to ask, and
+answers nothing. Off by default, it adds nothing to any other answer.
 
 **Places.** Every place a tool names, a finding's, a definition's, a use's, is written the same
 way: its `layer`, its `file` (the path inside that layer, with `/`), and `line`, `column`,
@@ -173,8 +196,10 @@ to look up in another call. A name that is a field of more than three folders (`
 trigger, an effect, a link, a list, a field of nine folders and a scope type) has its fields in
 brief, `folder` giving one folder's field in full; a name whose answer is still too large for a
 result has its fields listed by folder (`detail`). The rest of a name's uses is
-`find_references`, a page at a time. `explain_code` names the codes it left out, to ask for
-again.
+`find_references`, a page at a time. A name's `evidence` gives as many whole readings as fit and
+counts the rest in `left_out`. `source` shows at most 40 lines, and lines whose text, written as
+JSON, would pass 12,000 characters are left out and said to be. `explain_code` names the codes it
+left out, to ask for again.
 
 ## Bad input
 
@@ -187,6 +212,7 @@ codes: names/no-such-check matches no code of this build; the codes are definiti
 kind: scripted_effects holds no definition in the mod or the base game; did you mean common/scripted_effects; ...
 cursor: it was given for other arguments. A cursor only continues the answer of the call that gave it, repeated with exactly the same arguments; to ask anything else, call again without cursor
 file: the path may hold no empty, . or .. part; give the path inside its layer, as a result names it
+evidence: given with 2 names, and it is given for one name a call. Ask lookup with that one name and evidence true, once for each name whose evidence you need, and look the other names up in one call without evidence
 ```
 
 ## An example exchange

@@ -21,9 +21,10 @@ the repository's issues page.
   find definitions and references, explain a code) as soon as the extension is installed. For
   Claude Code, run **pychivalry: Set up for Claude Code** once in your mod's folder.
 - **The command line in the terminal.** In VS Code's integrated terminal, `pychivalry check .`
-  checks the mod in the current folder, `pychivalry lookup <name>` looks a name up and
-  `pychivalry explain <code>` says what a code means. You need no Node of your own: VS Code runs
-  it.
+  checks the mod in the current folder, `pychivalry lookup <name>` looks a name up,
+  `pychivalry source <layer> <file> <line>` shows the game's own text around a place a result
+  named, and `pychivalry explain <code>` says what a code means. You need no Node of your own:
+  VS Code runs it.
 
 pychivalry holds no API key, no token and no login, and makes no network call and no model call.
 

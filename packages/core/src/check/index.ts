@@ -143,6 +143,7 @@ export {
     GAME_NOT_LOADED,
     MAX_FINDINGS_PER_FILE,
     localizationFindings,
+    openSources,
     openWorkspace,
     openWorkspaceSteps,
     scriptFindings,
@@ -153,6 +154,7 @@ export {
     type WorkspaceCheckOptions,
     type WorkspaceFinding,
     type WorkspaceOptions,
+    workspaceSources,
 } from './workspace.js';
 
 export interface CheckInput {
