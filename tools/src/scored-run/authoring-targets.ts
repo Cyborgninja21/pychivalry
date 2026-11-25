@@ -43,12 +43,14 @@ import { CommandError, EXIT, isObject } from '../util.js';
 import {
     AUTHORING_SUITE,
     authoringProblems,
+    type AuthoringRecord,
     type AuthoringResults,
     type AuthoringTask,
     type AuthoringTrial,
     type DimensionCounts,
     type Measures,
 } from './authoring-record.js';
+import { JUDGE_PROMPT_VERSION, judgePromptVersion } from './judge.js';
 import { committedRequests, EXPERT } from './requests.js';
 import { RELEASE_TRIALS } from './scored-record.js';
 import { ENDED_BY_ITSELF } from './stop-rule.js';
@@ -133,6 +135,17 @@ export interface TargetsReading {
         readonly requests: number;
         readonly targets: readonly TargetReading[];
         readonly met: boolean;
+    } | null;
+    /**
+     * The judge's prompt the record was judged with, by its hash and the version of
+     * `JUDGE_PROMPT_VERSIONS` it is (null for a hash no version has), and whether it is the
+     * committed one; null when only measures are given. A record judged with another version is
+     * read the same way, and its reading says so: its judged parts are that judge's.
+     */
+    readonly judge: {
+        readonly sha256: string;
+        readonly version: number | null;
+        readonly committed: boolean;
     } | null;
 }
 
@@ -306,9 +319,11 @@ export function sumMeasures(tasks: readonly AuthoringTask[]): Measures {
 export function readTargets(
     results: Pick<AuthoringResults, 'tasks' | 'overall'> & {
         readonly trials?: readonly AuthoringTrial[];
+        readonly task?: Pick<AuthoringResults['task'], 'judge_prompt_sha256'>;
     },
     list?: readonly string[],
 ): TargetsReading {
+    const sha = results.task?.judge_prompt_sha256;
     const notHeld = (results.trials ?? []).filter((t) => !t.harness_held);
     const notHeldAll = notHeld.map(notHeldOf);
     const targets = targetsOf(results.overall, notHeldAll);
@@ -342,7 +357,28 @@ export function readTargets(
                       targets: withoutExpert,
                       met: withoutExpert.every((t) => t.met),
                   },
+        judge:
+            sha === undefined
+                ? null
+                : {
+                      sha256: sha,
+                      version: judgePromptVersion(sha)?.version ?? null,
+                      committed: sha === JUDGE_PROMPT_VERSION.sha256,
+                  },
     };
+}
+
+/** Which judge's prompt a reading's judged parts are of, in words. */
+function judgeLine(judge: NonNullable<TargetsReading['judge']>): string {
+    const committed = JUDGE_PROMPT_VERSION.version;
+    if (judge.committed) {
+        return `judged with version ${String(committed)} of the judge's prompt, the committed one`;
+    }
+    const which =
+        judge.version === null
+            ? `a judge's prompt no version of this checkout has (sha256 ${judge.sha256.slice(0, 12)}…)`
+            : `version ${String(judge.version)} of the judge's prompt`;
+    return `judged with ${which}, not the committed version ${String(committed)}: its judged parts are that judge's, and are not comparable with those of a record judged with version ${String(committed)}`;
 }
 
 function percent(p: TargetPart): string {
@@ -354,20 +390,11 @@ function percent(p: TargetPart): string {
 }
 
 /**
- * The targets read from an authoring record on disk: `SCORED_RECORD` (from the repository root),
- * or the committed `records/scored/authoring.json`, against the committed request list. A file
- * that is not an authoring record valid against the record schema, with figures that agree with
- * each other, is refused: its measures cannot be trusted to read.
+ * An authoring record read from a file: refused unless it is an authoring record valid against
+ * the record schema, compiled as `task records:check` compiles it, with figures that agree with
+ * each other, since its measures could not be trusted otherwise.
  */
-export function readRecordTargets(
-    root: string,
-    env: Readonly<Record<string, string | undefined>>,
-): { readonly file: string; readonly made_at: string; readonly reading: TargetsReading } {
-    const named = env['SCORED_RECORD'];
-    const file = path.resolve(
-        root,
-        named === undefined || named === '' ? TARGETS_RECORD_FILE : named,
-    );
+export function readAuthoringRecord(root: string, file: string): AuthoringRecord {
     if (!existsSync(file)) {
         throw new CommandError(`the record does not exist: ${file}`, EXIT.usage);
     }
@@ -383,7 +410,6 @@ export function readRecordTargets(
             EXIT.usage,
         );
     }
-    // The record schema, compiled as `task records:check` compiles it.
     const validate = new Ajv2020({ allErrors: true, strict: true }).compile(
         JSON.parse(
             readFileSync(path.join(root, 'records', 'record.schema.json'), 'utf8'),
@@ -398,11 +424,29 @@ export function readRecordTargets(
             EXIT.usage,
         );
     }
+    return record as unknown as AuthoringRecord;
+}
+
+/**
+ * The targets read from an authoring record on disk: `SCORED_RECORD` (from the repository root),
+ * or the committed `records/scored/authoring.json`, against the committed request list
+ * (`readAuthoringRecord` refuses a file whose measures cannot be trusted).
+ */
+export function readRecordTargets(
+    root: string,
+    env: Readonly<Record<string, string | undefined>>,
+): { readonly file: string; readonly made_at: string; readonly reading: TargetsReading } {
+    const named = env['SCORED_RECORD'];
+    const file = path.resolve(
+        root,
+        named === undefined || named === '' ? TARGETS_RECORD_FILE : named,
+    );
+    const record = readAuthoringRecord(root, file);
     return {
         file,
-        made_at: String(record['made_at']),
+        made_at: record.made_at,
         reading: readTargets(
-            record['results'] as AuthoringResults,
+            record.results,
             committedRequests(root).requests.map((r) => r.id),
         ),
     };
@@ -463,6 +507,9 @@ export function targetLines(reading: TargetsReading): string[] {
               ? `a development run (${trials}, but not of every request of the list)`
               : `a development run (${trials}; a run before a release has ${String(RELEASE_TRIALS)} of each)`;
     const lines: string[] = [];
+    if (reading.judge !== null) {
+        lines.push(judgeLine(reading.judge));
+    }
     if (reading.missing.length > 0) {
         lines.push(
             `the record has no trial of ${String(reading.missing.length)} request${reading.missing.length === 1 ? '' : 's'} of the list (made before ${reading.missing.length === 1 ? 'it was' : 'they were'} added, or a run of some requests only), so it is read over the requests it has: ${reading.missing.join(', ')}`,

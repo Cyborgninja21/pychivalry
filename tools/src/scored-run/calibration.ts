@@ -18,6 +18,10 @@
  *
  * Nothing in the format names the person who graded.
  *
+ * **The judge is given what the run's judge is given** (`judgeMaterial`): each result with what
+ * pychivalry's checker reports in it over the installed game (`CK3_GAME_PATH`) and the game's own
+ * description of every keyword it writes, so that a calibration measures the judge the runs use.
+ *
  * **The record**, `records/scored/calibration.json`, or the file of `records/scored/` that
  * `SCORED_RECORD` names, so that two sheets give two records (`calibrationRecordFile`): the
  * grades file by its hash, the judge's prompt, schema, model, session limit and arguments, each
@@ -30,6 +34,8 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { homedir, tmpdir } from 'node:os';
 import path from 'node:path';
+import { checkWorkspace, defaultCacheDir, openSpec, openWorkspace } from '@pychivalry/core';
+import { gameInfo, requireGameDir, type GameInfo } from '../game.js';
 import {
     committedSpec,
     machineInfo,
@@ -46,7 +52,9 @@ import {
     JUDGE_PROMPT_FILE,
     JUDGE_SCHEMA_FILE,
     judgeArgs,
+    judgeMaterial,
     judgePrompt,
+    judgePromptVersion,
     judgeRecord,
     MATERIAL_LIMIT,
     notJudged,
@@ -219,8 +227,11 @@ export interface CalibrationRecord {
     readonly made_at: string;
     readonly tool: ToolInfo;
     readonly machine: MachineInfo;
-    /** The calibration reads no game: the results it judges were made over one already. */
-    readonly game: null;
+    /**
+     * The installed game the checker read each result over, as the authoring run does, so that
+     * the judge is given what a run's judge is given.
+     */
+    readonly game: GameInfo;
     readonly spec: SpecRef;
     readonly corpus: null;
     readonly notes: readonly string[];
@@ -368,6 +379,8 @@ export function calibrationProblems(results: unknown): string[] {
 /** The calibration's parameters, from the environment. */
 export interface CalibrationOptions {
     readonly gradesFile: string;
+    /** The base game's `game` folder: the checker reads each result over it for the judge. */
+    readonly gameDir: string;
     readonly judgeModel: string;
     readonly judgeSessionLimit: number;
     readonly judgeTimeoutMinutes: number;
@@ -396,6 +409,7 @@ export function calibrationOptions(
     const claude = env['SCORED_CLAUDE'] ?? 'claude';
     return {
         gradesFile: path.resolve(root, grades),
+        gameDir: requireGameDir(env['CK3_GAME_PATH']),
         judgeModel: fullModelName(
             'SCORED_JUDGE_MODEL',
             env['SCORED_JUDGE_MODEL'] ?? PINNED_JUDGE_MODEL,
@@ -476,6 +490,8 @@ export function runCalibration(
     const grades = readGrades(options.gradesFile, list);
     const template = readFileSync(path.join(root, JUDGE_PROMPT_FILE), 'utf8');
     const validate = compileJudgeSchema(path.join(root, JUDGE_SCHEMA_FILE));
+    const spec = openSpec(path.join(root, 'spec'));
+    const game = gameInfo(options.gameDir);
     const version = harnessVersion(options.claude);
     const gradesDir = path.dirname(options.gradesFile);
     const gradesName = inRepository(root, options.gradesFile, '<grades file>');
@@ -483,15 +499,20 @@ export function runCalibration(
         `scored:calibrate: Claude Code ${version}, judge ${options.judgeModel}; ${String(grades.items.length)} hand-graded results: up to ${String(grades.items.length)} judge test sessions, each with session limit ${String(options.judgeSessionLimit)} and time limit ${String(options.judgeTimeoutMinutes)} minutes`,
     );
     const runDir = realpathSync(mkdtempSync(path.join(tmpdir(), 'pychivalry-calibration-')));
+    const cacheDir = path.join(runDir, 'cache');
+    const indexCache = defaultCacheDir({ XDG_CACHE_HOME: cacheDir, LOCALAPPDATA: cacheDir });
     const items: CalibrationItem[] = [];
     let stopped = false;
     try {
+        // The base game's index, built once; the checker reads every result over it.
+        openWorkspace({ spec, gameDir: options.gameDir, cacheDir: indexCache, modDir: null });
         for (const [i, graded] of grades.items.entries()) {
             const request = list.requests.find((r) => r.id === graded.request) as ContentRequest;
             const result = path.resolve(gradesDir, graded.result);
             const folders = [
                 { path: result, name: '<result>' },
                 { path: runDir, name: '<run dir>' },
+                { path: options.gameDir, name: '<game dir>' },
                 { path: root, name: '<repository>' },
                 { path: homedir(), name: '<home>' },
             ];
@@ -508,6 +529,12 @@ export function runCalibration(
                     `the result is over the ${String(MATERIAL_LIMIT)} characters a judge is given`,
                 );
             } else {
+                const check = checkWorkspace({
+                    spec,
+                    gameDir: options.gameDir,
+                    cacheDir: indexCache,
+                    modDir: result,
+                });
                 const run = runJudge({
                     claude: options.claude,
                     model: options.judgeModel,
@@ -515,7 +542,11 @@ export function runCalibration(
                     timeoutMinutes: options.judgeTimeoutMinutes,
                     env,
                     dir,
-                    prompt: judgePrompt(template, request, files),
+                    prompt: judgePrompt(
+                        template,
+                        request,
+                        judgeMaterial({ spec, files, game: game.build, findings: check.findings }),
+                    ),
                     request,
                     validate,
                 });
@@ -552,15 +583,16 @@ export function runCalibration(
     const record: CalibrationRecord = {
         record_format: 1,
         suite: CALIBRATION_SUITE,
-        command: `SCORED_JUDGE_MODEL=${options.judgeModel} SCORED_SESSION_LIMIT=${String(options.judgeSessionLimit)} SCORED_GRADES=${gradesName}${named === undefined || named === '' ? '' : ` SCORED_RECORD=${inRepository(root, recordFile, '<record file>')}`}${options.claude.command !== 'claude' || options.claude.args.length > 0 ? ' SCORED_CLAUDE=<another Claude Code>' : ''} task scored:calibrate`,
+        command: `SCORED_JUDGE_MODEL=${options.judgeModel} SCORED_SESSION_LIMIT=${String(options.judgeSessionLimit)} SCORED_GRADES=${gradesName}${named === undefined || named === '' ? '' : ` SCORED_RECORD=${inRepository(root, recordFile, '<record file>')}`}${options.claude.command !== 'claude' || options.claude.args.length > 0 ? ' SCORED_CLAUDE=<another Claude Code>' : ''} CK3_GAME_PATH=<game dir> task scored:calibrate`,
         made_at: now(),
         tool: toolInfo(root),
         machine: machineInfo(),
-        game: null,
+        game,
         spec: committedSpec(root),
         corpus: null,
         notes: [
             'Each item is one judge test session of the Claude Code installed on the machine the run was made on, given a request and a result a person graded by hand; the script gave it no credentials, and pychivalry itself makes no model call.',
+            `The judge was given what an authoring run's judge is given (judge prompt version ${String(judgePromptVersion(sha256OfFile(path.join(root, JUDGE_PROMPT_FILE)))?.version ?? 'unknown')}): each result with what pychivalry's checker reports in it over the installed game at <game dir>, build ${game.build}, and the game's own description of every trigger, effect, iterator and link it writes, from the spec package.`,
             `The judge agreed with the person on ${String(summary.overall.agree)} of the ${String(summary.overall.judged)} grades it answered (${String(summary.overall.grades)} in all${stopped ? '; the run stopped at a judge whose harness did not hold' : ''}).`,
         ],
         results: {

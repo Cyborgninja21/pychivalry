@@ -199,10 +199,16 @@ tasks:
       - node tools/dist/cli.js scored authoring
 
   scored:calibrate:
-    desc: "The judge's calibration (tools/scored-run/README.md), a developer's test script: one judge test session of the Claude Code already installed on this machine for each result graded by hand in SCORED_GRADES, with SCORED_SESSION_LIMIT (required, no default) as each session's limit; records the judge's agreement with the hand grades per dimension and over all, with the cannot-tell rates, in records/scored/calibration.json. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in task ci"
+    desc: "The judge's calibration (tools/scored-run/README.md), a developer's test script: one judge test session of the Claude Code already installed on this machine for each result graded by hand in SCORED_GRADES, with SCORED_SESSION_LIMIT (required, no default) as each session's limit, each judge given what a run's judge is given (the checker's report over CK3_GAME_PATH, required, and the game's own description of each keyword); records the judge's agreement with the hand grades per dimension and over all, with the cannot-tell rates, in records/scored/calibration.json. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in task ci"
     deps: [build]
     cmds:
       - node tools/dist/cli.js scored calibrate
+
+  scored:rejudge:
+    desc: "The judge run again over an authoring record's kept results (tools/scored-run/README.md), a developer's test script: for the record SCORED_FROM names (a file of records/scored/) and the folders its run kept its trials in (SCORED_KEPT), checks before any session that every kept result is the record's and grades it again as the record did, then starts the Claude Code already installed on this machine as one judge test session per trial it judges, with the committed judge's prompt and SCORED_SESSION_LIMIT (required, no default) as each session's limit, over CK3_GAME_PATH; starts no authoring session; writes the record beside the one read (SCORED_RECORD, or <record>-judge-<version>.json), never over it. pychivalry holds no key and makes no model call; each test session counts against the developer's own Claude plan. Only on the owner's word, never in task ci"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js scored rejudge
 
   scored:targets:
     desc: "An authoring record read against the owner's targets for the scored authoring test (docs/decisions.md, decision 127; tools/scored-run/README.md): the committed records/scored/authoring.json, or the record SCORED_RECORD names; prints each target met or not, and exits 1 when one is not. Reads the record only: starts no test session"

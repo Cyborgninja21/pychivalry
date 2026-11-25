@@ -282,6 +282,22 @@ test('a trial whose session writes a correct result: valid, every expectation me
         ),
     );
     assert.ok(!stdin.includes(PROJECT_SKILLS), 'the skills are not shown to the judge');
+    // With the material from the installed game: the checker's report over it, and the game's
+    // own description of every keyword the result writes (judge prompt version 2).
+    assert.ok(
+        stdin.includes(
+            "<checker>\npychivalry's checker, over the installed game (version 1.21.0.3), reports no error and no warning in this result.\n</checker>",
+        ),
+    );
+    assert.ok(
+        stdin.includes(
+            "<keywords>\nThe game's own description (version 1.21.0.3) of each trigger, effect, iterator and link the result's script files write:\n- ",
+        ),
+    );
+    assert.match(
+        stdin,
+        /\n- add_gold: an effect; supported scopes: character; the game's description: "/,
+    );
     assert.equal((judge['argv'] as string[])[0], '-p');
 });
 
