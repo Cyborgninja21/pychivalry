@@ -196,11 +196,12 @@ function run(args: readonly string[]): number {
             : EXIT.ok;
     }
     if (group === 'scored' && command === 'authoring') {
-        const { record } = runAuthoring(root, process.env, (line) => {
+        const { stopped, short } = runAuthoring(root, process.env, (line) => {
             process.stdout.write(`${line}\n`);
         });
-        // The run passes when every trial's harness held; the measures are the result.
-        return record.results.trials.every((t) => t.harness_held) ? EXIT.ok : EXIT.failed;
+        // The run is done when it did not stop early and every request it names has its trials
+        // whose harness held; the measures are the result. Otherwise SCORED_CONTINUE carries on.
+        return stopped === null && short.length === 0 ? EXIT.ok : EXIT.failed;
     }
     if (group === 'scored' && command === 'targets') {
         const { file, made_at, reading } = readRecordTargets(root, process.env);

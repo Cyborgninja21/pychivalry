@@ -9,7 +9,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
 import { problems, type Schema } from './schema.js';
-import { connect, gameStub, MODS, scratch } from './testing.js';
+import { connect, gameStub, MODS, scratch, write } from './testing.js';
 
 test('bad arguments are results that name the valid values', async (t) => {
     const dir = scratch(t);
@@ -141,6 +141,72 @@ test('lookup given the cursor of another call with other names says to look them
     assert.equal(
         refused,
         'cursor: it was given for other names or language. A cursor only continues the answer of the call that gave it, repeated with exactly the same names or language; to ask anything else, call again without cursor',
+    );
+});
+
+test("lookup's answer cut inside a name: another call's names with its cursor are refused, the same names continue it, and the name alone needs no cursor", async (t) => {
+    // The expert requests' development run (2026-11-25): sessions looked up three names, the
+    // third name's head (its uses, each a place in a game file) ended the first page and its
+    // readings went on to the next, and two sessions then gave the cursor with that name alone.
+    // The server refused both, as it must: a cursor holds no names, and a page of other names
+    // would be a wrong page. One session repeated the same names and got the rest; the other
+    // went on without it. The stub game here gives the run's shape: each of the three names
+    // used in 20 files of the game.
+    const dir = scratch(t);
+    const files: Record<string, string> = {};
+    for (let i = 0; i < 20; i++) {
+        const n = String(i).padStart(2, '0');
+        files[`common/scripted_triggers/${'t'.repeat(115)}_${n}.txt`] =
+            `stub_trigger_${n} = { popular_opinion < -20 }\n`;
+        files[`common/scripted_effects/${'e'.repeat(115)}_${n}.txt`] =
+            `stub_effect_${n} = { add_popular_opinion = 10 }\n`;
+    }
+    const game = gameStub(path.join(dir, 'install'), files);
+    const mod = path.join(dir, 'mod');
+    write(path.join(mod, 'descriptor.mod'), 'name = "Empty"\n');
+    const s = await connect(t, ['--mod', mod, '--vanilla', game], path.join(dir, 'cache'));
+    const names = ['popular_opinion', 'change_popular_opinion', 'add_popular_opinion'];
+    const first = await s.output('lookup', { names });
+    const results = first['results'] as Record<string, unknown>[];
+    assert.deepEqual(
+        results.map((r) => [r['name'], (r['readings'] as unknown[]).length, r['readings_total']]),
+        [
+            ['popular_opinion', 2, 2],
+            ['change_popular_opinion', 1, 1],
+            ['add_popular_opinion', 0, 2],
+        ],
+    );
+    const uses = results[2]?.['uses'] as {
+        count: number;
+        first: { layer: string; file: string }[];
+    };
+    assert.equal(uses.count, 20);
+    assert.ok(uses.first.length > 0 && uses.first.every((u) => u.layer === 'game'));
+    const cursor = first['next_cursor'];
+    assert.equal(typeof cursor, 'string');
+    // What two sessions did: the one name, with the cursor. Refused, saying what to do instead.
+    assert.equal(
+        await s.error('lookup', { names: ['add_popular_opinion'], cursor }),
+        'cursor: it was given for other names or language. A cursor only continues the answer of the call that gave it, repeated with exactly the same names or language; to ask anything else, call again without cursor',
+    );
+    // What one of them did next: the same names with the cursor, the rest of that name.
+    const rest = await s.output('lookup', { names, cursor });
+    assert.deepEqual(
+        (rest['results'] as Record<string, unknown>[]).map((r) => [
+            r['name'],
+            r['continued'],
+            (r['readings'] as unknown[]).length,
+        ]),
+        [['add_popular_opinion', true, 2]],
+    );
+    assert.equal(rest['next_cursor'], null);
+    // The way the refusal also gives: the name alone, with no cursor, its whole answer at once.
+    const alone = await s.output('lookup', { names: ['add_popular_opinion'] });
+    assert.equal(alone['next_cursor'], null);
+    const whole = (alone['results'] as Record<string, unknown>[])[0];
+    assert.deepEqual(
+        [(whole?.['readings'] as unknown[]).length, whole?.['readings_total']],
+        [2, 2],
     );
 });
 
