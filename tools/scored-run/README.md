@@ -20,9 +20,10 @@ variable) and `tools/src/scored-run/no-model-call.test.ts` (the scripts of this 
 among them, name no key and no model library, reach no network, and start no program but the
 Claude Code the run names).
 
-This page describes three scored scripts: the agent-use test (below), the scored authoring test
-and the judge's calibration ([further down](#the-scored-authoring-test)), and one reading of a
-record that starts no session, `task scored:targets` ([The targets](#the-targets-item-98)).
+This page describes four scored scripts: the agent-use test (below), the scored authoring test,
+the judge's calibration ([further down](#the-scored-authoring-test)) and the re-judging of kept
+results ([Re-judging kept results](#re-judging-kept-results)), and one reading of a record that
+starts no session, `task scored:targets` ([The targets](#the-targets-item-98)).
 
 A scored run tests whether an AI agent can really use pychivalry's agent server (docs/MVP.md,
 "AI tests"; docs/PLAN.md, items 6.8 to 6.11). Each trial is one test session. A model's output is
@@ -49,6 +50,8 @@ sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed i
 | `tools/src/scored-run/authoring-record.ts` | The authoring record's shape, its measures and its consistency checks |
 | `tools/src/scored-run/authoring-targets.ts` | The owner's targets, read from an authoring record's measures |
 | `tools/src/scored-run/calibration.ts` | The judge's calibration against hand grades, and its record |
+| `tools/src/scored-run/rejudge.ts` | The judge run again over a record's kept results, with no authoring session |
+| [../../fixtures/requests/judge/](../../fixtures/requests/judge/README.md) | Hand-made, labelled cases of what the judge is given, each from a case a run found it getting wrong |
 | [../../fixtures/requests/](../../fixtures/requests/README.md) | The content requests, their base mods and an example result of each |
 
 ## The agent-use task
@@ -640,11 +643,27 @@ trials are (`judge.ts`), in an empty folder of its own, with the trial's environ
   check allows nothing at all, and a session that ends at its session limit or turn limit before
   answering is a harness problem.
 - **Its whole prompt on standard input** (`-p` with no prompt argument), so that no result is
-  bound by the length of a command line: [judge.prompt.md](judge.prompt.md) with its four slots
-  filled, the request's id, its text, its questions (one per judged dimension), and the result,
-  every file of the mod as the session left it, each marked as written, changed, removed or as
-  given, with `\n` line breaks and no byte-order mark. A result over 200,000 characters is not
-  judged, and its record says why.
+  bound by the length of a command line: [judge.prompt.md](judge.prompt.md) with its six slots
+  filled, the request's id, its text, its questions (one per judged dimension), the material from
+  the installed game (below), and the result, every file of the mod as the session left it, each
+  marked as written, changed, removed or as given, with `\n` line breaks and no byte-order mark. A
+  result over 200,000 characters is not judged, and its record says why.
+- **The material from the installed game** (`judgeMaterial`, since version 2 of the prompt), so
+  that the judge is never the authority on whether a name exists or what it means: that is the
+  checker's and the game's. **The checker's report**: what pychivalry's checker reports in the
+  result over the installed game, by its version, every error and warning with its file, line and
+  message (at most 50 shown, the rest counted), or that it reports none. **The keywords**: every
+  trigger, effect, iterator and link the result's script files write, read in its place as the
+  checker reads it (`readContext`: a key of a trigger or effect block, a link of a scope chain; a
+  record's own fields, such as an event's `type` or `title`, and plain values are not keywords),
+  each once, with its kind, the scopes the game supports it in and the game's own description,
+  from the spec package (cut at 300 characters); and every such key the spec package lists as
+  no longer in the game's version, with the version that removed it. The prompt tells the judge
+  that the game changes from one version to the next, to take whether a name exists, what it
+  means and which scope it works in from that material and never from its memory, that a name
+  the list describes exists in the installed game and means what its line says whatever another
+  version called it, that the game's acceptance of the files is the checker's to say, and to
+  answer cannot-tell only when the files and the material do not settle the question.
 - **Its answer, fixed:** one JSON object of the shape of [judge.schema.json](judge.schema.json):
   the request's id, and for each question `yes`, `no` or `cannot-tell` with a one-sentence
   reason. The parsing is fixed too: the session's last words, trimmed; if they are one fenced code
@@ -653,7 +672,20 @@ trials are (`judge.ts`), in an empty folder of its own, with the trial's environ
   guessed from it. The reasons are printed for the person running the test and never recorded.
 
 `judge.test.ts` holds the prompt's slots, the schema's closed set, the material, and every rule of
-the parsing, a malformed answer of each kind among them.
+the parsing, a malformed answer of each kind among them; and, word for word, what the judge is
+given for the labelled case of [fixtures/requests/judge/](../../fixtures/requests/judge/README.md)
+and for its first draft.
+
+**Its version.** Each version of the prompt and of the material is a row of
+`JUDGE_PROMPT_VERSIONS` (`judge.ts`), named in a record by the prompt's SHA-256
+(`judge_prompt_sha256`). A test holds the committed prompt to the last row, and the material to the
+labelled case, so a change to either is a new version. Version 1 (2026-11-24) gave the request,
+its questions and the result, and left the judge to its own memory of the game; every committed
+authoring record was judged with it. Version 2 (2026-11-25) adds the material from the installed
+game. Records judged with different versions are never mixed or compared silently: a run
+continuing a record refuses another prompt ([Continuing a run](#continuing-a-run)), and
+`task scored:targets` names the version a record was judged with and says when it is not the
+committed one.
 
 ### The record
 
@@ -683,7 +715,7 @@ requests' development run is to be, `authoring-expert-run-1.json`.
 
 `requests.test.ts`, `expectations.test.ts`, `repair.test.ts`, `judge.test.ts`,
 `authoring.test.ts`, `authoring-targets.test.ts`, `stop-rule.test.ts`, `continuation.test.ts`,
-`calibration.test.ts` and `no-model-call.test.ts` run in public CI with no model, key, network or
+`calibration.test.ts`, `rejudge.test.ts` and `no-model-call.test.ts` run in public CI with no model, key, network or
 display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
 it copies a request's example result into the trial's mod (or nothing, or a broken result) and
 plays back a stream in the shape Claude Code 2.1.330 writes, the same for every trial or, named by
@@ -767,6 +799,11 @@ SCORED_RECORD=records/scored/authoring-run-1.json task scored:targets
 | --- | --- | --- | --- | --- | --- |
 | First, 2026-11-24 (`authoring-run-1.json`) | 50 of 60 (83.3%): not met | 0 of 60, 0 of 60: not met | 58 of 60 (96.7%): met | 100%: met | 2 of 4 |
 | Second, 2026-11-24 (`authoring.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 100%: met | 4 of 4 |
+| Expert requests' development run, 2026-11-25 (`authoring-expert-run-1.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 94.5% (`conditions-as-asked` 52 of 55): not met | 3 of 4 |
+
+Every record of the table was judged with version 1 of the judge's prompt, and its reading says
+so ([The judge](#the-judge)): the expert run's one target not met is that judge's, wrong on the
+game's names ([below](#trigger-loyal-realm-the-judge-was-wrong-from-its-memory-of-the-game)).
 
 ## The first scored authoring run (item 9.8)
 
@@ -1235,6 +1272,218 @@ named in its last lines and continued the same way), the record is filed as
 `records/scored/authoring-expert-run-1.json` and `records/scored/authoring.json` is given back as
 committed ([records/README.md](../../records/README.md#authoring-records-scoredauthoring)).
 
+### The finished run
+
+Continued from its record on the owner's word of 2026-11-25, from the main clone at the merge of
+#156, with the command above: 47 trials more (`event-county-unrest` 5 and 6, and five of each of
+the nine requests not yet run) and 94 test sessions; with its first part's 14 trials and 27 test
+sessions, **61 trials and 121 test sessions**. It finished with every request at 5 trials that
+held; no stop rule was reached. Its record is filed as
+[`records/scored/authoring-expert-run-1.json`](../../records/scored/authoring-expert-run-1.json),
+byte for byte as the run wrote it ([records/README.md](../../records/README.md#authoring-records-scoredauthoring));
+`authoring.json` stays the second run's. The run kept every trial's files, in one folder per part;
+nothing of them is committed.
+
+| Request | Type | Held | No error | No warning | In the format | Every expectation | Judge: yes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `event-granary-inspection` | event | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `event-envoy-chain` | event | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `event-county-unrest` | event | 5 of 6 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-fund-granaries` | decision | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-pardon-prisoners` | decision | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-house-feast` | decision | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-realm-relief` | scripted effect | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-granary-gift-edit` | scripted effect | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-heir-household` | scripted effect | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `trigger-loyal-realm` | scripted trigger | 5 of 5 | 5 | 5 | 5 | 5 | 12 of 15 |
+| `trigger-granary-patron` | scripted trigger | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `trigger-settled-ruler` | scripted trigger | 5 of 5 | 5 | 5 | 5 | 5 | 10 of 10 |
+| **All** | | **60 of 61** | **60** | **60** | **60** | **60** | **217 of 220** |
+
+Against the owner's targets, as a development run: no error 60 of 60, no warning and in the
+format 60 of 60 each, every expectation 60 of 60: met. Judged: `effects-as-asked` 45 of 45,
+`scope-as-asked` 55 of 55, `text-as-asked` 30 of 30, `nothing-unasked` 35 of 35, and
+`conditions-as-asked` **52 of 55 (94.5%): not met**, short of 95% by one answer. The trial that
+did not hold, `event-county-unrest` 4, counts for nothing: its own result fails no target. It was
+not judged, under the rule of the time; re-judging judges it.
+
+### `trigger-loyal-realm`: the judge was wrong, from its memory of the game
+
+The three answers that were not yes are all `conditions-as-asked` of `trigger-loyal-realm`:
+trial 1 cannot-tell, trials 4 and 5 no. **The five results are the same logic**, differing only in
+their comments:
+
+```text
+authoring_loyal_realm_trigger = {
+	any_sub_realm_county = {
+		count >= 3
+		county_control >= 50
+		popular_opinion >= 20
+	}
+}
+```
+
+The judge answered that logic yes twice (trials 2 and 3), cannot-tell once and no twice. Its
+reasons (printed, never recorded) said in all five that the trigger for a county's opinion of its
+holder is `county_opinion`: trials 1, 4 and 5 that `popular_opinion` is not a CK3 trigger, so the
+opinion is not tested; trials 2 and 3 the same doubt, leaving the name to the checker as the
+prompt asked. The game settles it:
+
+1. **The spec package** (1.21.0.3): `popular_opinion` is in the triggers, documented as
+   "Compares the county's current opinion of its holder", in the scope `landed_title`, compared
+   with `<`, `<=`, `=`, `!=`, `>`, `>=`; `base_popular_opinion` is "Compares the county's base
+   opinion of its holder"; `add_popular_opinion` "Change the current popular opinion of scoped
+   title's holder", usage `scope:county = { add_popular_opinion = 10 }`. Its retired list has
+   `county_opinion` (and `county_opinion_target`, and `county_holder_opinion`, whose note names
+   `popular_opinion` as what 1.21.0.3 registers) removed from the triggers in 1.21.0.3, and
+   `county_opinion_add` and four more `county_opinion` modifiers renamed `popular_opinion`. Those
+   texts are the game's own documentation, which the package carries.
+2. **The base game** compares `popular_opinion` in 206 lines of 57 script files and never writes
+   `county_opinion` in a script file (outside script it is left only in one localization text,
+   in each language, that links a game concept of that name, and in a comment of
+   `gui/window_my_realm.gui`). It writes the very shape of the result:
+   `events/story_cycles/story_cycle_conqueror_events.txt`, lines 329 to 332,
+   `any_sub_realm_county = { exists = holder county_control >= county_control_baseline popular_opinion >= 0 ... }`;
+   and `common/character_interactions/03_fp2_interactions.txt`, lines 2892 to 2895,
+   `any_sub_realm_county = { count > 0 ... popular_opinion < 0 }`. Its trigger localization
+   (`common/trigger_localization/00_province_triggers.txt`, line 28) shows it as
+   "[popular_opinion|E] in [TITLE.GetName] is ...", and its game concept `popular_opinion` is
+   "Popular Opinion": "The general populace of each county has an opinion of the character who
+   holds their county".
+3. **pychivalry's checker** over the installed game reports nothing in any of the five, and
+   `names/unknown-trigger` ("Unknown trigger 'county_opinion'") in the request's first draft,
+   which writes `county_opinion`. `lookup` answers `county_opinion` "removed from triggers in
+   1.21.0.3" and `popular_opinion` with the game's description: the checker accepts no name that
+   does not exist, and gives this one its meaning. No checker or spec fault.
+4. **The request** asks for counties "with people whose opinion of their holder is at least 20",
+   the game's own words for `popular_opinion` (the current opinion, not the base one), and leaves
+   the name unnamed on purpose (its trap). **Its expectation**, `popular_opinion` used inside
+   `any_sub_realm_county`, is the game's; every trial met it.
+
+So, trial by trial: in all five the result, the expectation, the request's wording and the checker
+are right. The judge is right in its answer in trials 2 and 3 (yes), though from the prompt's
+rule rather than knowledge, and wrong in trials 1 (cannot-tell), 4 and 5 (no). The cause is the
+judge's: it took whether a keyword exists, and what it means, from its memory of an earlier
+version of the game. Judged right, `conditions-as-asked` is 55 of 55 and every target is met.
+
+### What was done
+
+1. **The judge's prompt, version 2** ([The judge](#the-judge)): the judge is given what
+   pychivalry's checker reports in the result over the installed game and the game's own
+   description of every trigger, effect, iterator and link the result writes, from the spec
+   package, and told to take names and their meanings from them, never from memory. The prompt
+   is versioned, the record names it by its hash, and `task scored:targets` says which version
+   judged a record. What an authoring session is given is unchanged.
+2. **The same judge in the calibration**: it reads the game (`CK3_GAME_PATH`) and gives its judge
+   the same material; its record states the game. The owner's three sheets are unchanged and stay
+   valid (they grade results, not a judge); their calibration measures version 2.
+3. **Re-judging kept results** ([below](#re-judging-kept-results)), `task scored:rejudge`: the
+   judge run again over a record's kept results, with no authoring session. Checked with the
+   stand-in in Claude Code's place over this run's kept trials and the installed game: every
+   stream is the record's session and every result grades as the record graded it.
+4. **The labelled case** ([fixtures/requests/judge/](../../fixtures/requests/judge/README.md)):
+   the five results' logic, hand-made, and `judge.test.ts` holding what the judge is given for it
+   and for its first draft, word for word.
+
+The record's measures stay as the run made them, judged with version 1.
+
+### What the 61 kept trials show
+
+Read from the record and the kept output streams, with no model; each session's first draft (the
+mod as it stood at its first `check` after its first write) rebuilt from its `Write` and `Edit`
+calls and graded with the checker and the expectations.
+
+1. **The repair loop worked, once a session, where the checker caught a trap.** Four sessions,
+   `decision-house-feast` 1 to 4, wrote the house's members walked from the character, the second
+   half of that request's trap; their first `check` after writing reported
+   `scope/wrong-scope-for-effect` ("Wrong scope for effect: character, expected dynasty_house"),
+   each wrapped the iterator in the house (`house = { every_house_member = { ... } }`, one with
+   `house ?=`) and checked again: clean. One round each against the five-round stop rule, which no
+   session approached; no other session's check after writing reported an error or a warning.
+   Eleven more sessions, all of decisions, drew only advice from their check after writing
+   (`style/unusual-field-order`, and `fields/usually-present` in two): six rewrote their file for
+   it and checked again, as did three of the four that repaired an error, and seven results kept
+   a hint or an information finding, which no target counts.
+2. **The other traps were not fallen into.** Every session of `event-county-unrest` and
+   `trigger-loyal-realm` (eleven) looked `county_opinion` up before writing, learned it was
+   removed, and wrote `popular_opinion`; four looked up `add_county_opinion` too. All five
+   `decision-house-feast` sessions looked up `house_power` and wrote `house_power_score`. No
+   session of `decision-pardon-prisoners` or `trigger-settled-ruler` named `is_at_peace`,
+   `has_spouse` or `release_prisoner` at all. No first draft of the other requests failed an
+   expectation of substance: the namespace declared again, the gift run inside `scope:envoy`, the
+   gold given to the county's holder, the effect changed in place, the siblings walked from the
+   heir, the base's triggers used. Of the twelve traps, one was fallen into, and the checker caught
+   it.
+3. **Tool errors: 12.** Nine `lookup` calls given a cursor with other names, refused by the server
+   with what to do (nine sessions: `event-county-unrest` 2 and 4, `decision-pardon-prisoners` 4,
+   `effect-granary-gift-edit` 3 and 5, `effect-realm-relief` 1 and 4, `trigger-loyal-realm` 4,
+   `trigger-settled-ruler` 5); two `Read`s of the session's own mod folder, which Claude Code
+   refused as a folder (`event-county-unrest` 2 and 6); and the one `Read` outside the mod
+   (`event-county-unrest` 4). **No call by a tool's bare name** (13 in the second run, before
+   #155's wording), and no permission denial.
+4. **`lookup`'s pages.** The first `lookup` of every session asked for 2 to 20 names and came
+   back with 1 to 3 of them on its first page, never all. Of the run's 133 `lookup` answers, 101
+   had a next page and 23 were continued with their cursor: 78 never were, in 59 of the 61
+   sessions. Every result still met every expectation: sessions asked again in smaller groups.
+5. **The calls.** `Skill` 61 (once each), `lookup` 133, `check` 135 (1 to 5 a session; 51 sessions
+   checked the base before writing), `apply_format` 122, `Write` 109, `find_definition` 54,
+   `Read` 38 (every one but one of a file of the mod), `list_definitions` 28, `Edit` 21. Every
+   session ended by itself, in 9 to 21 turns and 16 to 38 seconds; every judge session in one turn.
+
+### What it does not show
+
+That version 2 of the judge says yes where version 1 said no: only a judge session can show it.
+The results are kept, so re-judging them needs no authoring session: 61 judge test sessions, the
+60 trials that held and `event-county-unrest` 4, which ended by itself ([Re-judging kept
+results](#re-judging-kept-results)). The calibration's three sheets then measure version 2 against
+the owner's hand grades. The three changes to what a session is given that this run's first part
+raised are proposals for the owner (docs/decisions.md,
+[Asked, awaiting the owner](../../docs/decisions.md#asked-awaiting-the-owner)), with what these 61
+trials say of each.
+
+## Re-judging kept results
+
+A judge can be run again over the results a run kept, with no authoring session: when the judge
+changes, the results already made need not be made again to see what the new judge says of them.
+Like the runs it starts test sessions, one judge test session per trial judged, and only on the
+owner's word:
+
+```sh
+SCORED_FROM=records/scored/<record>.json SCORED_KEPT=<kept folder>[:<another>] SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<the record's Claude Code> CK3_GAME_PATH=<game dir> task scored:rejudge
+```
+
+| Variable | Meaning | Default |
+| --- | --- | --- |
+| `SCORED_FROM` | The authoring record whose results are judged again: a `.json` file directly in `records/scored/` | none: it must be given |
+| `SCORED_KEPT` | The folders its run kept its trials in (`SCORED_KEEP=true` printed each), separated by `:` (`;` on Windows); each trial is `<request>-<n>/` with its `mod/` and `stream.jsonl` | none: it must be given |
+| `SCORED_SESSION_LIMIT` | The session limit of each judge test session | none: it must be given |
+| `SCORED_RECORD` | Where the record is written: a `.json` file directly in `records/scored/`, never the record read | `<record>-judge-<version>.json` beside it |
+
+`SCORED_JUDGE_MODEL`, `SCORED_JUDGE_TIMEOUT_MINUTES`, `SCORED_CLAUDE` and `SCORED_KEEP` apply as in
+the authoring run (`rejudge.ts`).
+
+**Before any session** it refuses, naming every reason, unless the record is an authoring record
+whose figures agree; the request list, the base mods and the spec package are the ones it was made
+with; `CK3_GAME_PATH` is the game it read (by its manifest); the Claude Code is the version that made
+it; and every trial has its kept folder, whose stream is the record's session (its tool calls,
+turns, time, start and end) and whose result, graded again over the game, has the record's
+validity and expectations to the letter. The trials of the record it writes are therefore the
+record's, sessions, results and grades, with only the judge new.
+
+**What it judges**: every trial whose authoring session was set up as the run asks and ended by
+itself, by the run's rule of today, also one that did not hold for what its session did (a file
+named outside its mod). The judge is given what a run's judge is given. A judge session that does
+not hold stops it as a run is stopped ([When a run stops](#when-a-run-stops)), and then it writes
+nothing: a record judged partly with one prompt and partly with another is never made.
+
+**The record**: the record read, with the judge's prompt, schema, model, limits and arguments of
+this run, each trial's judge and `harness_held` anew, the measures summed again, this run's
+command, and a note saying what was re-judged, when, at which commit and with which version of the
+judge's prompt; its `tool` and `made_at` stay the record's, as a continued record's do, since they
+say what made the sessions and the results. `rejudge.test.ts` holds it with the stand-in: a kept
+run whose judge said no, judged again with no authoring session, every trial the record's but its
+judge; and each refusal before any session.
+
 ## Calibrating the judge (item 9.6)
 
 The judge is calibrated once against results graded by hand, and the agreement is recorded
@@ -1242,12 +1491,18 @@ The judge is calibrated once against results graded by hand, and the agreement i
 and only on the owner's word:
 
 ```sh
-SCORED_SESSION_LIMIT=3 SCORED_GRADES=<grades file> SCORED_RECORD=records/scored/<record>.json task scored:calibrate
+SCORED_SESSION_LIMIT=3 SCORED_GRADES=<grades file> SCORED_RECORD=records/scored/<record>.json CK3_GAME_PATH=<game dir> task scored:calibrate
 ```
+
+The judge it calibrates is the runs' judge, given what a run's judge is given: each result with
+what pychivalry's checker reports in it over the installed game, and the game's own description
+of every keyword it writes ([The judge](#the-judge)). So it reads the game too, as a run does, and
+its record states the game.
 
 | Variable | Meaning | Default |
 | --- | --- | --- |
 | `SCORED_GRADES` | The hand grades, from the repository root | none: it must be given |
+| `CK3_GAME_PATH` | The base game's `game` folder, which the checker reads each result over for the judge | none: it must be given |
 | `SCORED_RECORD` | Where the record is written: a `.json` file directly in `records/scored/`, from the repository root, so that each sheet's calibration has a record of its own; anywhere else is refused before any session | `records/scored/calibration.json` |
 
 `SCORED_SESSION_LIMIT`, `SCORED_CLAUDE`, `SCORED_JUDGE_MODEL`, `SCORED_JUDGE_TIMEOUT_MINUTES` and
@@ -1302,7 +1557,7 @@ closed set. Nothing in it names the person who graded.
    then runs the judge once per result.
 
 **The record**, `records/scored/calibration.json` or the file `SCORED_RECORD` names, suite
-`scored:calibration`: the grades file by
+`scored:calibration`: the game the checker read, the grades file by
 its hash, the judge's prompt, schema, model, session limit and arguments, each item's hand grades
 and the judge's answers with whether each agrees, and per dimension and over all: the grades, those
 the judge answered, those it agreed with, the agreement (agreed over answered), how often the

@@ -505,6 +505,19 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The hand checklist for VS Code's AI has one expert request, `effect-granary-gift-edit`, run in a
   copy of the base `granary`: the one effect changed in place, the other two effects and every
   other file unchanged (decision 136).
+- `records/scored/authoring-expert-run-1.json`: the expert requests' development run, finished
+  (decision 138), filed as the run wrote it. 61 trials and 121 test sessions, 60 trials held; no
+  error, no warning, in the format and every expectation 60 of 60; every judged dimension 100% yes
+  but `conditions-as-asked`, 52 of 55 (94.5%), short of its target.
+- `task scored:rejudge`: the judge run again, with the committed judge's prompt, over an authoring
+  record's kept results, starting no authoring session (`tools/src/scored-run/rejudge.ts`). Before
+  any session it refuses unless the requests, bases, spec, game and Claude Code are the record's
+  and every kept trial's stream and graded result match the record to the letter; it writes
+  `<record>-judge-<version>.json` beside the record, never over it, and nothing when it stops.
+  Its tests run a kept stand-in run, judge it again and hold each refusal.
+- `fixtures/requests/judge/`: a hand-made, labelled case of what the judge is given, the logic all
+  five `trigger-loyal-realm` results of the expert run wrote; `judge.test.ts` holds what the judge
+  is given for it and for its first draft, word for word.
 
 ### Changed
 
@@ -736,8 +749,26 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   that did not hold and was tried again.
 - The owner grades all three calibration sheets before the release run (decision 135); the guide's
   page and the scored-run README say so.
+- **The judge is no longer the authority on whether a name exists or what it means** (version 2 of
+  its prompt, decision 138): it is given what pychivalry's checker reports in the result over the
+  installed game and the game's own description, from the spec package, of every trigger, effect,
+  iterator and link the result's script files write (read in place as the checker reads them),
+  and those the package lists as removed, and takes names and their meanings from them, never from
+  its memory of the game. The prompt is versioned by its hash; `task scored:targets` names the
+  version a record was judged with and says when it is not the committed one (every committed
+  record: version 1).
+- `task scored:calibrate` gives its judge the same material, so it needs `CK3_GAME_PATH` and its
+  record states the game (a calibration record's `game` is no longer `null`; none had been made).
+  The guide's three commands name it; the sheets are unchanged.
 
 ### Fixed
+
+- The judge of the scored authoring test answered from its memory of the game: in the expert
+  requests' development run it said three times that `popular_opinion`, the trigger game 1.21.0.3
+  has for a county's opinion of its holder, is not a trigger and that the name is `county_opinion`,
+  which 1.21.0.3 removed, on five results of one logic it also said yes to twice. The results, the
+  request, its expectation and the checker were right. The judge now takes names from the checker
+  and the game's own documentation (above).
 
 - The command line's cache test compared the wall-clock times of two runs and failed once on a
   loaded machine. It now proves the second run did not read the game by the work done: it
@@ -761,11 +792,14 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Build step 9: the judge's calibration (item 9.6), on its three sheets, all before the release
   run (decision 135), and the hand checklist on VS Code's AI (item 9.7), on an extension file
   built from `main`, are the owner's to run, and the third preview (9.9) waits for both. The
-  expert requests' development run (decision 134) stopped after 14 trials and continues from its
-  record; its record is committed when it has finished. No tool gives a session the game's own
-  text, and `lookup`'s first page held 2 or 3 of the names asked in every trial of that run: both
-  are asked of the owner, to build before the release run. The third preview's release run, 10
-  trials of each of the 24 requests, 480 test sessions, is made once on his word (decision 132).
+  expert requests' development run finished (decision 138); re-judging its kept results with
+  version 2 of the judge is 61 judge test sessions and no authoring session, asked of the owner.
+  Three proposals of what a session is given are asked too, with what the run's 61 trials say of
+  each: a read-only tool for the game's own text around a place, game places that do not read as
+  files of the mod, and `lookup`'s pages kept whole by name with the readings first (the first
+  page of every session held 1 to 3 of the 2 to 20 names asked). The third preview's release run,
+  10 trials of each of the 24 requests, 480 test sessions, is made once on his word (decision
+  132).
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area
