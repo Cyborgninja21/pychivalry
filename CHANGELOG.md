@@ -538,6 +538,30 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - A scored record names the agent server's tool schema version (`server.schema_version`); `task
   scored:targets` says which version a record's sessions were given and that records of different
   versions are not comparable without saying so, and a run refuses to continue a record of another.
+- `pychivalry source <layer> <file> <line>` (decision 143): the text around a place a result
+  named, the base game's own script or localization or the mod's, at most 40 lines, each with its
+  number, as text or as one JSON object (`--json`), with `--end-line`, `--context`, `--mod`,
+  `--vanilla`, `--no-vanilla` and `--spec`. The same reading as the agent server's `source`, from
+  the same core code: the same lines, limits and refusals. Exit 0 when the lines are shown, 1
+  when no such place is read (a layer not read, a file its layer does not list, a link, a file
+  outside its layer's folder, a line past the end), 2 on bad usage (an absolute path, a
+  backslash, `..`, a line before 1). It indexes nothing: the base game's folders are listed as the
+  index lists them, about a second on the installed game. In the core, `readSource`,
+  `sourceLayers`, `openSources` and `workspaceSources`.
+- The agent server's `lookup` takes `evidence` (decision 144, tool schema version 5): off by
+  default; with exactly one name, its answer also holds `evidence`, the name's readings whole with
+  the spec package's evidence behind each part, as the command line's `lookup --json` prints
+  them, every place in them written as every place the server names; as many whole readings as fit
+  the result, the rest counted in `left_out` with the characters they hold and what to ask (a
+  folder, for a field of many folders). Refused with more than one name, saying how to ask. The
+  evidence of 15,758 of the spec package's 15,852 names fits whole.
+- A same-answers test of the two (`packages/vscode/src/source-answers.test.ts`): the command
+  line's `source --json` and the agent server's `source` give the same lines and the same
+  refusals for every place tried in every file of the planted-defect mod and its game stub, its
+  file not valid UTF-8 among them; `lookup`'s evidence of one name is `lookup --json`'s readings,
+  over the planted-defect mod and the lookup fixture with its localization.
+- The explain-error skill names `lookup`'s `evidence`, for when a person asks why a name is wrong
+  or where its reading comes from; a test holds the other two skills to not naming it.
 
 ### Changed
 
@@ -798,6 +822,18 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `source`, that a game place is never read with a session's own file tools, and that `lookup`
   names what it did not answer; the write-content skill learns a folder's fields with `folder`.
   The scored runs offer `source`.
+- **The agent server's tool schema version is 5** (decision 144): `lookup`'s `evidence`. Scored
+  records carry the version, so the next development run is made at version 5 and is not compared
+  with records of version 4 or earlier (none was made on version 4).
+- The reading behind the agent server's `source` moved into the core (`readSource`), which the
+  command line's `source` calls too. The lines it shows are bounded there, at most 12,000
+  characters written as JSON strings, instead of by the agent server fitting its whole result into
+  its budget, so both surfaces show the same lines; the result still fits its budget. A refusal
+  names its argument and whether its form is wrong or no such place is read; the form of every
+  argument is checked before the layer. Two texts are worded for both surfaces: a layer not read
+  (`jomini is not a layer read here; the layers are mod, game`, and without a game `the base game
+  is not read, so the only layer is mod`) and a place that ends past the file (`the place ends at
+  line N, past the end of the file`).
 
 ### Fixed
 
@@ -839,9 +875,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Build step 9: the judge's calibration (item 9.6), on its three sheets, all before the release
   run (decision 135), and the hand checklist on VS Code's AI (item 9.7), on an extension file
   built from `main`, are the owner's to run, and the third preview (9.9) waits for both. The
-  development run of the expert requests on tool schema version 4, 120 test sessions, comes next,
-  on his word (decision 141). The third preview's release run, 10 trials of each of the 24
-  requests, 480 test sessions, is made once on his word after it (decision 132).
+  development run of the expert requests on tool schema version 5, 120 test sessions, comes next
+  (decision 141); it is not started until he says (decision 145). The third preview's release
+  run, 10 trials of each of the 24 requests, 480 test sessions, is made once on his word after it
+  (decision 132).
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

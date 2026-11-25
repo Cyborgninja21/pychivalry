@@ -1152,7 +1152,7 @@ The second run's 17 tool errors, none a fault of the server, pointed at pychival
 
 The third preview's release run is made once, on the owner's word, after his hand calibration of
 all three sheets (decision 135) and his hand checklist, after the development run of the expert
-requests on tool schema version 4 ([below](#the-next-development-run-decision-141)), and once the
+requests on tool schema version 5 ([below](#the-next-development-run-decisions-141-and-145)), when the owner says, and once the
 request list is final: 10
 trials whose harness held of each request, the MVP's repetitions before a release. With the
 twenty-four requests that is 240 trials, each one authoring test session and one judge test
@@ -1513,22 +1513,37 @@ the same way, by its prompt's hash. So the committed records, `authoring-run-1.j
 `authoring.json`, `authoring-expert-run-1.json` and its re-judged copy, are read as made with
 version 3 or earlier, and the next run's as made with version 4.
 
-### The next development run (decision 141)
+### Tool schema version 5 (decision 144)
 
-Before the release run, on the owner's word, a development run of the twelve expert requests
-measures the change: 5 trials of each, **120 test sessions** (60 authoring of Opus 5.5, 60 judge of
-Fable 5.2 with version 2 of its prompt), each with session limit 3, the trials kept, from a clone
-of `main` holding #158, written to its own record:
+On the owner's word of the same day, `lookup` takes `evidence` (decision 144): with exactly one
+name, its answer also holds that name's readings with the spec package's evidence behind each
+part, as `pychivalry lookup --json` prints them, as many as fit the result and the rest counted.
+Off by default, it changes no answer a session gets without asking; of the skills, only the
+explain-error skill names it. It is still a change of the tools' shapes, so the agent server's
+tool schema version is 5 (`SERVER_SCHEMA_VERSION` in `run.ts`), and every record a run makes
+from now on states `server.schema_version` 5. No record was made on version 4. **The next
+development run will be at version 5 and is not to be compared with records of version 4 or
+earlier**: `task scored:targets` says so first, and a run refuses to continue a record of
+another version. The command line's `source` (decision 143) changes nothing a session is given:
+a scored session has no terminal.
+
+### The next development run (decisions 141 and 145)
+
+Before the release run, a development run of the twelve expert requests measures what a session
+is given: 5 trials of each, **120 test sessions** (60 authoring of Opus 5.5, 60 judge of Fable 5.2
+with version 2 of its prompt), each with session limit 3, the trials kept, written to its own
+record. **It is not started now** (decision 145): the owner will say when, and it runs from a
+clone of `main` as it is then, with this command:
 
 ```sh
 SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=5 SCORED_SESSION_LIMIT=3 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=event-granary-inspection,event-envoy-chain,event-county-unrest,decision-fund-granaries,decision-pardon-prisoners,decision-house-feast,effect-realm-relief,effect-granary-gift-edit,effect-heir-household,trigger-loyal-realm,trigger-granary-patron,trigger-settled-ruler SCORED_RECORD=records/scored/authoring-expert-run-2.json SCORED_KEEP=true SCORED_CLAUDE=<the same Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring
 ```
 
 A trial that does not hold and is tried again by a continuing run adds two sessions each. Its
-record states `server.schema_version` 4; the first expert run's record, of version 3, is not
+record states `server.schema_version` 5; the first expert run's record, of version 3, is not
 continued and stays as made. What to read from it beside the targets: how many first lookups
-were answered whole, how often `source` was called and on what, whether any `Read` left the mod,
-and the tool errors.
+were answered whole, how often `source` was called and on what, whether `lookup`'s `evidence`
+was asked for at all, whether any `Read` left the mod, and the tool errors.
 
 ## Re-judging kept results
 

@@ -74,6 +74,7 @@ libraries, or reads it from `--vanilla <game folder>`.
 | --- | --- |
 | `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
 | `pychivalry lookup <name>...` | What a name is: every reading the spec package has of it (its description, the scopes it supports, what it takes, the version it came in or went out), where the base game and a mod define and use it and which definition is in force, and, for a name nothing knows, the names close to it |
+| `pychivalry source <layer> <file> <line>` | The text around a place a result named, at most 40 lines, each with its number: the base game's own script or localization (to see how the game itself writes a name), or the mod's. The same lines the agent server's `source` gives for the same place ([below](#options-of-source)) |
 | `pychivalry format <file\|folder>...` | Formats the mod's script and localization files by pychivalry's rules ([Formatting](formatting.md)), in place; a file with a parse error, or not valid UTF-8, is left as it is and named |
 | `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it, its message with each value a named slot (`Unknown trigger '<trigger>'`). A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
@@ -118,9 +119,44 @@ With `--json`, `lookup` prints one object per name: the whole answer, each part 
 comes from or why the spec package has nothing for it, with the evidence behind each part and the
 first 20 uses. The text output writes a place as `<layer> <file>:<line>:<column>`: a place of the
 layer `game` (or `jomini`, `clausewitz`, `dlc:<pack>`) is a file of the installed game, which you
-can open there. The agent server's `lookup` gives the same facts, compactly so that every name it
-is asked fits one result: each reading's facts without their evidence, the first 3 uses, its own
-`source` tool for the game's text around a place ([The agent server](agent-server.md)).
+can open there, or show with `pychivalry source <layer> <file> <line>`. The agent server's
+`lookup` gives the same facts, compactly so that every name it is asked fits one result: each
+reading's facts without their evidence, the first 3 uses, its own `source` tool for the game's
+text around a place. Asked with `evidence` for one name, it also gives that name's readings as
+`lookup --json` prints them, with their evidence, as many as fit one result and the rest counted
+([The agent server](agent-server.md)).
+
+### Options of `source`
+
+`pychivalry source <layer> <file> <line>` takes a place as every result writes it: its layer
+(`game`, `jomini`, `clausewitz` or `dlc:<pack>` for the base game, `mod` for the mod), its file's
+path inside that layer, with `/`, and its line, counted from 1. `--vanilla`, `--spec` and
+`--json` as for `check`, and:
+
+| Option | What it does |
+| --- | --- |
+| `--end-line <line>` | The last line of the place, for a place of several lines |
+| `--context <lines>` | How many lines to show before and after the place, 0 to 20; 10 by default, fewer when the 40 lines it shows would be passed |
+| `--mod <mod>` | A mod folder, whose script and localization files are then read as the layer `mod` |
+| `--no-vanilla` | Read no base game: only the layer `mod`, with `--mod` |
+
+It shows the lines as the index reads the file (its byte-order mark removed, a file not valid
+UTF-8 read with replacement characters, which the first line says), each as its number, a tab
+and its text: at most 40 lines, the place's own first; a line longer than 400 characters is cut
+and ends in `…`; and the lines it shows, written as JSON, hold at most 12,000 characters, the
+lines after them left out. What was cut or left out is said on standard error, with the line to
+ask for next. With `--json` it prints one object: `layer`, `file`, `line` and `end_line` (the
+lines shown), `line_count`, `lines`, `cut_lines`, `encoding` and `notes`, the same lines the
+agent server's `source` gives for the same place.
+
+Only a script or localization file pychivalry reads is shown, at the path a result names it by;
+never an address on disk. `source` refuses, saying why: an absolute path, a backslash, an empty,
+`.` or `..` part of the path, a line before 1, `--end-line` before the line or `--context` past
+20 (exit `2`, bad usage); and a layer that is not read (the base game when it was not found or
+`--no-vanilla` was given; `mod` without `--mod`), a file its layer does not list (naming the
+file of the same letters in another case, when there is one), a link, a file whose real address
+is outside its layer's folder, or a line past the end of the file (exit `1`). It indexes
+nothing: the base game's folders are listed as the index lists them, and the one file is read.
 
 What `check` prints:
 
@@ -156,7 +192,8 @@ What `check` prints:
   answered by its language server, which already holds the game's index, instead of loading a
   second copy; what they print is the same either way, and when the language server cannot
   answer, the command runs by itself ([Settings](settings.md)). `check --fix` always runs by
-  itself, so that the edits to your files are made by the command you ran.
+  itself, so that the edits to your files are made by the command you ran, and so does
+  `source`, which loads no index at all.
 - **At most 1,000 findings per file.** A file with more keeps its most severe ones (errors
   first, then warnings, information and hints), and the count of the others is given: on
   standard error with the text output, in `capped` with `--json`. The counts are of the
@@ -170,8 +207,8 @@ Exit codes: `0` when no finding kept is an error, `1` when one is, `2` on bad us
 mod, the game or the spec package cannot be read. The filters choose the findings kept, so
 `--code syntax/*` exits with `1` only for a syntax error; `--limit` does not change the exit
 code. `lookup` exits with `1` when neither the spec package nor the game and the mod know a
-name, `explain` when a code is none of this build's, and `format --check` when a file would
-change.
+name, `source` when the place is not one it reads (above), `explain` when a code is none of this
+build's, and `format --check` when a file would change.
 
 The first `check` reads the whole base game, about 15 seconds for game 1.21, and saves what it
 found in your cache folder ([Settings](settings.md)); every later one loads that in a second or
