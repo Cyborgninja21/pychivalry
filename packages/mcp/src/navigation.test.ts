@@ -227,10 +227,7 @@ test('lookup with folder gives the field readings of that folder in full, the ot
         sameFacts('trait', readings[j] ?? {}, r, false);
     });
     assert.equal(answer?.['fields_in_brief'], undefined, 'in full');
-    assert.equal(
-        answer?.['fields_elsewhere'],
-        fields.filter((r) => r.directory !== folder).length,
-    );
+    assert.equal(answer?.['fields_elsewhere'], fields.filter((r) => r.directory !== folder).length);
     assert.match(
         await s.error('lookup', { names: ['trait'], folder: 'traits' }),
         /folder: traits is not a folder the game reads; did you mean .*common\/traits/,

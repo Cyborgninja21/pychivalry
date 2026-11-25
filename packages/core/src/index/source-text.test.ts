@@ -47,6 +47,8 @@ test('a given path is a relative path with /, no empty, . or .. part', () => {
         ['/etc/x', /absolute/],
         ['C:/x.txt', /absolute/],
         ['c:x.txt', /absolute/],
+        ['C:\\Windows\\win.ini', /absolute/],
+        ['\\\\server\\share\\x.txt', /absolute/],
         ['common\\x.txt', /written with \\/],
         ['../x.txt', /no empty, \. or \.\./],
         ['common/./x.txt', /no empty, \. or \.\./],

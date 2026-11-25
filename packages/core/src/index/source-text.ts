@@ -71,14 +71,14 @@ export function checkGivenPath(given: string): string {
     if (given.includes('\u0000')) {
         throw new SourceRefused('the path holds a NUL character');
     }
+    if (given.startsWith('/') || given.startsWith('\\') || /^[A-Za-z]:/.test(given)) {
+        throw new SourceRefused(
+            'an absolute path is not a place; give the path inside its layer, as a result names it',
+        );
+    }
     if (given.includes('\\')) {
         throw new SourceRefused(
             'the path is written with \\; give it as a result names it, with /',
-        );
-    }
-    if (given.startsWith('/') || /^[A-Za-z]:/.test(given)) {
-        throw new SourceRefused(
-            'an absolute path is not a place; give the path inside its layer, as a result names it',
         );
     }
     const segments = given.split('/');
