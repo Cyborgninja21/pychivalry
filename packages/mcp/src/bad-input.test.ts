@@ -43,6 +43,57 @@ test('bad arguments are results that name the valid values', async (t) => {
         ],
         ['check', { cursor: 'not-a-cursor' }, /cursor: not a cursor this server gave/],
         ['lookup', {}, /names: missing; it is required/],
+        [
+            'lookup',
+            { names: ['x'], cursor: 'abc' },
+            /cursor: no such argument; the arguments are names, language, folder/,
+        ],
+        [
+            'lookup',
+            { names: ['x'], folder: 'nowhere/at_all' },
+            /folder: nowhere\/at_all is not a folder the game reads; give the folder's path from the mod's top/,
+        ],
+        [
+            'lookup',
+            { names: ['x'.repeat(121)] },
+            /names\[0\]: longer than 120 characters; no name of the game or a mod is that long/,
+        ],
+        ['source', { layer: 'mod', file: 'x.txt' }, /line: missing; it is required/],
+        [
+            'source',
+            { layer: 'nope', file: 'x.txt', line: 1 },
+            /layer: nope is not a layer this server reads; the layers are mod, game/,
+        ],
+        [
+            'source',
+            { layer: 'mod', file: '../outside.txt', line: 1 },
+            /file: the path may hold no empty, \. or \.\. part/,
+        ],
+        [
+            'source',
+            { layer: 'mod', file: 'common/scripted_triggers/fixture_triggers.txt', line: 999 },
+            /line: 999 is past the end of common\/scripted_triggers\/fixture_triggers\.txt, which has \d+ lines/,
+        ],
+        [
+            'source',
+            {
+                layer: 'mod',
+                file: 'common/scripted_triggers/fixture_triggers.txt',
+                line: 3,
+                end_line: 2,
+            },
+            /end_line: 2 is before line 3/,
+        ],
+        [
+            'source',
+            {
+                layer: 'mod',
+                file: 'common/scripted_triggers/fixture_triggers.txt',
+                line: 1,
+                context: 21,
+            },
+            /context: 21 is out of range; it must be from 0 to 20/,
+        ],
         ['lookup', { names: 'trait' }, /names: "trait" is not a list/],
         [
             'lookup',
@@ -126,32 +177,15 @@ test('a cursor given with other arguments is bad input, not a wrong page', async
     );
 });
 
-test('lookup given the cursor of another call with other names says to look them up without it', async (t) => {
-    // The second scored authoring run: 4 lookup calls gave the cursor of an earlier call
-    // together with other names, and the server refused them. The refusal names lookup's own
-    // arguments and says what to do instead.
-    const dir = scratch(t);
-    const game = gameStub(path.join(dir, 'install'));
-    const mod = path.join(MODS, 'parse-broken-syntax');
-    const s = await connect(t, ['--mod', mod, '--vanilla', game], path.join(dir, 'cache'));
-    const first = await s.output('check', { min_severity: 'hint', limit: 1 });
-    const cursor = first['next_cursor'];
-    assert.equal(typeof cursor, 'string');
-    const refused = await s.error('lookup', { names: ['is_adult'], cursor });
-    assert.equal(
-        refused,
-        'cursor: it was given for other names or language. A cursor only continues the answer of the call that gave it, repeated with exactly the same names or language; to ask anything else, call again without cursor',
-    );
-});
-
-test("lookup's answer cut inside a name: another call's names with its cursor are refused, the same names continue it, and the name alone needs no cursor", async (t) => {
+test("lookup answers the expert run's three names whole in one call, and takes no cursor", async (t) => {
     // The expert requests' development run (2026-11-25): sessions looked up three names, the
     // third name's head (its uses, each a place in a game file) ended the first page and its
-    // readings went on to the next, and two sessions then gave the cursor with that name alone.
-    // The server refused both, as it must: a cursor holds no names, and a page of other names
-    // would be a wrong page. One session repeated the same names and got the rest; the other
-    // went on without it. The stub game here gives the run's shape: each of the three names
-    // used in 20 files of the game.
+    // readings went on to the next, and two sessions then gave the cursor with that name alone,
+    // which the server refused (9 of the run's 12 tool errors were cursors given with other
+    // names). Since tool schema version 4 the same call answers all three whole: each its
+    // readings first, then its definitions, then how many places use it with the first three;
+    // lookup has no cursor to give or to misuse. The stub game gives the run's shape: each name
+    // used in 20 files of the game, with long paths.
     const dir = scratch(t);
     const files: Record<string, string> = {};
     for (let i = 0; i < 20; i++) {
@@ -167,47 +201,41 @@ test("lookup's answer cut inside a name: another call's names with its cursor ar
     const s = await connect(t, ['--mod', mod, '--vanilla', game], path.join(dir, 'cache'));
     const names = ['popular_opinion', 'change_popular_opinion', 'add_popular_opinion'];
     const first = await s.output('lookup', { names });
+    assert.equal(first['not_answered'], null);
+    assert.equal('next_cursor' in first, false);
     const results = first['results'] as Record<string, unknown>[];
     assert.deepEqual(
-        results.map((r) => [r['name'], (r['readings'] as unknown[]).length, r['readings_total']]),
+        results.map((r) => [r['name'], (r['readings'] as unknown[]).length]),
         [
-            ['popular_opinion', 2, 2],
-            ['change_popular_opinion', 1, 1],
-            ['add_popular_opinion', 0, 2],
+            ['popular_opinion', 2],
+            ['change_popular_opinion', 1],
+            ['add_popular_opinion', 2],
         ],
     );
+    // Each answer's readings come first, then where it is defined, then its uses.
+    for (const r of results) {
+        assert.deepEqual(Object.keys(r).slice(0, 3), ['name', 'unknown', 'readings']);
+    }
+    // add_popular_opinion's readings, what the session went on looking for, are in this answer:
+    // the effect and its documented usage.
+    const add = JSON.stringify(results[2]?.['readings']);
+    assert.match(add, /"bucket":"effects"/);
+    assert.match(add, /scope:county = \{ add_popular_opinion = 10 \}/);
     const uses = results[2]?.['uses'] as {
         count: number;
-        first: { layer: string; file: string }[];
+        first: { layer: string; file: string; read_with?: string }[];
     };
-    assert.equal(uses.count, 20);
-    assert.ok(uses.first.length > 0 && uses.first.every((u) => u.layer === 'game'));
-    const cursor = first['next_cursor'];
-    assert.equal(typeof cursor, 'string');
-    // What two sessions did: the one name, with the cursor. Refused, saying what to do instead.
-    assert.equal(
-        await s.error('lookup', { names: ['add_popular_opinion'], cursor }),
-        'cursor: it was given for other names or language. A cursor only continues the answer of the call that gave it, repeated with exactly the same names or language; to ask anything else, call again without cursor',
+    assert.equal(uses.count, 20, 'every use counted');
+    assert.equal(uses.first.length, 3, 'three shown; find_references lists all');
+    assert.ok(uses.first.every((u) => u.layer === 'game' && u.read_with === 'source'));
+    // What the two sessions did, and the session that repeated the names: a cursor is no
+    // argument of lookup, and the name alone is the same answer as in the call of three.
+    assert.match(
+        await s.error('lookup', { names: ['add_popular_opinion'], cursor: 'b2Zmc2V0' }),
+        /cursor: no such argument; the arguments are names, language, folder/,
     );
-    // What one of them did next: the same names with the cursor, the rest of that name.
-    const rest = await s.output('lookup', { names, cursor });
-    assert.deepEqual(
-        (rest['results'] as Record<string, unknown>[]).map((r) => [
-            r['name'],
-            r['continued'],
-            (r['readings'] as unknown[]).length,
-        ]),
-        [['add_popular_opinion', true, 2]],
-    );
-    assert.equal(rest['next_cursor'], null);
-    // The way the refusal also gives: the name alone, with no cursor, its whole answer at once.
     const alone = await s.output('lookup', { names: ['add_popular_opinion'] });
-    assert.equal(alone['next_cursor'], null);
-    const whole = (alone['results'] as Record<string, unknown>[])[0];
-    assert.deepEqual(
-        [(whole?.['readings'] as unknown[]).length, whole?.['readings_total']],
-        [2, 2],
-    );
+    assert.deepEqual((alone['results'] as unknown[])[0], results[2]);
 });
 
 test("the argument check's text, without a server", () => {

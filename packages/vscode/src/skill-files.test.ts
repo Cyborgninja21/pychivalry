@@ -27,7 +27,7 @@ const NAMES = ['pychivalry-explain-error', 'pychivalry-fix-error', 'pychivalry-w
 
 /** The tools each skill drives: each must be named in it, and be one of the server's. */
 const DRIVES: Readonly<Record<string, readonly string[]>> = {
-    'pychivalry-explain-error': ['check', 'explain_code', 'lookup', 'find_definition'],
+    'pychivalry-explain-error': ['check', 'explain_code', 'lookup', 'find_definition', 'source'],
     'pychivalry-fix-error': [
         'check',
         'explain_code',
@@ -35,6 +35,7 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'find_definition',
         'find_references',
         'list_definitions',
+        'source',
         'format',
         'apply_format',
     ],
@@ -43,6 +44,8 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'lookup',
         'find_definition',
         'list_definitions',
+        'find_references',
+        'source',
         'explain_code',
         'format',
         'apply_format',
@@ -319,6 +322,31 @@ test("each skill gives Claude Code's name of every tool it drives, and what a ca
         assert.match(prose, /a call of a short name reaches nothing/, skill.name);
         assert.match(prose, /call the same tool again by its listed name/, skill.name);
     }
+});
+
+test('each skill says when to read the game itself with source, and never a game place with file tools', () => {
+    // The expert requests' development run: one session read a place lookup had named in the
+    // base game as if it were under its mod (a folder it guessed), the run's one trial that did
+    // not hold. Since tool schema version 4 a place outside the mod says read_with, and source
+    // shows its text; each skill says so, and that lookup answers every name whole.
+    for (const skill of skills) {
+        const { body } = parse(skill.name, textOf(skill));
+        const prose = body.replace(/\s+/g, ' ');
+        assert.match(prose, /`source`/, skill.name);
+        assert.match(
+            prose,
+            /whose `layer` is not `mod` is a file of the installed game/,
+            skill.name,
+        );
+        assert.match(prose, /never with your own file tools/, skill.name);
+        assert.match(prose, /listed in `not_answered`/, skill.name);
+        assert.doesNotMatch(prose, /next_cursor` for the rest of a long answer/, skill.name);
+    }
+    const write = skills.find((s) => s.name === 'pychivalry-write-content');
+    assert.ok(write !== undefined);
+    const prose = parse(write.name, textOf(write)).body.replace(/\s+/g, ' ');
+    assert.match(prose, /See how the game itself writes it/);
+    assert.match(prose, /with `folder` set to that folder/);
 });
 
 test("everything a skill writes as code is pychivalry's own or a name the spec package has", () => {

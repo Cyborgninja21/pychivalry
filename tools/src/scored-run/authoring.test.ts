@@ -41,7 +41,12 @@ import {
     textFile,
 } from './authoring-testing.js';
 import { committedRequests, type ContentRequest } from './requests.js';
-import { PINNED_JUDGE_MODEL, PINNED_MODEL, SESSION_LIMIT_OPTION } from './run.js';
+import {
+    PINNED_JUDGE_MODEL,
+    PINNED_MODEL,
+    SERVER_SCHEMA_VERSION,
+    SESSION_LIMIT_OPTION,
+} from './run.js';
 
 const fake = fileURLToPath(new URL('./fake-claude.js', import.meta.url));
 const validate = compileRecordSchema(path.join(root, 'records', 'record.schema.json'));
@@ -402,7 +407,7 @@ test('a session not confined stops the run after its trial, and the record says 
     assert.deepEqual(trial.harness_problems, [
         'tools outside the confinement were offered: Bash',
         `the pychivalry skills were not offered: ${SKILL_NAME}`,
-        "the agent server's tools were not offered: apply_format, check, explain_code, find_definition, find_references, format, list_definitions, lookup",
+        "the agent server's tools were not offered: apply_format, check, explain_code, find_definition, find_references, format, list_definitions, lookup, source",
         'the session named files outside its mod (2 calls of Write, Read)',
     ]);
     // No judge was asked: only the authoring session started.
@@ -484,6 +489,18 @@ test('a continued run brings each request up to its trials, numbered after its o
     );
     const kept = JSON.parse(readFileSync(recordFile, 'utf8')) as AuthoringRecord;
     assert.equal(kept.results.trials.length, 4);
+    // The record names the agent server's tool schema its sessions were given; one made before
+    // records named it (every committed record) was given another server: refused, kept.
+    assert.equal(kept.results.server.schema_version, SERVER_SCHEMA_VERSION);
+    const unnamed = { entry: kept.results.server.entry, arguments: kept.results.server.arguments };
+    writeFileSync(
+        recordFile,
+        `${JSON.stringify({ ...kept, results: { ...kept.results, server: unnamed } }, null, 4)}\n`,
+    );
+    assert.throws(
+        () => run(t, { ...env, SCORED_CONTINUE: 'true', SCORED_TRIALS: '3' }, streams, recordFile),
+        (e: unknown) => e instanceof CommandError && /\(server\)/.test(e.message),
+    );
 });
 
 /**

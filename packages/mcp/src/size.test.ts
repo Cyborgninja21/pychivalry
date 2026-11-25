@@ -21,6 +21,7 @@ import { test, type TestContext } from 'node:test';
 import {
     connect,
     gameStub,
+    MAX_RESULT_CHARACTERS,
     REPO_ROOT,
     resultSize,
     scratch,
@@ -28,9 +29,6 @@ import {
     type Connection,
     type ToolResult,
 } from './testing.js';
-
-/** The most characters a whole result may hold: 10,000 tokens at three characters a token. */
-export const MAX_RESULT_CHARACTERS = 30_000;
 
 type Call = readonly [string, Record<string, unknown>];
 
@@ -79,6 +77,7 @@ const TOOLS = [
     'find_definition',
     'find_references',
     'list_definitions',
+    'source',
     'explain_code',
     'format',
 ];
@@ -140,6 +139,8 @@ function calls(
         ['list_definitions', { kind, limit: 200 }],
         ['list_definitions', { kind: 'localization:l_english', limit: 200 }],
         ['list_definitions', { kind: 'no_such_kind' }],
+        ['source', { layer: 'mod', file: formatFile, line: 1, context: 20 }],
+        ['source', { layer: 'mod', file: formatFile, line: 1, end_line: 1_000 }],
         ['explain_code', { codes: ['*'] }],
         ['format', { file: formatFile }],
     ];

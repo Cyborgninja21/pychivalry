@@ -92,20 +92,44 @@ export const SPAN_PROPERTIES: Readonly<Record<string, Schema>> = {
 
 export const SPAN_REQUIRED: readonly string[] = ['line', 'column', 'end_line', 'end_column'];
 
-/** A place in a file of a layer: the mod (`mod`) or the base game (`game`, `dlc:<pack>`, ...). */
+/** The layer of a place (`places.ts`). */
+export const LAYER: Schema = {
+    type: 'string',
+    description:
+        "mod: a file of the mod, its path inside the mod's folder. game, jomini, clausewitz or dlc:<pack>: a file of the installed base game, outside the mod, which only the source tool reads",
+};
+
+/** What a place outside the mod says (`places.ts`). */
+export const READ_WITH_SCHEMA: Schema = {
+    type: 'string',
+    enum: ['source'],
+    description:
+        'On every place outside the mod: the file is in the installed game, not under the mod, and your own file tools cannot read it; the source tool shows its text, given this layer, file and line',
+};
+
+/**
+ * A place in a file of a layer: the mod (`mod`) or the base game (`game`, `dlc:<pack>`, ...),
+ * as `placeOf` writes it.
+ */
 export const PLACE: Schema = {
     type: 'object',
     properties: {
-        layer: {
-            type: 'string',
-            description:
-                '`mod` for the mod; `game`, `jomini`, `clausewitz` or `dlc:<pack>` for the base game',
-        },
+        layer: LAYER,
         file: { type: 'string', description: "The file's path inside its layer, with /" },
         ...SPAN_PROPERTIES,
+        read_with: READ_WITH_SCHEMA,
     },
     required: ['layer', 'file', ...SPAN_REQUIRED],
 };
+
+/** A place of the mod: `PLACE` whose layer is always `mod`. */
+export const MOD_PLACE_PROPERTIES: Readonly<Record<string, Schema>> = {
+    layer: { type: 'string', enum: ['mod'], description: 'Always mod: a file of the mod' },
+    file: { type: 'string', description: "The file's path inside the mod, with /" },
+    ...SPAN_PROPERTIES,
+};
+
+export const MOD_PLACE_REQUIRED: readonly string[] = ['layer', 'file', ...SPAN_REQUIRED];
 
 /** The limit and cursor of a paged tool. */
 export function pagedInput(

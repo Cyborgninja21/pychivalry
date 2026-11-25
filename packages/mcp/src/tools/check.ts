@@ -7,8 +7,8 @@
  * time; then a cursor for the next page.
  *
  * Each finding carries its fix as the core gives it (`fix`, docs/PLAN.md item 8.6): safe or a
- * suggestion, its alternatives and their edits, with every place written as a span counted from
- * 1, as the tools write places. The server applies nothing (it writes nothing): an agent applies
+ * suggestion, its alternatives and their edits, with every place written as the tools write places
+ * (`places.ts`): the layer `mod`, the file inside the mod, a span counted from 1. The server applies nothing (it writes nothing): an agent applies
  * a fix with its own edit tool. A fix's size is bounded in the core (at most five alternatives,
  * each edit only the text it changes), and a page holds as many findings as fit the result's
  * budget, fixes and all, so fixes never push a result over it. A fix too long to list (the core's
@@ -25,16 +25,16 @@ import {
     type Steps,
     type WorkspaceFinding,
 } from '@pychivalry/core';
-import { spanOf, withSpans } from '../places.js';
+import { modPlaceOf, withPlaces } from '../places.js';
 import { DEFAULT_LIMIT, MAX_LIMIT, page, questionKey, readCursor, valueList } from '../result.js';
 import type { Schema } from '../schema.js';
 import type { Session } from '../session.js';
 import {
+    MOD_PLACE_PROPERTIES,
+    MOD_PLACE_REQUIRED,
     NEXT_CURSOR,
     NOTES,
     pagedInput,
-    SPAN_PROPERTIES,
-    SPAN_REQUIRED,
     type Tool,
 } from '../tool.js';
 import { codesOf } from './codes.js';
@@ -74,13 +74,12 @@ export function fixOutput(fix: FindingFix): FindingFix | Record<string, unknown>
 /** A finding as `check` returns it. */
 export function findingOutput(f: WorkspaceFinding): Record<string, unknown> {
     return {
-        file: f.file,
-        ...spanOf(f.range),
+        ...modPlaceOf(f.file, f.range),
         severity: f.severity,
         code: f.code,
         message: f.message,
         data: f.data,
-        fix: f.fix === null ? null : withSpans(fixOutput(f.fix)),
+        fix: f.fix === null ? null : withPlaces(fixOutput(f.fix)),
     };
 }
 
@@ -103,12 +102,12 @@ const COUNT: Schema = { type: 'integer', minimum: 0 };
 const EDIT: Schema = {
     type: 'object',
     properties: {
+        ...MOD_PLACE_PROPERTIES,
         file: {
             type: 'string',
             description:
                 "The file the edit changes, its path inside the mod, with /; it may be another file than the finding's",
         },
-        ...SPAN_PROPERTIES,
         new_text: {
             type: 'string',
             description: 'The text that replaces the span; the span is empty for an insertion',
@@ -119,7 +118,7 @@ const EDIT: Schema = {
                 'True when the file does not exist yet: the edit creates it with new_text whole (U+FEFF first is the byte-order mark the game needs)',
         },
     },
-    required: ['file', ...SPAN_REQUIRED, 'new_text'],
+    required: [...MOD_PLACE_REQUIRED, 'new_text'],
 };
 
 const FIX: Schema = {
@@ -166,8 +165,7 @@ const FIX: Schema = {
 const FINDING: Schema = {
     type: 'object',
     properties: {
-        file: { type: 'string', description: "The file's path inside the mod, with /" },
-        ...SPAN_PROPERTIES,
+        ...MOD_PLACE_PROPERTIES,
         severity: { type: 'string', enum: SEVERITIES },
         code: { type: 'string', description: 'The code; explain_code says what it means' },
         message: { type: 'string', description: "The game's own message, or pychivalry's advice" },
@@ -178,7 +176,7 @@ const FINDING: Schema = {
         },
         fix: FIX,
     },
-    required: ['file', ...SPAN_REQUIRED, 'severity', 'code', 'message', 'data', 'fix'],
+    required: [...MOD_PLACE_REQUIRED, 'severity', 'code', 'message', 'data', 'fix'],
 };
 
 export const checkTool: Tool<CheckArgs> = {

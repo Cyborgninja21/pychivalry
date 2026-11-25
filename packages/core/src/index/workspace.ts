@@ -17,7 +17,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import type { FallbackEncoding } from '../syntax/decode.js';
+import { decodeScript, type Decoded, type FallbackEncoding } from '../syntax/decode.js';
 import { parse } from '../syntax/parser.js';
 import type { Position, Range } from '../syntax/position.js';
 import { readScript } from '../syntax/read.js';
@@ -597,6 +597,15 @@ export class WorkspaceIndex {
     /** True when the index changes no more (`fork`, `freeze`). */
     get isFrozen(): boolean {
         return this.frozen;
+    }
+
+    /**
+     * A file's bytes decoded as this index decodes the files it reads (docs/encoding.md): its
+     * byte-order mark removed, a file not valid UTF-8 read with the fallback encoding it was
+     * given, if any. What the agent server's `source` shows (`source-text.ts`).
+     */
+    decode(bytes: Uint8Array): Decoded {
+        return decodeScript(bytes, { fallbackEncoding: this.fallbackEncoding });
     }
 
     private refuseChange(): void {

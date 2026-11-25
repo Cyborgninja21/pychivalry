@@ -52,6 +52,7 @@ import {
 } from './authoring-record.js';
 import { JUDGE_PROMPT_VERSION, judgePromptVersion } from './judge.js';
 import { committedRequests, EXPERT } from './requests.js';
+import { SERVER_SCHEMA_VERSION } from './run.js';
 import { RELEASE_TRIALS } from './scored-record.js';
 import { ENDED_BY_ITSELF } from './stop-rule.js';
 
@@ -145,6 +146,17 @@ export interface TargetsReading {
     readonly judge: {
         readonly sha256: string;
         readonly version: number | null;
+        readonly committed: boolean;
+    } | null;
+    /**
+     * The agent server's tool schema version the record's sessions were given
+     * (`server.schema_version`; null for a record made before it was named, whose sessions were
+     * given version 3 or earlier), and whether it is the committed one; null when only measures
+     * are given. A record of another version is read the same way, and its reading says so: its
+     * sessions were given other tools and answers.
+     */
+    readonly server: {
+        readonly schema_version: number | null;
         readonly committed: boolean;
     } | null;
 }
@@ -320,6 +332,7 @@ export function readTargets(
     results: Pick<AuthoringResults, 'tasks' | 'overall'> & {
         readonly trials?: readonly AuthoringTrial[];
         readonly task?: Pick<AuthoringResults['task'], 'judge_prompt_sha256'>;
+        readonly server?: AuthoringResults['server'];
     },
     list?: readonly string[],
 ): TargetsReading {
@@ -365,7 +378,27 @@ export function readTargets(
                       version: judgePromptVersion(sha)?.version ?? null,
                       committed: sha === JUDGE_PROMPT_VERSION.sha256,
                   },
+        server:
+            results.server === undefined
+                ? null
+                : {
+                      schema_version: results.server.schema_version ?? null,
+                      committed: results.server.schema_version === SERVER_SCHEMA_VERSION,
+                  },
     };
+}
+
+/** Which agent server a reading's sessions were given, in words. */
+export function serverLine(server: NonNullable<TargetsReading['server']>): string {
+    const committed = SERVER_SCHEMA_VERSION;
+    if (server.committed) {
+        return `its sessions were given the agent server's tool schema version ${String(committed)}, the committed one`;
+    }
+    const which =
+        server.schema_version === null
+            ? 'tool schema version 3 or earlier (the record was made before records named it: no source tool, lookup answered in pages cut inside a name, game places that did not say how to read them)'
+            : `tool schema version ${String(server.schema_version)}`;
+    return `its sessions were given the agent server's ${which}, not the committed version ${String(committed)}: they were given other tools and answers, so its measures are not comparable with those of a record of version ${String(committed)} without saying so`;
 }
 
 /** Which judge's prompt a reading's judged parts are of, in words. */
@@ -507,6 +540,9 @@ export function targetLines(reading: TargetsReading): string[] {
               ? `a development run (${trials}, but not of every request of the list)`
               : `a development run (${trials}; a run before a release has ${String(RELEASE_TRIALS)} of each)`;
     const lines: string[] = [];
+    if (reading.server !== null) {
+        lines.push(serverLine(reading.server));
+    }
     if (reading.judge !== null) {
         lines.push(judgeLine(reading.judge));
     }

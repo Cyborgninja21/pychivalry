@@ -78,6 +78,9 @@ const CALLS: readonly [string, Record<string, unknown>][] = [
     ['check', { min_severity: 'hint', limit: 5 }],
     ['check', { path: 'events', min_severity: 'warning' }],
     ['lookup', { names: ['is_adult', 'planted_unknown_thing'] }],
+    ['lookup', { names: ['is_adult', 'option'], folder: 'events', language: 'l_english' }],
+    ['source', { layer: 'mod', file: 'events/harvest_events.txt', line: 3 }],
+    ['source', { layer: 'game', file: 'common/scripted_effects/00_feast_effects.txt', line: 1 }],
     ['find_references', { name: 'is_adult', limit: 5 }],
     ['list_definitions', { kind: 'common/scripted_effects', limit: 20 }],
     ['find_definition', { name: 'is_adult' }],
@@ -159,7 +162,7 @@ test('a request of another spec package, version or tool is refused', () => {
         modDir: MOD,
         game: { dir: GAME, source: 'vanilla', notFound: false },
         tool: 'lookup',
-        args: { name: 'is_adult' },
+        args: { names: ['is_adult'] },
     };
     assert.equal(drain(mcp.serveSteps(request)).isError, undefined, 'answered');
     assert.throws(() => drain(mcp.serveSteps({ ...request, version: 'another' })), BaseRefused);

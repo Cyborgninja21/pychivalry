@@ -1,6 +1,6 @@
 ---
 name: pychivalry-fix-error
-description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, format, apply_format).
+description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, source, format, apply_format).
 ---
 
 # Fix what pychivalry finds
@@ -16,7 +16,8 @@ such as `check`, but Claude Code, for one, lists them under longer names, and on
 can be called: a call of a short name reaches nothing, and Claude Code answers that there is no
 such tool. In Claude Code the names are `mcp__pychivalry__check`, `mcp__pychivalry__explain_code`,
 `mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`, `mcp__pychivalry__find_references`,
-`mcp__pychivalry__list_definitions`, `mcp__pychivalry__format`, `mcp__pychivalry__apply_format`.
+`mcp__pychivalry__list_definitions`, `mcp__pychivalry__source`, `mcp__pychivalry__format`,
+`mcp__pychivalry__apply_format`.
 Call each by the name your client lists, never by the short name alone; if a call finds no such
 tool, call the same tool again by its listed name. If no pychivalry tool is offered at all, say so
 and stop: in VS Code the extension registers the agent server by itself; for Claude Code, the
@@ -53,9 +54,15 @@ person runs "pychivalry: Set up for Claude Code" in VS Code once for the mod's f
      edit and say so.
 3. **For a finding with no fix:** run `explain_code` on its code, and `lookup` on the names its
    message and data mention: the scopes a name is valid in, what it takes, the values a field
-   takes, and, for a name nothing knows, the names close to it. For a name the mod or the game
+   takes (give `folder` the finding's folder for a field), and, for a name nothing knows, the
+   names close to it. Every name `lookup` answers is answered whole; one listed in
+   `not_answered` did not fit: look it up in another call. For a name the mod or the game
    defines, `find_definition` shows where, and `list_definitions` with `kind` the folder lists
-   what is defined there. Edit only when the tools show what is right.
+   what is defined there. To see how the game itself writes a name, `source` shows the text
+   around a place `lookup` or `find_references` named. A place whose `layer` is not `mod` is a
+   file of the installed game, outside the mod, and says `read_with`: read it with `source`
+   only, never with your own file tools, which cannot reach it. Edit only when the tools show
+   what is right.
 4. **Check again,** and repeat from step 2 for what is left, within the 5 rounds.
 5. **Leave the files in the format.** pychivalry writes every file with Windows line breaks and
    the UTF-8 byte-order mark, and lays it out one way. A file not in the format is the warning

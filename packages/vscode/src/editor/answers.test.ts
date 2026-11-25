@@ -28,6 +28,7 @@ const core = {
 };
 
 const agent = {
+    layer: 'mod',
     file: 'events/a.txt',
     line: 3,
     column: 5,
@@ -67,6 +68,7 @@ test('a fix is the same answer on every surface: its places from 0 in the core, 
                 title: "Replace 'is_adul' with 'is_adult'",
                 edits: [
                     {
+                        layer: 'mod',
                         file: 'events/a.txt',
                         line: 3,
                         column: 5,
@@ -93,6 +95,37 @@ test('a fix is the same answer on every surface: its places from 0 in the core, 
         'a fix one surface lacks is a difference',
     );
     assert.equal(only([fromTheCore], { data: false, evidence: false, fix: false })[0]?.fix, null);
+});
+
+test("every place of the agent server's finding says the layer mod, and is held to it", () => {
+    // Since tool schema version 4 every place says its layer; a finding's and its fix's are the
+    // mod's, and the comparison takes the layer off only once it has seen that.
+    const noLayer = Object.fromEntries(Object.entries(agent).filter(([key]) => key !== 'layer'));
+    assert.throws(() => fromAgent(noLayer), /a place of a finding is not the mod's/);
+    assert.throws(() => fromAgent({ ...agent, layer: 'game' }), /not the mod's/);
+    assert.throws(() => fromAgent({ ...agent, read_with: 'source' }), /not the mod's/);
+    const gameEdit = {
+        safety: 'safe',
+        basis: 'nearest-name',
+        alternatives: [
+            {
+                title: 'x',
+                edits: [
+                    {
+                        layer: 'game',
+                        file: 'events/a.txt',
+                        line: 3,
+                        column: 5,
+                        end_line: 3,
+                        end_column: 12,
+                        new_text: 'x',
+                        read_with: 'source',
+                    },
+                ],
+            },
+        ],
+    };
+    assert.throws(() => fromAgent({ ...agent, fix: gameEdit }), /not the mod's/);
 });
 
 test("the command line's JSON lines are read, the summary last", () => {

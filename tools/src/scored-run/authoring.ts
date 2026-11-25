@@ -138,6 +138,7 @@ import {
     sanitize,
     scoredOptions,
     SERVER_NAME,
+    SERVER_SCHEMA_VERSION,
     SERVER_TOOLS,
     SESSION_LIMIT_OPTION,
     sessionRecord,
@@ -607,6 +608,7 @@ export function runAuthoring(
             arguments: options.serverArgs.map((a) =>
                 a.replaceAll('{mod}', '<trial mod>').replaceAll('{game}', '<game dir>'),
             ),
+            schema_version: SERVER_SCHEMA_VERSION,
         },
     };
     const { tool, spec: specRef, game, ...stated } = fixed;

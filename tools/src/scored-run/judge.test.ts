@@ -364,17 +364,24 @@ test("the judge's prompt is versioned: the committed file is the last version, a
     assert.equal(sha256OfFile(path.join(root, JUDGE_PROMPT_FILE)), JUDGE_PROMPT_VERSION.sha256);
     assert.equal(JUDGE_PROMPT_VERSION.version, 2);
     assert.equal(judgePromptVersion('0'.repeat(64)), null);
-    // The three committed authoring records were judged with version 1.
+    // The three authoring records the runs made were judged with version 1; the expert run's
+    // kept results, judged again by task scored:rejudge (2026-11-25), with version 2.
     const scored = path.join(root, 'records', 'scored');
     const records = readdirSync(scored).filter((f) => f.startsWith('authoring'));
-    assert.deepEqual(records.sort(), [
-        'authoring-expert-run-1.json',
-        'authoring-run-1.json',
-        'authoring.json',
-    ]);
+    const judgedWith: Record<string, number> = {
+        'authoring-expert-run-1-judge-2.json': 2,
+        'authoring-expert-run-1.json': 1,
+        'authoring-run-1.json': 1,
+        'authoring.json': 1,
+    };
+    assert.deepEqual(records.sort(), Object.keys(judgedWith).sort());
     for (const name of records) {
         const record = JSON.parse(readFileSync(path.join(scored, name), 'utf8')) as AuthoringRecord;
-        assert.equal(judgePromptVersion(record.results.task.judge_prompt_sha256)?.version, 1, name);
+        assert.equal(
+            judgePromptVersion(record.results.task.judge_prompt_sha256)?.version,
+            judgedWith[name],
+            name,
+        );
     }
 });
 

@@ -16,7 +16,8 @@ such as `check`, but Claude Code, for one, lists them under longer names, and on
 can be called: a call of a short name reaches nothing, and Claude Code answers that there is no
 such tool. In Claude Code the names are `mcp__pychivalry__check`, `mcp__pychivalry__lookup`,
 `mcp__pychivalry__find_definition`, `mcp__pychivalry__list_definitions`,
-`mcp__pychivalry__explain_code`, `mcp__pychivalry__format`, `mcp__pychivalry__apply_format`. Call
+`mcp__pychivalry__find_references`, `mcp__pychivalry__source`, `mcp__pychivalry__explain_code`,
+`mcp__pychivalry__format`, `mcp__pychivalry__apply_format`. Call
 each by the name your client lists, never by the short name alone; if a call finds no such tool,
 call the same tool again by its listed name. If no pychivalry tool is offered at all, say so and
 stop: in VS Code the extension registers the agent server by itself; for Claude Code, the person
@@ -29,9 +30,11 @@ These hold for every request, whatever else it asks.
 1. **Look names up before using them.** Before you write a trigger, an effect, a scope link, a
    modifier, an on-action, a field or a value, `lookup` it (up to 20 names a call): it says
    whether the game has it, where it is valid (its scopes, the folders a field belongs to), what
-   it takes, and the game's own description. A name `lookup` does not know is not written; the
-   names close to it that `lookup` offers are candidates, each looked up in turn. A name the mod
-   or the game defines (an event, a trait, a scripted effect) is checked with `find_definition`.
+   it takes, and the game's own description. Every name `lookup` answers is answered whole; a
+   name that did not fit is listed in `not_answered`: look it up in another call. A name `lookup`
+   does not know is not written; the names close to it that `lookup` offers are candidates, each
+   looked up in turn. A name the mod or the game defines (an event, a trait, a scripted effect)
+   is checked with `find_definition`.
 2. **Write events with their localization.** The texts an event shows are written in its script
    as localization keys (`lookup` of a field says whether it holds one), and every key you
    write is defined in the mod's localization, with real text, in the same change. A `localization/missing-key` finding means this rule is not
@@ -78,17 +81,23 @@ same.
    it, and say which choice you made.
 2. **Learn the folder from the game.** `list_definitions` with `kind` the folder (`events`,
    `common/decisions`, ...) lists what the mod and the base game define there. `lookup` each
-   field you mean to write: a reading that is a field of that folder gives Paradox's own
-   documentation of it, its value type, whether it holds a localization key and, where they are
-   few, the values the base game writes. Run `check` on the mod once before you start: what it
-   already reports is not yours to fix unless asked, and you will not mistake it for your own.
-3. **Name things so they clash with nothing.** Give everything you define a name of the mod's
+   field you mean to write, with `folder` set to that folder: its reading as a field of that
+   folder gives Paradox's own documentation of it, its value type, whether it holds a
+   localization key and, where they are few, the values the base game writes. Run `check` on the
+   mod once before you start: what it already reports is not yours to fix unless asked, and you
+   will not mistake it for your own.
+3. **See how the game itself writes it,** when the readings leave you unsure: `lookup` and
+   `find_references` name places where the base game uses a name, and `source` shows the text
+   around one (its `layer`, `file` and `line`, as the place gives them). A place whose `layer` is
+   not `mod` is a file of the installed game, outside the mod, and says `read_with`: read it with
+   `source` only, never with your own file tools, which cannot reach it.
+4. **Name things so they clash with nothing.** Give everything you define a name of the mod's
    own, with a prefix the mod already uses if it has one. `find_definition` on each new name
    must find nothing: a definition of the same name replaces the base game's or another file's.
-4. **Draft,** looking up every name before you write it (rule 1), and writing the localization
+5. **Draft,** looking up every name before you write it (rule 1), and writing the localization
    with the script (rule 2).
-5. **Format, check and repair,** as rules 3 to 7 say, round by round: `apply_format` on each file
+6. **Format, check and repair,** as rules 3 to 7 say, round by round: `apply_format` on each file
    you wrote or changed, then `check`.
-6. **Report.** The files you wrote and the names you defined; the last `check`'s totals for
+7. **Report.** The files you wrote and the names you defined; the last `check`'s totals for
    those files; the choices you made; and anything left, as rule 6 says. Say also what a clean
    check does not prove: that the content does what was asked when it runs in the game.
