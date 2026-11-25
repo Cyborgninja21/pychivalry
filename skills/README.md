@@ -44,7 +44,10 @@ field one of them does not know is left out
 - the authoring skill states the rules of item 9.2 in order, for the four kinds of content;
 - each says when to read the game's own text with the agent server's `source`, that a place
   outside the mod is never read with the harness's own file tools, and that `lookup` names the
-  names it did not answer (tool schema version 4, decision 140).
+  names it did not answer (tool schema version 4, decision 140);
+- only the explain-error skill names `lookup`'s `evidence`, the spec package's evidence of one
+  name, for when a person asks why a name is wrong or where its reading comes from (tool schema
+  version 5); the other two have every fact they need in the plain answer, which stays small.
 
 The editor tests (`task vscode:test`) show VS Code listing the three, handing them to its
 Copilot harness, and the set-up copying, keeping up to date and removing Claude Code's copies.

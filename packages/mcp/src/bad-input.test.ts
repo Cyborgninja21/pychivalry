@@ -58,6 +58,11 @@ test('bad arguments are results that name the valid values', async (t) => {
             { names: ['x'.repeat(121)] },
             /names\[0\]: longer than 120 characters; no name of the game or a mod is that long/,
         ],
+        [
+            'lookup',
+            { names: ['is_adult', 'add_gold', 'add_gold'], evidence: true },
+            /evidence: given with 2 names, and it is given for one name a call/,
+        ],
         ['source', { layer: 'mod', file: 'x.txt' }, /line: missing; it is required/],
         [
             'source',

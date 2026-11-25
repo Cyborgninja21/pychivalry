@@ -134,6 +134,11 @@ function calls(
         ['check', { min_severity: 'hint', limit: 200, codes: ['*'], unused_keys: true }],
         ['check', { codes: ['no/such-code'] }],
         ['lookup', { names }],
+        // One name's evidence (tool schema version 5): a field of many folders, the name most
+        // defined, and the first name asked.
+        ['lookup', { names: ['effect'], evidence: true }],
+        ['lookup', { names: [defined], evidence: true }],
+        ['lookup', { names: names.slice(0, 1), evidence: true }],
         ['find_definition', { name: defined }],
         ['find_references', { name: used, limit: 200 }],
         ['list_definitions', { kind, limit: 200 }],

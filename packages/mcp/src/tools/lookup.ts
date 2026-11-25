@@ -18,6 +18,14 @@
  * is named in `not_answered`, with what to do: look those names up in another call. A result holds
  * as many whole names as fit, in the order asked; every name fits a result alone, written smaller
  * when it must (`answerOf`).
+ *
+ * **The spec package's evidence, for one name, on request** (tool schema version 5, the owner's
+ * decision of 2026-11-25): with `evidence` true and exactly one name, its answer also holds
+ * `evidence`, the core's readings of the name whole, with the evidence behind each part, as the
+ * command line's `lookup --json` prints them (`evidenceOf`): as many as fit the result, from the
+ * first, the rest counted with the characters they hold and what to ask instead, never cut
+ * silently. Off by default, so that no answer grows unless it is asked; refused with more than one
+ * name, the text saying how to ask.
  */
 
 import {
@@ -31,12 +39,13 @@ import { BadInput, RESULT_BUDGET, sizeOf, valueList } from '../result.js';
 import type { Schema } from '../schema.js';
 import type { Session } from '../session.js';
 import { NOTES, PLACE, type Tool } from '../tool.js';
-import { answerOf, FIELDS_IN_FULL, PLACES_SHOWN, USES_SHOWN } from './lookup-answer.js';
+import { answerOf, evidenceOf, FIELDS_IN_FULL, PLACES_SHOWN, USES_SHOWN } from './lookup-answer.js';
 
 export interface LookupArgs {
     readonly names: readonly string[];
     readonly language?: string;
     readonly folder?: string;
+    readonly evidence?: boolean;
 }
 
 /** The most names one call may ask about. */
@@ -50,6 +59,48 @@ export const ASK_AGAIN =
     'These names did not fit in this result: look them up in another call of lookup, with the same language and folder. lookup has no cursor and no pages: every name it answers is answered whole';
 
 const COUNT: Schema = { type: 'integer', minimum: 0 };
+
+/** The evidence of one name's readings, given only when asked (`evidenceOf`). */
+const EVIDENCE: Schema = {
+    type: 'object',
+    properties: {
+        spec: {
+            type: 'object',
+            properties: { version: { type: 'string' }, sha256: { type: 'string' } },
+            required: ['version', 'sha256'],
+            description: 'The spec package the evidence is from',
+        },
+        readings: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: { kind: { type: 'string' } },
+                required: ['kind'],
+            },
+            description:
+                "The name's readings whole, in order, each with the spec package's evidence behind each part (its sources, counts and quotes), as the command line's lookup --json gives them; as many as fit this result",
+        },
+        readings_total: {
+            ...COUNT,
+            description:
+                'How many readings the name has (with folder: in that folder, and those that are not fields)',
+        },
+        left_out: {
+            type: ['object', 'null'],
+            properties: {
+                readings: COUNT,
+                characters: COUNT,
+                ask: { type: 'string' },
+            },
+            required: ['readings', 'characters', 'ask'],
+            description:
+                'The readings after those given, whose evidence did not fit this result: how many, the characters they hold, and what to ask instead. Null when every reading is given',
+        },
+    },
+    required: ['spec', 'readings', 'readings_total', 'left_out'],
+    description:
+        "Only with evidence true: the spec package's evidence behind the readings of this one name",
+};
 
 const ANSWER: Schema = {
     type: 'object',
@@ -137,6 +188,7 @@ const ANSWER: Schema = {
             items: { type: 'string' },
             description: 'For a name nothing knows: the names close to it',
         },
+        evidence: EVIDENCE,
         detail: {
             type: 'string',
             enum: ['field-folders', 'counts'],
@@ -178,6 +230,7 @@ export const lookupTool: Tool<LookupArgs> = {
         'for a name nothing knows, the names close to it. Use it before writing a keyword, and to understand a finding.',
         `A name that is a field of more than ${String(FIELDS_IN_FULL)} folders comes in brief: give folder (common/decisions, events...) to have its field in that folder in full, as when learning the fields of the folder you write in.`,
         'There is no cursor and no next page: names that do not fit one result are listed in not_answered; look them up in another call.',
+        "To show where a reading comes from, give evidence true with one name: its readings come again whole in evidence, with the spec package's evidence behind each part, as many as fit, the rest counted.",
     ].join(' '),
     input: {
         type: 'object',
@@ -199,6 +252,12 @@ export const lookupTool: Tool<LookupArgs> = {
                 minLength: 1,
                 description:
                     'Only the field readings of this folder (common/decisions, events...), in full; the readings that are not fields are all kept',
+            },
+            evidence: {
+                type: 'boolean',
+                default: false,
+                description:
+                    "True with exactly one name: its answer also holds evidence, its readings whole with the spec package's evidence behind each part (sources, counts, quotes), as the command line's lookup --json gives them. Off by default; one name a call",
             },
         },
         required: ['names'],
@@ -235,6 +294,11 @@ export const lookupTool: Tool<LookupArgs> = {
                 );
             }
         }
+        if (args.evidence === true && names.length > 1) {
+            throw new BadInput(
+                `evidence: given with ${String(names.length)} names, and it is given for one name a call. Ask lookup with that one name and evidence true, once for each name whose evidence you need, and look the other names up in one call without evidence`,
+            );
+        }
         const language = args.language ?? null;
         const folder = args.folder ?? null;
         const workspace = session.workspace();
@@ -266,20 +330,16 @@ export const lookupTool: Tool<LookupArgs> = {
         }
         const files = session.game.dir === null ? null : diskFileSource(listings);
         const notes = session.notes();
-        const answers = names.map(
-            (name) =>
-                answerOf(
-                    lookup(name, {
-                        spec: session.spec,
-                        index: workspace.index,
-                        files,
-                        language,
-                        usesLimit: USES_SHOWN,
-                    }),
-                    folder,
-                    language,
-                ).answer,
+        const results = names.map((name) =>
+            lookup(name, {
+                spec: session.spec,
+                index: workspace.index,
+                files,
+                language,
+                usesLimit: USES_SHOWN,
+            }),
         );
+        const answers = results.map((result) => answerOf(result, folder, language).answer);
         const build = (
             taken: readonly Record<string, unknown>[],
             left: readonly string[],
@@ -288,6 +348,17 @@ export const lookupTool: Tool<LookupArgs> = {
             not_answered: left.length === 0 ? null : { names: left, ask: ASK_AGAIN },
             notes,
         });
+        const [only] = results;
+        const [answer] = answers;
+        if (args.evidence === true && only !== undefined && answer !== undefined) {
+            // One name: its evidence as large as the rest of the result leaves room for.
+            const evidence = evidenceOf(
+                only,
+                folder,
+                (e) => sizeOf(build([{ ...answer, evidence: e }], [])) <= RESULT_BUDGET,
+            );
+            return build([{ ...answer, evidence }], []);
+        }
         // Whole names, in the order asked: a name that does not fit is named, and the names
         // after it are still tried. The first name always fits (`NAME_ROOM`).
         const taken: Record<string, unknown>[] = [];

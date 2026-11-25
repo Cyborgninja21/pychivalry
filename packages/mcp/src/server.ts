@@ -8,7 +8,9 @@
  * `format` came with step 8 (schema version 2), and `apply_format`, the one tool that writes (a
  * file of the mod in the format, declared not read-only), with item 9.8 (schema version 3);
  * `source`, the text around a place, with `lookup` answering each name whole and every place
- * saying its layer, on the owner's decision of 2026-11-25 (schema version 4). The two tools
+ * saying its layer, on the owner's decision of 2026-11-25 (schema version 4); `lookup`'s
+ * `evidence`, one name's spec package evidence on request, on his decision of the same day
+ * (schema version 5). The two tools
  * the plan fills in later are not registered until they do something: `call_graph` (step 10)
  * and `analyze_log` (step 11). Each is added then as one more `Tool` in `TOOLS`, with its own
  * shapes and tests; the schema version moves with it.

@@ -10,7 +10,9 @@
  * version, its removal and replacement, and, for a field, its kind, value type and the values the
  * base game writes. Those are written here, every one of them, in the order of the core's
  * readings; the evidence behind each (the spec package's sources, counts and quotes) is left to
- * the command line's `lookup --json`, which prints the core's answer whole.
+ * the command line's `lookup --json`, which prints the core's answer whole, and, for one name a
+ * call, to `lookup` with `evidence` (`evidenceOf`, tool schema version 5), which adds the core's
+ * readings whole beside the answer, as many as fit, the rest counted.
  *
  * Then, after the readings, where the name is defined (each definition group's rule and at most
  * `PLACES_SHOWN` of its places, the one in force first, its count whole: `find_definition` lists
@@ -38,7 +40,7 @@ import type {
     UsesAnswer,
 } from '@pychivalry/core';
 import { languageOf } from '@pychivalry/core';
-import { MOD_LAYER, placeOf } from '../places.js';
+import { MOD_LAYER, placeOf, withPlaces } from '../places.js';
 import { RESULT_BUDGET, sizeOf } from '../result.js';
 
 /** The uses each name lists; `find_references` lists all. */
@@ -412,16 +414,23 @@ function suggestionsOf(s: SuggestionsAnswer): Out {
 }
 
 /**
+ * The readings a lookup answers about: every reading in the core's order but, with `folder`, the
+ * field readings of other folders.
+ */
+export function readingsIn(readings: readonly Reading[], folder: string | null): Reading[] {
+    return folder === null
+        ? [...readings]
+        : readings.filter((r) => r.kind !== 'field' || r.directory === folder);
+}
+
+/**
  * The readings of a name as `detail` and `folder` say: every reading in the core's order, the
  * fields of other folders than `folder` left out (counted), the fields in brief or as a list of
  * folders when the name is a field of many.
  */
 function readingsOf(readings: readonly Reading[], folder: string | null, detail: Detail): Out {
     const fields = readings.filter((r): r is FieldReading => r.kind === 'field');
-    const kept =
-        folder === null
-            ? readings
-            : readings.filter((r) => r.kind !== 'field' || r.directory === folder);
+    const kept = readingsIn(readings, folder);
     const elsewhere = folder === null ? 0 : fields.filter((r) => r.directory !== folder).length;
     const keptFields = kept.filter((r) => r.kind === 'field').length;
     const fieldsInFull = folder !== null || keptFields <= FIELDS_IN_FULL;
@@ -488,4 +497,60 @@ export function answerOf(
         }
     }
     throw new Error('unreachable: the last level is always returned');
+}
+
+// ─── The spec package's evidence, on request ───────────────────────────────
+
+/** What `left_out` says to do when the evidence of field readings did not fit and no folder was given. */
+export const EVIDENCE_ASK_FOLDER =
+    'The evidence of these readings did not fit this result; their facts, without the evidence, are in readings. Ask lookup again with this one name, evidence true and folder set to one folder it is a field of, for the field readings of that folder with their evidence';
+
+/** What `left_out` says when nothing smaller can be asked. */
+export const EVIDENCE_ASK_NOTHING_SMALLER =
+    'The evidence of these readings did not fit this result; their facts, without the evidence, are in readings. No smaller question of lookup gives more of it';
+
+/**
+ * One name's evidence (`lookup` with `evidence`): the core's readings of the name, each whole,
+ * as the command line's `lookup --json` prints them in `readings` (with `folder`, only the field
+ * readings of that folder, as the answer has them), every place in them written by the one place
+ * writer; as many as fit, from the first, in the core's order, never one cut inside; the readings
+ * left out are counted, with the characters they hold, and what to ask instead. `fits` says
+ * whether the whole result holding this evidence stays within its budget; nothing at all must fit.
+ */
+export function evidenceOf(
+    result: LookupResult,
+    folder: string | null,
+    fits: (evidence: Out) => boolean,
+): Out {
+    const readings = readingsIn(result.readings, folder);
+    const written = readings.map((r) => withPlaces(r) as Out);
+    const sizes = written.map((r) => sizeOf(r));
+    const at = (taken: number): Out => {
+        const left = readings.slice(taken);
+        const fieldsLeft = left.some((r) => r.kind === 'field');
+        return {
+            spec: result.spec,
+            readings: written.slice(0, taken),
+            readings_total: readings.length,
+            left_out:
+                left.length === 0
+                    ? null
+                    : {
+                          readings: left.length,
+                          characters: sizes.slice(taken).reduce((n, size) => n + size, 0),
+                          ask:
+                              fieldsLeft && folder === null
+                                  ? EVIDENCE_ASK_FOLDER
+                                  : EVIDENCE_ASK_NOTHING_SMALLER,
+                      },
+        };
+    };
+    let taken = 0;
+    if (!fits(at(0))) {
+        throw new Error('no evidence fits a result: the answer leaves no room for it');
+    }
+    while (taken < readings.length && fits(at(taken + 1))) {
+        taken++;
+    }
+    return at(taken);
 }

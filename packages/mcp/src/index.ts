@@ -26,5 +26,6 @@ export {
 } from './share.js';
 export { Session, type GameChoice, type ModPath, type SessionOptions } from './session.js';
 export { RESULT_BUDGET } from './result.js';
+export { placeOf, withPlaces } from './places.js';
 export { SCHEMA_VERSION, SERVER_NAME, VERSION } from './version.js';
 export type { ListedTool, Tool } from './tool.js';

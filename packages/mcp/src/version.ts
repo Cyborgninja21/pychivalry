@@ -16,6 +16,8 @@ export const VERSION = '0.0.0';
  * The version of the tools' input and output shapes: 1, the six tools of step 6; 2, `format`
  * (step 8); 3, `apply_format` (item 9.8); 4, `source`, `lookup` answering each name whole (no
  * cursor), and every place saying its layer, a place outside the mod saying `read_with: "source"`
- * (the owner's decision of 2026-11-25).
+ * (the owner's decision of 2026-11-25); 5, `lookup`'s `evidence`: for one name a call, on
+ * request, the spec package's evidence behind its readings, as the command line's `lookup --json`
+ * gives it, its answer otherwise unchanged (the owner's second decision of 2026-11-25).
  */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
