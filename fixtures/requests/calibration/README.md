@@ -12,7 +12,7 @@ These hand-made ones stay, and are graded first: they are the only results of th
 requests made wrong on purpose, and whether the judge can say no shows only on a result that is
 wrong. A third sheet, in [expert/](expert/README.md), holds twenty-four hand-made results of the
 expert requests added after the second run, two of each, every one passing everything code
-checks; it is graded last, and only if the owner chooses to.
+checks; it is graded last, before the release run (decision 135).
 
 Each folder under `results/` is a whole mod as a session would leave it: the request's base mod
 (`fixtures/requests/bases/`) with the result's files written into it. The judge is shown exactly

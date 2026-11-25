@@ -355,12 +355,35 @@ is written again after every trial. `results`:
 | `tasks` | Per request run: its `name`, `content_type` and `difficulty`, its `trials` and those whose harness `held`, and of those the counts with `zero_errors`, `no_warnings`, `in_format` and `expectations_met`, and per dimension `judged` the counts of `yes`, `no`, `cannot_tell` and `unanswered` |
 | `overall` | The same counts over every trial |
 
-A trial whose harness did not hold is listed and counted in `trials` only. The record states
+A trial whose harness did not hold is listed with its reasons, its grades and, when its authoring
+session ended by itself, its judge's answers, and is counted in `trials` only. The record states
 measures only, no target: the owner's targets (docs/decisions.md, decision 127) are read from its
-`overall` measures by the run when it ends and by `task scored:targets`, which starts no session
-([tools/scored-run/README.md](../tools/scored-run/README.md#the-targets-item-98)), so a record
-made before the targets were set is read the same way as one made after. The first run's record
-is `authoring-run-1.json`, the second's `authoring.json`.
+measures and its trials by the run when it ends and by `task scored:targets`, which starts no
+session ([tools/scored-run/README.md](../tools/scored-run/README.md#the-targets-item-98)), so a
+record made before the targets were set is read the same way as one made after. A trial that did
+not hold is never counted as a success there: when its session ended by itself it counts against
+each target its own result fails.
+
+A record may hold the trials of more than one run: `SCORED_CONTINUE=true` adds a run's trials to
+it only when it was made the same way, at the same commit or at an earlier one with nothing a
+trial is made or graded with changed since
+([tools/scored-run/README.md](../tools/scored-run/README.md#continuing-a-run)). It keeps the
+`tool` it was first made with, and a note names the commit of each run that added trials and the
+files of code that changed since the record's own.
+
+**Which file.** `authoring.json` is always the latest run of the whole request list; when a run of
+the whole list replaces it, the record it replaces is kept beside it, unchanged, as
+`authoring-run-<n>.json`, `<n>` its run's number: the first run's is `authoring-run-1.json`, the
+second's is `authoring.json`. **A run of some requests only** (`SCORED_REQUESTS` naming fewer than
+every request) never replaces `authoring.json`. It is filed beside it, as the run wrote it, as
+`authoring-<set>-run-<n>.json`: `<set>` a word for the requests it covers, `expert` for the twelve
+expert requests, and `<n>` the number of that set's runs, from 1. A run given `SCORED_RECORD` with
+that name writes it there itself; one that wrote `authoring.json` is filed by copying that file to
+the name, byte for byte, and giving `authoring.json` back as committed (`git restore`), in the same
+commit. `task records:check` checks every one of them like any record, and `task scored:targets`
+reads one with `SCORED_RECORD`. The expert requests' development run (decision 134), continued
+from the record its first part wrote into `authoring.json`, is filed so as
+`authoring-expert-run-1.json` once it has finished.
 
 ### Calibration records (`scored:calibration`)
 
