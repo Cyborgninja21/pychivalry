@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { toolInfo } from '../record.js';
 import { checkRecord, compileRecordSchema } from '../records-check.js';
 import { fixtureGame, tempDir, writeTree } from '../testing.js';
 import { CommandError } from '../util.js';
@@ -19,8 +20,10 @@ import { readStream } from './stream.js';
 import {
     authoringArgs,
     authoringOptions,
+    authoringRecordFile,
     AUTHORING_PROMPT_FILE,
     AUTHORING_TOOLS,
+    NOT_HELD_NOTE,
     PROJECT_SKILLS,
     runAuthoring,
     skillsIn,
@@ -66,18 +69,43 @@ interface Run {
     readonly calls: Record<string, unknown>[];
     readonly log: string[];
     readonly file: string;
+    readonly stopped: string | null;
+    readonly short: readonly { readonly request: string; readonly held: number }[];
 }
 
 function run(
     t: TestContext,
     env: Record<string, string>,
-    streams: { readonly authoring?: string; readonly judge?: string } = {},
+    streams: {
+        readonly authoring?: string;
+        readonly judge?: string;
+        /** Streams for some trials, by their folder (`<request>-<n>`), instead of `authoring`. */
+        readonly trials?: Readonly<Record<string, string>>;
+    } = {},
     recordFile = path.join(tempDir(t), 'authoring.json'),
+    build?: Parameters<typeof runAuthoring>[4],
 ): Run {
     const dir = tempDir(t);
     const argvFile = path.join(dir, 'argv.jsonl');
     const log: string[] = [];
-    const { record } = runAuthoring(
+    const own =
+        streams.trials === undefined
+            ? {}
+            : {
+                  FAKE_CLAUDE_STREAMS: textFile(
+                      t,
+                      'streams.json',
+                      JSON.stringify(
+                          Object.fromEntries(
+                              Object.entries(streams.trials).map(([trial, text]) => [
+                                  trial,
+                                  textFile(t, `${trial}.jsonl`, text),
+                              ]),
+                          ),
+                      ),
+                  ),
+              };
+    const { record, stopped, short } = runAuthoring(
         root,
         {
             SCORED_SESSION_LIMIT: '2',
@@ -93,6 +121,7 @@ function run(
                 streams.judge ?? judgeStream('{}'),
             ),
             FAKE_CLAUDE_ARGV: argvFile,
+            ...own,
             ...CREDENTIALS,
             CLAUDECODE: '1',
             MCP_CONNECTION_NONBLOCKING: 'true',
@@ -100,6 +129,7 @@ function run(
         },
         (line) => log.push(line),
         recordFile,
+        build,
     );
     assert.deepEqual(
         checkRecord(JSON.parse(JSON.stringify(record)) as unknown, validate, expected),
@@ -111,7 +141,7 @@ function run(
               .split('\n')
               .map((l) => JSON.parse(l) as Record<string, unknown>)
         : [];
-    return { record, calls, log, file: recordFile };
+    return { record, calls, log, file: recordFile, stopped, short };
 }
 
 test('a trial whose session writes a correct result: valid, every expectation met, the judge answered; the record holds', (t) => {
@@ -438,6 +468,290 @@ test('a continued run brings each request up to its trials, numbered after its o
     );
     const kept = JSON.parse(readFileSync(recordFile, 'utf8')) as AuthoringRecord;
     assert.equal(kept.results.trials.length, 4);
+});
+
+/**
+ * A session that ran to its end and named a game file it had been shown, outside its mod: the
+ * fourth trial of `event-county-unrest` in the expert requests' development run did so.
+ */
+const STRAYED = authoringStream({
+    read: '../game/common/casus_belli_types/00_peasant_war_new.txt',
+});
+/** A session that ended on an error. */
+const BROKE = authoringStream({ subtype: 'error_during_execution' });
+
+test('a trial that names a file outside its mod does not stop the run: recorded as not held with its reason, graded and judged, and the run carries on', (t) => {
+    const r = request('event-county-unrest');
+    const { record, calls, log, stopped, short } = run(
+        t,
+        { SCORED_REQUESTS: r.id, SCORED_TRIALS: '3', FAKE_CLAUDE_APPLY: exampleDir(r.id) },
+        { judge: judgeStream(judgeAnswer(r, 'yes')), trials: { [`${r.id}-2`]: STRAYED } },
+    );
+    assert.deepEqual(
+        record.results.trials.map((x) => [x.trial, x.harness_held]),
+        [
+            [1, true],
+            [2, false],
+            [3, true],
+        ],
+    );
+    const strayed = record.results.trials[1];
+    assert.ok(strayed !== undefined);
+    assert.deepEqual(strayed.harness_problems, [
+        'the session named files outside its mod (1 calls of Read)',
+    ]);
+    // Graded and judged like any other result: it says what it is, and is not counted.
+    assert.equal(strayed.stopped, 'finished');
+    assert.equal(strayed.expectations_met, true);
+    assert.equal(strayed.judge.state, 'answered');
+    assert.equal(calls.length, 6);
+    assert.equal(record.results.overall.trials, 3);
+    assert.equal(record.results.overall.harness_held, 2);
+    assert.equal(stopped, null);
+    assert.deepEqual(short, [{ request: r.id, held: 2 }]);
+    assert.ok(
+        log.includes(
+            `${r.id} trial 2: Read of ../game/common/casus_belli_types/00_peasant_war_new.txt`,
+        ),
+        log.join('\n'),
+    );
+    assert.ok(
+        log.includes(
+            `scored:authoring: ${r.id} trial 2 did not hold, and the run carries on: it is never counted as a success, and a run continuing the record (SCORED_CONTINUE=true) tries ${r.id} again`,
+        ),
+    );
+    assert.ok(
+        log.includes(
+            `scored:authoring: requests short of 3 trials whose harness held: ${r.id} (2 held); SCORED_CONTINUE=true tops them up`,
+        ),
+    );
+    assert.ok(log.some((l) => l.startsWith('scored:authoring: 1 of the 3 trials did not hold.')));
+    assert.deepEqual(record.notes.slice(-1), [NOT_HELD_NOTE]);
+});
+
+test('the run stops after its first trial when a session of it broke, and after three trials in a row that did not hold, and only then', (t) => {
+    const r = request('effect-reward');
+    const env = { SCORED_REQUESTS: r.id, FAKE_CLAUDE_APPLY: exampleDir(r.id) };
+    const judge = judgeStream(judgeAnswer(r, 'yes'));
+    const first = run(t, { ...env, SCORED_TRIALS: '3' }, { authoring: BROKE, judge });
+    const [broken] = first.record.results.trials;
+    assert.ok(broken !== undefined && first.record.results.trials.length === 1);
+    assert.equal(broken.stopped, 'error');
+    assert.equal(broken.judge.state, 'not-judged');
+    assert.match(
+        first.stopped ?? '',
+        /^effect-reward trial 1: it was the run's first trial and a session of it broke/,
+    );
+    // A later trial that broke, alone, does not.
+    const later = run(
+        t,
+        { ...env, SCORED_TRIALS: '3' },
+        { judge, trials: { [`${r.id}-2`]: BROKE } },
+    );
+    assert.equal(later.record.results.trials.length, 3);
+    assert.equal(later.stopped, null);
+    // Three in a row, whatever their reasons, do.
+    const row = run(
+        t,
+        { ...env, SCORED_TRIALS: '5' },
+        {
+            judge,
+            trials: {
+                [`${r.id}-2`]: STRAYED,
+                [`${r.id}-3`]: BROKE,
+                [`${r.id}-4`]: STRAYED,
+            },
+        },
+    );
+    assert.equal(row.record.results.trials.length, 4);
+    assert.match(row.stopped ?? '', /^effect-reward trial 4: it ended 3 trials in a row/);
+    assert.ok(
+        row.log.some((l) => l.startsWith('scored:authoring: stopped after effect-reward trial 4,')),
+    );
+});
+
+test('a continued run from a record ending on a trial that did not hold tops each request up: that request is tried again, numbered after it, then the requests not yet run', (t) => {
+    // The expert requests' development run stopped after event-county-unrest trial 4, whose
+    // session named a file outside its mod, with nine requests not yet run. Here: two trials of
+    // one request, the second not holding, and a request not yet run, of the same questions.
+    const recordFile = path.join(tempDir(t), 'authoring.json');
+    const a = request('event-county-unrest');
+    const b = request('decision-pardon-prisoners');
+    assert.deepEqual(
+        a.judged.map((q) => q.dimension),
+        b.judged.map((q) => q.dimension),
+    );
+    const env = { FAKE_CLAUDE_APPLY: exampleDir(a.id) };
+    const judge = judgeStream(judgeAnswer(a, 'yes'));
+    const first = run(
+        t,
+        { ...env, SCORED_REQUESTS: a.id, SCORED_TRIALS: '2' },
+        { judge, trials: { [`${a.id}-2`]: STRAYED } },
+        recordFile,
+    );
+    assert.deepEqual(first.short, [{ request: a.id, held: 1 }]);
+    const both = run(
+        t,
+        { ...env, SCORED_REQUESTS: `${a.id},${b.id}`, SCORED_TRIALS: '2', SCORED_CONTINUE: 'true' },
+        { judge },
+        recordFile,
+    );
+    assert.deepEqual(
+        both.record.results.trials.map(
+            (x) => `${x.task} ${String(x.trial)}${x.harness_held ? '' : ' (not held)'}`,
+        ),
+        [`${a.id} 1`, `${a.id} 2 (not held)`, `${a.id} 3`, `${b.id} 1`, `${b.id} 2`],
+    );
+    // One trial of a, two of b: three authoring sessions and three judges.
+    assert.equal(both.calls.length, 6);
+    assert.equal(both.stopped, null);
+    assert.deepEqual(both.short, []);
+    assert.ok(
+        both.log.includes(
+            `scored:authoring: requests tried again for a trial of the record that did not hold: ${a.id} (from trial 3)`,
+        ),
+    );
+    // A continued run's first trial straying again does not stop it: only a first trial that
+    // broke does.
+    const again = run(
+        t,
+        { ...env, SCORED_REQUESTS: a.id, SCORED_TRIALS: '4', SCORED_CONTINUE: 'true' },
+        { judge, trials: { [`${a.id}-4`]: STRAYED } },
+        recordFile,
+    );
+    assert.deepEqual(
+        again.record.results.trials
+            .filter((x) => x.task === a.id)
+            .map((x) => [x.trial, x.harness_held]),
+        [
+            [1, true],
+            [2, false],
+            [3, true],
+            [4, false],
+            [5, true],
+        ],
+    );
+    assert.equal(again.stopped, null);
+    assert.deepEqual(again.short, [{ request: a.id, held: 3 }]);
+});
+
+test("a record made at an earlier commit is continued when only the run's own files changed since, and refused when what a trial is made with changed", (t) => {
+    const recordFile = path.join(tempDir(t), 'authoring.json');
+    const r = request('event-county-unrest');
+    const env = { SCORED_REQUESTS: r.id, SCORED_TRIALS: '2', FAKE_CLAUDE_APPLY: exampleDir(r.id) };
+    const judge = judgeStream(judgeAnswer(r, 'yes'));
+    const OLD = '1'.repeat(40);
+    const NEW = '2'.repeat(40);
+    const version = toolInfo(root).version;
+    const at = (
+        commit: string,
+        changed: readonly string[] = [],
+    ): Parameters<typeof runAuthoring>[4] => ({
+        tool: { name: 'pychivalry', version, commit, dirty: false },
+        git: {
+            isAncestor: (older, newer) => older === OLD && newer === NEW,
+            changed: () => [...changed],
+        },
+    });
+    run(t, env, { judge, trials: { [`${r.id}-2`]: STRAYED } }, recordFile, at(OLD));
+    // As a record made before the stop rule: its notes say nothing of it.
+    const made = JSON.parse(readFileSync(recordFile, 'utf8')) as AuthoringRecord;
+    writeFileSync(
+        recordFile,
+        `${JSON.stringify({ ...made, notes: made.notes.filter((n) => n !== NOT_HELD_NOTE) }, null, 4)}\n`,
+    );
+    assert.throws(
+        () =>
+            run(
+                t,
+                { ...env, SCORED_CONTINUE: 'true' },
+                { judge },
+                recordFile,
+                at(NEW, ['docs/a.md', 'packages/mcp/src/tools/lookup.ts', 'skills/x/notes.txt']),
+            ),
+        (e: unknown) =>
+            e instanceof CommandError &&
+            /since then files changed that a trial is made or graded with: packages\/mcp\/src\/tools\/lookup\.ts, skills\/x\/notes\.txt\./.test(
+                e.message,
+            ),
+    );
+    const next = run(
+        t,
+        { ...env, SCORED_CONTINUE: 'true' },
+        { judge },
+        recordFile,
+        at(NEW, [
+            'docs/decisions.md',
+            'tools/src/scored-run/authoring.ts',
+            'tools/src/scored-run/stop-rule.ts',
+            'tools/src/scored-run/stop-rule.test.ts',
+        ]),
+    );
+    assert.deepEqual(
+        next.record.results.trials.map((x) => [x.trial, x.harness_held]),
+        [
+            [1, true],
+            [2, false],
+            [3, true],
+        ],
+    );
+    // The record keeps the build it was first made with; the note names both commits.
+    assert.equal(next.record.tool.commit, OLD);
+    assert.match(
+        next.record.notes.at(-2) ?? '',
+        new RegExp(
+            `^Trials were added on \\d{4}-\\d{2}-\\d{2} by a run continuing the record \\(SCORED_CONTINUE=true\\) at commit ${NEW}, made the same way as the record's first \\(made \\d{4}-\\d{2}-\\d{2} at commit ${OLD}\\): the same request list, prompts, judge, base mods, skills, Claude Code version, models, limits, arguments and agent server; between the two commits only documents, records, tests and the run's own files changed \\(tools/src/scored-run/authoring\\.ts, tools/src/scored-run/stop-rule\\.ts\\)\\.$`,
+        ),
+    );
+    assert.equal(next.record.notes.at(-1), NOT_HELD_NOTE);
+    assert.ok(
+        next.log.includes(
+            `scored:authoring: the record was made at commit ${OLD}; this checkout differs from it only in the run's own files (tools/src/scored-run/authoring.ts, tools/src/scored-run/stop-rule.ts) and in documents, records and tests`,
+        ),
+    );
+});
+
+test('SCORED_RECORD names the record a run writes and continues: a file directly in records/scored/, nowhere else', (t) => {
+    assert.equal(
+        authoringRecordFile(root, {}),
+        path.join(root, 'records', 'scored', 'authoring.json'),
+    );
+    assert.equal(
+        authoringRecordFile(root, { SCORED_RECORD: 'records/scored/authoring-expert-run-1.json' }),
+        path.join(root, 'records', 'scored', 'authoring-expert-run-1.json'),
+    );
+    for (const named of [
+        'records/authoring.json',
+        'records/scored/sub/authoring.json',
+        'records/scored/authoring.txt',
+        'records/scored/record.schema.json',
+        '../authoring.json',
+    ]) {
+        assert.throws(
+            () => authoringRecordFile(root, { SCORED_RECORD: named }),
+            (e: unknown) =>
+                e instanceof CommandError &&
+                e.exitCode === 2 &&
+                /SCORED_RECORD must name a \.json file directly in records\/scored\//.test(
+                    e.message,
+                ),
+            named,
+        );
+    }
+    // The command the record states names the file from the repository root, however it was
+    // given: never a path of the machine the run was made on.
+    const r = request('effect-reward');
+    const { record } = run(
+        t,
+        {
+            SCORED_REQUESTS: r.id,
+            SCORED_RECORD: path.join(root, 'records', 'scored', 'authoring-test-run-1.json'),
+            FAKE_CLAUDE_APPLY: exampleDir(r.id),
+        },
+        { judge: judgeStream(judgeAnswer(r, 'yes')) },
+    );
+    assert.match(record.command, / SCORED_RECORD=records\/scored\/authoring-test-run-1\.json /);
+    assert.ok(!record.command.includes(root), record.command);
 });
 
 test("with SCORED_SKILLS_IN=config the skills are in a temporary configuration folder, as the set-up puts them in a person's own", (t) => {

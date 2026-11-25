@@ -18,12 +18,15 @@ it, like any chat you start.
   then an extension file built from `main` ([below](#a-build-from-main)). The second preview,
   0.2.0, has neither the skills nor `apply_format`: the check cannot be run on it.
 - Crusader Kings III installed (or `pychivalry.gamePath` set to its `game` folder).
-- Three mod folders, each a copy made for this check, never your own work:
+- Four mod folders, each a copy made for this check, never your own work:
   1. **An empty mod:** a copy of this repository's `fixtures/requests/bases/empty/`, a
      `descriptor.mod` alone. Three of the authoring requests run here.
   2. **The banquet mod:** a copy of `fixtures/requests/bases/banquet/`, which already has an
      event, a scripted effect and a scripted trigger. The decision request runs here.
-  3. **The planted-defect mod:** a copy of this repository's `fixtures/defects/mod/`, opened
+  3. **The granary mod:** a copy of `fixtures/requests/bases/granary/`, which already has an
+     event, three scripted effects in one file, two scripted triggers and their localization.
+     The expert request runs here.
+  4. **The planted-defect mod:** a copy of this repository's `fixtures/defects/mod/`, opened
      with `pychivalry.gamePath` set to the repository's `fixtures/game/planted-defects` (the game
      stub its defects are written against, as the editor tests open it). The explain and fix
      requests run here; `fixtures/defects/README.md` lists its defects and the look-alike lines
@@ -78,12 +81,14 @@ Start a **new chat** for each, in agent mode, and type the request as written. A
 calls and edits VS Code asks about; do not help the AI along. If the AI asks a question, answer
 "Choose yourself and say what you chose."
 
-The authoring requests are four of the scored run's twelve
+The authoring requests are five of the scored run's twenty-four
 ([fixtures/requests/](../../fixtures/requests/README.md)), named by the same ids and typed with
-the same words, so that the hand result and the scored result are on the same requests: one of
-each kind the authoring skill covers, at each difficulty, one of them building on a mod that
-already has content. A person with more time runs any of the other eight the same way, in a copy
-of the base mod the list names for it, and reads its expectations and questions in
+the same words, so that the hand result and the scored result are on the same requests: four of
+the first twelve, one of each kind the authoring skill covers, at each difficulty, one of them
+building on a mod that already has content; and one **expert** request, `effect-granary-gift-edit`
+(decision 136), which asks for one definition of a mod's own file to be changed in place and
+everything else left exactly as it is. A person with more time runs any of the others the same
+way, in a copy of the base mod the list names for it, and reads its expectations and questions in
 `fixtures/requests/requests.json` for what to look for.
 
 | Id | Mod | Request |
@@ -92,6 +97,7 @@ of the base mod the list names for it, and reads its expectations and questions 
 | `decision-hold-banquet` | Banquet | The mod in this folder already has the scripted trigger `banquet_can_host_trigger`, the scripted effect `banquet_host_reward_effect` and the character event `banquet.0001`. Write a decision `authoring_hold_banquet_decision` in a new file under `common/decisions/` that uses them. It is shown to characters for whom `banquet_can_host_trigger` holds, and can be taken only with at least 100 gold (`gold`). Taking it takes 100 gold from the character (`add_gold`), runs `banquet_host_reward_effect`, and fires `banquet.0001` 7 days later (`trigger_event`). It can be taken again only 5 years after it was last taken (`cooldown`). Write its English localization in a new file under `localization/english/`: the title `authoring_hold_banquet_decision` and the description `authoring_hold_banquet_decision_desc`. Change none of the mod's other files. |
 | `effect-war-chest` | Empty | Write a scripted effect `authoring_war_chest_effect` in a new file under `common/scripted_effects/`, for a character. When the character is at war (`is_at_war`) it gives 100 gold (`add_gold`); otherwise it gives 50 prestige (`add_prestige`): write it with `if` and `else`. Either way it then raises the character's stress by 5 (`add_stress`). |
 | `trigger-can-host` | Empty | Write a scripted trigger `authoring_can_host_trigger` in a new file under `common/scripted_triggers/`. It holds for a character who is an adult (`is_adult`), is a ruler (`is_ruler`) and has at least 50 gold (`gold`). |
+| `effect-granary-gift-edit` | Granary | The mod in this folder already has the scripted effect `granary_vassal_gift_effect`, which gives the vassal it runs on 20 gold, in a file with two other scripted effects. Change it in place, in that file: it should give the 20 gold (`add_gold`) only when the vassal's opinion of their liege (`opinion`, with the vassal's `liege` as its target) is at least 30, and otherwise give the vassal 10 prestige (`add_prestige`), written with `if` and `else`. Leave the file's other scripted effects exactly as they are, and change none of the mod's other files. |
 | E1 | Planted | What does the first error pychivalry reports in this mod mean, and why is it reported there? |
 | F1 | Planted | Fix every error and warning pychivalry reports in this mod. |
 
@@ -119,13 +125,21 @@ Write down for each request: pass or fail on each line below, and what you saw.
   `common/scripted_effects/`, `trigger-can-host` in `common/scripted_triggers/`, each a new file
   of the mod's own. Source Control shows nothing else changed but the localization (the event
   and the decision); in the banquet mod, none of its own files changed.
+- **Changed in place, the rest left alone (`effect-granary-gift-edit`).** Source Control shows one
+  file changed, `common/scripted_effects/granary_effects.txt`, and no new file: the effect is not
+  written again in a file of its own, which would define it twice. In that file's diff, every
+  changed line is inside `granary_vassal_gift_effect`'s block: `granary_pay_effect` and
+  `granary_reward_effect`, their comments and the blank lines between are exactly as they were
+  (the file was already in pychivalry's format, so formatting it changes nothing else). The
+  mod's event, scripted triggers and localization are unchanged.
 - **Localization written with it (the event and the decision).** A file under `localization/english/` holds every
   key the event or decision uses, each with real English text, not the key repeated. Hovering
   the event's key shows its title as an inline hint.
-- **Formatted, checked and repaired.** `apply_format` is called on each file written; `check` is
-  called after the first write; every round of repairs is followed by another `check`; there are
-  at most five rounds.
-- **Clean.** In the Problems panel, the new files show **no error and no `style/` warning**.
+- **Formatted, checked and repaired.** `apply_format` is called on each file written or changed;
+  `check` is called after the first write; every round of repairs is followed by another `check`;
+  there are at most five rounds.
+- **Clean.** In the Problems panel, the new files (and for `effect-granary-gift-edit` the changed
+  one) show **no error and no `style/` warning**.
   The status bar shows each new file as "UTF-8 with BOM" and "CRLF". In the terminal,
   `pychivalry check .` reports no error in them either.
 - **What was asked.** Read the script: each part of the request is there.
@@ -136,7 +150,11 @@ Write down for each request: pass or fail on each line below, and what you saw.
   `decision-hold-banquet`: shown where `banquet_can_host_trigger` holds, valid with 100 gold,
   taking the gold, running `banquet_host_reward_effect`, firing `banquet.0001` 7 days later, a
   cooldown of 5 years. `effect-war-chest`: 100 gold at war, 50 prestige otherwise, with `if` and `else`, and 5
-  stress either way. `trigger-can-host`: an adult ruler with at least 50 gold. Write down any
+  stress either way. `trigger-can-host`: an adult ruler with at least 50 gold.
+  `effect-granary-gift-edit`: an `if` whose `limit` tests the vassal's own opinion of their liege
+  (`opinion` with `target = liege` and a value of at least 30, written in the effect's own scope,
+  the vassal's; not the liege's opinion of the vassal), giving 20 gold, and an `else` giving 10
+  prestige, both to the vassal, nothing else in the effect. Write down any
   part missing or done differently. A clean check does not prove this: it is what the scored
   run's expectations and judge grade, on the questions `fixtures/requests/requests.json` gives
   each request.

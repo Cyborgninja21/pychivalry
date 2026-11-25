@@ -16,6 +16,17 @@
  * measure is not met. The run prints the reading when it ends (`authoring.ts`); `task
  * scored:targets` reads any authoring record (`readRecordTargets`).
  *
+ * **A trial whose harness did not hold never improves a score.** It is never counted as a
+ * success. When its authoring session ended by itself (it finished, or reached its session or
+ * turn limit), its result is a real result that pychivalry's tools and skills led to, graded like
+ * any other and judged: each target part its own grades fail counts it against that part, added
+ * to the trials the part is over and not to those meeting it. When a session of it broke (an
+ * error, the time limit, no result), its result says nothing either way, and it counts for
+ * nothing. Either way the reading names it and why it did not hold, and a run continuing the
+ * record tries its request again. And a run is a release run only when every request has
+ * `RELEASE_TRIALS` trials whose harness held: a trial that did not hold does not make up the
+ * number.
+ *
  * The expert requests, added after the second run, are read with and without: the reading over
  * every request of the record decides whether the targets are met, and, when the record has
  * trials of both, the same targets are read again over its other requests alone (summed from its
@@ -34,11 +45,13 @@ import {
     authoringProblems,
     type AuthoringResults,
     type AuthoringTask,
+    type AuthoringTrial,
     type DimensionCounts,
     type Measures,
 } from './authoring-record.js';
 import { committedRequests, EXPERT } from './requests.js';
 import { RELEASE_TRIALS } from './scored-record.js';
+import { ENDED_BY_ITSELF } from './stop-rule.js';
 
 /** The record `task scored:targets` reads unless `SCORED_RECORD` names another. */
 export const TARGETS_RECORD_FILE = 'records/scored/authoring.json';
@@ -51,10 +64,27 @@ export interface TargetPart {
     /** What is counted, in words. */
     readonly measure: string;
     readonly count: number;
-    /** Out of how many. */
+    /**
+     * Out of how many: the trials whose harness held, and the trials that did not hold whose own
+     * result fails this part (`against`).
+     */
     readonly of: number;
     /** `count / of` to 4 places; null when there is nothing to count. */
     readonly rate: number | null;
+    /** How many of `of` are trials whose harness did not hold, counted against this part. */
+    readonly against: number;
+}
+
+/** A trial whose harness did not hold, as the reading names it. */
+export interface NotHeldTrial {
+    readonly task: string;
+    readonly trial: number;
+    /** Why it did not hold: its authoring session's problems, then its judge's. */
+    readonly problems: readonly string[];
+    /** Whether its authoring session ended by itself, so that its result counts against. */
+    readonly ended_by_itself: boolean;
+    /** The target parts its own result fails, by their measure: each counts it against. */
+    readonly against: readonly string[];
 }
 
 /** One target, read from a record's measures. */
@@ -71,13 +101,21 @@ export interface TargetReading {
 
 export interface TargetsReading {
     /**
-     * `release` when every request of the record has at least `RELEASE_TRIALS` trials (10, the
-     * MVP's repetitions before a release) and, when the request list is given, the record has
-     * every request of it; else `development`.
+     * `release` when every request of the record has at least `RELEASE_TRIALS` trials whose
+     * harness held (10, the MVP's repetitions before a release) and, when the request list is
+     * given, the record has every request of it; else `development`.
      */
     readonly run: 'release' | 'development';
-    /** The fewest and the most trials of a request of the record. */
+    /** The fewest and the most trials whose harness held of a request of the record. */
     readonly trials_per_request: { readonly fewest: number; readonly most: number };
+    /** Every trial of the record, and those whose harness held. */
+    readonly trials: number;
+    readonly held: number;
+    /**
+     * The trials whose harness did not hold, in the record's order, each with why and what it
+     * counts against. Read from the record's trials: empty when only measures are given.
+     */
+    readonly not_held: readonly NotHeldTrial[];
     /**
      * The requests of the list given that the record has no trial of, in the list's order: a
      * record made before they were added, or a run of some requests only. Empty without a list.
@@ -98,8 +136,66 @@ export interface TargetsReading {
     } | null;
 }
 
-function part(measure: string, count: number, of: number): TargetPart {
-    return { measure, count, of, rate: of === 0 ? null : Math.round((count / of) * 10000) / 10000 };
+/** The measures of the target parts that are not judged dimensions, in their order. */
+export const NO_ERROR = 'no error';
+export const NO_WARNING = 'no warning';
+export const IN_FORMAT = 'in the format';
+export const EVERY_EXPECTATION = 'every expectation met';
+
+/**
+ * A part: `count` of `held`, with `against` trials that did not hold added to what it is over.
+ */
+function part(measure: string, count: number, held: number, against = 0): TargetPart {
+    const of = held + against;
+    return {
+        measure,
+        count,
+        of,
+        rate: of === 0 ? null : Math.round((count / of) * 10000) / 10000,
+        against,
+    };
+}
+
+/**
+ * A trial that did not hold, as the reading names it: what its own grades fail, when its
+ * authoring session ended by itself; nothing, when a session of it broke. A judged dimension
+ * counts against only when the judge answered it no or cannot tell: a judge that did not answer
+ * says nothing of the result.
+ */
+export function notHeldOf(t: AuthoringTrial): NotHeldTrial {
+    const ended = ENDED_BY_ITSELF.includes(t.stopped);
+    const against: string[] = [];
+    if (ended) {
+        if (!t.validity.zero_errors) {
+            against.push(NO_ERROR);
+        }
+        if (!t.validity.no_warnings) {
+            against.push(NO_WARNING);
+        }
+        if (!t.validity.in_format) {
+            against.push(IN_FORMAT);
+        }
+        if (!t.expectations_met) {
+            against.push(EVERY_EXPECTATION);
+        }
+        if (t.judge.state === 'answered') {
+            for (const a of t.judge.answers) {
+                if (a.answer !== 'yes') {
+                    against.push(a.dimension);
+                }
+            }
+        }
+    }
+    return {
+        task: t.task,
+        trial: t.trial,
+        problems: [
+            ...t.harness_problems,
+            ...t.judge.harness_problems.map((p) => `the judge's session: ${p}`),
+        ],
+        ended_by_itself: ended,
+        against,
+    };
 }
 
 function target(
@@ -114,28 +210,49 @@ function target(
     return { id, target: words, needs_percent: needsPercent, parts, met };
 }
 
-/** The four targets, read from one set of measures. */
-function targetsOf(o: Measures): TargetReading[] {
+/**
+ * The four targets, read from one set of measures, each part over the trials whose harness held
+ * and the trials that did not hold whose own result fails it (`notHeld`).
+ */
+function targetsOf(o: Measures, notHeld: readonly NotHeldTrial[]): TargetReading[] {
     const held = o.harness_held;
+    const against = (measure: string): number =>
+        notHeld.filter((t) => t.against.includes(measure)).length;
+    const plain = (measure: string, count: number): TargetPart =>
+        part(measure, count, held, against(measure));
+    // A dimension no held trial was asked may still have a trial that did not hold against it.
+    const dimensions = [
+        ...o.judged,
+        ...[...new Set(notHeld.flatMap((t) => t.against))]
+            .filter(
+                (m) =>
+                    ![NO_ERROR, NO_WARNING, IN_FORMAT, EVERY_EXPECTATION].includes(m) &&
+                    !o.judged.some((d) => d.dimension === m),
+            )
+            .map((dimension) => ({ dimension, yes: 0, no: 0, cannot_tell: 0, unanswered: 0 })),
+    ];
     return [
-        target('no-error', 'every result with no error', 100, [
-            part('no error', o.zero_errors, held),
-        ]),
+        target('no-error', 'every result with no error', 100, [plain(NO_ERROR, o.zero_errors)]),
         target(
             'no-warning-in-format',
             "every result with no warning and in pychivalry's format",
             100,
-            [part('no warning', o.no_warnings, held), part('in the format', o.in_format, held)],
+            [plain(NO_WARNING, o.no_warnings), plain(IN_FORMAT, o.in_format)],
         ),
         target('expectations', 'at least 95% of results meeting every expectation', 95, [
-            part('every expectation met', o.expectations_met, held),
+            plain(EVERY_EXPECTATION, o.expectations_met),
         ]),
         target(
             'judged',
             'no judged dimension below 95% yes',
             95,
-            o.judged.map((d) =>
-                part(d.dimension, d.yes, d.yes + d.no + d.cannot_tell + d.unanswered),
+            dimensions.map((d) =>
+                part(
+                    d.dimension,
+                    d.yes,
+                    d.yes + d.no + d.cannot_tell + d.unanswered,
+                    against(d.dimension),
+                ),
             ),
         ),
     ];
@@ -181,17 +298,21 @@ export function sumMeasures(tasks: readonly AuthoringTask[]): Measures {
 }
 
 /**
- * The four targets, read from the measures over all of a record's requests; and, when the
- * record has expert requests and others, over the others alone. `list` is the ids of the request
- * list the record is read against: the requests it lacks are named, and a record that lacks one
- * is not a release run of it.
+ * The four targets, read from the measures over all of a record's requests, with its trials that
+ * did not hold (`trials`, when given); and, when the record has expert requests and others, over
+ * the others alone. `list` is the ids of the request list the record is read against: the
+ * requests it lacks are named, and a record that lacks one is not a release run of it.
  */
 export function readTargets(
-    results: Pick<AuthoringResults, 'tasks' | 'overall'>,
+    results: Pick<AuthoringResults, 'tasks' | 'overall'> & {
+        readonly trials?: readonly AuthoringTrial[];
+    },
     list?: readonly string[],
 ): TargetsReading {
-    const targets = targetsOf(results.overall);
-    const perRequest = results.tasks.map((t) => t.trials);
+    const notHeld = (results.trials ?? []).filter((t) => !t.harness_held);
+    const notHeldAll = notHeld.map(notHeldOf);
+    const targets = targetsOf(results.overall, notHeldAll);
+    const perRequest = results.tasks.map((t) => t.harness_held);
     const fewest = perRequest.length === 0 ? 0 : Math.min(...perRequest);
     const most = perRequest.length === 0 ? 0 : Math.max(...perRequest);
     const have = new Set(results.tasks.map((t) => t.name));
@@ -199,11 +320,17 @@ export function readTargets(
     const others = results.tasks.filter((t) => t.difficulty !== EXPERT);
     const withoutExpert =
         others.length > 0 && others.length < results.tasks.length
-            ? targetsOf(sumMeasures(others))
+            ? targetsOf(
+                  sumMeasures(others),
+                  notHeld.filter((t) => t.difficulty !== EXPERT).map(notHeldOf),
+              )
             : null;
     return {
         run: fewest >= RELEASE_TRIALS && missing.length === 0 ? 'release' : 'development',
         trials_per_request: { fewest, most },
+        trials: results.overall.trials,
+        held: results.overall.harness_held,
+        not_held: notHeldAll,
         missing,
         targets,
         met: targets.every((t) => t.met),
@@ -284,8 +411,32 @@ export function readRecordTargets(
 /** One target in words. */
 function targetLine(t: TargetReading): string {
     return `  ${t.target}: ${t.parts
-        .map((p) => `${p.measure} ${String(p.count)} of ${String(p.of)} (${percent(p)})`)
+        .map(
+            (p) =>
+                `${p.measure} ${String(p.count)} of ${String(p.of)} (${percent(p)}${p.against > 0 ? `; ${String(p.against)} ${p.against === 1 ? 'trial' : 'trials'} that did not hold counted against it` : ''})`,
+        )
         .join(', ')}; needs ${String(t.needs_percent)}%: ${t.met ? 'met' : 'not met'}`;
+}
+
+/** The trials that did not hold, in words: how they are counted, then each with why. */
+function notHeldLines(reading: TargetsReading): string[] {
+    const count = reading.trials - reading.held;
+    if (count === 0) {
+        return [`every trial's harness held (${String(reading.trials)})`];
+    }
+    return [
+        `${String(count)} of the ${String(reading.trials)} trials did not hold. A trial that did not hold is never counted as a success: when its authoring session ended by itself, it counts against each target its own result fails; when a session of it broke, it counts for nothing; and a run continuing the record (SCORED_CONTINUE=true) tries its request again`,
+        ...reading.not_held.map(
+            (t) =>
+                `  ${t.task} trial ${String(t.trial)}: ${t.problems.join('; ')}; ${
+                    t.against.length > 0
+                        ? `counted against: ${t.against.join(', ')}`
+                        : t.ended_by_itself
+                          ? 'its own result fails no target, so it counts for nothing'
+                          : 'a session of it broke, so it counts for nothing'
+                }`,
+        ),
+    ];
 }
 
 /** Whether every target of a reading is met, in words. */
@@ -299,10 +450,12 @@ function metLine(targets: readonly TargetReading[]): string {
 /** The reading in words, one line per target, for the person running the test. */
 export function targetLines(reading: TargetsReading): string[] {
     const { fewest, most } = reading.trials_per_request;
+    // The trials of a request counted toward a run's size are those that held.
+    const that = reading.held === reading.trials ? '' : ' that held';
     const trials =
         fewest === most
-            ? `${String(fewest)} ${fewest === 1 ? 'trial' : 'trials'} of each request`
-            : `${String(fewest)} to ${String(most)} trials of a request`;
+            ? `${String(fewest)} ${fewest === 1 ? 'trial' : 'trials'}${that} of each request`
+            : `${String(fewest)} to ${String(most)} trials${that} of a request`;
     const kind =
         reading.run === 'release'
             ? `a release run (${trials})`
@@ -316,6 +469,7 @@ export function targetLines(reading: TargetsReading): string[] {
         );
     }
     lines.push(
+        ...notHeldLines(reading),
         `the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}), which hold before any release; ${kind}:`,
         ...reading.targets.map(targetLine),
         metLine(reading.targets),

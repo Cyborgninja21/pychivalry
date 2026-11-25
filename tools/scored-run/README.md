@@ -497,18 +497,75 @@ required with no default, `SCORED_MODEL`, `SCORED_TRIALS`, `SCORED_SERVER`,
 | `SCORED_JUDGE_MODEL` | The judge's model, by its full name | `claude-fable-5-2`, Fable 5.2 (`PINNED_JUDGE_MODEL` in `run.ts`): another model than the one it judges, by the owner's answer of 2026-11-24 |
 | `SCORED_JUDGE_SESSION_LIMIT` | The session limit of each judge session | `SCORED_SESSION_LIMIT` |
 | `SCORED_JUDGE_TIMEOUT_MINUTES` | A judge session still running after this is stopped | 10 |
+| `SCORED_RECORD` | The record the run writes, and with `SCORED_CONTINUE=true` the record it continues: a `.json` file directly in `records/scored/`, from the repository root; anywhere else is refused before any session. A run of some requests only is filed under its own name ([records/README.md](../../records/README.md#authoring-records-scoredauthoring)) | `records/scored/authoring.json` |
 
-`SCORED_TRIALS` is the number of trials of each request. With `SCORED_CONTINUE=true` the run adds
-to the record already written, made the same way (the same commit, request list, prompts, judge,
-skills, base mods, Claude Code version, models, session limits, time limits and arguments), and
-brings each request named up to `SCORED_TRIALS` trials whose harness held.
+`SCORED_TRIALS` is the number of trials of each request. A run makes that many trials of each
+request it names, and does not try a trial that did not hold again. With `SCORED_CONTINUE=true`
+the run adds to the record already written, made the same way ([below](#continuing-a-run)), and
+brings each request named up to `SCORED_TRIALS` trials whose harness held: a trial of the record
+that did not hold is tried again there, numbered after the request's last.
 
-**A harness problem stops the run.** A trial whose authoring or judge session broke, or was
-offered more than the run allows, says nothing about pychivalry, and the trials after it would
-most likely say as little while each still counted against the developer's plan. The run stops
-after it, the record keeps it, and the run exits 1; once the fault is fixed, `SCORED_CONTINUE=true`
-carries on. The record is written again after every trial, so a run stopped by hand keeps what it
-did.
+### When a run stops
+
+A trial whose authoring or judge session broke, was offered more than the run allows, or named a
+file outside its mod **did not hold**: it says nothing reliable about pychivalry. It stays in the
+record with its reasons, its result is graded, and it is judged when its authoring session ended
+by itself; it is never counted as a success ([The targets](#the-targets-item-98)). Whether the
+run goes on depends on whether the trials after it would say as little (`stop-rule.ts`). It
+**stops** after a trial that did not hold when:
+
+1. **a session was not set up as the run asks:** its start offered other tools, other agent
+   servers or plugins, left out the pychivalry skills or the server's tools, showed the server
+   failing to start, or the stream shows no start at all, for the authoring session or the
+   judge's. Every trial after it would be set up the same way;
+2. **it was the run's first trial and a session of it broke:** the authoring session did not end
+   by itself (an error, the time limit, no result) or the judge's had a problem. A first trial
+   that breaks is most likely the run's own set-up: a session given a temporary configuration
+   folder with no sign-in ends on an error before any model is reached;
+3. **it ended three trials in a row that did not hold**, whatever their reasons: something the
+   trials share has most likely gone wrong.
+
+Otherwise the run **carries on**: one session that ran to its end and once read outside its mod,
+or one later session that broke, says nothing about the next session, which is a fresh one. The
+rule reads the trials of the run itself, in the order made: a continued run's first trial is its
+own first. A run that stopped, or that ends with a request it names short of `SCORED_TRIALS`
+trials whose harness held, exits 1, and its last lines name why and which requests are short;
+`SCORED_CONTINUE=true` carries on. The record is written again after every trial, so a run
+stopped by hand keeps what it did.
+
+Before the expert requests' development run (below) any trial that did not hold stopped the run;
+that run stopped after its 14th trial, one session's single read of a game file outside its mod,
+with every target met by the 13 before it.
+
+### Continuing a run
+
+`SCORED_CONTINUE=true` adds the run's trials to the record already written only when it was made
+the same way: the same spec and game, and everything its results say a trial was made with (the
+request list, both prompts, the judge's schema, the base mods and the skills, each by its hash;
+`skills_in`; the Claude Code version; the models, session limits, time limits and arguments of
+both kinds of session; the agent server). Otherwise the run stops before any test session and
+names what differs.
+
+**Its commit** is this checkout's, or an earlier one when nothing a trial is made or graded with
+changed since (`continuation.ts`): git must show the record's commit to be an ancestor of this
+checkout's, neither with an uncommitted change (beside `records/`), and every file that changed
+between the two must be a document (`docs/`, any `.md` file), a record (`records/`), a CI workflow
+(`.github/`), a test (`.test.ts`), or one of the run's own files: its loop and stop rule
+(`authoring.ts`, `stop-rule.ts`), its record and the reading of the targets
+(`authoring-record.ts`, `authoring-targets.ts`), this rule (`continuation.ts`), the stand-in and
+the tests' helpers (`fake-claude.ts`, `authoring-testing.ts`), the command line that starts it
+(`tools/src/cli.ts`) and `Taskfile.yml`. Anything else refuses the continuation and is named:
+the agent server and the checker (`packages/`), the spec, the skills, the requests and their
+bases, the harness's other files (the session's arguments and environment, the stream's reading,
+the confinement check, the expectations, the judge), the dependencies. A fix of what a session
+is given or of how a result is graded therefore starts a new record; a fix of how the run goes on
+does not make the trials before it worthless.
+
+`authoring.ts` is allowed although it holds a trial's own steps beside the run's loop: at the
+commit of the record the rule was made for, the two are one file, and moving them apart would
+itself be a change the rule must refuse. A continued record keeps the `tool` it was first made
+with; a note names the commit each continuing run was made at and every file of code that changed
+since the record's own, so that a continuation across commits is never silent.
 
 ### One trial
 
@@ -542,8 +599,8 @@ never the developer's own:
   named by `CLAUDE_CONFIG_DIR`, read with `--setting-sources user,project,local`: where the set-up
   puts them in a person's own folder. Claude Code keeps the developer's sign-in in its
   configuration folder on Linux and Windows, so a session given a temporary one starts without
-  it, and ends on an error before any model is reached: a harness problem, which stops the run at
-  its first trial. The script copies nothing from the developer's own folder into it.
+  it, and ends on an error before any model is reached: a broken first trial, which stops the
+  run. The script copies nothing from the developer's own folder into it.
 
 The judge, the checker and the expectations never see the skills' folder.
 
@@ -567,8 +624,11 @@ things differ. **The three pychivalry skills must be offered**, by name; other s
 there and are recorded, since leaving Claude Code's own skills out would leave pychivalry's out
 too. **Every `Read`, `Edit` and `Write` names a file inside the trial's mod**, so that no session
 reads an example result or anything else outside it; the files a session named outside are
-printed for the person running the test and never recorded. And the session must leave the
-skills unchanged.
+printed for the person running the test and never recorded. A call counts whether it succeeded,
+was refused or failed: a session that tried to read outside its mod did not hold, even when the
+file did not exist. And the session must leave the skills unchanged. What counts as held is
+unchanged since the first run; only what the run does after a trial that did not hold changed
+([When a run stops](#when-a-run-stops)).
 
 ### The judge
 
@@ -607,28 +667,45 @@ and over all, how many trials held and, of those, how many had no error, no warn
 format, met every expectation, and how the judge answered each dimension. No figure about the
 session's use of the developer's plan is kept, and no target: the record states measures only,
 and the owner's targets are read from them ([below](#the-targets-item-98)). `task records:check`
-holds the record to its schema and its figures to each other.
+holds the record to its schema and its figures to each other. A trial whose harness did not hold
+is in `trials` with its reasons, its grades and, when its authoring session ended by itself, its
+judge's answers; the measures per request and over all count it in `trials` only.
 
-Each run writes `records/scored/authoring.json`, the latest run. When a run replaces it, the
-record it replaces is kept beside it, unchanged, as `authoring-run-<n>.json`, `<n>` its run's
-number: the first run's is `records/scored/authoring-run-1.json`, so that its measures stay
-readable without git's history.
+Each run of the whole list writes `records/scored/authoring.json`, the latest run. When a run
+replaces it, the record it replaces is kept beside it, unchanged, as `authoring-run-<n>.json`,
+`<n>` its run's number: the first run's is `records/scored/authoring-run-1.json`, so that its
+measures stay readable without git's history. A run of some requests only never replaces it: it
+is filed beside it under a name of its own (`SCORED_RECORD`;
+[records/README.md](../../records/README.md#authoring-records-scoredauthoring)), as the expert
+requests' development run is to be, `authoring-expert-run-1.json`.
 
 ### Tests
 
 `requests.test.ts`, `expectations.test.ts`, `repair.test.ts`, `judge.test.ts`,
-`authoring.test.ts`, `authoring-targets.test.ts`, `calibration.test.ts` and
-`no-model-call.test.ts` run in public CI with no model, key, network or display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
+`authoring.test.ts`, `authoring-targets.test.ts`, `stop-rule.test.ts`, `continuation.test.ts`,
+`calibration.test.ts` and `no-model-call.test.ts` run in public CI with no model, key, network or
+display. The run's tests start `fake-claude.ts` in Claude Code's place: as an authoring session
 it copies a request's example result into the trial's mod (or nothing, or a broken result) and
-plays back a stream in the shape Claude Code 2.1.330 writes; as a judge it reads its prompt from
+plays back a stream in the shape Claude Code 2.1.330 writes, the same for every trial or, named by
+`FAKE_CLAUDE_STREAMS`, one of its own for a given trial; as a judge it reads its prompt from
 standard input and plays back an answer. They show a correct result graded valid with every
 expectation met and the judge's answers recorded; an empty result and a broken one measured three
 ways; a malformed judge recorded as such; an unconfined authoring session and an unconfined judge
-each stopping the run; both places of the skills; the continued run; and the record's checks.
-`authoring-targets.test.ts` reads the targets at their thresholds (95% met by 57 of 60 and 19 of
-20, not by 56 of 60 or 18 of 20; every result means every one), from the committed first run's
-record, with and without the expert requests, and from a record that lacks requests of the list,
-and refuses a record whose figures disagree. `requests.test.ts` holds each expert request's first
+each stopping the run; a session that reads a game file outside its mod, as the development run's
+did, recorded as not held, graded and judged, the run carrying on; a broken first trial stopping
+the run, a broken later one alone not, and three in a row stopping it; both places of the skills;
+the continued run, from a record ending on a trial that did not hold (its request tried again,
+numbered after it, the requests not yet run after it), and from a record made at an earlier
+commit (accepted when only the run's own files changed, refused naming the files when what a
+trial is made with changed); `SCORED_RECORD`; and the record's checks. `stop-rule.test.ts` holds
+the stop rule case by case and `continuation.test.ts` which files may change, each refusal, and
+the repository's git on a repository of its own. `authoring-targets.test.ts` reads the targets at
+their thresholds (95% met by 57 of 60 and 19 of 20, not by 56 of 60 or 18 of 20; every result
+means every one), from the committed first run's record, with and without the expert requests,
+and from a record that lacks requests of the list; a trial that did not hold counted against
+each part its own result fails, and for nothing when its result is clean or a session of it
+broke, never raising a rate; a release run needing 10 trials that held of each request; and it
+refuses a record whose figures disagree. `requests.test.ts` holds each expert request's first
 draft to the reason it fails, and `repair.test.ts` shows the built agent server reporting the
 eight drafts' errors and warnings and none once each is repaired.
 
@@ -646,8 +723,24 @@ They are strict, and they hold before any release:
 
 Every rate is over the trials whose harness held, as every measure of the record is. A judged
 dimension's no, cannot tell, malformed or missing answer counts against it, and a target with
-nothing to measure is not met. A run before a release is 10 trials of each request (docs/MVP.md,
-"Repetitions"); a run of 5 is a development run, read against the same targets.
+nothing to measure is not met. A run before a release is 10 trials whose harness held of each
+request (docs/MVP.md, "Repetitions"); a run of 5 is a development run, read against the same
+targets.
+
+**A trial that did not hold never improves a score.** It is never counted as a success. When its
+authoring session ended by itself (it finished, or reached its session or turn limit), its result
+is a real result the tools and the skills led to, graded and judged like any other: each target
+part its own grades fail (an error, a warning, out of the format, an expectation not met, a judged
+no or cannot tell) counts it against that part, added to what the part is over and not to what
+meets it. Its result clean, it counts for nothing, the trials that held deciding. When a session
+of it broke (an error, the time limit, no result, or a judge's session that did not answer), its
+result says nothing either way and it counts for nothing. Leaving every trial that did not hold
+out, as the record's measures do, would let a session that failed and strayed vanish from the
+score; counting every one as a failure would let one outage of the developer's Claude Code make a
+release run's 100% targets unreachable for good. Either way the reading names each trial that did
+not hold, why, and what it counts against, a part with one says so, and a run continuing the
+record tries its request again. The reading of a record whose every trial held says so in one
+line.
 
 **The record holds measures only.** The targets are never written into it, so a record made before
 they were set and one made after are read the same way (`authoring-targets.ts`). The run prints
@@ -980,8 +1073,9 @@ own guard (`baseProblems`) passes it.
   calibration sheet (`fixtures/requests/calibration/expert/`), twenty-four hand-made results, two
   of each request, which is which written nowhere. Every one has nothing the checker reports and
   meets every expectation, which a test holds: the code-checked side cannot tell them apart, and
-  only the judge, or a person, can. The owner's two sheets are unchanged. Calibrating this one is
-  the owner's choice: 88 answers to grade by hand, then 24 judge test sessions.
+  only the judge, or a person, can. The owner's two sheets are unchanged. The owner grades it with
+  the other two before the release run (decision 135): 88 answers to grade by hand, then 24 judge
+  test sessions.
 
 ### The repair loop
 
@@ -1019,11 +1113,127 @@ The second run's 17 tool errors, none a fault of the server, pointed at pychival
 
 ### The release run (decision 132)
 
-The third preview's release run is made once, on the owner's word, after his hand calibration and
-hand checklist and once the request list is final: 10 trials of each request, the MVP's
-repetitions before a release. With the twenty-four requests that is 240 trials, each one authoring
-test session and one judge test session: **480 test sessions**. A record that lacks any request of
-the list is not a release run of it ([The targets](#the-targets-item-98)).
+The third preview's release run is made once, on the owner's word, after his hand calibration of
+all three sheets (decision 135) and his hand checklist and once the request list is final: 10
+trials whose harness held of each request, the MVP's repetitions before a release. With the
+twenty-four requests that is 240 trials, each one authoring test session and one judge test
+session: **480 test sessions**, and two more for each trial that does not hold and is tried again.
+A record that lacks any request of the list is not a release run of it
+([The targets](#the-targets-item-98)).
+
+## The expert requests' development run (decision 134)
+
+On the owner's word of 2026-11-25 (decision 134), the twelve expert requests get a development run
+of their own before the release run, to see that they tell results apart and that nothing in them
+is a fault of pychivalry's: 5 trials of each, 60 trials, 120 test sessions of Claude Code 2.1.330
+(Opus 5.5 writing, Fable 5.2 judging), each with session limit 3, the trials kept, from the main
+clone at the merge of #155:
+`SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=5 SCORED_SESSION_LIMIT=3 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=<the twelve expert requests> SCORED_KEEP=true SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring`.
+
+### Where it stopped
+
+It stopped after 14 trials, 27 test sessions (14 authoring, 13 judge): `event-granary-inspection`
+5, `event-envoy-chain` 5 and `event-county-unrest` 4. The 13 trials that held met every target:
+no error, no warning, all in the format, every expectation met (21, 32 and 21 of them a trial),
+every judged answer yes. The fourth `event-county-unrest` trial did not hold: its session named a
+file outside its mod, once. Its own result was clean too (no error or warning, 21 of 21
+expectations), but it was not judged, and under the rule of the time the run stopped there, the
+nine other requests not yet run. Its record is not committed while the run is unfinished.
+
+### What the session did, from its output stream
+
+1. It loaded the write-content skill and looked up eleven names at once, `county_opinion` among
+   them. The answer, a page of 11,565 characters, held two of the eleven: `is_ruler` whole and
+   the head of `any_sub_realm_county`. It asked again in smaller groups, learned that
+   `county_opinion` is only a modifier template in 1.21.0.3, and looked up `popular_opinion`,
+   `change_popular_opinion` and `add_popular_opinion` together.
+2. That answer, a page of 13,501 characters, held the first two whole and only the **head** of
+   `add_popular_opinion`: where the game defines it, and its first 20 of 121 uses in the base
+   game, each a place such as
+   `{ "layer": "game", "file": "common/casus_belli_types/00_peasant_war_new.txt", "line": 168, ... }`.
+   Its two readings, what the effect is with the game's documented usage
+   (`scope:county = { add_popular_opinion = 10 }`), were left for the next page.
+3. Its next call: `Read` of `<trial mod>/../game/common/casus_belli_types/00_peasant_war_new.txt`,
+   lines 163 to 174, around the fourth of those uses: it wanted to see **how the game itself
+   writes the effect**. The file and the line came from `lookup`'s uses. The folder `../game/`
+   was its own guess: no result and nothing in the server's instructions says where the game
+   folder is (the instructions name the mod's folder only), or that a place of the layer `game`
+   cannot be read with a session's own file tools. Claude Code answered "File does not exist":
+   the game is elsewhere on the machine. The read reached nothing, but the call named a file
+   outside the mod, so the trial did not hold, as the rule says it must.
+4. It then gave `lookup` the cursor with `add_popular_opinion` alone, which the server refused
+   ("it was given for other names or language. A cursor only continues the answer of the call
+   that gave it, repeated with exactly the same names or language; to ask anything else, call
+   again without cursor"), called again with the same three names and the cursor, and got the
+   readings it had looked for. It wrote the event and its localization, ran `apply_format` and
+   `check` on both: no error, no warning, every expectation met.
+
+The second trial of the same request did the same up to the refused cursor; it then read its own
+mod's folder (a folder, refused by Claude Code, inside the mod: it held) and called
+`find_definition`. The first and the third followed the cursor as asked. Those two refused
+`lookup` calls are the run's only errors of a pychivalry tool; the kept streams show two, in two
+trials, not three.
+
+**No pychivalry tool gives the game's own text.** `lookup`, `find_definition`, `find_references`
+and `list_definitions` give places (a layer, a file from that layer's folder, a line and a column),
+never text; `format` and `apply_format` take a file of the mod only; `explain_code` gives the
+catalogue's messages. A session that wants to see how the game writes a name can learn where,
+never what, unless its own file tools reach the game's folder, which a scored trial's must not.
+
+**How `lookup`'s pages went.** In every one of the 14 trials the first `lookup`, of 5 to 12
+names, came back as one page holding 2 or 3 of them, the last cut short, some or all of its
+readings left for the next page: each name's head, its definitions and its first 20 uses (each a
+game place), comes before its readings, the part a session looks a name up for, and a few heads
+fill a page. Of the run's 18 answers that took more than one page, 3 were followed with the
+cursor; in the ten trials of `event-granary-inspection` and `event-envoy-chain` the first lookup
+was the only one and the session never saw the rest of it ("Lookups are large; I'll query the
+uncertain ones only," one `event-county-unrest` session wrote). Every result still met every
+expectation, from what the sessions knew and what `check` confirmed.
+
+### What was done, and what was not
+
+1. **The run's stop rule** ([When a run stops](#when-a-run-stops)): a trial that does not hold
+   stops the run only when the trials after it would say as little. What counts as held is not
+   changed.
+2. **How a trial that did not hold counts** ([The targets](#the-targets-item-98)): graded and
+   judged when its session ended by itself, never counted as a success, counted against each
+   target its own result fails, named by `task scored:targets` with why; a release run needs 10
+   trials that held of each request.
+3. **Continuing across commits** ([Continuing a run](#continuing-a-run)), so that this run goes on
+   from its record, and `SCORED_RECORD`, so that a run of some requests only is filed under its
+   own name.
+4. **Not changed: what a session is given.** A tool that gives the game's own text of a place or
+   a definition, game places written so that they do not look like files under the mod, and
+   `lookup`'s pages kept whole by name with the readings first: each changes what a session sees,
+   so each would make this run's trials two ways, which no record may hold. They are asked of the
+   owner, to build when this run is finished and before the release run (docs/decisions.md,
+   [Asked, awaiting the owner](../../docs/decisions.md#asked-awaiting-the-owner)). `lookup`'s
+   refusal of another call's cursor stays as it is: a cursor holds no names, so a page of other
+   names would be a wrong page, and both sessions found their way on from the message. A test
+   holds the run's very shape (`bad-input.test.ts`): three names, the third cut after its head,
+   the third alone with the cursor refused, the same three continuing it, and the third alone
+   with no cursor answered whole.
+
+### Continuing it
+
+From the main clone holding the record as the run wrote it (its `records/scored/authoring.json`,
+uncommitted), once this change is merged and nothing that a trial is made or graded with has
+changed on `main` since the record's commit:
+
+```sh
+git pull && task build
+SCORED_CONTINUE=true SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=5 SCORED_SESSION_LIMIT=3 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=<the twelve expert requests, as before> SCORED_KEEP=true SCORED_CLAUDE=<the same Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring
+```
+
+It names the record's commit and the run's files that changed since, then makes 47 trials: two of
+`event-county-unrest` (trials 5 and 6, the fourth tried again) and five of each of the nine
+requests not yet run, none of `event-granary-inspection` or `event-envoy-chain`; up to 94 test
+sessions. Made with the stand-in in Claude Code's place on a copy of the record, from a clean
+checkout of this change, it was accepted and planned exactly so, and the record it wrote passes
+`task records:check`. When it has finished (its exit 0; a request still short, or a stop, is
+named in its last lines and continued the same way), the record is filed as
+`records/scored/authoring-expert-run-1.json` and `records/scored/authoring.json` is given back as
+committed ([records/README.md](../../records/README.md#authoring-records-scoredauthoring)).
 
 ## Calibrating the judge (item 9.6)
 
@@ -1058,7 +1268,8 @@ which gives the command of each):
 3. `fixtures/requests/calibration/expert/grades.json`: twenty-four **hand-made** results of the
    twelve expert requests, two of each, some right and some wrong on a judged dimension, every one
    passing everything code checks (88 answers, 24 judge test sessions, record
-   `records/scored/calibration-expert.json`). Graded last, and only if the owner chooses to.
+   `records/scored/calibration-expert.json`). Graded last, before the release run, as the other
+   two are (decision 135).
 
 **The hand grades** are one JSON file a person writes (`grades_format` 1): `about` (where the
 results came from, how they were chosen), and `items`, each a `request` (its id), a `result` (the

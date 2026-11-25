@@ -11,8 +11,14 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { tempDir } from '../testing.js';
 import { CommandError } from '../util.js';
-import type { AuthoringTask, DimensionCounts, Measures } from './authoring-record.js';
-import type { AuthoringResults } from './authoring-record.js';
+import {
+    summarize,
+    type AuthoringResults,
+    type AuthoringTask,
+    type AuthoringTrial,
+    type DimensionCounts,
+    type Measures,
+} from './authoring-record.js';
 import {
     AUTHORING_TARGETS_DECISION,
     readRecordTargets,
@@ -22,6 +28,8 @@ import {
     type TargetsReading,
 } from './authoring-targets.js';
 import { root } from './authoring-testing.js';
+import type { Stopped } from './confinement.js';
+import type { JudgeAnswer } from './judge.js';
 import { committedRequests, type Difficulty } from './requests.js';
 
 function dimension(
@@ -98,8 +106,8 @@ test('no error and no warning in the format: every result, not one fewer', () =>
     });
     const target = format.targets.find((t) => t.id === 'no-warning-in-format');
     assert.deepEqual(target?.parts, [
-        { measure: 'no warning', count: 60, of: 60, rate: 1 },
-        { measure: 'in the format', count: 59, of: 60, rate: 0.9833 },
+        { measure: 'no warning', count: 60, of: 60, rate: 1, against: 0 },
+        { measure: 'in the format', count: 59, of: 60, rate: 0.9833, against: 0 },
     ]);
 });
 
@@ -167,6 +175,7 @@ test('the reading in words names the decision, each part, its threshold and met 
         readTargets({ tasks: tasks(5, 5), overall: measures(10, { zero_errors: 9 }) }),
     );
     assert.deepEqual(lines, [
+        "every trial's harness held (10)",
         `the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}), which hold before any release; a development run (5 trials of each request; a run before a release has 10 of each):`,
         '  every result with no error: no error 9 of 10 (90%); needs 100%: not met',
         "  every result with no warning and in pychivalry's format: no warning 10 of 10 (100%), in the format 10 of 10 (100%); needs 100%: met",
@@ -257,10 +266,11 @@ test('with and without the expert requests: the reading over all decides, the ot
     assert.equal(reading.without_expert.requests, 2);
     assert.equal(reading.without_expert.met, true);
     const lines = targetLines(reading);
-    assert.equal(lines[5], '3 of 4 targets not met');
-    assert.equal(lines[6], 'the same targets without the expert requests (2 requests):');
+    assert.equal(lines[0], "every trial's harness held (15)");
+    assert.equal(lines[6], '3 of 4 targets not met');
+    assert.equal(lines[7], 'the same targets without the expert requests (2 requests):');
     assert.equal(
-        lines[7],
+        lines[8],
         '  every result with no error: no error 10 of 10 (100%); needs 100%: met',
     );
     assert.equal(lines.at(-1), 'every target met');
@@ -284,8 +294,9 @@ test('a record that lacks requests of the list names them, and is not a release 
     ]);
     assert.equal(part.run, 'development');
     assert.deepEqual(part.missing, ['b']);
-    assert.deepEqual(targetLines(part).slice(0, 2), [
+    assert.deepEqual(targetLines(part).slice(0, 3), [
         'the record has no trial of 1 request of the list (made before it was added, or a run of some requests only), so it is read over the requests it has: b',
+        "every trial's harness held (10)",
         `the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}), which hold before any release; a development run (10 trials of each request, but not of every request of the list):`,
     ]);
     assert.equal(targetLines(part).at(-1), 'every target met');
@@ -307,4 +318,239 @@ test("the second run's record, made before the expert requests: read over its tw
         readFileSync(path.join(root, 'records', 'scored', 'authoring.json'), 'utf8'),
     ) as { results: AuthoringResults };
     assert.deepEqual(sumMeasures(record.results.tasks), record.results.overall);
+});
+
+/** One trial of a record: held and clean unless given otherwise. */
+function trialOf(
+    task: string,
+    n: number,
+    over: {
+        readonly difficulty?: Difficulty;
+        readonly held?: boolean;
+        readonly stopped?: Stopped;
+        readonly errors?: number;
+        readonly expectationsMet?: boolean;
+        readonly answers?: readonly JudgeAnswer[] | null;
+    } = {},
+): AuthoringTrial {
+    const errors = over.errors ?? 0;
+    const held = over.held ?? true;
+    const met = over.expectationsMet ?? true;
+    const answers: readonly JudgeAnswer[] | null =
+        over.answers === undefined ? ['yes', 'yes'] : over.answers;
+    return {
+        task,
+        content_type: 'event',
+        difficulty: over.difficulty ?? 'easy',
+        trial: n,
+        harness_held: held,
+        stopped: over.stopped ?? 'finished',
+        harness_problems: held ? [] : ['the session named files outside its mod (1 calls of Read)'],
+        tool_calls: [],
+        tool_errors: [],
+        permission_denials: 0,
+        session: null,
+        turns: 10,
+        duration_ms: 20_000,
+        exit_code: 0,
+        validity: {
+            errors,
+            warnings: 0,
+            information: 0,
+            hints: 0,
+            zero_errors: errors === 0,
+            no_warnings: true,
+            in_format: true,
+            by_code:
+                errors === 0
+                    ? []
+                    : [{ code: 'names/unknown-trigger', severity: 'error', count: errors }],
+        },
+        expectations: [
+            { expectation: 'it is there', met, problem: met ? null : 'it is not there' },
+        ],
+        expectations_met: met,
+        judge:
+            answers === null
+                ? {
+                      state: 'not-judged',
+                      why: "the authoring session's harness did not hold",
+                      stopped: null,
+                      harness_problems: [],
+                      answers: [],
+                      turns: null,
+                      duration_ms: null,
+                      exit_code: null,
+                  }
+                : {
+                      state: 'answered',
+                      why: null,
+                      stopped: 'finished',
+                      harness_problems: [],
+                      answers: [
+                          { dimension: 'effects-as-asked', answer: answers[0] ?? 'yes' },
+                          { dimension: 'scope-as-asked', answer: answers[1] ?? 'yes' },
+                      ],
+                      turns: 1,
+                      duration_ms: 3_000,
+                      exit_code: 0,
+                  },
+    };
+}
+
+/** A record's results from its trials, as the run writes them. */
+function resultsOf(
+    trials: readonly AuthoringTrial[],
+): Pick<AuthoringResults, 'tasks' | 'overall' | 'trials'> {
+    const requests = [...new Set(trials.map((t) => t.task))].map((id) => ({
+        id,
+        content_type: 'event' as const,
+        difficulty: trials.find((t) => t.task === id)?.difficulty ?? 'easy',
+        dimensions: ['effects-as-asked', 'scope-as-asked'],
+    }));
+    return { ...summarize(trials, requests), trials };
+}
+
+/** Four clean trials that held, of one request, then `last`. */
+function fourAnd(last: AuthoringTrial): AuthoringTrial[] {
+    return [1, 2, 3, 4].map((n) => trialOf('event-x', n)).concat(last);
+}
+
+function partsOf(reading: TargetsReading): string[] {
+    return reading.targets.flatMap((t) =>
+        t.parts.map(
+            (p) =>
+                `${p.measure} ${String(p.count)}/${String(p.of)}${p.against > 0 ? ` (${String(p.against)} against)` : ''}`,
+        ),
+    );
+}
+
+test('a trial that did not hold, whose session ended by itself, counts against each target its own result fails', () => {
+    const reading = readTargets(
+        resultsOf(
+            fourAnd(
+                trialOf('event-x', 5, {
+                    held: false,
+                    errors: 1,
+                    expectationsMet: false,
+                    answers: ['no', 'yes'],
+                }),
+            ),
+        ),
+    );
+    assert.deepEqual(partsOf(reading), [
+        'no error 4/5 (1 against)',
+        'no warning 4/4',
+        'in the format 4/4',
+        'every expectation met 4/5 (1 against)',
+        'effects-as-asked 4/5 (1 against)',
+        'scope-as-asked 4/4',
+    ]);
+    assert.deepEqual(met(reading), {
+        'no-error': false,
+        'no-warning-in-format': true,
+        expectations: false,
+        judged: false,
+    });
+    assert.deepEqual(reading.not_held, [
+        {
+            task: 'event-x',
+            trial: 5,
+            problems: ['the session named files outside its mod (1 calls of Read)'],
+            ended_by_itself: true,
+            against: ['no error', 'every expectation met', 'effects-as-asked'],
+        },
+    ]);
+    const lines = targetLines(reading);
+    assert.equal(
+        lines[0],
+        '1 of the 5 trials did not hold. A trial that did not hold is never counted as a success: when its authoring session ended by itself, it counts against each target its own result fails; when a session of it broke, it counts for nothing; and a run continuing the record (SCORED_CONTINUE=true) tries its request again',
+    );
+    assert.equal(
+        lines[1],
+        '  event-x trial 5: the session named files outside its mod (1 calls of Read); counted against: no error, every expectation met, effects-as-asked',
+    );
+    assert.equal(
+        lines[3],
+        '  every result with no error: no error 4 of 5 (80%; 1 trial that did not hold counted against it); needs 100%: not met',
+    );
+});
+
+test('a trial that did not hold never improves a score: a clean one, or one whose session broke, counts for nothing', () => {
+    // Its own result clean: it is left out, and the four that held decide.
+    const clean = readTargets(resultsOf(fourAnd(trialOf('event-x', 5, { held: false }))));
+    assert.deepEqual(partsOf(clean), [
+        'no error 4/4',
+        'no warning 4/4',
+        'in the format 4/4',
+        'every expectation met 4/4',
+        'effects-as-asked 4/4',
+        'scope-as-asked 4/4',
+    ]);
+    assert.equal(clean.met, true);
+    assert.equal(
+        targetLines(clean)[1],
+        '  event-x trial 5: the session named files outside its mod (1 calls of Read); its own result fails no target, so it counts for nothing',
+    );
+    // A session that broke says nothing of its result, which is not counted either way.
+    const broke = readTargets(
+        resultsOf(
+            fourAnd(
+                trialOf('event-x', 5, {
+                    held: false,
+                    stopped: 'error',
+                    errors: 3,
+                    expectationsMet: false,
+                    answers: null,
+                }),
+            ),
+        ),
+    );
+    assert.deepEqual(partsOf(broke), partsOf(clean));
+    assert.equal(broke.not_held[0]?.ended_by_itself, false);
+    assert.match(targetLines(broke)[1] ?? '', /a session of it broke, so it counts for nothing$/);
+    // Counted against, it can only lower a rate: the same trial holding would raise it.
+    const failing = trialOf('event-x', 5, { held: false, errors: 1 });
+    const asIfHeld = trialOf('event-x', 5, { errors: 1 });
+    const against = readTargets(resultsOf(fourAnd(failing))).targets[0]?.parts[0];
+    const heldPart = readTargets(resultsOf(fourAnd(asIfHeld))).targets[0]?.parts[0];
+    assert.deepEqual([against?.count, against?.of], [heldPart?.count, heldPart?.of]);
+});
+
+test('a release run needs 10 trials that held of each request: a trial that did not hold does not make up the number', () => {
+    const ten = (task: string, notHeld: number): AuthoringTrial[] =>
+        Array.from({ length: 10 }, (_, i) =>
+            trialOf(task, i + 1, { held: i >= 10 - notHeld ? false : true }),
+        );
+    assert.equal(readTargets(resultsOf([...ten('a', 0), ...ten('b', 0)])).run, 'release');
+    const short = readTargets(resultsOf([...ten('a', 0), ...ten('b', 1)]));
+    assert.equal(short.run, 'development');
+    assert.deepEqual(short.trials_per_request, { fewest: 9, most: 10 });
+    assert.match(
+        targetLines(short)[2] ?? '',
+        /a development run \(9 to 10 trials that held of a request; a run before a release has 10 of each\):$/,
+    );
+});
+
+test('without the expert requests, only their own trials that did not hold count against', () => {
+    const trials = [
+        trialOf('easy-one', 1),
+        trialOf('easy-one', 2, { held: false, errors: 1 }),
+        trialOf('expert-one', 1, { difficulty: 'expert' }),
+        trialOf('expert-one', 2, { difficulty: 'expert', held: false, expectationsMet: false }),
+    ];
+    const reading = readTargets(resultsOf(trials));
+    assert.deepEqual(partsOf(reading).slice(0, 4), [
+        'no error 2/3 (1 against)',
+        'no warning 2/2',
+        'in the format 2/2',
+        'every expectation met 2/3 (1 against)',
+    ]);
+    assert.ok(reading.without_expert !== null);
+    assert.deepEqual(
+        reading.without_expert.targets
+            .flatMap((t) => t.parts.map((p) => `${p.measure} ${String(p.count)}/${String(p.of)}`))
+            .slice(0, 4),
+        ['no error 1/2', 'no warning 1/1', 'in the format 1/1', 'every expectation met 1/1'],
+    );
 });

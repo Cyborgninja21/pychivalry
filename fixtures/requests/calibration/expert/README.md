@@ -12,8 +12,8 @@ anywhere, so that the grading is done by reading them. How to grade them and run
 It is the third sheet, beside the ten hand-made results of the first twelve requests
 ([../README.md](../README.md)) and the twelve real results of the second run
 ([../run-2/README.md](../run-2/README.md)), and the only one on the expert requests. It is graded
-after those two, and only if the owner chooses to: 88 answers, and 24 judge test sessions to
-calibrate it.
+after those two, before the release run, as the owner chose (decision 135):
+88 answers, and 24 judge test sessions to calibrate it.
 
 Each folder under `results/` is a whole mod as a session would leave it: the request's base mod
 (`fixtures/requests/bases/`) with the result's files written into it. The judge is shown exactly

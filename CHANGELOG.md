@@ -499,6 +499,12 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   results of the expert requests, two of each, some right and some wrong on a judged dimension,
   every one passing everything code checks (88 answers, 24 judge test sessions, graded only if the
   owner chooses). The owner's two sheets are unchanged.
+- `SCORED_RECORD` for `task scored:authoring`: the record a run writes and, with
+  `SCORED_CONTINUE=true`, continues, a file directly in `records/scored/`. A run of some requests
+  only is filed beside `authoring.json` as `authoring-<set>-run-<n>.json`, never over it.
+- The hand checklist for VS Code's AI has one expert request, `effect-granary-gift-edit`, run in a
+  copy of the base `granary`: the one effect changed in place, the other two effects and every
+  other file unchanged (decision 136).
 
 ### Changed
 
@@ -710,6 +716,26 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   lookups given another call's cursor). The same calls are refused as before.
 - The guide's page on the judge's calibration names the third sheet, of the expert requests, its
   88 answers, its command and its 24 judge test sessions.
+- **A scored authoring run stops only when the trials after a trial that did not hold would say as
+  little:** a session not set up as the run asks, the run's first trial broken, or three trials in
+  a row not holding. Otherwise it carries on, and a run continuing the record tries the request
+  again. What counts as held is unchanged. The expert requests' development run had stopped after
+  14 trials, every target met by the 13 that held, because one session, with a clean result, once
+  called `Read` on a game file outside its mod.
+- **A trial that did not hold never improves a score:** it is graded, and judged when its authoring
+  session ended by itself; `task scored:targets` and the run's reading never count it as a
+  success, count it against each target its own result fails when its session ended by itself,
+  count it for nothing when a session of it broke, and name each one with why. A release run needs
+  10 trials that held of each request.
+- `SCORED_CONTINUE=true` continues an authoring record made at an earlier commit when git shows
+  that only documents, records, tests and the run's own files changed since; anything a trial is
+  made or graded with refuses it, naming the files. The record keeps its first `tool`, and a note
+  names each continuing run's commit and the files of code that changed.
+- `task scored:authoring` exits 1 when it stopped early or a request it names is short of
+  `SCORED_TRIALS` trials that held, and names which; it no longer fails for a trial of the record
+  that did not hold and was tried again.
+- The owner grades all three calibration sheets before the release run (decision 135); the guide's
+  page and the scored-run README say so.
 
 ### Fixed
 
@@ -732,12 +758,14 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 9: the judge's calibration (item 9.6), on its two sheets, and the hand checklist on
-  VS Code's AI (item 9.7), on an extension file built from `main`, are the owner's to run, and
-  the third preview (9.9) waits for both. The twelve expert requests have not been run by a test
-  session; whether the list of twenty-four is final, or the expert requests first get a
-  development run, is asked of the owner. The third preview's release run, 10 trials of each of
-  the 24 requests, 480 test sessions, is made once on his word (decision 132).
+- Build step 9: the judge's calibration (item 9.6), on its three sheets, all before the release
+  run (decision 135), and the hand checklist on VS Code's AI (item 9.7), on an extension file
+  built from `main`, are the owner's to run, and the third preview (9.9) waits for both. The
+  expert requests' development run (decision 134) stopped after 14 trials and continues from its
+  record; its record is committed when it has finished. No tool gives a session the game's own
+  text, and `lookup`'s first page held 2 or 3 of the names asked in every trial of that run: both
+  are asked of the owner, to build before the release run. The third preview's release run, 10
+  trials of each of the 24 requests, 480 test sessions, is made once on his word (decision 132).
 - `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
   package gives `always` and the logical operators roles (decision 112).
 - Whether a check row should judge a static modifier applied by an effect of another use area

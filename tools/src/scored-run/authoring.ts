@@ -25,16 +25,19 @@
  *    (`expectations.ts`), then one judge test session, started the same way with no tool, no
  *    server and no skill, which reads the request and the result and answers each judged
  *    dimension from a closed set that includes "cannot tell" (`judge.ts`);
- * 5. the record, `records/scored/authoring.json`, is written again after every trial
- *    (`authoring-record.ts`).
+ * 5. the record, `records/scored/authoring.json` or the file `SCORED_RECORD` names, is written
+ *    again after every trial (`authoring-record.ts`).
  *
  * When the run ends it prints its measures and, read from them, the owner's targets, each met or
  * not (`authoring-targets.ts`); the record holds the measures only.
  *
- * A trial whose authoring or judge session had a harness problem (it broke, or was offered
- * more than the run allows) stops the run there: the trials after it would say as little, and
- * each would still count against the developer's plan. Its record is kept; `SCORED_CONTINUE`
- * carries on from it.
+ * A trial whose authoring or judge session had a harness problem (it broke, was offered more
+ * than the run allows, or named a file outside its mod) did not hold: it is recorded with its
+ * reasons, graded, and judged when its authoring session ended by itself, and it is never
+ * counted as a success. The run stops after it only when the trials after it would say as little
+ * (`stop-rule.ts`): a session not set up as the run asks, the run's first trial broken, or three
+ * trials in a row not holding. Otherwise it carries on, and a run continuing the record
+ * (`SCORED_CONTINUE`, `continuation.ts`) tries the request again.
  *
  * The parameters, from the environment, beside those of the agent-use run (`scoredOptions`:
  * `SCORED_SESSION_LIMIT`, `SCORED_MODEL`, `SCORED_TRIALS`, `SCORED_SERVER`, `SCORED_SERVER_ARGS`,
@@ -49,10 +52,12 @@
  * | `SCORED_JUDGE_MODEL` | The judge's model, by its full name | `PINNED_JUDGE_MODEL`, Fable 5.2 |
  * | `SCORED_JUDGE_SESSION_LIMIT` | The session limit of each judge session | `SCORED_SESSION_LIMIT` |
  * | `SCORED_JUDGE_TIMEOUT_MINUTES` | The time limit of each judge session | 10 |
+ * | `SCORED_RECORD` | The record the run writes, and with `SCORED_CONTINUE` the one it continues: a `.json` file directly in `records/scored/`, from the repository root | `records/scored/authoring.json` |
  *
- * `SCORED_TRIALS` is the number of trials per request. With `SCORED_CONTINUE=true` the run adds
- * to the record already written, made the same way, and brings each request named up to that
- * many trials whose harness held.
+ * `SCORED_TRIALS` is the number of trials per request. A run makes that many of each request it
+ * names and does not try a trial that did not hold again. With `SCORED_CONTINUE=true` the run
+ * adds to the record already written, made the same way, and brings each request named up to that
+ * many trials whose harness held: a trial that did not hold is tried again there.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -81,7 +86,7 @@ import {
     type WorkspaceFinding,
 } from '@pychivalry/core';
 import { gameInfo, requireGameDir } from '../game.js';
-import { committedSpec, machineInfo, now, toolInfo } from '../record.js';
+import { committedSpec, machineInfo, now, toolInfo, type ToolInfo } from '../record.js';
 import { CommandError, EXIT, relativePosix, sha256, sha256OfFile, writeJson } from '../util.js';
 import {
     AUTHORING_SUITE,
@@ -94,11 +99,13 @@ import {
 } from './authoring-record.js';
 import { AUTHORING_TARGETS_DECISION, readTargets, targetLines } from './authoring-targets.js';
 import { callsOutside, sessionProblems, type Confinement } from './confinement.js';
+import { codeChanged, continuedAcross, repositoryGit, type GitView } from './continuation.js';
 import { checkExpectations } from './expectations.js';
 import { filesIn } from './graders.js';
 import {
     compileJudgeSchema,
     JUDGE_ANSWERS,
+    JUDGE_CONFINEMENT,
     JUDGE_PROMPT_FILE,
     JUDGE_SCHEMA_FILE,
     judgeArgs,
@@ -137,6 +144,7 @@ import {
     trialEnv,
     type ScoredOptions,
 } from './run.js';
+import { ENDED_BY_ITSELF, stopReason, type TrialOutcome } from './stop-rule.js';
 import { readStream } from './stream.js';
 
 export const AUTHORING_TASK = 'authoring' as const;
@@ -237,6 +245,32 @@ export function authoringOptions(
         skillsDir: path.resolve(root, env['SCORED_SKILLS'] ?? DEFAULT_SKILLS),
         skillPlace: place as SkillPlace,
     };
+}
+
+/**
+ * Where the run's record is written, and with `SCORED_CONTINUE` the record it continues:
+ * `SCORED_RECORD`, a `.json` file directly in `records/scored/` named from the repository root,
+ * or `records/scored/authoring.json`. Anywhere else is refused before any session starts: `task
+ * records:check` reads records only under `records/`, and a run of some requests only is filed
+ * beside the latest run of the whole list, never over it (records/README.md, "Authoring records").
+ */
+export function authoringRecordFile(
+    root: string,
+    env: Readonly<Record<string, string | undefined>>,
+): string {
+    const named = env['SCORED_RECORD'];
+    if (named === undefined || named === '') {
+        return path.join(root, ...AUTHORING_RECORD_FILE.split('/'));
+    }
+    const file = path.resolve(root, named);
+    const folder = path.join(root, 'records', 'scored');
+    if (path.dirname(file) !== folder || !file.endsWith('.json') || file.endsWith('.schema.json')) {
+        throw new CommandError(
+            `SCORED_RECORD must name a .json file directly in records/scored/ (from the repository root), such as records/scored/authoring-expert-run-1.json; not ${named}`,
+            EXIT.usage,
+        );
+    }
+    return file;
 }
 
 /** The SHA-256 of a folder: of its files' paths and hashes, one line each, in path order. */
@@ -425,7 +459,12 @@ export function measuredRequests(list: RequestList): MeasuredRequest[] {
     }));
 }
 
-function commandOf(root: string, options: AuthoringOptions): string {
+function commandOf(
+    root: string,
+    options: AuthoringOptions,
+    /** The record `SCORED_RECORD` names, from the repository root with `/`; null when none. */
+    recordNamed: string | null,
+): string {
     const parts = [
         `SCORED_MODEL=${options.model}`,
         `SCORED_TRIALS=${String(options.trials)}`,
@@ -450,6 +489,9 @@ function commandOf(root: string, options: AuthoringOptions): string {
     if (options.claude.command !== 'claude' || options.claude.args.length > 0) {
         parts.push('SCORED_CLAUDE=<another Claude Code>');
     }
+    if (recordNamed !== null) {
+        parts.push(`SCORED_RECORD=${recordNamed}`);
+    }
     if (options.continue) {
         parts.push('SCORED_CONTINUE=true');
     }
@@ -457,14 +499,43 @@ function commandOf(root: string, options: AuthoringOptions): string {
     return `${parts.join(' ')} task scored:authoring`;
 }
 
+/** What a run did: its record, and why it stopped early, if it did. */
+export interface AuthoringRun {
+    readonly file: string;
+    readonly record: AuthoringRecord;
+    /** Why the run stopped before it made every trial it planned; null when it did not. */
+    readonly stopped: string | null;
+    /**
+     * The requests the run names that still have fewer than `SCORED_TRIALS` trials whose harness
+     * held, each with how many held: a run continuing the record tops them up.
+     */
+    readonly short: readonly { readonly request: string; readonly held: number }[];
+}
+
+/**
+ * The note a record carries on how a trial that did not hold is treated, since the stop rule
+ * of `stop-rule.ts`; a record made before it says only that such a trial is listed and not
+ * counted, and a run continuing it adds this note.
+ */
+export const NOT_HELD_NOTE =
+    "A trial whose harness did not hold is listed with its reasons, graded, and judged when its authoring session ended by itself; it is left out of every measure and never counted as a success. When the targets are read, such a trial whose session ended by itself counts against each target its own result fails, and one whose session broke counts for nothing. The run carries on after it unless a session was not set up as the run asks, the run's first trial broke, or three trials in a row did not hold; a run continuing the record tries its request again.";
+
 /** Run the scored authoring test and write its record after every trial. */
 export function runAuthoring(
     root: string,
     env: Readonly<Record<string, string | undefined>>,
     log: (line: string) => void,
-    /** Where to write the record: `AUTHORING_RECORD_FILE` by default; a test writes it elsewhere. */
-    recordFile: string = path.join(root, ...AUTHORING_RECORD_FILE.split('/')),
-): { readonly file: string; readonly record: AuthoringRecord } {
+    /** Where to write the record: `SCORED_RECORD`'s or `AUTHORING_RECORD_FILE` by default; a test writes it elsewhere. */
+    recordFile: string = authoringRecordFile(root, env),
+    /**
+     * This checkout's build, and what git says of the commits for a record continued at another
+     * commit (`continuation.ts`): the repository's own by default; a test gives its own.
+     */
+    build: { readonly tool: ToolInfo; readonly git: GitView } = {
+        tool: toolInfo(root),
+        git: repositoryGit(root),
+    },
+): AuthoringRun {
     const options = authoringOptions(root, env);
     if (!existsSync(options.server)) {
         throw new CommandError(
@@ -495,7 +566,7 @@ export function runAuthoring(
     const version = harnessVersion(options.claude);
     const bases = [...new Set(list.requests.map((r) => r.base))].sort();
     const fixed = {
-        tool: toolInfo(root),
+        tool: build.tool,
         spec: committedSpec(root),
         game: gameInfo(options.gameDir),
         task: {
@@ -538,14 +609,17 @@ export function runAuthoring(
         },
     };
     const { tool, spec: specRef, game, ...stated } = fixed;
+    // Everything but the build is compared as before; the build may be a later commit with only
+    // the run's own files changed since (`continuation.ts`).
     const previous = options.continue
         ? (recordToContinue(
               recordFile,
               AUTHORING_SUITE,
-              { tool, spec: specRef, game },
+              { spec: specRef, game },
               stated,
           ) as unknown as AuthoringRecord)
         : null;
+    const across = previous === null ? null : continuedAcross(previous.tool, tool, build.git);
     const trials: AuthoringTrial[] = [...(previous?.results.trials ?? [])];
     const plan = selected.map((request) => {
         const mine = trials.filter((t) => t.task === request.id);
@@ -557,12 +631,37 @@ export function runAuthoring(
         };
     });
     const sessions = plan.reduce((n, p) => n + p.count, 0);
+    const retried = plan.filter(
+        (p) => p.count > 0 && trials.some((t) => t.task === p.request.id && !t.harness_held),
+    );
     log(
         `scored:authoring: Claude Code ${version}, model ${options.model}, judge ${options.judgeModel}; ${String(selected.length)} requests, ${String(sessions)} trials${previous === null ? '' : ` added to the ${String(trials.length)} of the record`}: up to ${String(sessions)} authoring test sessions with session limit ${String(options.sessionLimit)} and time limit ${String(options.timeoutMinutes)} minutes, and one judge test session after each, with session limit ${String(options.judgeSessionLimit)} and time limit ${String(options.judgeTimeoutMinutes)} minutes`,
     );
+    if (across !== null && across.from !== null) {
+        log(
+            `scored:authoring: the record was made at commit ${across.from}; this checkout differs from it only in the run's own files${codeChanged(across.changed).length > 0 ? ` (${codeChanged(across.changed).join(', ')})` : ''} and in documents, records and tests`,
+        );
+    }
+    if (retried.length > 0) {
+        log(
+            `scored:authoring: requests tried again for a trial of the record that did not hold: ${retried.map((p) => `${p.request.id} (from trial ${String(p.first)})`).join(', ')}`,
+        );
+    }
 
     const madeAt = now();
     const measured = measuredRequests(list);
+    const continuedNotes = (prev: AuthoringRecord, added: boolean): string[] => {
+        if (!added) {
+            return [];
+        }
+        const code = across === null ? [] : codeChanged(across.changed);
+        return [
+            across === null || across.from === null
+                ? `Trials were added on ${madeAt.slice(0, 10)} by a run continuing the record (SCORED_CONTINUE=true), made the same way as the record's first (made ${prev.made_at.slice(0, 10)}).`
+                : `Trials were added on ${madeAt.slice(0, 10)} by a run continuing the record (SCORED_CONTINUE=true) at commit ${tool.commit}, made the same way as the record's first (made ${prev.made_at.slice(0, 10)} at commit ${across.from}): the same request list, prompts, judge, base mods, skills, Claude Code version, models, limits, arguments and agent server; between the two commits only documents, records, tests${code.length > 0 ? ` and the run's own files changed (${code.join(', ')})` : ' changed'}.`,
+            ...(prev.notes.includes(NOT_HELD_NOTE) ? [] : [NOT_HELD_NOTE]),
+        ];
+    };
     const write = (): AuthoringRecord => {
         const summary = summarize(trials, measured);
         const results: AuthoringResults = {
@@ -571,13 +670,23 @@ export function runAuthoring(
             tasks: summary.tasks,
             overall: summary.overall,
         };
-        const continued = previous !== null && trials.length > previous.results.trials.length;
+        const added = previous !== null && trials.length > previous.results.trials.length;
         const record: AuthoringRecord = {
             record_format: 1,
             suite: AUTHORING_SUITE,
-            command: commandOf(root, options),
+            command: commandOf(
+                root,
+                options,
+                // Never the text as given, which could be a path of the machine: the file in
+                // records/scored/ that authoringRecordFile has already held it to.
+                env['SCORED_RECORD'] === undefined || env['SCORED_RECORD'] === ''
+                    ? null
+                    : relativePosix(root, authoringRecordFile(root, env)),
+            ),
             made_at: madeAt,
-            tool,
+            // A continued record keeps the build it was first made with; its notes name the
+            // commit each continuing run was made at.
+            tool: previous?.tool ?? tool,
             machine: machineInfo(),
             game,
             spec: specRef,
@@ -587,16 +696,10 @@ export function runAuthoring(
                     ? [
                           `Every authoring session, the agent server, the checker and the expectations read the base game at <game dir>, build ${game.build}.`,
                           'Each trial is one authoring test session of the Claude Code installed on the machine the run was made on, given the request in a fresh copy of its base mod with the agent server and the skills, then one judge test session given the request and what the first left; the script gave neither session credentials, and pychivalry itself makes no model call.',
-                          `Grade one is pychivalry's checker on the result: errors, warnings and whether it is in pychivalry's format, each a measure of its own. Grade two is the request's expectations, checked in code, and the judge's answer on each judged dimension. A trial whose harness did not hold is listed and not counted. The record states measures only: the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}) are read from them, by the run when it ends and by task scored:targets.`,
+                          `Grade one is pychivalry's checker on the result: errors, warnings and whether it is in pychivalry's format, each a measure of its own. Grade two is the request's expectations, checked in code, and the judge's answer on each judged dimension. The record states measures only: the owner's targets (docs/decisions.md, decision ${String(AUTHORING_TARGETS_DECISION)}) are read from them, by the run when it ends and by task scored:targets.`,
+                          NOT_HELD_NOTE,
                       ]
-                    : [
-                          ...previous.notes,
-                          ...(continued
-                              ? [
-                                    `Trials were added on ${madeAt.slice(0, 10)} by a run continuing the record (SCORED_CONTINUE=true), made the same way as the record's first (made ${previous.made_at.slice(0, 10)}).`,
-                                ]
-                              : []),
-                      ],
+                    : [...previous.notes, ...continuedNotes(previous, added)],
             results,
         };
         writeJson(recordFile, record);
@@ -609,7 +712,9 @@ export function runAuthoring(
     // The base game's index, built once into the cache every trial's agent server reads, so that
     // no session waits for it; the grader loads it from there too.
     const indexCache = defaultCacheDir({ XDG_CACHE_HOME: cacheDir, LOCALAPPDATA: cacheDir });
-    let stopped = false;
+    // This run's trials, in the order made, as the stop rule reads them.
+    const outcomes: TrialOutcome[] = [];
+    let stopped: string | null = null;
     try {
         if (sessions > 0) {
             openWorkspace({ spec, gameDir: options.gameDir, cacheDir: indexCache, modDir: null });
@@ -630,8 +735,8 @@ export function runAuthoring(
             }
         }
         for (const { request, first, count } of plan) {
-            for (let n = first; n < first + count && !stopped; n++) {
-                const trial = runTrial({
+            for (let n = first; n < first + count && stopped === null; n++) {
+                const { trial, outcome } = runTrial({
                     root,
                     options,
                     spec,
@@ -649,10 +754,16 @@ export function runAuthoring(
                 });
                 trials.push(trial);
                 write();
-                if (!trial.harness_held) {
-                    stopped = true;
+                outcomes.push(outcome);
+                const why = stopReason(outcomes);
+                if (why !== null) {
+                    stopped = `${request.id} trial ${String(n)}: ${why}`;
                     log(
-                        `scored:authoring: stopped after ${request.id} trial ${String(n)}, whose harness did not hold: the trials after it would say as little (SCORED_CONTINUE=true carries on once it is fixed)`,
+                        `scored:authoring: stopped after ${request.id} trial ${String(n)}, whose harness did not hold: ${why}; the trials after it would say as little (SCORED_CONTINUE=true carries on once it is fixed)`,
+                    );
+                } else if (!trial.harness_held) {
+                    log(
+                        `scored:authoring: ${request.id} trial ${String(n)} did not hold, and the run carries on: it is never counted as a success, and a run continuing the record (SCORED_CONTINUE=true) tries ${request.id} again`,
                     );
                 }
             }
@@ -669,6 +780,17 @@ export function runAuthoring(
     log(
         `scored:authoring: ${String(overall.harness_held)} of ${String(overall.trials)} trials held; of those, ${String(overall.zero_errors)} without an error, ${String(overall.no_warnings)} without a warning, ${String(overall.in_format)} in the format, ${String(overall.expectations_met)} meeting every expectation; record written to ${relativePosix(root, recordFile)}`,
     );
+    const short = selected
+        .map((r) => ({
+            request: r.id,
+            held: trials.filter((t) => t.task === r.id && t.harness_held).length,
+        }))
+        .filter((s) => s.held < options.trials);
+    if (short.length > 0) {
+        log(
+            `scored:authoring: requests short of ${String(options.trials)} trials whose harness held: ${short.map((x) => `${x.request} (${String(x.held)} held)`).join(', ')}; SCORED_CONTINUE=true tops them up`,
+        );
+    }
     for (const line of targetLines(
         readTargets(
             record.results,
@@ -677,7 +799,7 @@ export function runAuthoring(
     )) {
         log(`scored:authoring: ${line}`);
     }
-    return { file: recordFile, record };
+    return { file: recordFile, record, stopped, short };
 }
 
 interface TrialContext {
@@ -697,8 +819,11 @@ interface TrialContext {
     readonly log: (line: string) => void;
 }
 
-/** One trial: the authoring session, its two grades, and the judge's session. */
-function runTrial(ctx: TrialContext): AuthoringTrial {
+/**
+ * One trial: the authoring session, its two grades, and the judge's session; with what the stop
+ * rule reads of it.
+ */
+function runTrial(ctx: TrialContext): { trial: AuthoringTrial; outcome: TrialOutcome } {
     const { options, request, n } = ctx;
     const trialDir = path.join(ctx.runDir, `${request.id}-${String(n)}`);
     const modDir = path.join(trialDir, 'mod');
@@ -761,13 +886,23 @@ function runTrial(ctx: TrialContext): AuthoringTrial {
         { path: homedir(), name: '<home>' },
     ];
     const stopped = stoppedBy(summary, timedOut);
+    const confinement = authoringConfinement(ctx.skills);
     const problems = sessionProblems(
         summary,
         stopped,
         spawned.status,
         options.timeoutMinutes,
-        authoringConfinement(ctx.skills),
+        confinement,
     );
+    // The problems of its set-up alone: what its start shows, whatever ended it.
+    const setUp = sessionProblems(
+        summary,
+        'finished',
+        spawned.status,
+        options.timeoutMinutes,
+        confinement,
+    );
+    const endedByItself = ENDED_BY_ITSELF.includes(stopped);
     const outside = callsOutside(summary, [modDir, skillsDir], FILE_TOOLS);
     if (outside.length > 0) {
         const tools = [...new Set(outside.map((c) => c.tool))].join(', ');
@@ -807,8 +942,17 @@ function runTrial(ctx: TrialContext): AuthoringTrial {
         request.expect,
     ).map((e) => ({ ...e, problem: e.problem === null ? null : sanitize(e.problem, folders) }));
 
-    // The judge, when the authoring session's harness held.
-    const judge = judgeTrial(ctx, trialDir, modDir, givenDir, problems.length === 0, folders);
+    // The judge, when the authoring session was set up as asked and ended by itself: also when
+    // it did not hold for what it did (a file named outside its mod, the skills changed), so
+    // that its result is judged like any other, though it is never counted as a success.
+    const { judge, setUp: judgeSetUp } = judgeTrial(
+        ctx,
+        trialDir,
+        modDir,
+        givenDir,
+        setUp.length === 0 && endedByItself,
+        folders,
+    );
     const harnessHeld = problems.length === 0 && judge.harness_problems.length === 0;
     const trial: AuthoringTrial = {
         task: request.id,
@@ -833,27 +977,46 @@ function runTrial(ctx: TrialContext): AuthoringTrial {
     ctx.log(
         `${request.id} trial ${String(n)}: ${harnessHeld ? 'held' : 'harness problem'} (${stopped}; ${String(summary.toolCalls.length)} tool calls); ${String(validity.errors)} errors, ${String(validity.warnings)} warnings${validity.in_format ? '' : ', not in the format'}; ${String(expectations.filter((e) => e.met).length)} of ${String(expectations.length)} expectations met; judge ${judge.state}${answers === '' ? '' : `: ${answers}`}${trial.harness_problems.length > 0 || judge.harness_problems.length > 0 ? `; harness: ${[...trial.harness_problems, ...judge.harness_problems].join('; ')}` : ''}`,
     );
-    return trial;
+    return {
+        trial,
+        outcome: {
+            held: harnessHeld,
+            setUp: [
+                ...setUp.map((p) => sanitize(p, folders)),
+                ...judgeSetUp.map((p) => `the judge's session: ${sanitize(p, folders)}`),
+            ],
+            broke: !endedByItself || judge.harness_problems.length > 0,
+        },
+    };
 }
 
-/** The judge's part of a trial: its session on the result, or why there was none. */
+/**
+ * The judge's part of a trial: its session on the result, or why there was none; with the
+ * problems of the judge's session's set-up, for the stop rule.
+ */
 function judgeTrial(
     ctx: TrialContext,
     trialDir: string,
     modDir: string,
     givenDir: string,
-    authoringHeld: boolean,
+    judgeable: boolean,
     folders: readonly { path: string; name: string }[],
-): JudgeRecord {
-    if (!authoringHeld) {
-        return notJudged("the authoring session's harness did not hold");
+): { judge: JudgeRecord; setUp: string[] } {
+    if (!judgeable) {
+        return {
+            judge: notJudged("the authoring session's harness did not hold"),
+            setUp: [],
+        };
     }
     const files = resultFiles(modDir, givenDir);
     const material = resultText(files);
     if (material.length > MATERIAL_LIMIT) {
-        return notJudged(
-            `the result is ${String(material.length)} characters, over the ${String(MATERIAL_LIMIT)} a judge is given`,
-        );
+        return {
+            judge: notJudged(
+                `the result is ${String(material.length)} characters, over the ${String(MATERIAL_LIMIT)} a judge is given`,
+            ),
+            setUp: [],
+        };
     }
     const run = runJudge({
         claude: ctx.options.claude,
@@ -874,5 +1037,14 @@ function judgeTrial(
             );
         }
     }
-    return judgeRecord(run, (text) => sanitize(text, folders));
+    return {
+        judge: judgeRecord(run, (text) => sanitize(text, folders)),
+        setUp: sessionProblems(
+            run.summary,
+            'finished',
+            run.exitCode,
+            ctx.options.judgeTimeoutMinutes,
+            JUDGE_CONFINEMENT,
+        ),
+    };
 }

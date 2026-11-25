@@ -23,7 +23,7 @@ fixtures/requests/
     run-2/        twelve real results of the second scored run, trial 1 of each request, and
                   their sheet: each the trial's mod, its skills folder taken out
     expert/       twenty-four hand-made results of the expert requests, two of each, and their
-                  sheet: the third, graded only if the owner chooses to
+                  sheet: the third, graded last, before the release run
 ```
 
 Nothing here is copied from the game or from a published mod. The real results of

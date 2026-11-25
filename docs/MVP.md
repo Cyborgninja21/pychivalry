@@ -72,7 +72,7 @@ lives unchanged in `legacy/`.
 | AI tests | The agent-use test runs test sessions of the Claude Code already installed on the developer's machine, pinned to Opus 5.5 (`claude-opus-5-5`). Its first five test sessions ran on the owner's word of 2026-11-23, each with session limit 3: 5 of 5 passed ([tools/scored-run/README.md](../tools/scored-run/README.md#the-first-test-sessions-item-611)). The target, set by the owner from that result: every test session passes. A release run of 10 must pass all 10; a development run of 5 that passes fewer than 5 is looked into. The planted-defect mod was made harder after those sessions, which fixed it too easily to tell a better agent server from a worse one. Documents and code never describe the test in terms of money, accounts or keys. |
 | Authoring bar | The authoring loop has a round limit of 5. Its targets, set by the owner on 2026-11-24 (decision 127), are strict and hold before any release: every result with no error; every result with no warning and in pychivalry's format; at least 95% of results meeting every expectation checked in code; no judged dimension below 95% yes. The record states measures only; the targets are read from it (`task scored:targets`). The first run (decision 120) meets two of them, the second (decision 128) all four. |
 | Authoring judge | In the scored authoring run, Opus 5.5 (`claude-opus-5-5`) writes and Fable 5.2 (`claude-fable-5-2`) judges: the judge is another model than the one whose work it judges (decision 121). |
-| Authoring requests | Harder requests are added before the third preview (decision 131): twelve expert requests beside the first twelve, results read with and without them. The third preview's release run, 10 trials of each request, is made once, on the owner's word, after his hand calibration and hand checklist and once the request list is final (decision 132): with twenty-four requests, 480 test sessions. |
+| Authoring requests | Harder requests are added before the third preview (decision 131): twelve expert requests beside the first twelve, results read with and without them, which first get a development run of their own (decision 134). The third preview's release run, 10 trials of each request, is made once, on the owner's word, after his hand calibration of all three sheets (decision 135) and hand checklist and once the request list is final (decision 132): with twenty-four requests, 480 test sessions. |
 | Authored content | Scored on validity (the checker) and on two further measures: a model judging the result against the request, and loading the content in the real game. |
 | Authoring order | The authoring skill is built straight after the formatter, at build step 9. |
 | GUI and GFX | Parse, index and navigate. Checks and lookup against a GUI vocabulary are after the MVP; the 1.21 spec work starts collecting that vocabulary. |
@@ -585,9 +585,9 @@ rate, because a model's output is not repeatable.
   the match as expectations checked in code and a judge, one more test session of the
   developer's own Claude Code with no tool, answering each dimension yes, no or cannot tell;
   the judge calibrated against hand grades by `task scored:calibrate`. *Two runs 2026-11-24*
-  (below); the calibration waits for the owner's hand grades, on two sheets: ten hand-made
-  results, some deliberately wrong, and twelve real results of the second run; and a third, if
-  he chooses, of twenty-four hand-made results of the expert requests.
+  (below); the calibration waits for the owner's hand grades, on three sheets, all graded before
+  the release run (decision 135): ten hand-made results, some deliberately wrong, twelve real
+  results of the second run, and twenty-four hand-made results of the expert requests.
 - **Repetitions.** 5 trials per task during development, 10 before a release.
 - **The target (agent use).** Every test session passes: a release run of 10 test sessions must
   pass all 10, and a development run of 5 that passes fewer than 5 is looked into. The record
@@ -616,8 +616,12 @@ rate, because a model's output is not repeatable.
   judging, nothing harder tried, and no session needing to repair an error. It shows the fixes
   hold; it cannot yet tell a better server or skill from a worse one, nor that the judge can say
   no. On the owner's word, twelve harder requests were added before the third preview (decision
-  131); no model has been run on them yet. The release run, made once when the list is final,
-  is 10 trials of each of the 24 requests: 480 test sessions (decision 132).
+  131). Their development run (decision 134), started 2026-11-25, stopped after 14 trials, the 13
+  that held meeting every target, when one session read a game file outside its mod once; a run
+  now stops only when the trials after such a trial would say as little, a trial that did not
+  hold never counts as a success, and the run continues from its record. The release run, made
+  once when the list is final, is 10 trials of each of the 24 requests: 480 test sessions
+  (decision 132).
 
 ## Test data
 

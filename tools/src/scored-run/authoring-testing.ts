@@ -168,14 +168,16 @@ function lines(events: readonly unknown[]): string {
 
 /**
  * An authoring session's stream: offered the authoring tools, the server's tools, the stand-in
- * skill and one skill of Claude Code's own; a `Skill` call, a `check`, a `Write` and a `Read`
- * named by `files` (inside the trial's folder unless a test says otherwise), and its end.
+ * skill and one skill of Claude Code's own; a `Skill` call, a `check`, a `Write` of each of
+ * `files` and a `Read` of `read` (the first of `files` unless given; inside the trial's folder
+ * unless a test says otherwise), which fails as a file that does not exist, and its end.
  */
 export function authoringStream(
     options: {
         readonly tools?: readonly string[];
         readonly skills?: readonly string[];
         readonly files?: readonly string[];
+        readonly read?: string;
         readonly subtype?: string;
     } = {},
 ): string {
@@ -206,7 +208,7 @@ export function authoringStream(
             type: 'tool_use',
             id: 'r1',
             name: 'Read',
-            input: { file_path: files[0] ?? 'x' },
+            input: { file_path: options.read ?? files[0] ?? 'x' },
         }),
         toolResult('r1', 'File does not exist: /somewhere/private/x', true),
         assistant({ type: 'text', text: 'Done.' }),
