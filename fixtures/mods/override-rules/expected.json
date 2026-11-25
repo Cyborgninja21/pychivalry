@@ -1,9 +1,6 @@
 {
     "game": "fixtures/game/override-rules",
-    "platforms": [
-        "linux",
-        "windows"
-    ],
+    "platforms": ["linux", "windows"],
     "note": "Every name of every database the stub and this mod define, with the rule of docs/overrides.md that decides it and what a correct index answers with the spec package's rules table (part D1). A row that decides names the winner, or says every definition adds up, is a statement or clashes; where no row decides (a partial row, a depth no row states) every definition is listed and no winner is given (status unknown). A case that differs by platform is written once for each. Lines count from 1.",
     "cases": [
         {
@@ -917,9 +914,7 @@
         {
             "rule": 9,
             "what": "A game file whose path a mod file repeats in other letter case: on Linux another path, both read (path-case-linux); on Windows the mod's file replaces it (path-case-windows)",
-            "platforms": [
-                "linux"
-            ],
+            "platforms": ["linux"],
             "database": "common/script_values",
             "container": null,
             "name": "fixture_age",
@@ -941,9 +936,7 @@
         {
             "rule": 9,
             "what": "A game file whose path a mod file repeats in other letter case: on Linux another path, both read (path-case-linux); on Windows the mod's file replaces it (path-case-windows)",
-            "platforms": [
-                "windows"
-            ],
+            "platforms": ["windows"],
             "database": "common/script_values",
             "container": null,
             "name": "fixture_age",
@@ -1611,10 +1604,7 @@
                     "file": "common/coat_of_arms/coat_of_arms/zz_fixture_coat_of_arms.txt",
                     "line": 3
                 },
-                "names": [
-                    "fixture_block_then_alias",
-                    "fixture_coa_a"
-                ]
+                "names": ["fixture_block_then_alias", "fixture_coa_a"]
             }
         },
         {
@@ -1644,11 +1634,7 @@
                     "file": "common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt",
                     "line": 20
                 },
-                "names": [
-                    "fixture_alias_then_block",
-                    "fixture_alias_twice",
-                    "fixture_coa_b"
-                ]
+                "names": ["fixture_alias_then_block", "fixture_alias_twice", "fixture_coa_b"]
             }
         },
         {
@@ -1684,11 +1670,7 @@
                     "file": "common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt",
                     "line": 20
                 },
-                "names": [
-                    "fixture_alias_then_block",
-                    "fixture_alias_twice",
-                    "fixture_coa_b"
-                ]
+                "names": ["fixture_alias_then_block", "fixture_alias_twice", "fixture_coa_b"]
             }
         },
         {
@@ -1724,10 +1706,7 @@
                     "file": "common/coat_of_arms/coat_of_arms/zz_fixture_coat_of_arms.txt",
                     "line": 3
                 },
-                "names": [
-                    "fixture_block_then_alias",
-                    "fixture_coa_a"
-                ]
+                "names": ["fixture_block_then_alias", "fixture_coa_a"]
             }
         },
         {
@@ -1763,11 +1742,7 @@
                     "file": "common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt",
                     "line": 20
                 },
-                "names": [
-                    "fixture_alias_then_block",
-                    "fixture_alias_twice",
-                    "fixture_coa_b"
-                ]
+                "names": ["fixture_alias_then_block", "fixture_alias_twice", "fixture_coa_b"]
             }
         },
         {
