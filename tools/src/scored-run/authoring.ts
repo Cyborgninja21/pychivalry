@@ -462,7 +462,8 @@ export function measuredRequests(list: RequestList): MeasuredRequest[] {
 function commandOf(
     root: string,
     options: AuthoringOptions,
-    recordNamed: string | undefined,
+    /** The record `SCORED_RECORD` names, from the repository root with `/`; null when none. */
+    recordNamed: string | null,
 ): string {
     const parts = [
         `SCORED_MODEL=${options.model}`,
@@ -488,8 +489,8 @@ function commandOf(
     if (options.claude.command !== 'claude' || options.claude.args.length > 0) {
         parts.push('SCORED_CLAUDE=<another Claude Code>');
     }
-    if (recordNamed !== undefined && recordNamed !== '') {
-        parts.push(`SCORED_RECORD=${recordNamed.replaceAll('\\', '/')}`);
+    if (recordNamed !== null) {
+        parts.push(`SCORED_RECORD=${recordNamed}`);
     }
     if (options.continue) {
         parts.push('SCORED_CONTINUE=true');
@@ -673,7 +674,15 @@ export function runAuthoring(
         const record: AuthoringRecord = {
             record_format: 1,
             suite: AUTHORING_SUITE,
-            command: commandOf(root, options, env['SCORED_RECORD']),
+            command: commandOf(
+                root,
+                options,
+                // Never the text as given, which could be a path of the machine: the file in
+                // records/scored/ that authoringRecordFile has already held it to.
+                env['SCORED_RECORD'] === undefined || env['SCORED_RECORD'] === ''
+                    ? null
+                    : relativePosix(root, authoringRecordFile(root, env)),
+            ),
             made_at: madeAt,
             // A continued record keeps the build it was first made with; its notes name the
             // commit each continuing run was made at.
@@ -779,7 +788,7 @@ export function runAuthoring(
         .filter((s) => s.held < options.trials);
     if (short.length > 0) {
         log(
-            `scored:authoring: ${String(short.length)} of the ${String(selected.length)} requests named have fewer than ${String(options.trials)} trials whose harness held: ${short.map((s) => `${s.request} (${String(s.held)})`).join(', ')}; SCORED_CONTINUE=true tops them up`,
+            `scored:authoring: requests short of ${String(options.trials)} trials whose harness held: ${short.map((x) => `${x.request} (${String(x.held)} held)`).join(', ')}; SCORED_CONTINUE=true tops them up`,
         );
     }
     for (const line of targetLines(

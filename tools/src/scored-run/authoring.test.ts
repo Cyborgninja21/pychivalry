@@ -522,7 +522,7 @@ test('a trial that names a file outside its mod does not stop the run: recorded 
     );
     assert.ok(
         log.includes(
-            `scored:authoring: 1 of the 1 requests named have fewer than 3 trials whose harness held: ${r.id} (2); SCORED_CONTINUE=true tops them up`,
+            `scored:authoring: requests short of 3 trials whose harness held: ${r.id} (2 held); SCORED_CONTINUE=true tops them up`,
         ),
     );
     assert.ok(log.some((l) => l.startsWith('scored:authoring: 1 of the 3 trials did not hold.')));
@@ -711,7 +711,7 @@ test("a record made at an earlier commit is continued when only the run's own fi
     );
 });
 
-test('SCORED_RECORD names the record a run writes and continues: a file directly in records/scored/, nowhere else', () => {
+test('SCORED_RECORD names the record a run writes and continues: a file directly in records/scored/, nowhere else', (t) => {
     assert.equal(
         authoringRecordFile(root, {}),
         path.join(root, 'records', 'scored', 'authoring.json'),
@@ -738,6 +738,20 @@ test('SCORED_RECORD names the record a run writes and continues: a file directly
             named,
         );
     }
+    // The command the record states names the file from the repository root, however it was
+    // given: never a path of the machine the run was made on.
+    const r = request('effect-reward');
+    const { record } = run(
+        t,
+        {
+            SCORED_REQUESTS: r.id,
+            SCORED_RECORD: path.join(root, 'records', 'scored', 'authoring-test-run-1.json'),
+            FAKE_CLAUDE_APPLY: exampleDir(r.id),
+        },
+        { judge: judgeStream(judgeAnswer(r, 'yes')) },
+    );
+    assert.match(record.command, / SCORED_RECORD=records\/scored\/authoring-test-run-1\.json /);
+    assert.ok(!record.command.includes(root), record.command);
 });
 
 test("with SCORED_SKILLS_IN=config the skills are in a temporary configuration folder, as the set-up puts them in a person's own", (t) => {
