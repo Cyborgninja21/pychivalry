@@ -60,10 +60,11 @@ test('a trigger: its doc, the scopes the game documents, and no usage line said 
     assert.equal(trigger.derivedOnly, false);
     assert.equal(trigger.since.status, 'unknown');
     assert.deepEqual(trigger.retired, []);
-    // What its value names, from part D6, with the row's status and evidence.
+    // What its value names, from part D6, with the row's status and evidence (format 9: a trait
+    // or a trait group, confirmed).
     assert.deepEqual(
         trigger.valueNames.map((v) => [v.id, v.refersTo, v.status]),
-        [['triggers::has_trait', ['common/traits'], 'measured-only']],
+        [['triggers::has_trait', ['common/traits', 'common/traits#trait_group'], 'confirmed']],
     );
     assert.deepEqual(r.definitions.status, 'no-workspace');
     assert.deepEqual(r.uses.status, 'no-workspace');
@@ -367,10 +368,8 @@ test('a table entry (part C4), with what the trust rule does with it', () => {
 });
 
 test('a scope type, with how the game names it', () => {
-    const type = committedSpec().data.scope_types['character'] as {
-        named_as: string[];
-        links: string[];
-    };
+    const type = committedSpec().data.scope_types['character'];
+    assert.ok(type);
     const [reading] = only(look('character'), 'scope-type');
     assert.ok(reading);
     assert.deepEqual(reading.namedAs, type.named_as);

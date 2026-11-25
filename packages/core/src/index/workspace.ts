@@ -54,7 +54,7 @@ import {
     databaseMatches,
     decides,
     fileConditionRules,
-    resolveOfDetail,
+    ROW_STATUSES,
     rulesFor,
     type ContainerEntries,
     type ContainersRule,
@@ -63,7 +63,10 @@ import {
     type Form,
     type KeyResolutionRule,
     type ListingDepthRule,
+    type Merge,
+    type OnReplace,
     type Platform,
+    type Within,
     type Resolve,
     type Rule,
     type RulesTable,
@@ -340,6 +343,8 @@ export type Resolution =
           readonly status: 'all';
           readonly definitions: readonly Definition[];
           readonly rule: string;
+          /** Format 9: how they add up, where the row says (`merge`: appended, by date then read). */
+          readonly merge?: Merge;
       }
     | {
           /** A row says the folder is not keyed: every definition is a statement, all read. */
@@ -348,10 +353,16 @@ export type Resolution =
           readonly rule: string;
       }
     | {
-          /** A row says the definitions clash: the game calls it an error, and names none. */
+          /**
+           * A row says the definitions clash: the game calls it an error. Since format 9 the row
+           * may say which it keeps all the same (`within`, scope `same-priority`: the first read):
+           * `kept`, with the message the game logs (`message`, a row of the table).
+           */
           readonly status: 'clash';
           readonly definitions: readonly Definition[];
           readonly rule: string;
+          readonly kept?: Definition;
+          readonly message?: string;
       }
     | {
           /** Every definition is in a file the game does not read. */
@@ -361,7 +372,9 @@ export type Resolution =
     | {
           /**
            * Defined, and nothing is in force: each definition is an alias line whose target was
-           * not read when it was, and such a line does nothing (`alias.target_missing`).
+           * not read when it was, and such a line does nothing (`alias.target_missing`); or, since
+           * format 9, each is a nested definition dropped with the definition it was written in,
+           * which a later one replaced (`on_replace.nested` `dropped`: a gene's templates).
            */
           readonly status: 'not-in-force';
           readonly definitions: readonly Definition[];
@@ -695,6 +708,10 @@ export class WorkspaceIndex {
         if (kind === undefined) {
             return undefined;
         }
+        if (kind === 'script' && this.folders.scriptStatus(path)?.script === false) {
+            // The spec says the file is no script (format 9, `directories[].files`): not read.
+            return undefined;
+        }
         const match = this.folders.classify(path);
         const folder = match?.folder.path ?? null;
         let extracted: Extracted;
@@ -716,7 +733,7 @@ export class WorkspaceIndex {
                         ? fileConstantsDatabase(path)
                         : CONSTANTS_DATABASE,
                 fileStem: stem.includes('.') ? stem.slice(0, stem.lastIndexOf('.')) : stem,
-                saveKeys: this.folders.saveKeys,
+                saveRules: this.folders.saveRules,
                 scopeLinks: this.folders.scopeLinks,
                 entries: folder === null ? null : this.entriesFor(folder),
                 stores: folder === null ? null : this.storesFor(folder),
@@ -1012,7 +1029,19 @@ export class WorkspaceIndex {
             }
             const keys = (s['keys'] as unknown[]).filter((k): k is string => typeof k === 'string');
             const placeholder = keys.every((k) => /^<.+>$/.test(k));
-            out.push({ store, form: s['form'], keys: placeholder ? null : new Set(keys) });
+            // Format 9: how two keys of the store compare (`key_identity`: a province id as an
+            // integer, `007` and `7` one key).
+            const identity = s['key_identity'];
+            const compare =
+                isJson(identity) && typeof identity['compare'] === 'string'
+                    ? identity['compare']
+                    : undefined;
+            out.push({
+                store,
+                form: s['form'],
+                keys: placeholder ? null : new Set(keys),
+                ...(compare === undefined ? {} : { compare }),
+            });
         }
         return out.length === 0 ? null : out;
     }
@@ -1232,8 +1261,17 @@ export class WorkspaceIndex {
             }
         }
         // `replace_path` in the mod's descriptor (rule 8). The row's folder is written byte
-        // for byte as the listed directory (its `details.match`): no folding of case.
-        const replacePath = this.rules.find((r) => r.kind === 'replace-path');
+        // for byte as the listed directory: format 9's `path_match` (`bytes`,
+        // `whole-listed-directory`; format 8 said it in the words of `details.match`). A row
+        // whose path test the index does not know decides nothing: the files stay "not known".
+        const replaceRow = this.rules.find((r) => r.kind === 'replace-path');
+        const replacePath =
+            replaceRow === undefined ||
+            replaceRow.path_match === undefined ||
+            (replaceRow.path_match.compare === 'bytes' &&
+                replaceRow.path_match.where === 'whole-listed-directory')
+                ? replaceRow
+                : undefined;
         for (const hiddenPath of this.replacePaths) {
             for (const file of live) {
                 if (file.layer === 'mod') {
@@ -1592,7 +1630,7 @@ export class WorkspaceIndex {
         if (definitions.length === 0) {
             return { status: 'not-defined', definitions };
         }
-        const live = definitions.filter((d) => d.read !== 'no');
+        let live = definitions.filter((d) => d.read !== 'no');
         if (live.length === 0) {
             return { status: 'not-read', definitions };
         }
@@ -1625,6 +1663,37 @@ export class WorkspaceIndex {
                     definitions,
                     reasons: [{ kind: 'name-scope', database, parents }],
                 };
+            }
+        }
+        // Format 9, `on_replace`: a nested definition written in a definition that a later one
+        // replaced goes with it (`dropped`: a gene's templates), stays (`kept`), or nothing says
+        // (`unknown`: winner not known).
+        const replace = this.onReplaceOf(database);
+        if (replace !== undefined) {
+            const fates = live.map((d) => this.parentFate(d, replace.folder));
+            const reason: UnknownReason = {
+                kind: 'not-settled',
+                database,
+                rule: replace.rule.id,
+                status: replace.status,
+                overrides_rule: replace.rule.overrides_rule,
+            };
+            if (fates.some((f) => f === 'unknown')) {
+                return { status: 'unknown', definitions, reasons: [reason] };
+            }
+            if (fates.some((f) => f === 'replaced')) {
+                if (replace.nested !== 'dropped') {
+                    return { status: 'unknown', definitions, reasons: [reason] };
+                }
+                const kept = live.filter((_, i) => fates[i] !== 'replaced');
+                if (kept.length === 0) {
+                    return { status: 'not-in-force', definitions, rule: replace.rule.id };
+                }
+                if (kept.length === 1) {
+                    const winner = kept[0] as Definition;
+                    return { status: 'winner', definitions, winner, combine: 'whole', rule: replace.rule.id };
+                }
+                live = kept;
             }
         }
         // An entry after a refused one in its block (`details.type_mismatch`, genes): the reader
@@ -1678,11 +1747,25 @@ export class WorkspaceIndex {
             (r): r is FolderWinsRule =>
                 r.kind === 'folder-wins' && r.databases.some((d) => databaseMatches(d, database)),
         );
-        if (folderWins !== undefined) {
-            // The folder's name written byte for byte, at any depth of the path.
-            const inFolder = live.filter((d) =>
-                segmentsOf(parentOf(d.file)).includes(folderWins.segment),
-            );
+        const pathTest = folderWins === undefined ? null : folderPathTest(folderWins);
+        if (folderWins !== undefined && pathTest === undefined) {
+            // A path test the index does not know (format 9, `path_match`): the row decides nothing.
+            return {
+                status: 'unknown',
+                definitions,
+                reasons: [
+                    {
+                        kind: 'not-settled',
+                        database,
+                        rule: folderWins.id,
+                        status: folderWins.status,
+                        overrides_rule: folderWins.overrides_rule,
+                    },
+                ],
+            };
+        }
+        if (folderWins !== undefined && pathTest !== undefined && pathTest !== null) {
+            const inFolder = live.filter((d) => pathTest(d.file));
             if (inFolder.length === 1) {
                 const winner = inFolder[0] as Definition;
                 return {
@@ -1694,8 +1777,9 @@ export class WorkspaceIndex {
                 };
             }
             if (inFolder.length > 1) {
-                // Which of two under the folder wins is the row's `details.among_segment`.
-                const among = resolveOfDetail(folderWins.details?.['among_segment']);
+                // Which of two under the folder wins: the row's `within`, scope `same-segment`
+                // (format 9; format 8 said it in the words of `details.among_segment`).
+                const among = withinOf(folderWins, SAME_SEGMENT)?.resolve;
                 if (among !== 'later-wins' && among !== 'earlier-wins') {
                     return {
                         status: 'unknown',
@@ -1740,7 +1824,9 @@ export class WorkspaceIndex {
         }
         switch (rule.resolve) {
             case 'all':
-                return { status: 'all', definitions, rule: rule.id };
+                return rule.merge === undefined
+                    ? { status: 'all', definitions, rule: rule.id }
+                    : { status: 'all', definitions, rule: rule.id, merge: rule.merge };
             case 'statements': {
                 // A folder of statements in stores of their own (format 8, `details.statements`):
                 // within one store, what a statement written again does.
@@ -1761,7 +1847,20 @@ export class WorkspaceIndex {
                 const top = Math.max(...pool.map(value));
                 const best = pool.filter((d) => value(d) === top);
                 if (best.length > 1) {
-                    return { status: 'clash', definitions, rule: rule.id };
+                    // A tie: the game logs its error, and (format 9, `within` scope
+                    // `same-priority`) keeps one by the read order where the row says which.
+                    const tie = withinOf(rule, SAME_PRIORITY);
+                    const ordered =
+                        tie?.resolve === 'earlier-wins' || tie?.resolve === 'later-wins'
+                            ? this.inOrder(database, best)
+                            : undefined;
+                    if (tie === undefined || ordered === undefined) {
+                        return { status: 'clash', definitions, rule: rule.id };
+                    }
+                    const kept = (tie.resolve === 'earlier-wins' ? ordered[0] : ordered.at(-1)) as Definition;
+                    return tie.message === undefined
+                        ? { status: 'clash', definitions, rule: rule.id, kept }
+                        : { status: 'clash', definitions, rule: rule.id, kept, message: tie.message };
                 }
                 return {
                     status: 'winner',
@@ -1773,7 +1872,8 @@ export class WorkspaceIndex {
             }
             case 'later-wins':
             case 'earlier-wins': {
-                // Two definitions inside one container block: the row's `details.within_one_block`.
+                // Two definitions inside one container block: the row's `within`, scope
+                // `same-block` (format 9; format 8 said it in the words of `details.within_one_block`).
                 const blocks = new Map<string, Definition[]>();
                 for (const d of pool) {
                     const key =
@@ -1783,8 +1883,7 @@ export class WorkspaceIndex {
                     blocks.set(key, [...(blocks.get(key) ?? []), d]);
                 }
                 if ([...blocks.values()].some((group) => group.length > 1)) {
-                    const within = resolveOfDetail(rule.details?.['within_one_block']);
-                    const inBlock = within ?? rule.resolve;
+                    const inBlock = withinOf(rule, SAME_BLOCK)?.resolve ?? rule.resolve;
                     if (inBlock !== 'later-wins' && inBlock !== 'earlier-wins') {
                         return {
                             status: 'unknown',
@@ -2144,6 +2243,84 @@ export class WorkspaceIndex {
         }
         const winner = (resolve === 'later-wins' ? sorted.at(-1) : sorted[0]) as Definition;
         return { status: 'winner', definitions, winner, combine, rule };
+    }
+
+    /**
+     * The `on_replace` (format 9) a deciding key-resolution row of a nested definition's folder
+     * gives its kind (`<folder>#<kind>`): on the row itself or in an entry of its
+     * `details.key_spaces`, with the kind among `nested_kinds`. Only `dropped` and `unknown` act;
+     * `kept` and `not-applicable` leave the name as the index answers it without them.
+     */
+    private onReplaceOf(database: string):
+        | {
+              readonly folder: string;
+              readonly nested: string;
+              readonly status: RowStatus;
+              readonly rule: KeyResolutionRule;
+          }
+        | undefined {
+        const at = database.indexOf('#');
+        if (at < 0) {
+            return undefined;
+        }
+        const folder = database.slice(0, at);
+        const kind = database.slice(at + 1);
+        for (const rule of this.rules) {
+            if (
+                rule.kind !== 'key-resolution' ||
+                !rule.databases.some((d) => databaseMatches(d, folder))
+            ) {
+                continue;
+            }
+            const found: OnReplace[] = rule.on_replace === undefined ? [] : [rule.on_replace];
+            const spaces = rule.details?.['key_spaces'];
+            for (const space of isJson(spaces) ? Object.values(spaces) : []) {
+                if (isJson(space) && isJson(space['on_replace'])) {
+                    found.push(space['on_replace'] as unknown as OnReplace);
+                }
+            }
+            const own = found.find((r) => (r.nested_kinds ?? []).includes(kind));
+            if (own !== undefined && (own.nested === 'dropped' || own.nested === 'unknown')) {
+                const status = own.status !== undefined && oneOfStatus(own.status) ? own.status : rule.status;
+                return { folder, nested: own.nested, status, rule };
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * What became of the definition a nested definition is written in (format 9, `on_replace`):
+     * the innermost definition of the folder's database in the same file whose block holds it.
+     * `in-force` when that definition is the one in force (or is the only one), `replaced` when
+     * another definition of it is, `unknown` when which one is in force is not known.
+     */
+    private parentFate(d: Definition, folder: string): 'in-force' | 'replaced' | 'unknown' {
+        const parent = this.definitionsIn(d.layer, d.file)
+            .filter(
+                (p) =>
+                    p.database === folder &&
+                    (p.form === 'record' || p.form === 'entry') &&
+                    p.start < d.start &&
+                    d.start <= p.extentEnd,
+            )
+            .at(-1);
+        if (parent === undefined) {
+            return 'in-force';
+        }
+        const resolution = this.resolve(parent.database, parent.name, parent.container);
+        switch (resolution.status) {
+            case 'single':
+            case 'winner':
+                return resolution.winner.layer === parent.layer &&
+                    resolution.winner.file === parent.file &&
+                    resolution.winner.start === parent.start
+                    ? 'in-force'
+                    : 'replaced';
+            case 'unknown':
+                return 'unknown';
+            default:
+                return 'in-force';
+        }
     }
 
     /** Every name of every database that has more than one definition, in any file. */
@@ -2565,4 +2742,37 @@ function compareDefinitions(a: Definition, b: Definition): number {
         compareStrings(a.file, b.file) ||
         a.start - b.start
     );
+}
+
+/** The scopes of a row's `within` (format 9, D1's `vocabulary.within.scopes`). */
+const SAME_BLOCK = 'same-block';
+const SAME_PRIORITY = 'same-priority';
+const SAME_SEGMENT = 'same-segment';
+
+/** A row's `within` entry for one scope (format 9), or undefined when the row gives none. */
+function withinOf(rule: Rule, scope: string): Within | undefined {
+    return rule.within?.find((w) => w.scope === scope);
+}
+
+/**
+ * How a folder-wins row tests a file's path: its `path_match` (format 9): `anywhere-in-path`
+ * with `bytes`, its `text` searched in the whole relative path. Without a `path_match`, the
+ * row's folder name written byte for byte at any depth (format 8's reading of `segment`).
+ * Undefined for a path test the index does not know: the row then decides nothing.
+ */
+function folderPathTest(rule: FolderWinsRule): ((file: string) => boolean) | undefined {
+    const match = rule.path_match;
+    if (match === undefined) {
+        return (file) => segmentsOf(parentOf(file)).includes(rule.segment);
+    }
+    if (match.compare === 'bytes' && match.where === 'anywhere-in-path' && match.text !== undefined) {
+        const text = match.text;
+        return (file) => file.includes(text);
+    }
+    return undefined;
+}
+
+/** Whether a word is a row status of the table (`settled`, `partial`, `derived`, `open`). */
+function oneOfStatus(value: string): value is RowStatus {
+    return (ROW_STATUSES as readonly string[]).includes(value);
 }

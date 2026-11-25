@@ -1,20 +1,20 @@
 /**
- * The folder list read from the spec package (folders.ts): the committed package is format 8
- * for game 1.21.0.3; its folder list and record schemas are read with the keys format 8 keeps
- * from format 4, and parts D2 and D3 say what a folder's files define beyond their top-level
- * keys.
+ * The folder list read from the spec package (folders.ts): the committed package is format 9
+ * for game 1.21.0.3; its folder list and record schemas are read with the keys format 9 keeps
+ * from format 4, parts D2 and D3 say what a folder's files define beyond their top-level keys,
+ * and since format 9 each folder says which of its files are script.
  */
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { FolderTable, foldersFromSpec, keyMatcher } from './folders.js';
+import { FolderTable, folderFilesOf, foldersFromSpec, keyMatcher } from './folders.js';
 import { committedSpecPackage, specFolders } from './testing.js';
 
-test('a folder new in game 1.21 is described by the committed format 8 package, with its schema and the base game counts', () => {
+test('a folder new in game 1.21 is described by the committed format 9 package, with its schema and the base game counts', () => {
     const spec = committedSpecPackage() as { package_format: number };
-    assert.equal(spec.package_format, 8);
+    assert.equal(spec.package_format, 9);
     const districts = specFolders().get('common/districts');
-    assert.deepEqual(districts, {
+    assert.deepEqual({ ...districts, files: undefined }, {
         path: 'common/districts',
         contentType: 'district',
         schema: true,
@@ -24,15 +24,17 @@ test('a folder new in game 1.21 is described by the committed format 8 package, 
         notDefinitions: [],
         nested: [],
         fileNamed: false,
+        files: undefined,
     });
+    assert.deepEqual(districts?.files?.extensions, ['.txt']);
     const textures = specFolders().get('gfx/map/textures');
     assert.equal(textures?.schema, false);
     assert.equal(textures.specRecords, null);
 });
 
-test('the format 8 shape is read and the keys the reader does not use are ignored', () => {
+test('the format 9 shape is read and the keys the reader does not use are ignored', () => {
     const folders = foldersFromSpec({
-        package_format: 8,
+        package_format: 9,
         directories: [
             {
                 path: 'common/a',
@@ -65,9 +67,56 @@ test('the format 8 shape is read and the keys the reader does not use are ignore
             notDefinitions: [],
             nested: [],
             fileNamed: false,
+            files: null,
         },
     ]);
     assert.equal(new FolderTable(folders).classify('common/a/x/y.txt')?.folder.path, 'common/a');
+});
+
+test('format 9: which files of a folder are script; GUIDs.txt and naming.txt are not', () => {
+    const folders = specFolders();
+    assert.deepEqual(folders.scriptStatus('sound/map/ambience/fixture.txt'), { script: true });
+    const guids = folders.scriptStatus('sound/GUIDs.txt');
+    assert.ok(guids !== undefined && !guids.script);
+    assert.deepEqual([guids.why, guids.folder, guids.rule?.written, guids.rule?.status], [
+        'not-script',
+        'sound',
+        'GUIDs.txt',
+        'confirmed',
+    ]);
+    // In any letter case: the package says the file is no script.
+    assert.equal(folders.scriptStatus('sound/guids.txt')?.script, false);
+    const naming = folders.scriptStatus('gfx/models/buildings/naming.txt');
+    assert.ok(naming !== undefined && !naming.script);
+    assert.equal(naming.rule?.status, 'measured-only');
+    // A folder whose reader takes no `.txt` (localization: `.yml`, read as localization text).
+    assert.equal(folders.scriptStatus('localization/english/stray.txt')?.script, false);
+    // A file no listed folder holds: not the folder table's question.
+    assert.equal(folders.scriptStatus('fixture_no_folder/x.txt'), undefined);
+    // A pattern of names, and a folder whose extensions are not settled (read as before).
+    const files = folderFilesOf({
+        status: 'measured-only',
+        holds_script: null,
+        script: { extensions: null, recursive: null },
+        not_script: [{ pattern: '*.info', status: 'measured-only', what: 'documentation' }],
+    });
+    assert.ok(files !== null);
+    const table = new FolderTable([
+        {
+            path: 'common/a',
+            contentType: 'a',
+            schema: false,
+            schemaFields: 0,
+            specRecords: null,
+            specFiles: null,
+            notDefinitions: [],
+            nested: [],
+            fileNamed: false,
+            files,
+        },
+    ]);
+    assert.equal(table.scriptStatus('common/a/_a.INFO')?.script, false);
+    assert.equal(table.scriptStatus('common/a/x.txt')?.script, true);
 });
 
 test('part D2: `namespace` in an event file declares no name; a constant holds for its file', () => {

@@ -79,3 +79,10 @@ test(`${CODE}: a modifier in a record whose body part D7 says holds modifiers is
     const text = 'fixture_modifier = {\n\tmonthly_prestige = 1\n\tfixture_made_up = 1\n}\n';
     assert.deepEqual(codes('common/modifiers/x.txt', text), ["'fixture_made_up'"]);
 });
+
+test(`${CODE}: format 9, an ethnicity's own keys are gene names, a mod's own genes too`, () => {
+    // `open_keys` of common/ethnicities: every key but template, using and visible names a gene.
+    const text =
+        'fixture_ethnicity = {\n\ttemplate = fixture_base\n\tfixture_mod_gene = {\n\t\t10 = { name = fixture_template range = { 0 1 } }\n\t}\n\tfixture_value_not_a_gene = yes\n}\n';
+    assert.deepEqual(codes('common/ethnicities/x.txt', text), ["'fixture_value_not_a_gene'"]);
+});

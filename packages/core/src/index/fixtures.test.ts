@@ -230,6 +230,22 @@ const ROWS: RowCase[] = [
         rows: ['province-terrain-statements'],
         name: { database: 'common/province_terrain', container: 'province_terrain', name: '2' },
     },
+    {
+        what: 'format 9: the province terrain row compares a province id as an integer (003 is 3)',
+        mod: 'override-rules',
+        rows: ['province-terrain-statements'],
+        name: { database: 'common/province_terrain', container: 'province_terrain', name: '3' },
+    },
+    {
+        what: "format 9: the gene row's on_replace drops a replaced gene's templates",
+        mod: 'override-rules',
+        rows: ['gene-database-later-wins'],
+        name: {
+            database: 'common/genes#gene_template',
+            container: 'genes/fixture_gene_replaced',
+            name: 'fixture_template_dropped',
+        },
+    },
 ];
 
 for (const r of ROWS) {

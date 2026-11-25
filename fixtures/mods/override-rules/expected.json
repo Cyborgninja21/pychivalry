@@ -1,6 +1,9 @@
 {
     "game": "fixtures/game/override-rules",
-    "platforms": ["linux", "windows"],
+    "platforms": [
+        "linux",
+        "windows"
+    ],
     "note": "Every name of every database the stub and this mod define, with the rule of docs/overrides.md that decides it and what a correct index answers with the spec package's rules table (part D1). A row that decides names the winner, or says every definition adds up, is a statement or clashes; where no row decides (a partial row, a depth no row states) every definition is listed and no winner is given (status unknown). A case that differs by platform is written once for each. Lines count from 1.",
     "cases": [
         {
@@ -914,7 +917,9 @@
         {
             "rule": 9,
             "what": "A game file whose path a mod file repeats in other letter case: on Linux another path, both read (path-case-linux); on Windows the mod's file replaces it (path-case-windows)",
-            "platforms": ["linux"],
+            "platforms": [
+                "linux"
+            ],
             "database": "common/script_values",
             "container": null,
             "name": "fixture_age",
@@ -936,7 +941,9 @@
         {
             "rule": 9,
             "what": "A game file whose path a mod file repeats in other letter case: on Linux another path, both read (path-case-linux); on Windows the mod's file replaces it (path-case-windows)",
-            "platforms": ["windows"],
+            "platforms": [
+                "windows"
+            ],
             "database": "common/script_values",
             "container": null,
             "name": "fixture_age",
@@ -1113,7 +1120,7 @@
         },
         {
             "rule": 6,
-            "what": "Genes: morph_genes is a container written in two files; they add up (gene-group-containers)",
+            "what": "Genes: morph_genes is a container written in two files, twice in each; they add up (gene-group-containers)",
             "database": "common/genes",
             "container": null,
             "name": "morph_genes",
@@ -1127,9 +1134,21 @@
                     "read": "yes"
                 },
                 {
+                    "layer": "game",
+                    "file": "common/genes/00_fixture_genes.txt",
+                    "line": 30,
+                    "read": "yes"
+                },
+                {
                     "layer": "mod",
                     "file": "common/genes/zz_fixture_genes.txt",
                     "line": 2,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/genes/zz_fixture_genes.txt",
+                    "line": 25,
                     "read": "yes"
                 }
             ]
@@ -1489,6 +1508,77 @@
             ]
         },
         {
+            "rule": 6,
+            "what": "Genes: a gene the mod replaces, the same type: the later wins, whole (gene-database-later-wins)",
+            "database": "common/genes",
+            "container": "genes",
+            "name": "fixture_gene_replaced",
+            "status": "winner",
+            "winner": {
+                "layer": "mod",
+                "file": "common/genes/zz_fixture_genes.txt",
+                "line": 26
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/genes/00_fixture_genes.txt",
+                    "line": 31,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/genes/zz_fixture_genes.txt",
+                    "line": 26,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Format 9: a template written only in the replaced gene goes with it (on_replace of the genes key space: nested dropped): defined, nothing in force",
+            "database": "common/genes#gene_template",
+            "container": "genes/fixture_gene_replaced",
+            "name": "fixture_template_dropped",
+            "status": "not-in-force",
+            "winner": null,
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/genes/00_fixture_genes.txt",
+                    "line": 32,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Format 9: a template written in the replaced gene and in the gene that replaces it: the earlier goes with its gene, the later is in force (on_replace)",
+            "database": "common/genes#gene_template",
+            "container": "genes/fixture_gene_replaced",
+            "name": "fixture_template_kept",
+            "status": "winner",
+            "winner": {
+                "layer": "mod",
+                "file": "common/genes/zz_fixture_genes.txt",
+                "line": 27
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/genes/00_fixture_genes.txt",
+                    "line": 34,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/genes/zz_fixture_genes.txt",
+                    "line": 27,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
             "rule": 5,
             "what": "Coat of arms: a block written again, the later wins, whole (coat-of-arms-later-wins-whole); the object is shared with the name aliased to it",
             "database": "common/coat_of_arms/coat_of_arms",
@@ -1521,7 +1611,10 @@
                     "file": "common/coat_of_arms/coat_of_arms/zz_fixture_coat_of_arms.txt",
                     "line": 3
                 },
-                "names": ["fixture_block_then_alias", "fixture_coa_a"]
+                "names": [
+                    "fixture_block_then_alias",
+                    "fixture_coa_a"
+                ]
             }
         },
         {
@@ -1551,7 +1644,11 @@
                     "file": "common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt",
                     "line": 20
                 },
-                "names": ["fixture_alias_then_block", "fixture_alias_twice", "fixture_coa_b"]
+                "names": [
+                    "fixture_alias_then_block",
+                    "fixture_alias_twice",
+                    "fixture_coa_b"
+                ]
             }
         },
         {
@@ -1587,7 +1684,11 @@
                     "file": "common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt",
                     "line": 20
                 },
-                "names": ["fixture_alias_then_block", "fixture_alias_twice", "fixture_coa_b"]
+                "names": [
+                    "fixture_alias_then_block",
+                    "fixture_alias_twice",
+                    "fixture_coa_b"
+                ]
             }
         },
         {
@@ -1623,7 +1724,10 @@
                     "file": "common/coat_of_arms/coat_of_arms/zz_fixture_coat_of_arms.txt",
                     "line": 3
                 },
-                "names": ["fixture_block_then_alias", "fixture_coa_a"]
+                "names": [
+                    "fixture_block_then_alias",
+                    "fixture_coa_a"
+                ]
             }
         },
         {
@@ -1659,7 +1763,11 @@
                     "file": "common/coat_of_arms/coat_of_arms/00_fixture_coat_of_arms.txt",
                     "line": 20
                 },
-                "names": ["fixture_alias_then_block", "fixture_alias_twice", "fixture_coa_b"]
+                "names": [
+                    "fixture_alias_then_block",
+                    "fixture_alias_twice",
+                    "fixture_coa_b"
+                ]
             }
         },
         {
@@ -1772,6 +1880,33 @@
                     "layer": "mod",
                     "file": "common/province_terrain/zz_fixture_terrain.txt",
                     "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "rule": 6,
+            "what": "Format 9: a province id is compared as an integer (details.statements.province_terrain.key_identity): `003` and `3` are one key, the later read is in force",
+            "database": "common/province_terrain",
+            "container": "province_terrain",
+            "name": "3",
+            "status": "winner",
+            "winner": {
+                "layer": "mod",
+                "file": "common/province_terrain/zz_fixture_terrain.txt",
+                "line": 7
+            },
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "common/province_terrain/00_fixture_terrain.txt",
+                    "line": 3,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "common/province_terrain/zz_fixture_terrain.txt",
+                    "line": 7,
                     "read": "yes"
                 }
             ]

@@ -24,6 +24,7 @@ const FOLDERS = new FolderTable(
         notDefinitions: [],
         nested: [],
         fileNamed: false,
+        files: null,
     })),
 );
 
@@ -200,6 +201,59 @@ test('priority: the largest wins, the default stands for a missing field, a tie 
     assert.equal(ix.resolve('events', 'ns').status, 'unknown');
 });
 
+test('format 9: a priority tie clashes, and the row says which the game keeps (within same-priority)', () => {
+    const rows = [
+        row('priority', {
+            kind: 'key-resolution',
+            databases: ['events'],
+            forms: ['record'],
+            resolve: 'priority',
+            priority_field: 'p',
+            priority_default: 1,
+            combine: 'whole',
+            within: [
+                {
+                    scope: 'same-priority',
+                    resolve: 'earlier-wins',
+                    combine: 'whole',
+                    message: 'msg-fixture-duplicate',
+                },
+            ],
+        }),
+        ORDER(),
+    ];
+    const ix = index(rows);
+    ix.addFile('game', 'events/a.txt', 'e.2 = { p = 1 }\n');
+    ix.addFile('mod', 'events/b.txt', 'e.2 = { }\n');
+    const r = ix.resolve('events', 'e.2');
+    assert.equal(r.status, 'clash');
+    assert.equal(r.kept?.file, 'events/a.txt');
+    assert.equal(r.message, 'msg-fixture-duplicate');
+});
+
+test('format 9: a path_match the index does not know makes a folder-wins row decide nothing', () => {
+    const wins = row('wins', {
+        kind: 'folder-wins',
+        databases: ['localization'],
+        segment: 'replace',
+        path_match: { compare: 'bytes', where: 'fixture-elsewhere' },
+    });
+    const ix = index([wins]);
+    ix.addFile('game', 'localization/english/a_l_english.yml', 'l_english:\n k: "a"\n');
+    ix.addFile('mod', 'localization/english/replace/b_l_english.yml', 'l_english:\n k: "b"\n');
+    assert.equal(ix.resolve('localization:l_english', 'k').status, 'unknown');
+    // The package's own: the text `/replace/` anywhere in the path, byte for byte.
+    const known = index([
+        { ...wins, path_match: { compare: 'bytes', where: 'anywhere-in-path', text: '/replace/' } },
+    ]);
+    known.addFile('game', 'localization/english/a_l_english.yml', 'l_english:\n k: "a"\n');
+    known.addFile('mod', 'localization/english/replace/b_l_english.yml', 'l_english:\n k: "b"\n');
+    assert.equal(
+        winnerOf(known.resolve('localization:l_english', 'k')),
+        'mod:localization/english/replace/b_l_english.yml:12',
+    );
+});
+
 test('a row covers definitions of mixed forms only if it names every form', () => {
     const forRecords = index([
         row('all', {
@@ -267,7 +321,7 @@ test('a folder-wins row names the definition under that folder, its name written
     );
 });
 
-test("two under the folder: the row's details.among_segment decides, by the file order; without it, not known", () => {
+test("two under the folder: the row's within (same-segment) decides, by the file order; without it, not known", () => {
     const files = (ix: WorkspaceIndex): void => {
         ix.addFile('mod', 'localization/english/replace/a_l_english.yml', 'l_english:\n k: "a"\n');
         ix.addFile('mod', 'localization/english/replace/b_l_english.yml', 'l_english:\n k: "b"\n');
@@ -283,7 +337,10 @@ test("two under the folder: the row's details.among_segment decides, by the file
     assert.equal(r.status, 'unknown');
     assert.equal(r.reasons[0]?.kind, 'not-settled');
     const later = index([
-        { ...bare, details: { among_segment: 'later-wins: the one read later overwrites' } },
+        {
+            ...bare,
+            within: [{ scope: 'same-segment', resolve: 'later-wins', combine: 'whole' }],
+        },
         ORDER(),
     ]);
     files(later);
@@ -293,7 +350,7 @@ test("two under the folder: the row's details.among_segment decides, by the file
     );
 });
 
-test("details.within_one_block: two definitions in one container block take the row's word there", () => {
+test("within (same-block): two definitions in one container block take the row's word there", () => {
     const rows = [
         row('box', { kind: 'containers', databases: ['common/x'], keys: ['*'] }),
         row('later', {
@@ -302,7 +359,7 @@ test("details.within_one_block: two definitions in one container block take the 
             forms: ['entry'],
             resolve: 'later-wins',
             combine: 'whole',
-            details: { within_one_block: 'earlier-wins: the first of the two' },
+            within: [{ scope: 'same-block', resolve: 'earlier-wins', combine: 'whole' }],
         }),
         ORDER(),
     ];

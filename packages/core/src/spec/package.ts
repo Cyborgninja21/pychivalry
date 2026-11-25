@@ -1,9 +1,11 @@
 /**
- * The shapes of a format 8 spec package (docs/references/spec-package.md; the package's own
- * schema is `spec/schema.format8.json`): the keys of format 5, the eight parts formats 6 and 7
- * add (D1 to D8), and the keys format 8 adds inside D1, D2 and D3. Only what the core reads is typed; every other key of the package
- * keeps its place in `SpecData` as `unknown` and is read through the package itself. Nothing
- * here names a CK3 keyword: the keys are the package format's own.
+ * The shapes of a format 9 spec package (docs/references/spec-package.md; the package's own
+ * schema is `spec/schema.format9.json`): the keys of format 5, the eight parts formats 6 and 7
+ * add (D1 to D8), the keys format 8 adds inside D1, D2 and D3, and what format 9 adds: the parts
+ * D9, O1 and O2, keys on `directories`, `schema` and `scope_types`, and keys inside C4, D1, D4,
+ * D5 and D6. Only what the core reads is typed; every other key of the package keeps its place
+ * in `SpecData` as `unknown` and is read through the package itself. Nothing here names a CK3
+ * keyword: the keys are the package format's own.
  */
 
 /** The six keyword buckets, by their names in the package (`buckets.<name>`). */
@@ -61,6 +63,56 @@ export interface ModifierTemplateMark {
     readonly sole_cover_of: readonly string[];
 }
 
+/**
+ * Format 9: a file of a directory that is not script (`directories[].files.not_script[]`): one
+ * file by its name in the directory (`file`), or every file that matches a pattern (`pattern`,
+ * `*.info`), with what it is and how sure the package is.
+ */
+export interface NotScriptEntry {
+    readonly file?: string;
+    readonly pattern?: string;
+    readonly count?: number;
+    readonly status: string;
+    readonly what: string;
+    readonly evidence?: readonly PartEvidence[];
+}
+
+/**
+ * Format 9: which files of a directory are script (`directories[].files`): the extensions the
+ * game's reader takes as script (`script.extensions`; null when not settled), whether it reads
+ * the sub-folders (`script.recursive`; null when not settled), and the files present that are
+ * not script (`not_script`). Read as script the files of `script.extensions` less those of
+ * `not_script`.
+ */
+export interface DirectoryFiles {
+    readonly status: string;
+    readonly holds_script: boolean | null;
+    readonly script: {
+        readonly extensions: readonly string[] | null;
+        readonly recursive: boolean | null;
+        readonly named_in_executable?: readonly string[];
+    };
+    readonly not_script: readonly NotScriptEntry[];
+    readonly evidence?: readonly PartEvidence[];
+    readonly note?: string;
+}
+
+/**
+ * Format 9: what the root of a record is (`root_scope_rule` of a directory and of its schema):
+ * `fixed`, the scope type `default_scope` and `root_scope` name; `caller`, the scope of the place
+ * that names the record; `record-field`, a field of the record names it (`root_scope_from`);
+ * `per-record`, each record has its own; `no-script`, the records hold no script. Absent: not
+ * examined.
+ */
+export type RootScopeRule = 'fixed' | 'caller' | 'record-field' | 'per-record' | 'no-script';
+
+/** Format 9: the evidence of a root rule (`root_scope_evidence`), with how sure it is. */
+export interface RootScopeEvidence {
+    /** `confirmed`, `measured-only` or `wiki-only` (a root only the wiki-era seed gives). */
+    readonly status: string;
+    readonly [key: string]: unknown;
+}
+
 /** One directory of the game (`directories[]`). */
 export interface Directory {
     readonly path: string;
@@ -70,6 +122,27 @@ export interface Directory {
     readonly source: string;
     readonly present_in_vanilla: boolean;
     readonly default_scope?: string;
+    /** Format 9: which of its files are script. */
+    readonly files?: DirectoryFiles;
+    /** Format 9: what the root of its records is; absent when not examined. */
+    readonly root_scope_rule?: RootScopeRule;
+    readonly root_scope_from?: { readonly field: string; readonly names: string } | null;
+    readonly root_scope_evidence?: RootScopeEvidence;
+}
+
+/**
+ * Format 9: a block whose keys are names of another database (`open_keys` of a schema directory,
+ * field or sub-field): an ethnicity's keys are genes.
+ */
+export interface OpenKeysRow {
+    readonly what: string;
+    readonly database: string;
+    readonly kind: string;
+    readonly status: string;
+    readonly recognised_by?: RecognisedBy;
+    readonly entries?: Readonly<Record<string, unknown>>;
+    readonly evidence: readonly PartEvidence[];
+    readonly [key: string]: unknown;
 }
 
 /** One field of a record schema, or a sub-field (`schema.<dir>.fields.<name>`). */
@@ -106,12 +179,25 @@ export interface SchemaField {
      */
     readonly info_scope?: readonly { readonly scope: string | null; readonly type: string }[];
     readonly note?: string;
+    /** Format 9: the keys of this field's block are names of another database. */
+    readonly open_keys?: readonly OpenKeysRow[];
+    /**
+     * Format 9: this "field" is a name of the database given (a gene an ethnicity's block names),
+     * which the base game writes, not a field of its own: another name of that database is as valid.
+     */
+    readonly key_of?: string;
 }
 
 /** The record schema of one directory (`schema.<dir>`). */
 export interface DirectorySchema {
     readonly content_type: string;
     readonly root_scope?: string;
+    /** Format 9: what the root of a record is; judge a record's own level only when `fixed`. */
+    readonly root_scope_rule?: RootScopeRule;
+    readonly root_scope_from?: { readonly field: string; readonly names: string } | null;
+    readonly root_scope_evidence?: RootScopeEvidence;
+    /** Format 9: the record's own keys are names of another database. */
+    readonly open_keys?: readonly OpenKeysRow[];
     /** How a record's body is read, where the package says: a trigger or an effect block. */
     readonly record_body?: string;
     readonly vanilla?: { readonly files: number; readonly records: number };
@@ -208,17 +294,20 @@ export interface Table {
     readonly candidates?: unknown;
 }
 
-// ─── The eight parts of formats 6 to 8 (D1 to D8) ───────────────────────────
+// ─── The parts of formats 6 to 9 (D1 to D9, O1, O2) ──────────────────────────
 
 /**
- * A part of formats 6 to 8: `built`, its `data` the part tool's output whole, or `not_built`
+ * A part of formats 6 to 9: `built`, its `data` the part tool's output whole, or `not_built`
  * with the reason. Every row of every part carries a `status` and its `evidence`.
  */
 export type Part<T> =
     | { readonly status: 'built'; readonly data: T }
     | { readonly status: 'not_built'; readonly reason: string };
 
-/** The keys of the eight parts, in the order of their `parts` entries (D1 to D8). */
+/**
+ * The keys of the parts, in the order of their `parts` entries: D1 to D8 (formats 6 and 7), then
+ * D9, O1 and O2 (format 9).
+ */
 export const PART_KEYS = [
     'override_rules',
     'declarations',
@@ -228,6 +317,9 @@ export const PART_KEYS = [
     'field_references',
     'modifier_block_areas',
     'iterator_kinds',
+    'localization_forms',
+    'saved_from_code',
+    'not_scope_types',
 ] as const;
 export type PartKey = (typeof PART_KEYS)[number];
 
@@ -392,6 +484,24 @@ export interface KeywordRoleRow extends PartRow {
     };
     readonly roles: readonly string[];
     readonly role_status: Readonly<Record<string, string>>;
+    /**
+     * Format 9, a row with the role `combines_conditions`: how the block combines the conditions
+     * it holds (`all`, `any`, `negation`, `none`, `not_all`, `count`, `weighted_count`; the
+     * part's `vocabulary.combination`).
+     */
+    readonly combination?: string;
+    /**
+     * Format 9: what a child that always holds, or always fails, does to the block: `neutral`
+     * (removing it changes nothing while another child remains), `makes_it_hold` or
+     * `makes_it_fail` (`vocabulary.child_effect`). Absent where logic gives no answer.
+     */
+    readonly child_always_true?: string;
+    readonly child_always_false?: string;
+    /** Format 9, a row with the role `constant_condition`: the value that makes it hold, or fail. */
+    readonly holds_with?: string;
+    readonly fails_with?: string;
+    /** Keywords the row's keyword is written with (`ai_will_select` with `ai_chance`). */
+    readonly pairs_with?: readonly string[];
     /** Roles an existing package entry already gives, with the entry. */
     readonly stated_elsewhere?: readonly {
         readonly role: string;
@@ -421,9 +531,30 @@ export interface ImplicitLocKeyRow extends PartRow {
     readonly requirement_from: string;
 }
 
+/**
+ * Format 9, D5 `buckets.<bucket>[]`: the localization key of a name that is no record of a folder
+ * (a modifier). `name_from` says which names (`bucket:modifiers`, the bucket's own names;
+ * `bucket:modifier_templates`, a name that fills a modifier template); the key is `prefix` + the
+ * name, as `transform` says (`upper`: in upper case) + `suffix`, unless `literal_keys` gives the
+ * name's key whole.
+ */
+export interface ImplicitLocKeyBucketRow extends PartRow {
+    readonly name_from: string;
+    readonly pattern: string;
+    readonly prefix: string;
+    readonly suffix: string;
+    readonly transform?: string;
+    readonly literal_keys?: Readonly<Record<string, string>>;
+    readonly key_source?: string;
+    readonly requirement: string;
+    readonly requirement_from: string;
+}
+
 /** D5, `implicit_loc_keys.data`. */
 export interface ImplicitLocKeysData {
     readonly directories: Readonly<Record<string, readonly ImplicitLocKeyRow[]>>;
+    /** Format 9: rows for names that are no record of a folder, by bucket. */
+    readonly buckets?: Readonly<Record<string, readonly ImplicitLocKeyBucketRow[]>>;
     readonly not_settled: unknown;
     readonly counts: Readonly<Record<string, unknown>>;
     readonly vocabulary: Readonly<Record<string, unknown>>;
@@ -442,6 +573,28 @@ export interface FieldReferenceRow extends PartRow {
     readonly refers_to: readonly string[];
     /** `key`, `list of keys`, `key or list of keys`, or null. */
     readonly value_form: string | null;
+    /**
+     * Format 9: every distinct value the base game writes there that is a key of none of the
+     * row's databases, with why (`sentinel`, `scope_link` or `undefined`).
+     */
+    readonly miss_values?: readonly {
+        readonly value: string;
+        readonly uses: number;
+        readonly why: string;
+    }[];
+    /** Format 9: words accepted there that are no key (`none`, `auto`, `0`), each with its evidence. */
+    readonly sentinels?: readonly {
+        readonly value: string;
+        readonly says: string;
+        readonly uses?: number;
+        readonly evidence: readonly PartEvidence[];
+    }[];
+    /** Format 9, a `not-a-key` row: what the value is instead (`closed_list` and its values). */
+    readonly value_is?: {
+        readonly kind: string;
+        readonly values?: readonly string[];
+        readonly says: string;
+    } | null;
 }
 
 /** D6, `field_references.data`. */
@@ -501,6 +654,75 @@ export interface IteratorKindsData {
     readonly [key: string]: unknown;
 }
 
+/**
+ * Format 9, D9: one bracket form of localization text that names something by a name. `shape`
+ * `bare_key` (a whole expression of one word, with `suffix`), `head` (the first word of a chain)
+ * or `function` (`owner.function`, the name at argument `name_arg`); `reads` the kind of name
+ * (the part's `vocabulary.reads`).
+ */
+export interface LocalizationFormRow extends PartRow {
+    readonly id: string;
+    readonly shape: string;
+    readonly reads: string;
+    readonly suffix?: string | null;
+    readonly owner?: string | null;
+    readonly function?: string | null;
+    readonly name_arg?: number | null;
+}
+
+/** Format 9, D9: a formatting suffix of localization text, after `|`. */
+export interface LocalizationSuffixRow extends PartRow {
+    readonly id: string;
+    readonly character: string;
+}
+
+/** Format 9, D9 `localization_forms.data`. */
+export interface LocalizationFormsData {
+    readonly forms: readonly LocalizationFormRow[];
+    readonly suffixes: readonly LocalizationSuffixRow[];
+    readonly not_settled: readonly string[];
+    readonly counts: Readonly<Record<string, unknown>>;
+    readonly vocabulary: Readonly<Record<string, unknown>>;
+    readonly [key: string]: unknown;
+}
+
+/**
+ * Format 9, O1 `saved_from_code.data`: the names the game's own code saves as scopes for script,
+ * with no script statement (`scope:actor`); a `scope:<name>` whose name is listed is defined.
+ */
+export interface SavedFromCodeData {
+    readonly names: readonly string[];
+    /** The names that are also keywords, with their buckets. */
+    readonly also_keywords: Readonly<Record<string, readonly string[]>>;
+    readonly counts: Readonly<Record<string, number>>;
+    readonly evidence: readonly PartEvidence[];
+    readonly meaning: string;
+    readonly consumer: string;
+    readonly [key: string]: unknown;
+}
+
+/**
+ * Format 9, O2 `not_scope_types.data`: the scope values the package names that are no scope
+ * type (`none`), each with what it means, and the rule that every scope value is a key of
+ * `scope_types` or of `values`.
+ */
+export interface NotScopeTypesData {
+    readonly values: Readonly<
+        Record<
+            string,
+            {
+                readonly means: string;
+                readonly consumer: string;
+                readonly evidence: readonly PartEvidence[];
+                readonly [key: string]: unknown;
+            }
+        >
+    >;
+    readonly rule: string;
+    readonly meaning: string;
+    readonly [key: string]: unknown;
+}
+
 /** The data of each part, by its key. */
 export interface PartData {
     readonly override_rules: OverrideRulesData;
@@ -511,6 +733,27 @@ export interface PartData {
     readonly field_references: FieldReferencesData;
     readonly modifier_block_areas: ModifierBlockAreasData;
     readonly iterator_kinds: IteratorKindsData;
+    readonly localization_forms: LocalizationFormsData;
+    readonly saved_from_code: SavedFromCodeData;
+    readonly not_scope_types: NotScopeTypesData;
+}
+
+/**
+ * One record of `scope_types`: what the game's documentation says of a scope type. Format 9 adds
+ * where the game's own list of scope types names it (`listed_in`) and whether a trigger, effect,
+ * link, list or on-action names it (`named_by_keywords`: false only for a type only that list
+ * names).
+ */
+export interface ScopeTypeRecord {
+    readonly links: readonly string[];
+    readonly lists: readonly string[];
+    readonly on_actions: readonly string[];
+    readonly triggers: number;
+    readonly effects: number;
+    readonly named_as: readonly string[];
+    readonly listed_in?: { readonly file: string; readonly line: number } | null;
+    readonly named_by_keywords?: boolean;
+    readonly [key: string]: unknown;
 }
 
 /** A modifier template tag (part A1, `modifier_template_tags.data`): the game's own form. */
@@ -542,7 +785,7 @@ export interface SpecData {
     readonly errors: readonly CatalogueEntry[];
     readonly retired: readonly RetiredEntry[];
     readonly scope_validity: ScopeValidity;
-    readonly scope_types: Readonly<Record<string, unknown>>;
+    readonly scope_types: Readonly<Record<string, ScopeTypeRecord>>;
     readonly tables: {
         readonly status: string;
         readonly data: Readonly<Record<string, Table>>;
@@ -559,5 +802,8 @@ export interface SpecData {
     readonly field_references: Part<FieldReferencesData>;
     readonly modifier_block_areas: Part<ModifierBlockAreasData>;
     readonly iterator_kinds: Part<IteratorKindsData>;
+    readonly localization_forms: Part<LocalizationFormsData>;
+    readonly saved_from_code: Part<SavedFromCodeData>;
+    readonly not_scope_types: Part<NotScopeTypesData>;
     readonly [key: string]: unknown;
 }

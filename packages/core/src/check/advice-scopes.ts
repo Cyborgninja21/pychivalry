@@ -5,7 +5,8 @@
  * `scopeReadOf` in `index/extract.ts`), with the keys and links the folder table takes from the
  * spec package:
  *
- * - the keys that save a scope are the entries of the table `save_keys` (`FolderTable.saveKeys`);
+ * - the keys that save a scope or a value under a name are the entries of the table `save_keys`
+ *   (`FolderTable.saveRules`), each saving the name its rule's `name_in` says where to find;
  * - the link that reads one is not a field of the package; it is read from the evidence of that
  *   table: the global link that takes data among the words an `.info` line cited for a save key
  *   names (`save_temporary_scope_as = name # Saves the current scope as scope:name`, words
@@ -28,7 +29,7 @@ export function savedIn(folders: FolderTable, blocks: readonly Block[]): Set<str
     const names = new Set<string>();
     for (const block of blocks) {
         walkPairs(block, (pair) => {
-            const saved = scopeSaveOf(pair, folders.saveKeys);
+            const saved = scopeSaveOf(pair, folders.saveRules);
             if (saved !== undefined) {
                 names.add(saved.text);
             }

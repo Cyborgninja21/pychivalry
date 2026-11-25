@@ -83,12 +83,13 @@ function strings(source: string): string[] {
     return out;
 }
 
-test('the search has names to look for: every table of the package, 177 entries', () => {
+test('the search has names to look for: every table of the package, 258 entries', () => {
+    // Format 9: 20 tables (the keywords of variables are the twentieth), 258 entries.
     const tables = committedSpec().data.tables.data;
-    assert.equal(Object.keys(tables).length, 19);
+    assert.equal(Object.keys(tables).length, 20);
     const entries = Object.values(tables).reduce((n, t) => n + Object.keys(t.entries).length, 0);
-    assert.equal(entries, 177);
-    assert.ok(tableNames().size >= 177);
+    assert.equal(entries, 258);
+    assert.ok(tableNames().size >= 258);
 });
 
 test("no source file of the core writes a name of 2.3.0's tables as a string", () => {

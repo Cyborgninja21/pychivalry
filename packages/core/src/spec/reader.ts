@@ -2,7 +2,7 @@
  * The typed spec reader (docs/PLAN.md item 4.2). It reads the committed package file, a
  * gzipped JSON file with the SHA-256 of its uncompressed bytes beside it (spec/README.md),
  * checks that checksum and the package format, and exposes the package as typed data: the
- * keys of format 5 and the eight parts of formats 6 to 8 (D1 to D8, `part`). The three
+ * keys of format 5 and the parts of formats 6 to 9 (D1 to D9, O1 and O2, `part`). The three
  * companions (Paradox's `.info` files, the GUI vocabulary, the data-types dump) are opened
  * only when a feature asks for one, each checked against the checksum and size the package
  * file records for it.
@@ -26,12 +26,13 @@ import {
 } from './package.js';
 
 /**
- * The package format the rebuild reads: 8 (docs/decisions.md). Format 7 is refused, as format 5
- * was: the index reads the scope of a nested name, the alias line and the containers' entries
- * that only format 8 carries, and a format 7 package would leave them silently without.
- * Format 4 is release 2.3.0's.
+ * The package format the rebuild reads: 9 (docs/decisions.md). Format 8 is refused, as formats 5
+ * and 7 were: the index reads which files of a directory are script, the saves of a value and
+ * the names the game saves from its own code, and the scope checks read the root rule of a
+ * directory and the scope values that are no scope type, which only format 9 carries; a format 8
+ * package would leave them silently without. Format 4 is release 2.3.0's.
  */
-export const SPEC_FORMAT = 8;
+export const SPEC_FORMAT = 9;
 
 /** The package file in a spec folder: `ck3-spec-<version>.json.gz`, never a companion. */
 const PACKAGE_FILE = /^ck3-spec-([0-9]+(?:\.[0-9]+)+)\.json\.gz$/;
@@ -96,7 +97,7 @@ function parseObject(bytes: Buffer, what: string): Record<string, unknown> {
 }
 
 /**
- * The keys of format 8 the core reads, checked for their shape so a wrong package fails here
+ * The keys of format 9 the core reads, checked for their shape so a wrong package fails here
  * rather than as a missing name in a check. The package's full schema is checked by
  * `task spec:check` in the tools.
  */
@@ -163,6 +164,7 @@ function checkShape(data: Record<string, unknown>, what: string): void {
         problems.push('no manifest.companions');
     }
     problems.push(...nameScopeProblems(data['definitions']));
+    problems.push(...format9Problems(data));
     if (problems.length > 0) {
         throw new SpecError(
             `${what} is not a format ${String(SPEC_FORMAT)} package: ${problems.join('; ')}`,
@@ -211,6 +213,81 @@ function nameScopeProblems(part: unknown): string[] {
     return problems;
 }
 
+/** The values of a root rule (`root_scope_rule`, format 9). */
+const ROOT_RULES: ReadonlySet<unknown> = new Set([
+    'fixed',
+    'caller',
+    'record-field',
+    'per-record',
+    'no-script',
+]);
+
+/**
+ * Format 9's keys the core reads: every directory says which of its files are script
+ * (`files`, with `script` and a `not_script` list), a root rule is one of the five words, every
+ * entry of `save_keys` says where the name is written (`name_in`, a list) and what it saves,
+ * O1 lists names and O2 gives its values.
+ */
+function format9Problems(data: Record<string, unknown>): string[] {
+    const problems: string[] = [];
+    const directories = Array.isArray(data['directories']) ? (data['directories'] as unknown[]) : [];
+    directories.forEach((entry: unknown, i) => {
+        const at = `directories[${String(i)}]`;
+        if (!isObject(entry)) {
+            return;
+        }
+        const files = entry['files'];
+        if (!isObject(files) || !isObject(files['script']) || !Array.isArray(files['not_script'])) {
+            problems.push(`${at} has no files with script and not_script`);
+        }
+        if (entry['root_scope_rule'] !== undefined && !ROOT_RULES.has(entry['root_scope_rule'])) {
+            problems.push(`${at} has an unknown root_scope_rule`);
+        }
+    });
+    const schema = data['schema'];
+    for (const [dir, entry] of Object.entries(isObject(schema) ? schema : {})) {
+        if (
+            isObject(entry) &&
+            entry['root_scope_rule'] !== undefined &&
+            !ROOT_RULES.has(entry['root_scope_rule'])
+        ) {
+            problems.push(`schema.${dir} has an unknown root_scope_rule`);
+        }
+    }
+    const tables = data['tables'];
+    const tableData = isObject(tables) && isObject(tables['data']) ? tables['data'] : {};
+    const saveKeys = tableData['save_keys'];
+    const entries = isObject(saveKeys) && isObject(saveKeys['entries']) ? saveKeys['entries'] : {};
+    for (const [key, entry] of Object.entries(entries)) {
+        const nameIn = isObject(entry) ? entry['name_in'] : undefined;
+        if (!Array.isArray(nameIn) || !nameIn.every((w) => typeof w === 'string')) {
+            problems.push(`tables.data.save_keys.entries.${key} has no name_in list`);
+        }
+        if (!isObject(entry) || typeof entry['saves'] !== 'string') {
+            problems.push(`tables.data.save_keys.entries.${key} says not what it saves`);
+        }
+    }
+    const saved = data['saved_from_code'];
+    if (
+        isObject(saved) &&
+        saved['status'] === 'built' &&
+        (!isObject(saved['data']) ||
+            !Array.isArray(saved['data']['names']) ||
+            !saved['data']['names'].every((n) => typeof n === 'string'))
+    ) {
+        problems.push('saved_from_code.data has no list of names');
+    }
+    const notTypes = data['not_scope_types'];
+    if (
+        isObject(notTypes) &&
+        notTypes['status'] === 'built' &&
+        (!isObject(notTypes['data']) || !isObject(notTypes['data']['values']))
+    ) {
+        problems.push('not_scope_types.data has no values');
+    }
+    return problems;
+}
+
 /** The three companions, by the package key that records each. */
 export type CompanionKey = 'info_docs' | 'gui' | 'data_types';
 
@@ -249,8 +326,8 @@ export class Spec {
     }
 
     /**
-     * The data of a part of formats 6 to 8 (D1 to D8), or null when the package says it is
-     * not built. Read with the package, once per process.
+     * The data of a part of formats 6 to 9 (D1 to D9, O1, O2), or null when the package says it
+     * is not built. Read with the package, once per process.
      */
     part<K extends PartKey>(key: K): PartData[K] | null {
         const part = this.data[key];
@@ -389,7 +466,7 @@ const opened = new Map<string, Spec>();
 
 /**
  * The package in a spec folder, read once per process: its gzipped file, checked against the
- * `.sha256` beside it that names the uncompressed file, package format 8, and the version its
+ * `.sha256` beside it that names the uncompressed file, package format 9, and the version its
  * name and its manifest state. A second call for the same unchanged file returns the same
  * object.
  */

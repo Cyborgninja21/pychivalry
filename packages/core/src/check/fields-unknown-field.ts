@@ -20,7 +20,11 @@
  *   `@constant`, a `$PARAM$` of a macro, a number, a date, quoted text), a scope chain or a link
  *   written as a key, an iterator over a list, a keyword part D4 gives a role in the folder
  *   (`keyword_roles`), a top-level form part D2 names (`declarations`), or a definition of its
- *   own that part D3 finds by its place (`definitions`).
+ *   own that part D3 finds by its place (`definitions`);
+ * - a name of another database, where the directory's schema says its records' own keys are such
+ *   names (format 9, `open_keys`: an ethnicity's keys are genes), at any status, the row's
+ *   `except` keys and value forms read: whether the name is a key of that database is a
+ *   reference, not a field, and a mod's own gene is as valid as the base game's.
  *
  * - a key that differs from a field the list has only in letter case (read as that field,
  *   as the context reader reads keywords: nothing says the game's readers tell the cases
@@ -42,7 +46,7 @@ import type { Spec } from '../spec/reader.js';
 import { vocabularyOf } from '../spec/vocabulary.js';
 import type { FileNode } from '../syntax/tree.js';
 import type { FolderTable } from '../index/folders.js';
-import type { ModifierBlockAreaRow } from '../spec/package.js';
+import type { DirectorySchema, ModifierBlockAreaRow } from '../spec/package.js';
 import { modifierAreaRow, type FileReading } from './context.js';
 import type { CheckFinding } from './finding.js';
 import {
@@ -147,6 +151,28 @@ function areaRowsOf(spec: Spec, folder: string): readonly ModifierBlockAreaRow[]
     return rows.get(folder) ?? [];
 }
 
+/**
+ * True when the directory's schema says the record's own keys at a site are names of another
+ * database (format 9, `open_keys` whose `recognised_by.path` is `*`, the record's direct
+ * children), the key not among the row's `except`, written in one of the row's `forms`.
+ */
+export function isOpenKey(schema: DirectorySchema | undefined, site: FieldSite): boolean {
+    if (schema?.open_keys === undefined || site.path.length !== 1) {
+        return false;
+    }
+    const key = site.pair.key.text;
+    const form = site.pair.value?.kind === 'block' ? 'block' : 'value';
+    return schema.open_keys.some((row) => {
+        const by = row.recognised_by;
+        return (
+            by !== undefined &&
+            by.path === '*' &&
+            !(by.except ?? []).includes(key) &&
+            by.forms.includes(form)
+        );
+    });
+}
+
 /** True when the key at a site is a field of its block, or no field at all (see above). */
 function isAccepted(spec: Spec, records: FileRecords, site: FieldSite): boolean {
     const folder = records.folder;
@@ -172,6 +198,9 @@ function isAccepted(spec: Spec, records: FileRecords, site: FieldSite): boolean 
         return true;
     }
     if (vocabulary.has('links', key) || vocabulary.has('links', key.toLowerCase())) {
+        return true;
+    }
+    if (isOpenKey(records.schema, site)) {
         return true;
     }
     const iterator = vocabulary.iteratorOf(key);

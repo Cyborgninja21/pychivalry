@@ -44,9 +44,13 @@ function compareText(a: string, b: string, rule: FileOrderRule): number {
         : compareCodePoints(foldCase(a), foldCase(b));
 }
 
-/** Compare two relative paths as the rule orders them. */
+/**
+ * Compare two relative paths as the rule orders them. Format 9's `compare_unit` says what the
+ * row's `compare` is applied to: `component`, one path component at a time (a file name, or a
+ * folder name), never the whole path; without it, a `by-path` row compares the whole path.
+ */
 export function comparePathsByRule(a: string, b: string, rule: FileOrderRule): number {
-    if (rule.subfolders === 'by-path') {
+    if (rule.subfolders === 'by-path' && rule.compare_unit !== 'component') {
         return compareText(a, b, rule);
     }
     const x = segmentsOf(a);
@@ -57,7 +61,7 @@ export function comparePathsByRule(a: string, b: string, rule: FileOrderRule): n
         const q = y[i] ?? '';
         const pFile = i === x.length - 1;
         const qFile = i === y.length - 1;
-        if (pFile !== qFile) {
+        if (pFile !== qFile && rule.subfolders !== 'by-path') {
             // One is a file of this folder, the other lies in a subfolder.
             const fileFirst = rule.subfolders === 'files-first';
             return pFile === fileFirst ? -1 : 1;

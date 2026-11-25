@@ -15,5 +15,6 @@ fixture_target.0001 = {
 		scope:$TARGET$ = { add_gold = 1 }
 		scope:fixture_target_never_saved = { add_gold = 1 }
 		add_gold = scope:fixture_target_never_saved_either.gold
+		scope:actor = { add_gold = 1 }
 	}
 }

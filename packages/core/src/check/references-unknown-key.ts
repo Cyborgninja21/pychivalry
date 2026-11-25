@@ -26,17 +26,24 @@
  * segment is a placeholder (`random_traits_list/<trait_key>`) names a key written as a key,
  * not a value, and is not read.
  *
- * A row is read only when two more things hold, each from the package:
+ * A row is read only when, besides, the index knows each database it names: a folder of the
+ * package's list, or a kind part D3 finds nested in one (written `<folder>#<kind>`; the folder
+ * itself when the kind is the folder's own content type, as the index records it), and every
+ * database D6's own vocabulary adds to it (`vocabulary.databases.<db>.add_databases`: a game
+ * concept's aliases are concept keys too). A row naming a database the index does not hold
+ * would report names the game accepts, so it is not read.
  *
- * - the index knows each database it names: a folder of the package's list, or a kind part
- *   D3 finds nested in one (written `<folder>#<kind>`; the folder itself when the kind is the
- *   folder's own content type, as the index records it);
- * - D6's own measurement of the base game at the place agrees with it: every value the base
- *   game writes there that is no key of the databases (`measured.misses`, listed in
- *   `measured.sample_misses`) is a link, which is not judged. A confirmed row the base game
- *   contradicts (`holding = none` of `history/provinces`; `mechanic_type` of
- *   `common/governments`, none of whose base-game values is a government key) would report
- *   correct base-game script; it is not read, and is a question for the spec work.
+ * Since format 9 the package says, per row, what the base game writes there that is no key
+ * (`miss_values`, each with why), so the check reads that instead of measuring it again:
+ *
+ * - a word of the row's `sentinels` (`holding = none`, `auto`) is accepted there, never judged;
+ * - a scope link (`root`, `prev`) is a scope, never judged;
+ * - an `undefined` miss is a value the base game writes that nothing defines (three character
+ *   ids of `add_spouse`, `house_poet_court_position`): the row stays confirmed only on evidence
+ *   of rank 1 or 2 (the package's own rule), and the check reports those base-game values, as
+ *   the game would. A confirmed row with an undefined miss and no such evidence is not read.
+ * - a row whose status is `not-a-key` (`mechanic_type`: a closed list of the code's words) names
+ *   no database and is not read.
  */
 
 import type { FolderTable } from '../index/folders.js';
@@ -66,6 +73,8 @@ export interface KeyPlace {
     readonly row: FieldReferenceRow;
     /** The databases its values are keys of, as the index names them. */
     readonly databases: readonly string[];
+    /** The words accepted there that are no key (`sentinels`, format 9). */
+    readonly sentinels: ReadonlySet<string>;
     /** The path below the record or the keyword, each segment a key or a placeholder. */
     readonly path: readonly string[];
 }
@@ -120,13 +129,19 @@ export function keyPlaces(spec: Spec, folders: FolderTable): KeyPlaces {
         if (onActions !== null && row.refers_to.includes(onActions)) {
             continue;
         }
-        const databases = row.refers_to.map((db) => indexDatabase(folders, db));
-        if (databases.some((db) => db === null) || !agreesWithBaseGame(spec, row)) {
+        const named = withAddedDatabases(spec, row.refers_to);
+        const databases = named.map((db) => indexDatabase(folders, db));
+        if (databases.some((db) => db === null) || !confirmedEnough(row)) {
             continue;
         }
         const resolved = databases as string[];
         if (row.kind === 'field' && row.directory !== undefined) {
-            const place = { row, databases: resolved, path: row.path.split('.') };
+            const place = {
+                row,
+                databases: resolved,
+                sentinels: sentinelsOf(row),
+                path: row.path.split('.'),
+            };
             fields.set(row.directory, [...(fields.get(row.directory) ?? []), place]);
         } else if (row.kind === 'info' && row.directory !== undefined) {
             // The example record's own key first: the fields below it are the path.
@@ -137,14 +152,19 @@ export function keyPlaces(spec: Spec, folders: FolderTable): KeyPlaces {
                 !isPlaceholder(last) &&
                 folders.get(row.directory) !== undefined
             ) {
-                const place = { row, databases: resolved, path };
+                const place = { row, databases: resolved, sentinels: sentinelsOf(row), path };
                 fields.set(row.directory, [...(fields.get(row.directory) ?? []), place]);
             }
         } else if ((row.kind === 'parameter' || row.kind === 'value') && row.bucket !== undefined) {
             const segments = row.path.split('.');
             const keyword = segments[0] ?? '';
             const key = `${row.bucket}\u0000${keyword}`;
-            const place = { row, databases: resolved, path: segments.slice(1) };
+            const place = {
+                row,
+                databases: resolved,
+                sentinels: sentinelsOf(row),
+                path: segments.slice(1),
+            };
             keywords.set(key, [...(keywords.get(key) ?? []), place]);
         }
     }
@@ -164,25 +184,54 @@ function isLink(spec: Spec, name: string): boolean {
     return vocabulary.has('links', name) || vocabulary.has('links', name.toLowerCase());
 }
 
+/** The `why` of a miss value that nothing defines (D6 `vocabulary.miss_why`, format 9). */
+const UNDEFINED_MISS = 'undefined';
+
+/** The highest rank of evidence that may confirm a row with an undefined miss (D6, format 9). */
+const UNDEFINED_MISS_RANK = 2;
+
 /**
- * True when D6's own measurement of the base game at a row's place finds no value there that
- * is no key, links set aside (see the head of this file).
+ * The databases a row names, each with the databases D6's own vocabulary adds to it
+ * (`vocabulary.databases.<db>.add_databases`, format 9): a game concept's key may be one of the
+ * aliases a concept lists. In the order named, each once.
  */
-export function agreesWithBaseGame(spec: Spec, row: FieldReferenceRow): boolean {
-    const measured = row['measured'];
-    if (typeof measured !== 'object' || measured === null) {
-        return true;
+export function withAddedDatabases(spec: Spec, refersTo: readonly string[]): string[] {
+    const vocabulary = spec.part('field_references')?.vocabulary;
+    const databases =
+        vocabulary !== undefined &&
+        typeof vocabulary['databases'] === 'object' &&
+        vocabulary['databases'] !== null
+            ? (vocabulary['databases'] as Record<string, unknown>)
+            : {};
+    const out: string[] = [];
+    for (const db of refersTo) {
+        const entry = Object.prototype.hasOwnProperty.call(databases, db) ? databases[db] : undefined;
+        const added =
+            typeof entry === 'object' && entry !== null
+                ? (entry as Record<string, unknown>)['add_databases']
+                : undefined;
+        for (const name of [db, ...(Array.isArray(added) ? (added as unknown[]) : [])]) {
+            if (typeof name === 'string' && !out.includes(name)) {
+                out.push(name);
+            }
+        }
     }
-    const { misses, sample_misses: sample } = measured as {
-        misses?: unknown;
-        sample_misses?: unknown;
-    };
-    const count = typeof misses === 'number' ? misses : 0;
-    const listed = Array.isArray(sample) ? (sample as unknown[]) : [];
-    if (count > listed.length) {
-        return false;
-    }
-    return listed.every((value) => typeof value === 'string' && isLink(spec, value));
+    return out;
+}
+
+/**
+ * True when a confirmed row may be read: a row the base game writes an undefined value in
+ * (`miss_values` with why `undefined`) only on evidence of rank 1 or 2, the package's own rule
+ * for such a row (format 9).
+ */
+export function confirmedEnough(row: FieldReferenceRow): boolean {
+    const undefinedMiss = (row.miss_values ?? []).some((m) => m.why === UNDEFINED_MISS);
+    return !undefinedMiss || row.evidence.some((e) => e.rank <= UNDEFINED_MISS_RANK);
+}
+
+/** The words a row accepts that are no key (`sentinels`, format 9). */
+function sentinelsOf(row: FieldReferenceRow): ReadonlySet<string> {
+    return new Set((row.sentinels ?? []).map((s) => s.value));
 }
 
 /** The placeholders that stand for a key of one kind of word: `<number>`, `<date>`. */
@@ -250,7 +299,7 @@ export function unknownKeys(
     const places = keyPlaces(input.spec, input.folders);
     const out: CheckFinding[] = [];
     const judge = (scalar: Scalar, place: KeyPlace): void => {
-        if (!isKeyValue(input.spec, scalar)) {
+        if (!isKeyValue(input.spec, scalar) || place.sentinels.has(scalar.text)) {
             return;
         }
         const name = scalar.text;

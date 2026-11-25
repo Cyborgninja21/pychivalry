@@ -9,17 +9,23 @@
  * files an event chain reaches and the whole base game alike, and no call chain is followed:
  *
  * - A save is a pair whose key is an entry of the hand-kept table `save_keys` (part C4), with a
- *   plain name as its value (`WorkspaceIndex.savedScopes`).
+ *   plain name where the entry's `name_in` says (format 9): its value (`save_scope_as = x`) or
+ *   the parameter of its block that holds the name (`save_scope_value_as = { name = x }`); a
+ *   scope and a value saved under a name both make `scope:name` defined, as the table's own
+ *   `consumer` says (`WorkspaceIndex.savedScopes`).
+ * - A name the game's own code saves for script, with no script statement (part O1,
+ *   `saved_from_code`: `scope:actor` in an interaction), is defined
+ *   (`FolderTable.savedFromCode`). The list does not say where the game saves each name, so it
+ *   is defined wherever it is read.
  * - A read is the head of a chain written with the link that reads a saved scope, which the
  *   package names in its evidence for the save keys (`FolderTable.scopeLinks`;
  *   `WorkspaceIndex.scopeReads`).
  *
- * The table leaves out the effects that save a value under a name `scope:name` reads (its own
- * note: they "save a value, not a scope"), and a scripted effect saves the name its caller
- * passes in a parameter. So a name is reported only when no file writes it at all except as
- * `scope:name` (`WorkspaceNames.isScopeSaved`): then no script can save it. A name holding a
- * `$PARAM$` stands for many and is not judged. Without the base game in the index the check is
- * silent: the names the base game saves are not known.
+ * A scripted effect saves the name its caller passes in a parameter (`save_scope_as = $NAME$`,
+ * the caller writing `NAME = x`), which the index does not follow. So a name is reported only
+ * when no file writes it at all except as `scope:name` (`WorkspaceNames.isScopeSaved`): then no
+ * script can save it. A name holding a `$PARAM$` stands for many and is not judged. Without the
+ * base game in the index the check is silent: the names the base game saves are not known.
  */
 
 import { scopeReadOf } from '../index/extract.js';
@@ -91,7 +97,7 @@ export function undefinedEventTargets(
         }
         let known = saved.get(read.name);
         if (known === undefined) {
-            known = lookups.isScopeSaved(read.name);
+            known = folders.savedFromCode.has(read.name) || lookups.isScopeSaved(read.name);
             saved.set(read.name, known);
         }
         if (!known) {

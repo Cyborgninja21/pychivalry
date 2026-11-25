@@ -17,5 +17,6 @@ fixture_target.0001 = {
 		save_temporary_scope_as = fixture_target_never_saved_either
 		scope:fixture_target_never_saved = { add_gold = 1 }
 		add_gold = scope:fixture_target_never_saved_either.gold
+		scope:actor = { add_gold = 1 }
 	}
 }

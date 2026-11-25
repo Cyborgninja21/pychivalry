@@ -12,8 +12,10 @@
  * `pack-layer` row (rule 10).
  *
  * The files read are the script (`.txt`) and localization (`.yml`) files in the folders the
- * spec lists. Every other file is counted, never read: a `.txt` file in a folder the spec
- * does not describe, by its folder, and every other file, by its extension.
+ * spec lists, less the script files the spec says are no script (format 9, `directories[].files`:
+ * `sound/GUIDs.txt`). Every other file is counted, never read: a `.txt` file in a folder the spec
+ * does not describe, by its folder; a file the spec says is no script, by its path; and every
+ * other file, by its extension.
  */
 
 import { createHash } from 'node:crypto';
@@ -88,8 +90,24 @@ export interface SourceListing {
     readonly notDescribed: Map<string, number>;
     /** Every other file, by its extension (`(none)` when it has none). */
     readonly notRead: Map<string, number>;
+    /**
+     * The script files of a listed folder that the spec says are no script (format 9): each with
+     * its layer, path, folder, and the package's reason (`not-script`, with the entry's own
+     * words, or `extension`).
+     */
+    readonly notScript: NotScriptFile[];
     /** The packs found, each a layer `dlc:<pack>` and its folder relative to its install folder. */
     readonly packs: { readonly layer: string; readonly folder: string }[];
+}
+
+/** A file of a listed folder that the spec says is no script, and why (format 9). */
+export interface NotScriptFile {
+    readonly layer: string;
+    readonly path: string;
+    readonly folder: string;
+    readonly why: 'not-script' | 'extension';
+    /** The `not_script` entry that names it (a file or a pattern), its words and status. */
+    readonly entry: { readonly written: string; readonly what: string; readonly status: string } | null;
 }
 
 /** Every regular file under `dir`, relative to it with `/`, sorted; links are not followed. */
@@ -134,25 +152,31 @@ function packsOf(
         return [];
     }
     const out: { layer: string; folder: string; descriptor: string }[] = [];
-    for (const entry of readdirSync(root, { withFileTypes: true })) {
-        if (!entry.isDirectory()) {
+    // Where the descriptors are: one folder down (format 8's reading), or at any depth below
+    // the folder when the row says so (format 9, `pack.descriptors` `any-depth`).
+    const descriptors =
+        rule.pack?.descriptors === 'any-depth'
+            ? walkFiles(root)
+            : readdirSync(root, { withFileTypes: true })
+                  .filter((entry) => entry.isDirectory())
+                  .flatMap((entry) =>
+                      readdirSync(path.join(root, entry.name))
+                          .sort()
+                          .map((name) => `${entry.name}/${name}`),
+                  );
+    for (const rel of descriptors) {
+        if (extensionOf(rel) !== rule.descriptor_extension.toLowerCase()) {
             continue;
         }
-        const dir = path.join(root, entry.name);
-        for (const name of readdirSync(dir).sort()) {
-            if (extensionOf(name) !== rule.descriptor_extension.toLowerCase()) {
-                continue;
-            }
-            const text = decodeScript(readFileSync(path.join(dir, name))).text;
-            const [packPath] = descriptorValues(text, rule.path_key);
-            if (packPath !== undefined && packPath !== '') {
-                const packFolder = segmentsOf(packPath.replaceAll('\\', '/')).join('/');
-                out.push({
-                    layer: `dlc:${fileNameOf(packFolder)}`,
-                    folder: packFolder,
-                    descriptor: `${rule.folder}/${entry.name}/${name}`,
-                });
-            }
+        const text = decodeScript(readFileSync(path.join(root, ...rel.split('/')))).text;
+        const [packPath] = descriptorValues(text, rule.path_key);
+        if (packPath !== undefined && packPath !== '') {
+            const packFolder = segmentsOf(packPath.replaceAll('\\', '/')).join('/');
+            out.push({
+                layer: `dlc:${fileNameOf(packFolder)}`,
+                folder: packFolder,
+                descriptor: `${rule.folder}/${rel}`,
+            });
         }
     }
     return out.sort((a, b) => (a.folder < b.folder ? -1 : a.folder > b.folder ? 1 : 0));
@@ -181,6 +205,7 @@ export function* listInstallSteps(
         files: [],
         notDescribed: new Map(),
         notRead: new Map(),
+        notScript: [],
         packs: [],
     };
     for (const folder of install) {
@@ -219,6 +244,20 @@ function addSource(
         count(listing.notDescribed, folders.undescribedFolder(rel));
         return;
     }
+    const status = fileKindOf(rel) === 'script' ? folders.scriptStatus(rel) : undefined;
+    if (status !== undefined && !status.script) {
+        listing.notScript.push({
+            layer,
+            path: rel,
+            folder: status.folder,
+            why: status.why,
+            entry:
+                status.rule === null
+                    ? null
+                    : { written: status.rule.written, what: status.rule.what, status: status.rule.status },
+        });
+        return;
+    }
     const stat = statSync(disk);
     listing.files.push({ layer, path: rel, disk, size: stat.size, mtimeMs: stat.mtimeMs });
 }
@@ -241,6 +280,7 @@ export function listMod(modDir: string, folders: FolderTable): ModListing {
         files: [],
         notDescribed: new Map(),
         notRead: new Map(),
+        notScript: [],
         packs: [],
     };
     let replacePaths: string[] = [];
