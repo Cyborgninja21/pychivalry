@@ -365,12 +365,14 @@ test("the judge's prompt is versioned: the committed file is the last version, a
     assert.equal(JUDGE_PROMPT_VERSION.version, 2);
     assert.equal(judgePromptVersion('0'.repeat(64)), null);
     // The three authoring records the runs made were judged with version 1; the expert run's
-    // kept results, judged again by task scored:rejudge (2026-11-25), with version 2.
+    // kept results, judged again by task scored:rejudge (2026-11-25), with version 2; the expert
+    // requests' second development run (2026-11-26, decision 165) with version 2 as it ran.
     const scored = path.join(root, 'records', 'scored');
     const records = readdirSync(scored).filter((f) => f.startsWith('authoring'));
     const judgedWith: Record<string, number> = {
         'authoring-expert-run-1-judge-2.json': 2,
         'authoring-expert-run-1.json': 1,
+        'authoring-expert-run-2.json': 2,
         'authoring-run-1.json': 1,
         'authoring.json': 1,
     };

@@ -591,6 +591,15 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   options gets an AI weight, written with the keywords `lookup` reads with the role `ai_weight`;
   its stop rule and report count an option without one as left. The fix-error skill fixes
   `style/option-without-ai-weight` with the other `style/` findings when the person asks.
+- `records/scored/authoring-expert-run-2.json`: the expert requests' second development run, on
+  the owner's word of 2026-11-26 (decision 165), committed as the run wrote it, the first record
+  of tool schema version 5, the spec package in format 9 and the write-content skill's eighth
+  rule. 60 trials and 120 test sessions (Opus 5.5 writing, Fable 5.2 judging with version 2 of its
+  prompt), every trial held; no error, no warning, in the format and every expectation 60 of 60;
+  `effects-as-asked` 45 of 45, `scope-as-asked` 55 of 55, `text-as-asked` 30 of 30,
+  `nothing-unasked` 35 of 35, `conditions-as-asked` 55 of 55: every target met. The judge again
+  said yes to all 220 questions. What its 60 kept trials show, beside the first expert run's 61,
+  is in [tools/scored-run/README.md](tools/scored-run/README.md#the-expert-requests-second-development-run-decision-165).
 
 ### Changed
 
@@ -970,10 +979,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Build step 9: the judge's calibration (item 9.6), on its three sheets, all before the release
   run (decision 135), and the hand checklist on VS Code's AI (item 9.7), on an extension file
   built from `main`, are the owner's to run, and the third preview (9.9) waits for both. The
-  development run of the expert requests on tool schema version 5, 120 test sessions, comes next
-  (decision 141); it is not started until he says (decision 145). The third preview's release
-  run, 10 trials of each of the 24 requests, 480 test sessions, is made once on his word after it
-  (decision 132).
+  development run of the expert requests on tool schema version 5 was made on his word of
+  2026-11-26 and met every target (decisions 165 and 166). The third preview's release run, 10
+  trials of each of the 24 requests, 480 test sessions, is made once on his word after the
+  calibration and the checklist (decision 132).
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - The game-concept half of `references/unknown-name` stays blocked: without a concept's aliases

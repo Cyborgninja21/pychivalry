@@ -1579,8 +1579,9 @@ again, beside the package of format 9:
 Before the release run, a development run of the twelve expert requests measures what a session
 is given: 5 trials of each, **120 test sessions** (60 authoring of Opus 5.5, 60 judge of Fable 5.2
 with version 2 of its prompt), each with session limit 3, the trials kept, written to its own
-record. **It is not started now** (decision 145): the owner will say when, and it runs from a
-clone of `main` as it is then, with this command:
+record. It was not started until the owner said (decision 145); he did on 2026-11-26 (decision
+165), and it was made from the main clone at the merge of #163 with this command
+([below](#the-expert-requests-second-development-run-decision-165)):
 
 ```sh
 SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=5 SCORED_SESSION_LIMIT=3 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_REQUESTS=event-granary-inspection,event-envoy-chain,event-county-unrest,decision-fund-granaries,decision-pardon-prisoners,decision-house-feast,effect-realm-relief,effect-granary-gift-edit,effect-heir-household,trigger-loyal-realm,trigger-granary-patron,trigger-settled-ruler SCORED_RECORD=records/scored/authoring-expert-run-2.json SCORED_KEEP=true SCORED_CLAUDE=<the same Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring
@@ -1590,7 +1591,170 @@ A trial that does not hold and is tried again by a continuing run adds two sessi
 record states `server.schema_version` 5; the first expert run's record, of version 3, is not
 continued and stays as made. What to read from it beside the targets: how many first lookups
 were answered whole, how often `source` was called and on what, whether `lookup`'s `evidence`
-was asked for at all, whether any `Read` left the mod, and the tool errors.
+was asked for at all, whether any `Read` left the mod, and the tool errors. They are read below.
+
+## The expert requests' second development run (decision 165)
+
+On the owner's word of 2026-11-26 (decision 165), the run of the section above: the twelve expert
+requests, 5 trials each, **120 test sessions** of Claude Code 2.1.330 (60 authoring of Opus 5.5, 60
+judge of Fable 5.2 with version 2 of the judge's prompt), each with session limit 3, the trials
+kept, from the main clone at the merge of #163, with the command above. It ran once through: no
+trial was tried again and no stop rule was reached. Its record is
+[`records/scored/authoring-expert-run-2.json`](../../records/scored/authoring-expert-run-2.json),
+as the run wrote it. It is the first record whose sessions were given tool schema version 5
+(`source`, `lookup` whole by name with `not_answered`, places that say their layer, `lookup`'s
+`evidence` on request), the spec package in format 9 and the write-content skill's eighth rule (an
+AI weight for every option), all of which the record names; the first expert run's sessions were
+given none of them. **So it is not compared with `authoring-expert-run-1.json` without saying
+so**, and every figure below that sets the two side by side says which is which.
+
+| Request | Type | Held | No error | No warning | In the format | Every expectation | Judge: yes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `event-granary-inspection` | event | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `event-envoy-chain` | event | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `event-county-unrest` | event | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-fund-granaries` | decision | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-pardon-prisoners` | decision | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `decision-house-feast` | decision | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-realm-relief` | scripted effect | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-granary-gift-edit` | scripted effect | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `effect-heir-household` | scripted effect | 5 of 5 | 5 | 5 | 5 | 5 | 20 of 20 |
+| `trigger-loyal-realm` | scripted trigger | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `trigger-granary-patron` | scripted trigger | 5 of 5 | 5 | 5 | 5 | 5 | 15 of 15 |
+| `trigger-settled-ruler` | scripted trigger | 5 of 5 | 5 | 5 | 5 | 5 | 10 of 10 |
+| **All** | | **60 of 60** | **60** | **60** | **60** | **60** | **220 of 220** |
+
+Against the owner's targets, as a development run (`task scored:targets` with `SCORED_RECORD` set to
+the record, which also says first that its sessions were given the committed tool schema version 5
+and that it was judged with the committed version 2): no error 60 of 60, no warning and in the
+format 60 of 60 each, every expectation 60 of 60, and every judged dimension 100% yes
+(`effects-as-asked` 45 of 45, `scope-as-asked` 55 of 55, `text-as-asked` 30 of 30,
+`nothing-unasked` 35 of 35, `conditions-as-asked` 55 of 55): **every target met**. Every trial held
+(the first expert run: 60 of 61), every session ended by itself, none was denied a permission, and
+every judge session answered in one turn.
+
+### What the 60 kept trials show
+
+Read from the record and the kept output streams, with no model, and set beside the first expert
+run's 61 kept trials read the same way (that run's figures in brackets). Each session's first
+draft, the mod as it stood at its first `check` after its first `Write` or `Edit`, was rebuilt from
+its `Write`, `Edit` and `apply_format` calls over the request's base and graded with the checker
+and the request's expectations over the installed game; replayed to its end, every session's
+rebuilt mod is its kept result byte for byte, in both runs. The first run's drafts were graded
+with today's checker and spec package, not those it ran with.
+
+1. **`lookup` answered most first lookups whole.** The first `lookup` of every session asked for
+   2 to 20 names (median 7, both runs). In 40 of the 60 sessions it answered every name whole in
+   one call (the first run: none; each of its 61 first pages held 1 to 3 names and had a next
+   page). The other 20 named 1 to 10 names each in `not_answered`, 56 in all, never a name cut
+   short: 14 of those sessions looked some of them up again (9 all of them), 40 of the 56 names in
+   all. Of the 16 never asked again, 7 were written in the result unlooked-up, each a field or word
+   the base mod or another reading had shown (`base` in two, `count` in two, `name`, `option` and
+   `type` in one), and the check after writing found nothing in them. Of all 104 `lookup` answers,
+   27 named something in `not_answered` and none was cut (the first run: 133 calls, 101 answers
+   with a next page, 23 continued with their cursor). **No cursor was given, so no cursor was
+   refused**: the first run's nine refused cursors are gone.
+2. **`source` was called 3 times, in 3 sessions, never refused**, each on the game layer, each
+   time to see how the base game writes what the session was about to write:
+   `decision-pardon-prisoners` 1 and 3 on `common/casus_belli_types/05_fp3_wars.txt` line 1042,
+   the game's own `every_prisoner = { limit = { ... } release_from_prison = yes }`, and
+   `decision-house-feast` 5 on `common/decisions/00_artifact_decisions.txt` line 3, a decision's
+   `picture`. Each answer held 7 to 9 lines and under 600 characters. The other 57 sessions did
+   not call it: the readings were enough. `find_references` and `explain_code` were called by no
+   session, in either run.
+3. **`lookup`'s `evidence` was never asked for**, in any of the 104 calls. Only the explain-error
+   skill names it, and every session loaded the write-content skill.
+4. **No `Read`, `Edit` or `Write` outside the mod** (the first run: one, the `Read` that made
+   `event-county-unrest` 4 not hold). All 38 `Read`s (38 in the first run) were of the mod's own
+   files, none of a folder (the first run: two).
+5. **Tool errors: 9, every one a call of a pychivalry tool by its bare name** (the first run: 12,
+   none by a bare name; 9 refused cursors, 2 `Read`s of a folder and the `Read` outside the mod).
+   Seven were in three sessions' first calls of a pychivalry tool, straight after the skill loaded
+   (`decision-fund-granaries` 3 and 5, `list_definitions` twice each; `event-granary-inspection` 5,
+   `list_definitions` twice and `check`), and two were single calls later on
+   (`event-granary-inspection` 2 and 4, `list_definitions` of the English localization). Claude
+   Code answered "No such tool available" each time, and each session called the same tool again
+   at once by its listed name, as the skills say to. Every one of the nine bare calls passed
+   `limit` as a string (`"10"`, `"5"`), and every call again by the listed name passed it as a
+   number. The skills' wording on tool names is the one the first run had, but for its list of
+   Claude Code's names, which gained `find_references` and `source`: see
+   [What was done after it](#what-was-done-after-it).
+6. **Every option of every event with several options got an AI weight** (rule 8). The 15 event
+   sessions each wrote one event with two options, 30 options, and every one has
+   `ai_chance = { base = N }`, the two options of an event always the same: 50 in fourteen events,
+   100 in one (`event-granary-inspection` 2). Every session looked `ai_chance` up before writing it
+   (13 of them with `folder` set to `events`, as the rule says; `event-county-unrest` 1 and 4
+   without), wrote the weights in its first draft, and said in its report which weight it gave,
+   twelve of them that the request named no preference between the options. No check after
+   writing reported `style/option-without-ai-weight`. In the first run, made before the rule, none
+   of its 16 such events' 32 options had a weight.
+7. **No repair round was needed.** No session's check after writing reported an error or a
+   warning, so the repair loop and its five-round stop rule were never used (the first run: four
+   sessions, `decision-house-feast` 1 to 4, drew `scope/wrong-scope-for-effect` and repaired it in
+   one round each). Fourteen sessions, all of decisions, drew only advice after writing
+   (`fields/usually-present` for a decision's `picture`, `style/unusual-field-order`, and
+   `style/empty-block`). `decision-pardon-prisoners` 2 to 5 wrote `any_prisoner = { }` to ask for at
+   least one prisoner and drew `style/empty-block`; 3 and 4 rewrote it as
+   `any_prisoner = { count >= 1 }`, the same test, which the first session had written from the
+   start, and 2 and 5 kept it. The results keep 14 information findings and 3 hints, none counted
+   by a target (the first run: 2 and 5). 54 sessions checked the base before writing (51 of 61).
+8. **The traps: no first draft fell into one.** Every one of the 60 rebuilt first drafts had no
+   error and no warning and met every expectation of its request, so none fell into the mistake
+   its request's hand-made draft shows (the first run: four, `decision-house-feast` 1 to 4, whose
+   drafts walked the house's members from the character, drawing `scope/wrong-scope-for-effect` and
+   missing `every_house_member` inside `house`; its other 57 drafts as clean). Where the first run
+   fell in, its sessions had asked `lookup` for `every_house_member` before writing and never seen
+   its reading, which was on no page they got; in this run every `decision-house-feast` session
+   got it whole before writing, an iterator of the scope `dynasty_house`, and wrote the walk
+   inside `house`. The other traps were looked up, not fallen into, in both runs: every
+   `event-county-unrest` and `trigger-loyal-realm` session looked `county_opinion` up before
+   writing (10 of 10; 11 of 11 before), learned it was removed and wrote `popular_opinion`;
+   `decision-house-feast` sessions looked `house_power` up (4 of 5; 5 of 5 before) or went
+   straight to `house_power_score`, which all wrote; no session of `decision-pardon-prisoners` or
+   `trigger-settled-ruler` named `is_at_peace`, `has_spouse` or `release_prisoner`, in either run.
+9. **Calls, turns and time.** `check` 136 (1 to 5 a session), `apply_format` 120, `lookup` 104,
+   `Write` 102, `Skill` 60 (once each), `find_definition` 41, `list_definitions` 38 (8 of them by
+   the bare name), `Read` 38, `Edit` 21, `source` 3, `format` 1: 664 calls, 6 to 21 a session,
+   median 9 (the first run: 701 for 61 sessions, 7 to 19, median 10; `lookup` 133). Every session
+   ended by itself in 8 to 23 turns, median 11 (9 to 21, median 12), and 11 to 34 seconds, median
+   20 (16 to 38, median 23); 784 turns and 20.8 minutes of session time in all (823 and 24.5
+   minutes). Every judge session answered in one turn, in 2 to 11 seconds (2 to 17).
+
+### What it shows, and what it does not
+
+- **It is a development run**, 5 trials of each request, as MVP.md's repetitions say for
+  development; a release run has 10 of each. It shows that what a session is given at tool schema
+  version 5, with the format 9 package and the AI-weight rule, meets every target on the twelve
+  expert requests, at the ceiling of every measure, and that the changes did what they were built
+  for: first lookups answered whole or named, no cursor misused, no file read outside the mod, every
+  option weighted. It does not show that a better or worse server or skill would score differently
+  on these requests: every measure is at its ceiling, as in the first expert run once judged again.
+- **The judge again said yes to every question**, 220 of 220. That agrees with everything code
+  checks, and version 2 of its prompt no longer says no where the game says yes (decision 139); no
+  run has yet shown that it says no where it should. That still rests on the owner's three
+  hand-graded calibration sheets (decision 135), whose results include ones wrong on purpose.
+- **The traps caught no first draft this time** (four of 61 in the first run, all of one
+  request). The requests still hold traps a first draft written from memory falls into (each
+  hand-made draft shows its own failing the code-checked side), but these sessions looked the
+  names up first, as the skill says, and got their readings whole; so on these twelve requests the
+  repair loop was not exercised at all, and the run cannot say how a session repairs. Twelve
+  requests, 5 trials each and one model are too few to say more than that.
+- Its figures beside the first expert run's are of two different sets of tools, package and
+  skills, as said above, and of one model each time; they say what changed in these sessions, not
+  why, beyond what the streams themselves show.
+
+### What was done after it
+
+Nothing in the kept trials shows a fault of pychivalry's own: no pychivalry tool answered with an
+error, none refused a call, and no answer was cut. **No code was changed**; the one test that
+lists every committed authoring record with the judge's version it was judged with
+(`judge.test.ts`) names this record too, judged with version 2. The nine tool errors
+are Claude Code's answer to a name it does not list, and never reached the agent server; the
+skills and the server's instructions already give every tool's listed name and say to call it
+again by that name, which each session did at its next call. Whether the skills' steps should also write each tool by its
+Claude Code name, which would change what sessions are given (the skills' hashes) and so the
+comparison of the release run with this one, is asked of the owner (docs/decisions.md,
+[Asked, awaiting the owner](../../docs/decisions.md#asked-awaiting-the-owner)).
 
 ## Re-judging kept results
 

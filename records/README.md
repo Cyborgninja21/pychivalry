@@ -23,7 +23,7 @@ enforces and this page is fixed.
 | `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records)) |
 | `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code: the latest run ([below](#authoring-records-scoredauthoring)) |
 | `scored/authoring-run-<n>.json` | An earlier authoring run's record, kept unchanged when a later run replaced `authoring.json`: `authoring-run-1.json` is the first run's ([below](#authoring-records-scoredauthoring)) |
-| `scored/authoring-<set>-run-<n>.json` | A run of some requests only, filed beside `authoring.json`: `authoring-expert-run-1.json` is the expert requests' development run ([below](#authoring-records-scoredauthoring)) |
+| `scored/authoring-<set>-run-<n>.json` | A run of some requests only, filed beside `authoring.json`: `authoring-expert-run-1.json` is the expert requests' first development run, `authoring-expert-run-2.json` their second, the first made on tool schema version 5 ([below](#authoring-records-scoredauthoring)) |
 | `scored/<record>-judge-<version>.json` | `task scored:rejudge`: an authoring record's kept results judged again with version `<version>` of the judge's prompt, written beside the record, never over it ([below](#authoring-records-scoredauthoring)) |
 | `scored/calibration.json`, or the file of `scored/` that `SCORED_RECORD` names | `task scored:calibrate`, the judge's calibration against hand grades, in test sessions of the same; one record per sheet graded (`calibration-hand-made.json`, `calibration-run-2.json`) ([below](#calibration-records-scoredcalibration)) |
 | `corpus/MANIFEST.tsv` | `task corpus:manifest`; the pinned corpus, not a record ([corpus/README.md](corpus/README.md)) |
@@ -393,7 +393,9 @@ the name, byte for byte, and giving `authoring.json` back as committed (`git res
 commit. `task records:check` checks every one of them like any record, and `task scored:targets`
 reads one with `SCORED_RECORD`. The expert requests' development run (decision 134), continued
 from the record its first part wrote into `authoring.json`, finished on 2026-11-25 and is filed so,
-as `authoring-expert-run-1.json`; `authoring.json` is the second run's, as committed.
+as `authoring-expert-run-1.json`; `authoring.json` is the second run's, as committed. Their second
+development run (decision 165), given `SCORED_RECORD`, wrote `authoring-expert-run-2.json` itself
+on 2026-11-26, and it is committed as the run wrote it.
 
 **A re-judged record** (`task scored:rejudge`) is an authoring record whose kept results were
 judged again, with no authoring session, by a later version of the judge's prompt: written beside
@@ -411,7 +413,8 @@ scored record names the agent server's tool schema version in `server.schema_ver
 without it, every one committed before, was made with version 3 or earlier (no `source`, `lookup`
 in pages, game places that did not say how they are read). `task scored:targets` says which a
 record's sessions were given and that records of different versions are not comparable without
-saying so, and a run refuses to continue a record of another version.
+saying so, and a run refuses to continue a record of another version. The first record of version
+5, the one committed, is `authoring-expert-run-2.json` (no record was made on version 4).
 
 ### Calibration records (`scored:calibration`)
 

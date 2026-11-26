@@ -287,6 +287,9 @@ like any other (decision 110).
   neither sheet is graded yet ([guide/judge-calibration.md](guide/judge-calibration.md)).
 - **A committed result of a test session on the expert requests.** Their development run
   (decision 134) finished on 2026-11-25: 61 trials, kept outside the repository by the run, and
-  its record is committed (`records/scored/authoring-expert-run-1.json`). None of its results is
+  its record is committed (`records/scored/authoring-expert-run-1.json`); their second, on tool
+  schema version 5 (decision 165), finished on 2026-11-26: 60 trials, kept the same way, its record
+  committed too (`records/scored/authoring-expert-run-2.json`). None of their results is
   committed: the drafts, the third calibration sheet and the judge's labelled case are hand-made
-  (the case holds the logic its five `trigger-loyal-realm` results wrote, written by hand).
+  (the case holds the logic the first run's five `trigger-loyal-realm` results wrote, written by
+  hand).
