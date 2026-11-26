@@ -37,6 +37,11 @@ field one of them does not know is left out
 - each names only the agent server's tools and the command line's commands and options that
   exist, read from their own registries (`TOOLS` of `@pychivalry/mcp`, `COMMANDS` of
   `@pychivalry/cli`), and names the tools it drives;
+- each writes every tool, in every step and rule as in its list at the top, by the name Claude
+  Code lists it under (`mcp__pychivalry__check`), never by its short name alone (decision 168),
+  and says how another client's names are made: `pychivalry-` before the tool's own name in VS
+  Code's Copilot harness, `mcp_pychivalry_` in VS Code's own (read from VS Code 1.147 and its
+  Copilot extension), so that a session there calls the tool whose name ends in the same one;
 - everything a skill writes as code is pychivalry's own vocabulary (a tool, an argument or
   field of a tool, a check code, a command line), a name the spec package has, or a role of its
   part D4 (the word `lookup` reads a keyword's role in, such as the AI weight of an event's
