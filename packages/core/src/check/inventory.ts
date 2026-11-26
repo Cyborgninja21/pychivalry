@@ -88,6 +88,7 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'references/unknown-name': ['name', 'folder'],
     'scope/link-on-wrong-scope': ['link', 'scope'],
     'scope/saved-late-read-in-desc': ['saved scope', 'field', 'blocks'],
+    'scope/title-text-reads-scope-saved-late': ['localization key', 'saved scope', 'blocks'],
     'scope/undefined-event-target': ['saved scope'],
     'scope/wrong-scope-for-effect': ['scope', 'scopes it takes'],
     'scope/wrong-scope-for-trigger': ['scope', 'scopes it takes'],
@@ -117,6 +118,8 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'structure/switch-without-branches': ['block'],
     'structure/switch-without-trigger': ['block', 'field'],
     'structure/trigger-else-without-trigger-if': ['key', 'keys'],
+    'structure/triggered-desc-other-field': ['file:line'],
+    'variables/read-without-set': ['variable name', 'keyword', 'kind', 'namespace'],
     'syntax/malformed-arithmetic': ['expression', 'reason'],
     'syntax/missing-operator': ['token', 'file:line'],
     'syntax/null-safe-operator-after-value': ['token', 'file:line'],
@@ -132,6 +135,8 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'style/not-utf8': ['number', 'reading'],
     'style/unusual-field-order': ['field', 'field before it', 'folder'],
     'style/localization-key-characters': ['key', 'what it holds'],
+    'style/redundant-condition': ['condition', 'block'],
+    'style/option-without-ai-weight': ['option number', 'event id', 'keywords'],
 };
 
 /** A row's message as it is shown: each placeholder a readable slot (`SLOT_NAMES`). */

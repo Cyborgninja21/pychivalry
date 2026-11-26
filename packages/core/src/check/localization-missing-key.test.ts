@@ -121,6 +121,8 @@ test(`${CODE}: values that are no key are not judged`, () => {
             isUsed: () => true,
             hasDefinition: () => false,
             isRecordName: () => false,
+            isVariableSet: () => true,
+            textScopeReads: () => [],
         },
     ).filter((f) => f.code === CODE);
     assert.deepEqual(

@@ -22,6 +22,7 @@ harvest.0001 = {
 
 	option = {
 		name = harvest.0001.a
+		ai_chance = { base = 50 }
 		add_gold = 50
 		add_prestige = 25
 		trigger_event = {
@@ -31,6 +32,7 @@ harvest.0001 = {
 	}
 	option = {
 		name = harvest.0001.b
+		ai_chance = { base = 50 }
 		add_piety = 25
 		add_gold = -10
 		ruler_feast_gift_effect = yes
@@ -38,6 +40,7 @@ harvest.0001 = {
 	}
 	option = {
 		name = harvest.0001.c
+		ai_chance = { base = 50 }
 		trigger = { gold >= 100 }
 		add_piety_experiance = 50
 		faith = { change_fervor = 5 }
@@ -58,11 +61,13 @@ harvest.0002 = {
 
 	option = {
 		name = harvest.0002.a
+		ai_chance = { base = 50 }
 		add_piety = 10
 		harvest_spouse_reward_effect = yes
 	}
 	option = {
 		name = harvest.0002.b
+		ai_chance = { base = 50 }
 		add_stress = -10
 	}
 }
@@ -88,6 +93,7 @@ harvest.0003 = {
 
 	option = {
 		name = harvest.0003.a
+		ai_chance = { base = 50 }
 		random_list = {
 			60 = { add_prestige = 20 }
 			40 = { add_piety = 15 }
@@ -95,6 +101,7 @@ harvest.0003 = {
 	}
 	option = {
 		name = harvest.0003.b
+		ai_chance = { base = 50 }
 		harvest_tithe_effect = yes
 	}
 }

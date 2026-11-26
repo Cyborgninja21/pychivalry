@@ -234,6 +234,10 @@ interface Footprint {
     readonly saves: ReadonlySet<string>;
     readonly reads: ReadonlySet<string>;
     readonly templates: ReadonlySet<string>;
+    /** The variables it sets, by name (format 9). */
+    readonly variables: ReadonlySet<string>;
+    /** Its localization keys whose text reads a saved scope, each `<key>\u0000<name>`. */
+    readonly texts: ReadonlySet<string>;
 }
 
 /** A background pass under way. */
@@ -991,13 +995,17 @@ export class LanguageServer {
             saves: new Set(names.saves),
             reads: new Set(names.reads),
             templates: new Set(names.templates),
+            variables: new Set(names.variables),
+            texts: new Set(names.texts),
         };
     }
 
     /**
      * Run a change to one file of the index, and return the other files of the mod whose
      * findings it can change: those that define, use, save or read a name whose definitions,
-     * uses, saves or reads in the file changed, and those whose status the change touched;
+     * uses, saves or reads in the file changed, or a variable whose sets changed, or a
+     * localization key whose text reads other saved scopes, and those whose status the change
+     * touched;
      * every file when a `$PARAM$` word changed; every localization file when a use changed and
      * `localization/unused-key` is on.
      */
@@ -1017,6 +1025,8 @@ export class LanguageServer {
             saves: new Set(),
             reads: new Set(),
             templates: new Set(),
+            variables: new Set(),
+            texts: new Set(),
         };
         const a = before ?? empty;
         const b = after ?? empty;
@@ -1031,6 +1041,14 @@ export class LanguageServer {
         const usesChanged = differ(a.uses, b.uses, names);
         differ(a.saves, b.saves, names);
         differ(a.reads, b.reads, names);
+        // A variable set or taken away: the files that name the variable. A text that reads
+        // another saved scope: the files that name its key (an event's title).
+        differ(a.variables, b.variables, names);
+        const texts = new Set<string>();
+        differ(a.texts, b.texts, texts);
+        for (const text of texts) {
+            names.add(text.slice(0, text.indexOf('\u0000')));
+        }
         const templates = new Set<string>();
         if (differ(a.templates, b.templates, templates)) {
             return [...this.covered];

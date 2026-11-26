@@ -36,6 +36,7 @@ export type CheckCode =
     | 'structure/event-undeclared-namespace'
     | 'structure/range-min-above-max'
     | 'structure/event-non-character-shown'
+    | 'structure/triggered-desc-other-field'
     | 'definitions/clash'
     | 'definitions/not-read'
     | 'scope/wrong-scope-for-trigger'
@@ -78,7 +79,9 @@ export type AdviceCode =
     | 'structure/story-effect-group-without-effect'
     | 'structure/story-effect-group-chance-above-100'
     | 'structure/story-effect-group-chance-not-positive'
-    | 'scope/saved-late-read-in-desc';
+    | 'scope/saved-late-read-in-desc'
+    | 'scope/title-text-reads-scope-saved-late'
+    | 'variables/read-without-set';
 
 export interface CheckKind {
     readonly severity: Severity;
@@ -235,6 +238,12 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         description:
             'An event whose scope is not a character and that is neither hidden nor major.',
     },
+    'structure/triggered-desc-other-field': {
+        severity: 'warning',
+        catalogue: 'the_body_of_triggered_desc_can_only_take_desc_and_or_trigger',
+        slots: ['location'],
+        description: 'A `triggered_desc` block holding anything but `desc` and `trigger`.',
+    },
     'definitions/clash': {
         severity: 'error',
         catalogue: null,
@@ -287,9 +296,16 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
     'localization/unbalanced-brackets': {
         severity: 'warning',
         catalogue: 'loc_key_X_unexpected_extra_at_position_X_file_X',
-        alsoCatalogue: ['loc_key_X_unexpected_extra_at_position_X_file_X_2'],
+        alsoCatalogue: [
+            'loc_key_X_unexpected_extra_at_position_X_file_X_2',
+            'loc_key_X_unterminated_at_position_X_in_data_statement_file',
+            'loc_key_X_unterminated_at_position_X_in_data_parenthesis_sta',
+            'loc_key_X_unterminated_at_position_X_in_data_single_quotes_f',
+            'loc_key_X_unterminated_at_position_X_in_localization_replace',
+        ],
         slots: ['value', 'value', 'value'],
-        description: 'Localization text with an extra `[` or `]`.',
+        description:
+            "Localization text with an extra `[` or `]`, or a `[`, `(`, `'` or `$` left open.",
     },
     'localization/unused-key': {
         severity: 'hint',

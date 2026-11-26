@@ -11,6 +11,7 @@ import { check as fieldsUnusualValue } from './fields-unusual-value.js';
 import { check as fieldsUsuallyPresent } from './fields-usually-present.js';
 import { check as referencesUnknownName } from './references-unknown-name.js';
 import { check as scopeSavedLateReadInDesc } from './scope-saved-late-read-in-desc.js';
+import { check as scopeTitleTextReadsScopeSavedLate } from './scope-title-text-reads-scope-saved-late.js';
 import { check as structureCasusBelliWithoutOutcome } from './structure-casus-belli-without-outcome.js';
 import { check as structureElseWithoutIf } from './structure-else-without-if.js';
 import { check as structureEventAfterWithoutOption } from './structure-event-after-without-option.js';
@@ -35,6 +36,7 @@ import { check as structureStoryEffectGroupWithoutTiming } from './structure-sto
 import { check as structureSwitchWithoutBranches } from './structure-switch-without-branches.js';
 import { check as structureSwitchWithoutTrigger } from './structure-switch-without-trigger.js';
 import { check as structureTriggerElseWithoutTriggerIf } from './structure-trigger-else-without-trigger-if.js';
+import { check as variablesReadWithoutSet } from './variables-read-without-set.js';
 
 /** Every advice check this build ships. */
 export const ADVICE_CHECKS: readonly AdviceCheck[] = [
@@ -42,6 +44,7 @@ export const ADVICE_CHECKS: readonly AdviceCheck[] = [
     fieldsUsuallyPresent,
     referencesUnknownName,
     scopeSavedLateReadInDesc,
+    scopeTitleTextReadsScopeSavedLate,
     structureCasusBelliWithoutOutcome,
     structureElseWithoutIf,
     structureEventAfterWithoutOption,
@@ -66,6 +69,7 @@ export const ADVICE_CHECKS: readonly AdviceCheck[] = [
     structureSwitchWithoutBranches,
     structureSwitchWithoutTrigger,
     structureTriggerElseWithoutTriggerIf,
+    variablesReadWithoutSet,
 ];
 
 /** What each advice check judged and found on one file, by code. */

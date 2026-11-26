@@ -146,8 +146,11 @@ whatever the filters keep, so the agent sees the whole picture before the list. 
 rest on pychivalry's own rules, not on the game: its formatting rules say where a file is not in
 pychivalry's format, and their fixes, like `format`'s text, change only whitespace; its
 best-practice rules flag a file that is not UTF-8 (a warning, which says how the file was read,
-with a fix that converts it), an empty block, a block nested too deep, fields in an unusual order
-and a localization key with a character other than a letter, a digit, `_` or `.`. A fix too long for a result
+with a fix that converts it), an empty block, a block nested too deep, fields in an unusual order,
+a localization key with a character other than a letter, a digit, `_` or `.`, a condition that
+always holds where it changes nothing (an `always = yes` in an `AND`, with a safe fix that takes it
+away) and an option of an event with several options that gives the AI no weight (`ai_chance`,
+`ai_will_select`). A fix too long for a result
 comes with its edits left out and `edits_omitted`: `format` gives a formatting fix's text, and
 the command line's `check --fix` applies any safe fix.
 
@@ -165,6 +168,10 @@ about and, where pychivalry knows it, what is valid there:
   `value_type` and `values`, the values the base game writes in it (at most 20, the most written
   first; `values_total` when there are more). They are measurements of the base game, not rules
   of the game.
+- `variables/read-without-set`: the variable (`variable`), the keyword or link that reads it
+  (`keyword`), its namespace and kind (`namespace`, `holds`), and `set_by`, the keywords that set
+  a variable of that namespace and kind, from the spec package's table of the keywords of
+  variables.
 
 A finding's `fix` is null, or its mechanical fix as data, the same the editor's quick fixes and
 the command line's `--json` give:

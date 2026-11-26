@@ -1,0 +1,17 @@
+﻿namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = fixture.0001.t
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { is_adult = yes }
+				desc = fixture.0001.desc.adult
+				first_valid = { desc = fixture.0001.desc.ruler }
+			}
+			desc = fixture.0001.desc
+		}
+	}
+	option = { name = fixture.0001.a }
+}

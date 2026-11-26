@@ -1,0 +1,5 @@
+﻿l_english:
+ fixture.0001.t:0 "A Visit from [fixture_rival.GetName]"
+ fixture.0001.t.adult:0 "[TopScope.sC('fixture_rival').GetFirstName] and [fixture_host.GetName]"
+ fixture.0001.desc:0 "[GetPlayer.GetName] waits."
+ fixture.0001.a:0 "Welcome them"

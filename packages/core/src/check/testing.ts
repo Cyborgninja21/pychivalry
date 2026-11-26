@@ -55,6 +55,7 @@ export const PAIR_GAMES: Readonly<Record<string, string>> = {
     'scope-undefined-event-target': 'event-targets-and-localization',
     'localization-missing-key': 'event-targets-and-localization',
     'localization-unused-key': 'event-targets-and-localization',
+    'variables-read-without-set': 'event-targets-and-localization',
 };
 
 /**

@@ -1,0 +1,20 @@
+﻿namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = {
+		first_valid = {
+			triggered_desc = {
+				trigger = { is_adult = yes }
+				desc = fixture.0001.t.adult
+			}
+			desc = fixture.0001.t
+		}
+	}
+	desc = fixture.0001.desc
+	immediate = {
+		random_courtier = { save_scope_as = fixture_host }
+		random_courtier = { save_scope_as = fixture_rival }
+	}
+	option = { name = fixture.0001.a }
+}

@@ -2,3 +2,7 @@
 fixture_base_save_effect = {
 	save_scope_as = fixture_base_saved
 }
+# A variable it sets, which a mod may read.
+fixture_base_variable_effect = {
+	set_variable = { name = fixture_base_variable value = 1 }
+}

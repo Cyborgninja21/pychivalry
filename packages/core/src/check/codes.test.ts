@@ -79,9 +79,11 @@ test('every code the core emits has its row in docs/checks.md, with its severity
             code
         ];
         for (const also of kind?.alsoCatalogue ?? []) {
+            // Named whole, or, for an entry whose id extends the row's first, by what it adds.
             const tail = also.slice((catalogue ?? '').length);
             assert.ok(
-                also.startsWith(catalogue ?? '') && row.evidence.includes(`\`${tail}\``),
+                row.evidence.includes(`\`${also}\``) ||
+                    (also.startsWith(catalogue ?? '') && row.evidence.includes(`\`${tail}\``)),
                 `${code}: the row names ${also}`,
             );
         }

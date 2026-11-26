@@ -25,6 +25,7 @@ import { unknownKeys } from './references-unknown-key.js';
 import { nonCharacterShownEvents } from './structure-event-non-character-shown.js';
 import { undeclaredNamespaces } from './structure-event-undeclared-namespace.js';
 import { rangesMinAboveMax } from './structure-range-min-above-max.js';
+import { triggeredDescOtherFields } from './structure-triggered-desc-other-field.js';
 import { modifiersOutsideUseArea } from './names-modifier-outside-use-area.js';
 import { unknownEffects } from './names-unknown-effect.js';
 import { unknownLinks } from './names-unknown-link.js';
@@ -230,6 +231,11 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...undeclaredNamespaces(context, records),
         ...rangesMinAboveMax(reading, context, records),
         ...nonCharacterShownEvents(context, records),
+        ...triggeredDescOtherFields(context, {
+            spec: input.spec,
+            directory: reading.directory,
+            tree: input.parsed.file,
+        }),
         ...definitionFindings(input.spec, input.file, context, input.index),
         ...wrongScopeTriggers(uses, context, input.spec),
         ...wrongScopeEffects(uses, context, input.spec),
@@ -243,6 +249,7 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             tree: input.parsed.file,
             names: input.names,
             context,
+            reading,
         }),
         ...bestPracticeFindings({
             spec: input.spec,
@@ -253,6 +260,7 @@ export function checkFile(input: CheckInput): CheckFinding[] {
             context,
             invalid: input.invalid ?? [],
             encoding: input.encoding ?? 'utf-8',
+            reading,
         }),
     ].sort(byPlace);
 }

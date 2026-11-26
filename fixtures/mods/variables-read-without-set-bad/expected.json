@@ -1,0 +1,49 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 13,
+            "column": 19,
+            "code": "variables/read-without-set",
+            "severity": "information",
+            "message": "'fixture_guests' is read with 'has_variable' as a variable value of the namespace 'scope', but nothing in the mod or the base game sets one of that name there.",
+            "data": {
+                "variable": "fixture_guests",
+                "keyword": "has_variable",
+                "namespace": "scope",
+                "holds": "value",
+                "set_by": ["set_variable"]
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 15,
+            "column": 8,
+            "code": "variables/read-without-set",
+            "severity": "information",
+            "message": "'fixture_missing' is read with 'var' as a variable value of the namespace 'scope', but nothing in the mod or the base game sets one of that name there.",
+            "data": {
+                "variable": "fixture_missing",
+                "keyword": "var",
+                "namespace": "scope",
+                "holds": "value",
+                "set_by": ["set_variable"]
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 22,
+            "column": 11,
+            "code": "variables/read-without-set",
+            "severity": "information",
+            "message": "'fixture_count' is read with 'change_global_variable' as a variable value of the namespace 'global', but nothing in the mod or the base game sets one of that name there.",
+            "data": {
+                "variable": "fixture_count",
+                "keyword": "change_global_variable",
+                "namespace": "global",
+                "holds": "value",
+                "set_by": ["set_global_variable"]
+            }
+        }
+    ]
+}

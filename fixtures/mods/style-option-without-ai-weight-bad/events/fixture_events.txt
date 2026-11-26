@@ -1,0 +1,19 @@
+﻿namespace = fixture
+
+fixture.0001 = {
+	type = character_event
+	title = fixture.0001.t
+	desc = fixture.0001.desc
+	option = {
+		name = fixture.0001.a
+		ai_chance = { base = 50 }
+	}
+	option = { name = fixture.0001.b }
+}
+
+fixture.0002 = {
+	type = character_event
+	title = fixture.0002.t
+	desc = fixture.0002.desc
+	option = { name = fixture.0002.a }
+}

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-25T23:59:15.582Z",
+    "made_at": "2026-11-26T01:36:48.682Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "165cf89d54156485f97ddbd9875d66a30db14f5f",
+        "commit": "ce8723785447f85b0d57f67d7754565fb5b06303",
         "dirty": false
     },
     "machine": {
@@ -43,14 +43,14 @@
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 2.85 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 5.71 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 32213,
-            "peak_rss_kib": 1325880
+            "build_ms": 33842,
+            "peak_rss_kib": 1853960
         },
         "mods": [
             {
@@ -160,11 +160,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2281,
-                    "check": 234,
-                    "total": 2515
+                    "load_base": 3653,
+                    "check": 468,
+                    "total": 4121
                 },
-                "peak_rss_kib": 725432
+                "peak_rss_kib": 775504
             },
             {
                 "slug": "divine-intervention",
@@ -179,7 +179,7 @@
                     "error": 0,
                     "warning": 429,
                     "information": 0,
-                    "hint": 107258
+                    "hint": 107282
                 },
                 "by_code": [
                     {
@@ -236,6 +236,11 @@
                         "code": "style/comment-spacing",
                         "severity": "hint",
                         "count": 25
+                    },
+                    {
+                        "code": "style/option-without-ai-weight",
+                        "severity": "hint",
+                        "count": 24
                     },
                     {
                         "code": "fields/unusual-value",
@@ -392,11 +397,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2088,
-                    "check": 34074,
-                    "total": 36162
+                    "load_base": 4566,
+                    "check": 41851,
+                    "total": 46418
                 },
-                "peak_rss_kib": 3170076
+                "peak_rss_kib": 3170804
             },
             {
                 "slug": "elf-destiny",
@@ -413,9 +418,9 @@
                 ],
                 "by_severity": {
                     "error": 2,
-                    "warning": 946,
-                    "information": 422,
-                    "hint": 70607
+                    "warning": 949,
+                    "information": 434,
+                    "hint": 71236
                 },
                 "by_code": [
                     {
@@ -439,6 +444,11 @@
                         "count": 6
                     },
                     {
+                        "code": "localization/unbalanced-brackets",
+                        "severity": "warning",
+                        "count": 3
+                    },
+                    {
                         "code": "references/unknown-key",
                         "severity": "warning",
                         "count": 1
@@ -454,6 +464,11 @@
                         "count": 129
                     },
                     {
+                        "code": "variables/read-without-set",
+                        "severity": "information",
+                        "count": 12
+                    },
+                    {
                         "code": "references/unknown-name",
                         "severity": "information",
                         "count": 11
@@ -461,7 +476,7 @@
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 28741
+                        "count": 28722
                     },
                     {
                         "code": "style/block-layout",
@@ -476,7 +491,7 @@
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 5037
+                        "count": 5036
                     },
                     {
                         "code": "style/empty-block",
@@ -497,6 +512,11 @@
                         "code": "style/comment-spacing",
                         "severity": "hint",
                         "count": 854
+                    },
+                    {
+                        "code": "style/option-without-ai-weight",
+                        "severity": "hint",
+                        "count": 649
                     },
                     {
                         "code": "style/line-endings",
@@ -550,7 +570,7 @@
                         "reason": "'convert_faith_development_penalty' in 'scope:county.convert_faith_development_penalty' is no link of game 1.21.0.3 and no script value the mod or the base game defines (no file of the base game names it): the development penalties went with development in 1.21.0.3, while the file's own text already reads prosperity_level. The game fails to parse the link (catalogue \"failed_to_parse_data_for_event_target_link_link_X_location_X\"). Release 2.3.0 reported the same error. The mod's descriptor declares supported_version \"1.21.*\"."
                     }
                 ],
-                "warnings": 73,
+                "warnings": 76,
                 "warning_list": [
                     {
                         "file": "common/decisions/debuging_decisions.txt",
@@ -1062,6 +1082,27 @@
                         "column": 10,
                         "code": "localization/missing-key",
                         "message": "Unknown loc key elf_destiny_debug_menu.023.culture"
+                    },
+                    {
+                        "file": "localization/english/modifiers/elf_race_modifiers_l_english.yml",
+                        "line": 14,
+                        "column": 36,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `urf_phenotype_unknown_modifier`: Unterminated '$' at position 0 in $...$ localization replacement - file `localization/english/modifiers/elf_race_modifiers_l_english.yml`"
+                    },
+                    {
+                        "file": "localization/german/new_better_barber_l_german.yml",
+                        "line": 23,
+                        "column": 58,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `BARBERSHOP_SCREENSHOT_TT_loc`: Unterminated '$' at position 24 in $...$ localization replacement - file `localization/german/new_better_barber_l_german.yml`"
+                    },
+                    {
+                        "file": "localization/korean/modifiers/elf_race_modifiers_l_korean.yml",
+                        "line": 14,
+                        "column": 37,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `urf_phenotype_unknown_modifier`: Unterminated '$' at position 0 in $...$ localization replacement - file `localization/korean/modifiers/elf_race_modifiers_l_korean.yml`"
                     }
                 ],
                 "classified": {
@@ -1073,7 +1114,7 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 21,
-                    "dropped": 47920,
+                    "dropped": 47981,
                     "dropped_by_code": [
                         {
                             "code": "fields/unusual-value",
@@ -1108,12 +1149,17 @@
                         {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 18218
+                            "count": 18237
                         },
                         {
                             "code": "style/line-endings",
                             "severity": "hint",
                             "count": 8
+                        },
+                        {
+                            "code": "style/option-without-ai-weight",
+                            "severity": "hint",
+                            "count": 41
                         },
                         {
                             "code": "style/spacing",
@@ -1123,7 +1169,7 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 573
+                            "count": 574
                         },
                         {
                             "code": "style/unusual-field-order",
@@ -1224,11 +1270,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2873,
-                    "check": 5325,
-                    "total": 8198
+                    "load_base": 3547,
+                    "check": 5067,
+                    "total": 8614
                 },
-                "peak_rss_kib": 1204844
+                "peak_rss_kib": 1097728
             },
             {
                 "slug": "rice",
@@ -1236,9 +1282,9 @@
                 "not_checked": [],
                 "by_severity": {
                     "error": 841,
-                    "warning": 3143,
-                    "information": 669,
-                    "hint": 338722
+                    "warning": 3146,
+                    "information": 753,
+                    "hint": 339816
                 },
                 "by_code": [
                     {
@@ -1289,12 +1335,17 @@
                     {
                         "code": "localization/unbalanced-brackets",
                         "severity": "warning",
-                        "count": 7
+                        "count": 10
                     },
                     {
                         "code": "fields/usually-present",
                         "severity": "information",
                         "count": 639
+                    },
+                    {
+                        "code": "variables/read-without-set",
+                        "severity": "information",
+                        "count": 84
                     },
                     {
                         "code": "localization/missing-key",
@@ -1334,32 +1385,37 @@
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 65915
+                        "count": 65871
                     },
                     {
                         "code": "style/spacing",
                         "severity": "hint",
-                        "count": 55797
+                        "count": 55796
                     },
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 34298
+                        "count": 34154
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 31666
+                        "count": 31461
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 9582
+                        "count": 9541
                     },
                     {
                         "code": "style/comment-spacing",
                         "severity": "hint",
                         "count": 1562
+                    },
+                    {
+                        "code": "style/option-without-ai-weight",
+                        "severity": "hint",
+                        "count": 1540
                     },
                     {
                         "code": "style/localization-key-characters",
@@ -1369,12 +1425,12 @@
                     {
                         "code": "style/empty-block",
                         "severity": "hint",
-                        "count": 903
+                        "count": 902
                     },
                     {
                         "code": "style/deep-nesting",
                         "severity": "hint",
-                        "count": 807
+                        "count": 797
                     },
                     {
                         "code": "style/line-endings",
@@ -8969,7 +9025,7 @@
                         "reason": "history/titles calls 'destroy_landless_title_no_dlc_effect', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". Release 2.3.0 classified the same error a real defect (the 1.20.0.2 base game no longer defined it). The mod's descriptor declares supported_version \"1.19.*\"."
                     }
                 ],
-                "warnings": 1122,
+                "warnings": 1125,
                 "warning_list": [
                     {
                         "file": "common/activities/activity_types/RICE_khuzestan_tomb_of_daniel_pilgrimage.txt",
@@ -16798,6 +16854,13 @@
                         "message": "Loc key `tarim_basin.0205.desc`: Unexpected extra `]` at position 915 - file `localization/french/rice_tarim_basin_l_french.yml`"
                     },
                     {
+                        "file": "localization/german/rice_magadha_l_german.yml",
+                        "line": 282,
+                        "column": 286,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `RICE_magadha_observe_vassa_effect_tooltip_trait.gluttonous`: Unterminated `'` at position 222 in ['...'] data single quotes - file `localization/german/rice_magadha_l_german.yml`"
+                    },
+                    {
                         "file": "localization/spanish/rice_normandy_l_spanish.yml",
                         "line": 134,
                         "column": 872,
@@ -16824,6 +16887,20 @@
                         "column": 239,
                         "code": "localization/unbalanced-brackets",
                         "message": "Loc key `catalyst_RICE_sri_lanka_high_jetavana_prominence`: Unexpected extra `]` at position 186 - file `localization/spanish/rice_sri_lanka_l_spanish.yml`"
+                    },
+                    {
+                        "file": "localization/spanish/rice_tarim_basin_l_spanish.yml",
+                        "line": 359,
+                        "column": 151,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `TRAVEL_NAME_FOR_activity_RICE_tarim_basin_mogao_pilgrimage`: Unterminated '$' at position 88 in $...$ localization replacement - file `localization/spanish/rice_tarim_basin_l_spanish.yml`"
+                    },
+                    {
+                        "file": "localization/spanish/rice_tarim_basin_l_spanish.yml",
+                        "line": 382,
+                        "column": 157,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `TRAVEL_NAME_FOR_activity_RICE_tarim_basin_bezeklik_pilgrimage`: Unterminated '$' at position 91 in $...$ localization replacement - file `localization/spanish/rice_tarim_basin_l_spanish.yml`"
                     }
                 ],
                 "classified": {
@@ -16835,7 +16912,7 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 26,
-                    "dropped": 21040,
+                    "dropped": 21878,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
@@ -16845,12 +16922,12 @@
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 691
+                            "count": 732
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 2025
+                            "count": 2230
                         },
                         {
                             "code": "style/comment-spacing",
@@ -16860,17 +16937,17 @@
                         {
                             "code": "style/deep-nesting",
                             "severity": "hint",
-                            "count": 87
+                            "count": 97
                         },
                         {
                             "code": "style/empty-block",
                             "severity": "hint",
-                            "count": 5
+                            "count": 6
                         },
                         {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 5184
+                            "count": 5228
                         },
                         {
                             "code": "style/localization-key-characters",
@@ -16878,14 +16955,19 @@
                             "count": 7
                         },
                         {
+                            "code": "style/option-without-ai-weight",
+                            "severity": "hint",
+                            "count": 392
+                        },
+                        {
                             "code": "style/spacing",
                             "severity": "hint",
-                            "count": 5
+                            "count": 6
                         },
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 7441
+                            "count": 7585
                         }
                     ]
                 },
@@ -16969,11 +17051,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 2134,
-                    "check": 41369,
-                    "total": 43503
+                    "load_base": 2099,
+                    "check": 37324,
+                    "total": 39423
                 },
-                "peak_rss_kib": 1713676
+                "peak_rss_kib": 1958792
             },
             {
                 "slug": "viet-events",
@@ -16981,9 +17063,9 @@
                 "not_checked": [],
                 "by_severity": {
                     "error": 1,
-                    "warning": 214,
-                    "information": 13,
-                    "hint": 36745
+                    "warning": 215,
+                    "information": 14,
+                    "hint": 37333
                 },
                 "by_code": [
                     {
@@ -16999,7 +17081,7 @@
                     {
                         "code": "localization/unbalanced-brackets",
                         "severity": "warning",
-                        "count": 3
+                        "count": 4
                     },
                     {
                         "code": "fields/usually-present",
@@ -17012,6 +17094,11 @@
                         "count": 3
                     },
                     {
+                        "code": "variables/read-without-set",
+                        "severity": "information",
+                        "count": 1
+                    },
+                    {
                         "code": "localization/unused-key",
                         "severity": "hint",
                         "count": 18647
@@ -17019,22 +17106,27 @@
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 6851
+                        "count": 6487
                     },
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 5554
+                        "count": 5521
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 2664
+                        "count": 2518
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 1509
+                        "count": 1424
+                    },
+                    {
+                        "code": "style/option-without-ai-weight",
+                        "severity": "hint",
+                        "count": 1220
                     },
                     {
                         "code": "style/comment-spacing",
@@ -17054,7 +17146,7 @@
                     {
                         "code": "style/deep-nesting",
                         "severity": "hint",
-                        "count": 82
+                        "count": 78
                     },
                     {
                         "code": "style/spacing",
@@ -17084,8 +17176,15 @@
                         "reason": "VIET_ek_character_setup_effect calls 'ek_character_setup_effect', which neither the mod nor game 1.21.0.3 defines: an Elder Kings compatibility hook, guarded at run time by 'exists = culture:heartlander', but the game reads the scripted effect, and the unknown name in it, whatever the guard. Release 2.3.0 classified the same error a real defect. The mod's descriptor declares supported_version \"1.21.*\"."
                     }
                 ],
-                "warnings": 3,
+                "warnings": 4,
                 "warning_list": [
+                    {
+                        "file": "localization/russian/viet_decisions_l_russian.yml",
+                        "line": 97,
+                        "column": 236,
+                        "code": "localization/unbalanced-brackets",
+                        "message": "Loc key `VIET_decision_visit_legendary_burial_mound_req`: Unterminated `'` at position 185 in ['...'] data single quotes - file `localization/russian/viet_decisions_l_russian.yml`"
+                    },
                     {
                         "file": "localization/russian/viet_event_chains_l_russian.yml",
                         "line": 131,
@@ -17116,8 +17215,8 @@
                 },
                 "capped": {
                     "max_per_file": 1000,
-                    "files": 14,
-                    "dropped": 9080,
+                    "files": 15,
+                    "dropped": 10631,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
@@ -17127,12 +17226,12 @@
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 985
+                            "count": 1070
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 900
+                            "count": 1046
                         },
                         {
                             "code": "style/comment-spacing",
@@ -17142,7 +17241,7 @@
                         {
                             "code": "style/deep-nesting",
                             "severity": "hint",
-                            "count": 28
+                            "count": 32
                         },
                         {
                             "code": "style/empty-block",
@@ -17152,12 +17251,17 @@
                         {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 1555
+                            "count": 1588
                         },
                         {
                             "code": "style/line-endings",
                             "severity": "hint",
                             "count": 1
+                        },
+                        {
+                            "code": "style/option-without-ai-weight",
+                            "severity": "hint",
+                            "count": 919
                         },
                         {
                             "code": "style/spacing",
@@ -17167,7 +17271,7 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 2537
+                            "count": 2901
                         },
                         {
                             "code": "style/unusual-field-order",
@@ -17252,11 +17356,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2212,
-                    "check": 11415,
-                    "total": 13627
+                    "load_base": 2498,
+                    "check": 6402,
+                    "total": 8900
                 },
-                "peak_rss_kib": 1004380
+                "peak_rss_kib": 970380
             }
         ]
     }

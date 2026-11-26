@@ -9,6 +9,8 @@ import type { BestPracticeCheck, BestPracticeInput } from './best-practice.js';
 import { check as styleDeepNesting } from './style-deep-nesting.js';
 import { check as styleEmptyBlock } from './style-empty-block.js';
 import { check as styleNotUtf8 } from './style-not-utf8.js';
+import { check as styleOptionWithoutAiWeight } from './style-option-without-ai-weight.js';
+import { check as styleRedundantCondition } from './style-redundant-condition.js';
 import { check as styleUnusualFieldOrder } from './style-unusual-field-order.js';
 
 /** Every best-practice rule this build ships. */
@@ -16,6 +18,8 @@ export const BEST_PRACTICE_CHECKS: readonly BestPracticeCheck[] = [
     styleDeepNesting,
     styleEmptyBlock,
     styleNotUtf8,
+    styleOptionWithoutAiWeight,
+    styleRedundantCondition,
     styleUnusualFieldOrder,
 ];
 

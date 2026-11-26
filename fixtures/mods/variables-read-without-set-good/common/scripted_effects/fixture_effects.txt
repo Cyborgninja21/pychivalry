@@ -1,0 +1,29 @@
+﻿fixture_count_guests_effect = {
+	set_variable = {
+		name = fixture_count
+		value = 1
+	}
+	add_to_variable_list = {
+		name = fixture_guests
+		target = root
+	}
+	if = {
+		limit = {
+			has_variable = fixture_count
+			is_target_in_variable_list = {
+				name = fixture_guests
+				target = root
+			}
+			has_variable = fixture_base_variable
+			var:fixture_count > 1
+		}
+		every_in_list = {
+			variable = fixture_guests
+			add_gold = 1
+		}
+		change_variable = {
+			name = fixture_count
+			add = 1
+		}
+	}
+}

@@ -20,11 +20,13 @@ harvest.0004 = {
 
 	option = {
 		name = harvest.0004.a
+		ai_chance = { base = 50 }
 		add_prestige = 15
 		harvest_reward_effect = yes
 	}
 	option = {
 		name = harvest.0004.b
+		ai_chance = { base = 50 }
 		add_gold = -10
 		add_stress = -5
 	}
@@ -53,10 +55,12 @@ harvest.0013 = {
 
 	option = {
 		name = harvest.0013.a
+		ai_chance = { base = 50 }
 		capital_county = { change_county_control = 5 }
 	}
 	option = {
 		name = harvest.0013.b
+		ai_chance = { base = 50 }
 		ROOT = { add_gold = 20 }
 	}
 }

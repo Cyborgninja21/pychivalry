@@ -18,7 +18,18 @@ harvest.0010 = {
 harvest.0011 = {
 	type = character_event
 	title = harvest.0011.t
-	desc = harvest.0011.desc
+	desc = {
+		first_valid = {
+			triggered_desc = {
+				trigger = {
+					is_adult = yes
+					is_ruler = yes
+				}
+				desc = harvest.0011.desc
+			}
+			desc = harvest.0010.desc
+		}
+	}
 
 	trigger = {
 		faith = { fervor >= 30 }
@@ -26,11 +37,13 @@ harvest.0011 = {
 
 	option = {
 		name = harvest.0011.a
+		ai_chance = { base = 50 }
 		add_piety = 20
 		faith = { change_fervor = 2 }
 	}
 	option = {
 		name = harvest.0011.b
+		ai_chance = { base = 50 }
 		add_prestige = 10
 	}
 }

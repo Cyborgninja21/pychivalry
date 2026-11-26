@@ -91,6 +91,8 @@ test(`${CODE}: a chain's head, as a key or a value, in any case of the link; nev
         isUsed: (): boolean => true,
         hasDefinition: (): boolean => false,
         isRecordName: (): boolean => false,
+        isVariableSet: (): boolean => true,
+        textScopeReads: (): readonly string[] => [],
     };
     const found = checkText('events/fixture.txt', text, {}, names).filter((f) => f.code === CODE);
     assert.deepEqual(

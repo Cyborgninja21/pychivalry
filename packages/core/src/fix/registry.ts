@@ -9,6 +9,7 @@ import type { Code } from '../check/inventory.js';
 import type { Fixer } from './file.js';
 import { emptyBlockFix } from './empty-block.js';
 import { notUtf8Fix } from './encoding.js';
+import { redundantConditionFix } from './redundant-condition.js';
 import { unusualFieldOrderFix } from './field-order.js';
 import { localizationStubFix } from './localization-stub.js';
 import { bareValueFix, eventShownFix, missingRequiredFieldFix, rangeSwapFix } from './records.js';
@@ -183,6 +184,10 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         what: "Each keyword the game's message names written as '= yes' (hidden, major).",
         fixer: eventShownFix,
     },
+    'structure/triggered-desc-other-field': {
+        offer: 'none',
+        what: "None: whether the key belongs in the block's 'desc', in its 'trigger' or elsewhere is a choice.",
+    },
     'definitions/clash': {
         offer: 'none',
         what: 'None: which definition gets another name is a choice.',
@@ -214,6 +219,14 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         offer: 'none',
         what: 'None: moving the save is a change of what the event does.',
     },
+    'scope/title-text-reads-scope-saved-late': {
+        offer: 'none',
+        what: 'None: moving the save, or the text, is a change of what the event shows.',
+    },
+    'variables/read-without-set': {
+        offer: 'none',
+        what: 'None: the variable may be set where the index cannot see, and which set is meant is a choice.',
+    },
     'localization/missing-key': {
         offer: 'suggestion',
         what: "A stub entry for the key in the mod's localization file of each language it has (one is made when it has none).",
@@ -221,7 +234,7 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     },
     'localization/unbalanced-brackets': {
         offer: 'suggestion',
-        what: 'The statement left open closed after its command, or the extra bracket taken away; offered only where the entry is then balanced.',
+        what: "The statement left open closed after its command, or the extra bracket taken away; for a '[' or a '$' left open, it closed after its command or name, or taken away; offered only where the entry is then balanced.",
         fixer: unbalancedBracketFix,
     },
     'localization/unused-key': {
@@ -327,6 +340,15 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     'style/localization-key-characters': {
         offer: 'none',
         what: "None: a key's name is the author's, and renaming it means renaming every use of it.",
+    },
+    'style/redundant-condition': {
+        offer: 'safe',
+        what: 'The condition taken away, the block keeping its other conditions; a suggestion where that leaves the file out of the format.',
+        fixer: redundantConditionFix,
+    },
+    'style/option-without-ai-weight': {
+        offer: 'none',
+        what: "None: how much the AI should want the option is the author's to say.",
     },
     'style/unusual-field-order': {
         offer: 'safe',

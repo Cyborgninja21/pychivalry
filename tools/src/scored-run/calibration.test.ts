@@ -19,6 +19,7 @@ import {
     exampleDir,
     judgeAnswer,
     judgeStream,
+    LATER_CODES,
     root,
     textFile,
 } from './authoring-testing.js';
@@ -548,10 +549,13 @@ test('a hand-made result of an expert request passes everything code checks: onl
             shown.some((f) => f.state === 'written' || f.state === 'changed'),
             item.result,
         );
-        // Nothing the checker reports, every expectation met.
+        // Nothing the checker reports (but a code it gained after the sheet was made), every
+        // expectation met.
         const check = checkOver(t, result);
         assert.deepEqual(
-            check.findings.map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
+            check.findings
+                .filter((f) => !LATER_CODES.has(f.code))
+                .map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
             [],
             item.result,
         );

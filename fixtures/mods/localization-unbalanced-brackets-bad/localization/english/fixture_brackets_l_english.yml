@@ -4,3 +4,7 @@
  fixture_brackets_unclosed:0 "[ROOT.Char.GetFirstName"
  fixture_brackets_extra_open:0 "[ROOT.Char.GetFirstName [ROOT.Char.GetLastName]"
  fixture_brackets_extra_close:0 "ROOT.Char.GetFirstName] arrives"
+ fixture_brackets_open_paren:0 "[Select_CString( ROOT.Char.IsAdult, 'grown', 'young' "
+ fixture_brackets_open_quote:0 "[Glossary( 'The Blues', 'FIXTURE_GLOSS )]"
+ fixture_brackets_open_dollar:0 "pays $VALUE|0 gold"
+ fixture_brackets_paren_closed_by_bracket:0 "[Select_CString( ROOT.Char.IsAdult ] gold"

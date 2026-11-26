@@ -32,6 +32,8 @@ import {
     formOf,
     NONE,
     USE_STRIDE,
+    variableKey,
+    variableKeyParts,
     type ContainerReading,
     type Extracted,
     type StatementStore,
@@ -121,6 +123,12 @@ interface FileEntry {
     readonly reads: Int32Array;
     /** The words it writes with a `$PARAM$` beside literal text, each with where it starts. */
     readonly templates: Int32Array;
+    /** Format 9: the variables it sets (`variableKey`), each with where its name starts. */
+    readonly varSets: Int32Array;
+    /** Format 9: the plain name of every variable statement it writes, with where it starts. */
+    readonly varNames: Int32Array;
+    /** Format 9, a localization file: the names its texts read as a saved scope or value. */
+    readonly textReads: Int32Array;
 }
 
 /** Everything the cache stores of an index. */
@@ -140,6 +148,9 @@ export interface IndexState {
         readonly saves: Int32Array;
         readonly reads: Int32Array;
         readonly templates: Int32Array;
+        readonly varSets: Int32Array;
+        readonly varNames: Int32Array;
+        readonly textReads: Int32Array;
     }[];
     readonly replacePaths: readonly string[];
 }
@@ -534,12 +545,16 @@ export class WorkspaceIndex {
     private readonly bySave: LayeredMap<number, number[]>;
     /** The files that read each name as a saved scope. */
     private readonly byRead: LayeredMap<number, number[]>;
+    /** The files that set each variable (`variableKey`). */
+    private readonly byVarSet: LayeredMap<number, number[]>;
     /** True once a fork shares this index: it changes no more (`fork`). */
     private frozen = false;
     /** One byte per interned name: 1 when a file uses it. Built when asked, dropped on a change. */
     private usedBits: Uint8Array | null = null;
     /** Every template word of every file, each once. Built when asked, dropped on a change. */
     private templateWords: string[] | null = null;
+    /** Every variable set whose name is a template, each once. Built when asked, dropped on a change. */
+    private variableTemplates: string[] | null = null;
     private replacePaths: string[];
     private statuses: FileStatus[] | null = null;
     /** Per database, what a pass over all its definitions found; dropped on every change. */
@@ -565,6 +580,7 @@ export class WorkspaceIndex {
         this.byName = base === undefined ? new LayeredMap() : base.byName.fork();
         this.bySave = base === undefined ? new LayeredMap() : base.bySave.fork();
         this.byRead = base === undefined ? new LayeredMap() : base.byRead.fork();
+        this.byVarSet = base === undefined ? new LayeredMap() : base.byVarSet.fork();
         this.replacePaths = base === undefined ? [] : [...base.replacePaths];
         this.folders = options.folders;
         this.table = options.rules;
@@ -735,6 +751,7 @@ export class WorkspaceIndex {
                 fileStem: stem.includes('.') ? stem.slice(0, stem.lastIndexOf('.')) : stem,
                 saveRules: this.folders.saveRules,
                 scopeLinks: this.folders.scopeLinks,
+                variables: this.folders.variables,
                 entries: folder === null ? null : this.entriesFor(folder),
                 stores: folder === null ? null : this.storesFor(folder),
             });
@@ -744,7 +761,7 @@ export class WorkspaceIndex {
                 typeof content === 'string'
                     ? parseLocalization(content)
                     : readLocalization(content, { fallbackEncoding: this.fallbackEncoding });
-            const all = extractLocalization(loc, this.strings);
+            const all = extractLocalization(loc, this.strings, this.folders.textScopeForms);
             extracted = folder === null ? { defs: [], uses: all.uses } : all;
             lineStarts = loc.lines.lineStarts;
         }
@@ -766,6 +783,9 @@ export class WorkspaceIndex {
             saves: packUses(extracted.saves ?? []),
             reads: packUses(extracted.reads ?? []),
             templates: packUses(extracted.templates ?? []),
+            varSets: packUses(extracted.varSets ?? []),
+            varNames: packUses(extracted.varNames ?? []),
+            textReads: packUses(extracted.textReads ?? []),
         };
     }
 
@@ -824,6 +844,7 @@ export class WorkspaceIndex {
         for (const [array, map] of [
             [file.saves, this.bySave],
             [file.reads, this.byRead],
+            [file.varSets, this.byVarSet],
         ] as const) {
             for (const name of new Set(this.useNames(array))) {
                 const ids = map.mutable(name, copyList);
@@ -855,6 +876,7 @@ export class WorkspaceIndex {
         for (const [array, map] of [
             [file.saves, this.bySave],
             [file.reads, this.byRead],
+            [file.varSets, this.byVarSet],
         ] as const) {
             for (const name of new Set(this.useNames(array))) {
                 const ids = map.get(name)?.filter((i) => i !== id) ?? [];
@@ -1380,6 +1402,10 @@ export class WorkspaceIndex {
               readonly saves: readonly string[];
               readonly reads: readonly string[];
               readonly templates: readonly string[];
+              /** The variables it sets, by name (format 9). */
+              readonly variables: readonly string[];
+              /** The keys whose text reads a saved scope, each `<key>\u0000<name>` (format 9). */
+              readonly texts: readonly string[];
           }
         | undefined {
         const id = this.byKey.get(`${layer}\u0000${path}`);
@@ -1394,7 +1420,36 @@ export class WorkspaceIndex {
             saves: words(this.useNames(file.saves)),
             reads: words(this.useNames(file.reads)),
             templates: words(this.useNames(file.templates)),
+            variables: [
+                ...new Set(
+                    [...this.useNames(file.varSets)].map(
+                        (n) => variableKeyParts(this.strings.get(n))?.name ?? '',
+                    ),
+                ),
+            ].sort(compareStrings),
+            texts: this.textReadsOf(file).sort(compareStrings),
         };
+    }
+
+    /** A localization file's text reads, each `<key>\u0000<name>`, by the entry they are in. */
+    private textReadsOf(file: FileEntry): string[] {
+        const out = new Set<string>();
+        if (file.textReads.length === 0) {
+            return [];
+        }
+        for (let i = 0; i * DEF_STRIDE < file.defs.length; i++) {
+            const at = i * DEF_STRIDE;
+            const start = file.defs[at + DEF.keyStart] ?? 0;
+            const end = file.defs[at + DEF.end] ?? 0;
+            const key = this.strings.get(file.defs[at + DEF.name] ?? -1);
+            for (let j = 0; j < file.textReads.length; j += USE_STRIDE) {
+                const read = file.textReads[j + 1] ?? -1;
+                if (read >= start && read < end) {
+                    out.add(`${key}\u0000${this.strings.get(file.textReads[j] ?? -1)}`);
+                }
+            }
+        }
+        return [...out];
     }
 
     /**
@@ -1968,6 +2023,7 @@ export class WorkspaceIndex {
         this.resolutions = new Map();
         this.usedBits = null;
         this.templateWords = null;
+        this.variableTemplates = null;
     }
 
     /** A pool sorted in the order the game reads it, or undefined when no row orders it. */
@@ -2483,6 +2539,98 @@ export class WorkspaceIndex {
         return this.templateWords;
     }
 
+    /**
+     * Format 9: every place a variable of this namespace and kind (`holds`) is set as `name`
+     * (`set_variable = { name = x }`, `add_to_variable_list`; the table `variables`), sorted as
+     * `savedScopes`. A set whose name holds a `$PARAM$` is found under its template
+     * (`variableSetTemplates`).
+     */
+    variableSets(namespace: string, holds: string, name: string): Use[] {
+        return this.placesOf(
+            variableKey(namespace, holds, name),
+            this.byVarSet,
+            (file) => file.varSets,
+        );
+    }
+
+    /**
+     * Format 9: every variable set whose name holds a `$PARAM$`, each once, sorted, as
+     * `variableKey` writes it: each stands for every name it can become (`nameTemplatePattern`),
+     * and one that is only a `$PARAM$` (`name = $VAR$`) for any name its callers pass.
+     */
+    variableSetTemplates(): readonly string[] {
+        if (this.variableTemplates === null) {
+            const ids = new Set<number>();
+            for (const file of this.files) {
+                for (const id of this.useNames(file?.varSets ?? [])) {
+                    if (this.strings.get(id).includes('$')) {
+                        ids.add(id);
+                    }
+                }
+            }
+            this.variableTemplates = [...ids]
+                .map((id) => this.strings.get(id))
+                .sort(compareStrings);
+        }
+        return this.variableTemplates;
+    }
+
+    /**
+     * Whether some file writes `name` other than as the name of a variable statement (a keyword
+     * of the table `variables`, or `var:name`): as any other word, a value passed to a parameter
+     * among them. A name no file writes otherwise reaches no set whose name is a `$PARAM$`.
+     */
+    isUsedBesideVariableStatements(name: string): boolean {
+        const id = this.strings.find(name);
+        if (id < 0) {
+            return false;
+        }
+        const count = (array: Int32Array): number => {
+            let n = 0;
+            for (let i = 0; i < array.length; i += USE_STRIDE) {
+                if (array[i] === id) {
+                    n++;
+                }
+            }
+            return n;
+        };
+        for (const file of this.files) {
+            if (file === undefined || !containsSorted(file.names, id)) {
+                continue;
+            }
+            if (count(file.uses) > count(file.varNames)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Format 9: the names the text of the localization key `key` reads as a saved scope or value
+     * (part D9's forms, `FolderTable.textScopeForms`), in any language, in files the game reads
+     * or may read; each once, sorted.
+     */
+    textScopeReads(key: string): string[] {
+        const out = new Set<string>();
+        for (const d of this.definitions(key)) {
+            if (d.read === 'no' || d.form !== 'key') {
+                continue;
+            }
+            const id = this.byKey.get(`${d.layer}\u0000${d.file}`);
+            const file = id === undefined ? undefined : this.files[id];
+            if (file === undefined) {
+                continue;
+            }
+            for (let i = 0; i < file.textReads.length; i += USE_STRIDE) {
+                const at = file.textReads[i + 1] ?? -1;
+                if (at >= d.start && at < d.extentEnd) {
+                    out.add(this.strings.get(file.textReads[i] ?? -1));
+                }
+            }
+        }
+        return [...out].sort(compareStrings);
+    }
+
     /** The places of a name in one of the per-file arrays of names and offsets. */
     private placesOf(
         name: string,
@@ -2732,6 +2880,17 @@ export class WorkspaceIndex {
                 );
             }
             hash.update(`templates\u0000${templates.join('\n')}`);
+            for (const [label, array] of [
+                ['varSets', file.varSets],
+                ['varNames', file.varNames],
+                ['textReads', file.textReads],
+            ] as const) {
+                const out: string[] = [];
+                for (let i = 0; i < array.length; i += USE_STRIDE) {
+                    out.push(`${s(array[i] ?? -1)}\u0001${String(array[i + 1])}`);
+                }
+                hash.update(`${label}\u0000${out.join('\n')}`);
+            }
         }
         hash.update(`replace\u0000${this.replacePaths.join('\u0000')}`);
         return hash.digest('hex');

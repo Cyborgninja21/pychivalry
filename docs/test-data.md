@@ -128,14 +128,26 @@ are exact), so that a test can apply each rule's fixes and find the formatter ha
 change. The existing `encoding-windows-1252` also tests the conversion: its four bytes convert
 safely; since decision 113 it shows one finding, the warning `style/not-utf8`, and no note.
 
+The checks the spec package's format 9 unblocked (2026-11-25) added five pairs, each in the
+format: `structure-triggered-desc-other-field` (a `first_valid` beside a `triggered_desc`'s
+`trigger` and `desc`), `scope-title-text-reads-scope-saved-late` (a dynamic title whose
+localization text reads a scope saved only in an option, through both of part D9's forms the
+check reads), `style-redundant-condition` (an `always = yes` in an `AND` and in a `NAND`, whose
+safe fixes leave the file in the format), `style-option-without-ai-weight` (an option with no AI
+weight beside one with it, and an event of one option, not judged) and
+`variables-read-without-set` (three reads that nothing sets in their namespace and kind, read
+over the stub `event-targets-and-localization`, which now also sets a variable). The pair
+`localization-unbalanced-brackets` gained four openers left open and a `]` inside an open
+parenthesis, which the check does not decide. 70 check pairs in all.
+
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
 to 6.9) and made harder after the first test sessions (decision 83): a "Harvest Festival" mod,
-`mod/`, of 17 files and 539 lines, in pychivalry's format but for its defects, with 35 planted
+`mod/`, of 17 files and 563 lines, in pychivalry's format but for its defects, with 36 planted
 defects, every check code of this build that is an error or a warning at least once (21 errors
-and 8 warnings, the `style/` family's two among them; four codes twice; and the hint of the
-planted formatting defect), and 29
+and 9 warnings, the `style/` family's two among them, `structure/triggered-desc-other-field` since
+format 9; four codes twice; and the hint of the planted formatting defect), and 29
 lines that look wrong and are not; `manifest.json`, which gives each defect's code, the line the
 checker reports it at, the text of that line and the lines a fix may change, and each
 look-alike with why it is right; and `reference/`, the same mod with every defect fixed. Some
@@ -145,8 +157,10 @@ are fixed away from the line the finding points at. It is checked over its own g
 the scripted effect the mod uses and does not define itself, so CI needs no game.
 
 On `mod/` the checker reports exactly the planted defects (26 errors, the clash at both of its
-definitions, 9 warnings and 1 hint); on `reference/`, nothing
-(`tools/src/scored-run/defects.test.ts`). The built agent server gives the same 36 findings
+definitions, 10 warnings and 1 hint); on `reference/`, nothing
+(`tools/src/scored-run/defects.test.ts`). Since format 9 every option of its shown events with
+several options gives the AI a weight (`ai_chance`), in both copies, so that the best-practice
+hint `style/option-without-ai-weight` finds nothing. The built agent server gives the same 37 findings
 (`tools/src/scored-run/server.test.ts`). It is what the scored agent-use test is graded on: in
 each test session of the developer's own Claude Code an agent is asked to fix a fresh copy, and
 the trial passes when the checker reports no errors, every planted defect is gone, nothing else
