@@ -36,7 +36,8 @@ test('every advice check has a row, with what it judged and what it found', (t) 
     events.push('stub.13 = { }');
     writeTree(root, {
         'game/events/stub_events.txt': `${events.join('\n')}\n`,
-        'game/common/scripted_effects/stub_effects.txt': 'stub_effect = { if = { } else = { } }\n',
+        'game/common/scripted_effects/stub_effects.txt':
+            'stub_effect = { if = { } else = { } add_gold = 1 every_child = { } }\n',
     });
     const proof = adviceProof(spec, game, 'linux');
     assert.deepEqual(
@@ -66,24 +67,33 @@ test('every advice check has a row, with what it judged and what it found', (t) 
     // The best-practice rules, with their rate and their counts by folder.
     const empty2 = proof.rows.find((r) => r.code === 'style/empty-block');
     assert.equal(empty2?.kind, 'style');
-    assert.equal(empty2.applies, 2);
-    assert.equal(empty2.fires, 2);
+    assert.equal(empty2.applies, 3);
+    assert.equal(empty2.fires, 3);
     assert.equal(empty2.verdict, 'broken');
     assert.deepEqual(empty2.byFolder, [
-        { folder: 'common/scripted_effects', applies: 2, fires: 2 },
+        { folder: 'common/scripted_effects', applies: 3, fires: 3 },
     ]);
     // By the fix each finding is offered, and by what its data says the place means: an effect
-    // written with an empty block is never offered for removal (decision 167).
-    assert.deepEqual(empty2.byFix, [{ name: 'none', fires: 2 }]);
+    // written with an empty block is never offered for removal (decision 167), an empty effect
+    // iterator is.
+    assert.deepEqual(empty2.byFix, [
+        { name: 'none', fires: 2 },
+        { name: 'parser', fires: 1 },
+    ]);
     assert.deepEqual(empty2.byMeaning, [{ name: 'effect', fires: 2 }]);
+    // Each fix offered, by the block it would change; findings offered none are not listed.
+    assert.deepEqual(empty2.byFixedBlock, [
+        { fix: 'parser', blocks: [{ name: 'every_child', fires: 1 }] },
+    ]);
     const deep = proof.rows.find((r) => r.code === 'style/deep-nesting');
-    assert.deepEqual([deep?.byFix, deep?.byMeaning], [[], []]);
-    assert.deepEqual([twice.byFix, twice.byMeaning], [[], []]);
+    assert.deepEqual([deep?.byFix, deep?.byMeaning, deep?.byFixedBlock], [[], [], []]);
+    assert.deepEqual([twice.byFix, twice.byMeaning, twice.byFixedBlock], [[], [], []]);
     const text = proofText(proof);
-    assert.match(text, /^ {2}fixes offered: none 2$/m);
+    assert.match(text, /^ {2}fixes offered: none 2, parser 1$/m);
     assert.match(text, /^ {2}what they mean: effect 2$/m);
+    assert.match(text, /^ {2}parser offered, by block: every_child 1$/m);
     assert.match(text, /^structure\/event-empty: applies to 13, fires on 1: fires$/m);
-    assert.match(text, /^style\/empty-block: applies to 2, fires on 2 \(100\.00%\): broken$/m);
-    assert.match(text, /^ {2}common\/scripted_effects: applies to 2, fires on 2 \(100\.00%\)$/m);
+    assert.match(text, /^style\/empty-block: applies to 3, fires on 3 \(100\.00%\): broken$/m);
+    assert.match(text, /^ {2}common\/scripted_effects: applies to 3, fires on 3 \(100\.00%\)$/m);
     assert.match(text, /^ {2}events\/stub_events\.txt:14: The event 'stub\.13' is empty\.$/m);
 });
