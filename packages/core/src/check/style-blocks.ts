@@ -16,6 +16,8 @@ export interface InnerBlock {
     readonly depth: number;
     /** The pair whose value it is, or null for a block without a key. */
     readonly pair: Pair | null;
+    /** The block it is written in: the record's body, or a block inside it. */
+    readonly parent: Block;
     /** The record it is in: the top-level pair whose body holds it. */
     readonly record: Pair;
 }
@@ -33,20 +35,20 @@ function blockOfItem(item: Item): { block: Block; pair: Pair | null } | undefine
 
 /** Every block inside each record of a file, outermost first, in the order written. */
 export function innerBlocks(tree: FileNode, visit: (inner: InnerBlock) => void): void {
-    const walk = (record: Pair, items: readonly Item[], depth: number): void => {
-        for (const item of items) {
+    const walk = (record: Pair, parent: Block, depth: number): void => {
+        for (const item of parent.items) {
             const found = blockOfItem(item);
             if (found === undefined) {
                 continue;
             }
-            visit({ block: found.block, depth, pair: found.pair, record });
-            walk(record, found.block.items, depth + 1);
+            visit({ block: found.block, depth, pair: found.pair, parent, record });
+            walk(record, found.block, depth + 1);
         }
     };
     for (const record of recordPairs(tree)) {
         const body = blockOf(record.value);
         if (body !== undefined) {
-            walk(record, body.items, 2);
+            walk(record, body, 2);
         }
     }
 }

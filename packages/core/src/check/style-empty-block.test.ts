@@ -20,7 +20,7 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
             f.data['means'],
         ]),
         [
-            [CODE, 'hint', 'limit', 'no', undefined],
+            [CODE, 'hint', 'limit', 'no', 'trigger-block'],
             [CODE, 'hint', 'else', 'yes', 'effect'],
             [CODE, 'hint', 'any_child', 'no', 'at-least-one'],
             [CODE, 'hint', 'every_child', 'no', undefined],
@@ -100,8 +100,8 @@ test(`${CODE}: an iterator that is a condition asks for at least one; an effect 
 
 test(`${CODE}: a trigger or an effect written with an empty block is never offered for removal`, () => {
     // Taking the block away takes the trigger or the effect away: a change of what the script
-    // does, which the rule never offers (decision 167). A structural key or a scope switch is
-    // read as before.
+    // does, which the rule never offers (decision 167, its extension confirmed by decision 171).
+    // An empty `limit` is a trigger block whose meaning the package leaves open (decision 172).
     const mod = writeMod({
         'descriptor.mod': 'name="x"\n',
         'common/scripted_effects/x.txt':
@@ -115,10 +115,84 @@ test(`${CODE}: a trigger or an effect written with an empty block is never offer
             .map((f) => [f.data['block'], f.data['means'], f.fix?.basis ?? null]),
         [
             ['hidden_effect', 'effect', null],
-            ['limit', undefined, 'parser'],
+            ['limit', 'trigger-block', null],
             ['trigger_else', 'trigger', null],
         ],
     );
+});
+
+test(`${CODE}: an empty trigger block's meaning is left open by the package`, () => {
+    // A structural keyword or a parameter of the block around it whose block the package's
+    // tables read as triggers, and that part D4 gives no `combines_conditions` row: a `limit`,
+    // an `alternative_limit`, a `random_list` entry's `trigger` (decision 172).
+    assert.deepEqual(
+        meanings(
+            [
+                'my_effect = {',
+                '\tadd_gold = 1',
+                '\tif = { limit = {} add_gold = 2 }',
+                '\trandom_list = {',
+                '\t\t10 = { trigger = {} add_gold = 1 }',
+                '\t\t20 = { add_gold = 2 }',
+                '\t}',
+                '\trandom_in_list = { list = x limit = { is_adult = yes } alternative_limit = {} add_gold = 1 }',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [
+            ['limit', 'trigger-block'],
+            ['trigger', 'trigger-block'],
+            ['alternative_limit', 'trigger-block'],
+        ],
+    );
+    // Where the reader judges no key, by the table `structural`: a `limit` in a script value.
+    const value = checkText(
+        'common/script_values/x.txt',
+        'my_value = {\n\tvalue = 1\n\tif = { limit = {} add = 1 }\n}\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        value.map((f) => [f.args[0], f.data['means']]),
+        [['limit', 'trigger-block']],
+    );
+    // A record's own trigger field is a field's default either way: read as before.
+    const event = checkText(
+        'events/x.txt',
+        [
+            'namespace = x',
+            'x.1 = {',
+            '\ttype = character_event',
+            '\thidden = yes',
+            '\ttrigger = {}',
+            '\timmediate = { add_gold = 1 }',
+            '}',
+            '',
+        ].join('\n'),
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        event.map((f) => [f.args[0], f.data['means']]),
+        [['trigger', undefined]],
+    );
+});
+
+test(`${CODE}: the message of a block whose empty meaning is left open says so`, () => {
+    const [found] = checkText(
+        'common/scripted_effects/x.txt',
+        'my_effect = { add_gold = 1 if = { limit = {} add_gold = 2 } }\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(found?.args, [
+        'limit',
+        ': the spec package leaves open what an empty trigger block means',
+    ]);
 });
 
 test(`${CODE}: an iterator the package does not say how to read where it is written means nothing known`, () => {

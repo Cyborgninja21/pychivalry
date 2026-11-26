@@ -6,10 +6,11 @@
             "column": 3,
             "code": "style/empty-block",
             "severity": "hint",
-            "message": "The block 'limit' is empty.",
+            "message": "The block 'limit' is empty: the spec package leaves open what an empty trigger block means.",
             "data": {
                 "block": "limit",
-                "comments": "no"
+                "comments": "no",
+                "means": "trigger-block"
             }
         },
         {
