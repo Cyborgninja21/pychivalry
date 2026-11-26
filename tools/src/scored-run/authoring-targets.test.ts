@@ -442,7 +442,11 @@ test('a record that lacks requests of the list names them, and is not a release 
 });
 
 test("the second run's record, made before the expert requests: read over its twelve, the twelve it lacks named", () => {
-    const { reading } = readRecordTargets(root, {});
+    // records/scored/authoring-run-2.json, the second run's record, kept as the run wrote it
+    // when the release run replaced authoring.json.
+    const { reading } = readRecordTargets(root, {
+        SCORED_RECORD: 'records/scored/authoring-run-2.json',
+    });
     const expert = committedRequests(root)
         .requests.filter((r) => r.difficulty === 'expert')
         .map((r) => r.id);
@@ -453,6 +457,54 @@ test("the second run's record, made before the expert requests: read over its tw
     assert.equal(reading.run, 'development');
     // The measures per request add up to the measures over all, as the reading without the
     // expert requests relies on.
+    const record = JSON.parse(
+        readFileSync(path.join(root, 'records', 'scored', 'authoring-run-2.json'), 'utf8'),
+    ) as { results: AuthoringResults };
+    assert.deepEqual(sumMeasures(record.results.tasks), record.results.overall);
+});
+
+test("the third preview's release run, the committed record: every request 10 times, every target met, with and without the expert requests", () => {
+    // records/scored/authoring.json, the release run of decision 132, made on the owner's word
+    // of 2026-11-26 and committed as the run wrote it; read with no SCORED_RECORD, as the task
+    // reads it by default.
+    const { reading, made_at } = readRecordTargets(root, {});
+    assert.equal(made_at.slice(0, 10), '2026-11-26');
+    assert.equal(reading.run, 'release');
+    assert.deepEqual(reading.missing, []);
+    assert.deepEqual(reading.trials_per_request, { fewest: 10, most: 10 });
+    assert.equal(reading.trials, 240);
+    assert.equal(reading.held, 240);
+    assert.deepEqual(reading.not_held, []);
+    assert.deepEqual(met(reading), {
+        'no-error': true,
+        'no-warning-in-format': true,
+        expectations: true,
+        judged: true,
+    });
+    assert.deepEqual(partsOf(reading), [
+        'no error 240/240',
+        'no warning 240/240',
+        'in the format 240/240',
+        'every expectation met 240/240',
+        'effects-as-asked 180/180',
+        'text-as-asked 120/120',
+        'nothing-unasked 140/140',
+        'conditions-as-asked 210/210',
+        'scope-as-asked 150/150',
+    ]);
+    assert.ok(reading.without_expert !== null);
+    assert.equal(reading.without_expert.requests, 12);
+    assert.equal(reading.without_expert.met, true);
+    // Its sessions were given the committed agent server, and it was judged with the committed
+    // judge's prompt: the reading says both first.
+    assert.deepEqual(reading.server, { schema_version: SERVER_SCHEMA_VERSION, committed: true });
+    assert.equal(reading.judge?.version, JUDGE_PROMPT_VERSION.version);
+    assert.equal(reading.judge.committed, true);
+    assert.deepEqual(targetLines(reading).slice(0, 3), [
+        `its sessions were given the agent server's tool schema version ${String(SERVER_SCHEMA_VERSION)}, the committed one`,
+        `judged with version ${String(JUDGE_PROMPT_VERSION.version)} of the judge's prompt, the committed one`,
+        "every trial's harness held (240)",
+    ]);
     const record = JSON.parse(
         readFileSync(path.join(root, 'records', 'scored', 'authoring.json'), 'utf8'),
     ) as { results: AuthoringResults };

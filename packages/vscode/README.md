@@ -17,9 +17,18 @@ the repository's issues page.
   your mod or the game defines. **Completion** offers what is valid where you are typing. **Go to
   definition**, **find references** and the **outline** of a file work across your mod and the
   base game.
+- **Formatting and quick fixes.** Format Document, Format Selection and formatting as you type,
+  in the one layout pychivalry gives every CK3 script and localization file; a finding with a
+  mechanical fix offers it as a quick fix.
 - **The agent server for your AI.** VS Code's own AI sees pychivalry's tools (check, lookup,
-  find definitions and references, explain a code) as soon as the extension is installed. For
-  Claude Code, run **pychivalry: Set up for Claude Code** once in your mod's folder.
+  find definitions and references, read the game's own text around a place, explain a code,
+  format) as soon as the extension is installed. For Claude Code, run **pychivalry: Set up for
+  Claude Code** once in your mod's folder, and **pychivalry: Remove from Claude Code** to undo it.
+- **Skills for your AI**: explain an error, fix one, and write new content (events with their
+  localization, decisions, scripted effects and scripted triggers), looking every name up first,
+  then checking and repairing, at most five rounds, until the checker reports no error, and
+  formatting what they write. VS Code's own AI has them from the
+  extension; "Set up for Claude Code" copies them into Claude Code's own skills folder.
 - **The command line in the terminal.** In VS Code's integrated terminal, `pychivalry check .`
   checks the mod in the current folder, `pychivalry lookup <name>` looks a name up,
   `pychivalry source <layer> <file> <line>` shows the game's own text around a place a result

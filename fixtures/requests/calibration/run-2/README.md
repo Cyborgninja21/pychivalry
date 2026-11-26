@@ -1,7 +1,9 @@
 # Real results for the judge's calibration
 
 **Real results of test sessions, not hand-made.** These twelve results are the work of the
-second scored authoring run (2026-11-24, [`records/scored/authoring.json`](../../../../records/scored/authoring.json)):
+second scored authoring run (2026-11-24, [`records/scored/authoring-run-2.json`](../../../../records/scored/authoring-run-2.json),
+committed as `records/scored/authoring.json` until the third preview's release run replaced it, the
+name the sheet's `about` still gives):
 Opus 5.5 test sessions, one result of each of the twelve requests. Each is **trial 1** of its
 request, taken by its number before any result was read, so that none was picked for being good
 or bad. How to grade them and run the calibration: [the guide](../../../../docs/guide/judge-calibration.md),

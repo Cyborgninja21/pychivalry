@@ -705,11 +705,13 @@ judge's answers; the measures per request and over all count it in `trials` only
 
 Each run of the whole list writes `records/scored/authoring.json`, the latest run. When a run
 replaces it, the record it replaces is kept beside it, unchanged, as `authoring-run-<n>.json`,
-`<n>` its run's number: the first run's is `records/scored/authoring-run-1.json`, so that its
-measures stay readable without git's history. A run of some requests only never replaces it: it
-is filed beside it under a name of its own (`SCORED_RECORD`;
+`<n>` its run's number: the first run's is `records/scored/authoring-run-1.json` and the second's
+`records/scored/authoring-run-2.json`, so that their measures stay readable without git's history;
+`authoring.json` is the third preview's release run
+([below](#the-third-previews-release-run-decision-132)). A run of some requests only never
+replaces it: it is filed beside it under a name of its own (`SCORED_RECORD`;
 [records/README.md](../../records/README.md#authoring-records-scoredauthoring)), as the expert
-requests' development run is to be, `authoring-expert-run-1.json`.
+requests' development runs are, `authoring-expert-run-1.json` and `authoring-expert-run-2.json`.
 
 ### Tests
 
@@ -733,7 +735,8 @@ trial is made with changed); `SCORED_RECORD`; and the record's checks. `stop-rul
 the stop rule case by case and `continuation.test.ts` which files may change, each refusal, and
 the repository's git on a repository of its own. `authoring-targets.test.ts` reads the targets at
 their thresholds (95% met by 57 of 60 and 19 of 20, not by 56 of 60 or 18 of 20; every result
-means every one), from the committed first run's record, with and without the expert requests,
+means every one), from the committed first run's record, from the release run's (a release run,
+every target met with and without the expert requests), with and without the expert requests,
 and from a record that lacks requests of the list; a trial that did not hold counted against
 each part its own result fails, and for nothing when its result is clean or a session of it
 broke, never raising a rate; a release run needing 10 trials that held of each request; and it
@@ -783,12 +786,12 @@ without starting any session: the committed `records/scored/authoring.json`, or 
 **With and without the expert requests.** The reading over every request of the record decides
 whether the targets are met. When a record has trials of the expert requests and of the others,
 the same targets are read a second time over the others alone, summed from the record's measures
-per request, which add up to its measures over all (a test holds it on the committed record); a
+per request, which add up to its measures over all (a test holds it on the committed records); a
 record of one kind only is read once. A record is read against the committed request list: one
-made before the expert requests were added, as both committed records were, has no trial of them,
-so it is read over the twelve requests it has, and its reading names the twelve it lacks first. A
-record that lacks any request of the list is a development run whatever its trials: a release run
-covers the whole list.
+made before the expert requests were added, as the first two runs' records were, has no trial of
+them, so it is read over the twelve requests it has, and its reading names the twelve it lacks
+first. A record that lacks any request of the list is a development run whatever its trials: a
+release run covers the whole list.
 
 ```sh
 task scored:targets
@@ -798,12 +801,18 @@ SCORED_RECORD=records/scored/authoring-run-1.json task scored:targets
 | Run | No error | No warning, in the format | Every expectation | Judged (lowest dimension) | Targets met |
 | --- | --- | --- | --- | --- | --- |
 | First, 2026-11-24 (`authoring-run-1.json`) | 50 of 60 (83.3%): not met | 0 of 60, 0 of 60: not met | 58 of 60 (96.7%): met | 100%: met | 2 of 4 |
-| Second, 2026-11-24 (`authoring.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 100%: met | 4 of 4 |
+| Second, 2026-11-24 (`authoring-run-2.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 100%: met | 4 of 4 |
 | Expert requests' development run, 2026-11-25 (`authoring-expert-run-1.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 94.5% (`conditions-as-asked` 52 of 55): not met | 3 of 4 |
+| The same judged again with version 2, 2026-11-25 (`authoring-expert-run-1-judge-2.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 100%: met | 4 of 4 |
+| Expert requests' second development run, 2026-11-26 (`authoring-expert-run-2.json`) | 60 of 60: met | 60 of 60, 60 of 60: met | 60 of 60: met | 100%: met | 4 of 4 |
+| **Release run**, 2026-11-26 (`authoring.json`), every request 10 times | 240 of 240: met | 240 of 240, 240 of 240: met | 240 of 240: met | 100%: met | 4 of 4, and 4 of 4 without the expert requests |
 
-Every record of the table was judged with version 1 of the judge's prompt, and its reading says
-so ([The judge](#the-judge)): the expert run's one target not met is that judge's, wrong on the
-game's names ([below](#trigger-loyal-realm-the-judge-was-wrong-from-its-memory-of-the-game)).
+The first three records of the table were judged with version 1 of the judge's prompt, and their
+readings say so ([The judge](#the-judge)): the expert run's one target not met is that judge's,
+wrong on the game's names ([below](#trigger-loyal-realm-the-judge-was-wrong-from-its-memory-of-the-game));
+the last three with version 2. Only the release run is a release run: the others are development
+runs, and the sessions of the first four were given tool schema version 3 or earlier, which their
+readings say first.
 
 ## The first scored authoring run (item 9.8)
 
@@ -971,9 +980,11 @@ to measure the first run's fixes, from the main clone at the merge of #153:
 `SCORED_KEEP=true SCORED_MODEL=claude-opus-5-5 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_SESSION_LIMIT=3 SCORED_CLAUDE=<another Claude Code> CK3_GAME_PATH=<game dir> task scored:authoring`,
 with Claude Code 2.1.330 and the base game 1.21.0.3. Every request of the corrected list, 5 trials
 each: 60 authoring test sessions of Opus 5.5 and 60 judge test sessions of Fable 5.2, **120 test
-sessions**, each with session limit 3. No harness problem stopped it. The record is
-[`records/scored/authoring.json`](../../records/scored/authoring.json), as the run wrote it (its
-last note still says no target is set: it was made at the commit before the targets). The run
+sessions**, each with session limit 3. No harness problem stopped it. The record, committed as
+`records/scored/authoring.json` and kept since the release run as
+[`records/scored/authoring-run-2.json`](../../records/scored/authoring-run-2.json), is as the run
+wrote it (its last note still says no target is set: it was made at the commit before the
+targets). The run
 kept every trial's files; one result of each request is committed for the calibration
 ([below](#calibrating-the-judge-item-96)), and nothing else of them.
 
@@ -1150,15 +1161,17 @@ The second run's 17 tool errors, none a fault of the server, pointed at pychival
 
 ### The release run (decision 132)
 
-The third preview's release run is made once, on the owner's word, after his hand calibration of
-all three sheets (decision 135) and his hand checklist, after the development run of the expert
-requests on tool schema version 5 ([below](#the-next-development-run-decisions-141-and-145)), when the owner says, and once the
-request list is final: 10
-trials whose harness held of each request, the MVP's repetitions before a release. With the
-twenty-four requests that is 240 trials, each one authoring test session and one judge test
+The third preview's release run is made once, on the owner's word, once the request list is
+final: 10 trials whose harness held of each request, the MVP's repetitions before a release. With
+the twenty-four requests that is 240 trials, each one authoring test session and one judge test
 session: **480 test sessions**, and two more for each trial that does not hold and is tried again.
 A record that lacks any request of the list is not a release run of it
-([The targets](#the-targets-item-98)).
+([The targets](#the-targets-item-98)). It was planned after the owner's hand calibration of all
+three sheets (decision 135) and his hand checklist, and after the development run of the expert
+requests on tool schema version 5 ([below](#the-next-development-run-decisions-141-and-145)). On
+his word of 2026-11-26 it was made after that development run and before the calibration and the
+checklist (decision 178), once through, no trial tried again
+([below](#the-third-previews-release-run-decision-132)).
 
 ## The expert requests' development run (decision 134)
 
@@ -1283,7 +1296,8 @@ sessions, **61 trials and 121 test sessions**. It finished with every request at
 held; no stop rule was reached. Its record is filed as
 [`records/scored/authoring-expert-run-1.json`](../../records/scored/authoring-expert-run-1.json),
 byte for byte as the run wrote it ([records/README.md](../../records/README.md#authoring-records-scoredauthoring));
-`authoring.json` stays the second run's. The run kept every trial's files, in one folder per part;
+`authoring.json` stays the second run's (since the release run, `authoring-run-2.json`). The run
+kept every trial's files, in one folder per part;
 nothing of them is committed.
 
 | Request | Type | Held | No error | No warning | In the format | Every expectation | Judge: yes |
@@ -1509,9 +1523,10 @@ own reading say first which version a record's sessions were given, and, for any
 committed one, that its measures are not comparable with a record of the committed version
 without saying so; a run continuing a record refuses one of another version, or of none (the
 server is compared), so a record never holds sessions of two versions. The judge's version is named
-the same way, by its prompt's hash. So the committed records, `authoring-run-1.json`,
-`authoring.json`, `authoring-expert-run-1.json` and its re-judged copy, are read as made with
-version 3 or earlier, and the next run's as made with version 4.
+the same way, by its prompt's hash. So the records committed then, `authoring-run-1.json`, the
+second run's (then `authoring.json`, now `authoring-run-2.json`), `authoring-expert-run-1.json`
+and its re-judged copy, are read as made with version 3 or earlier, and the next run's as made with
+version 4.
 
 ### Tool schema version 5 (decision 144)
 
@@ -1781,6 +1796,199 @@ as the `any_prisoner = { }` that `decision-pardon-prisoners` 2 and 5 kept, is re
 condition that asks for at least one, and its fix writes `count >= 1` in it rather than taking it
 away. A hint is counted by no target, so no grade moves; a session reading the hint now reads
 what the empty block means.
+
+## The third preview's release run (decision 132)
+
+On the owner's word of 2026-11-26 (decision 178), given before his hand calibration and his hand
+checklist: the release run of decision 132, the whole request list, all 24 requests, 10 trials
+each, **480 test sessions** of Claude Code 2.1.330 (240 authoring of Opus 5.5, 240 judge of Fable
+5.2 with version 2 of the judge's prompt), each with session limit 3, the trials kept, from the main
+clone at the merge of #168 (`c09fe1d`): tool schema version 5, the spec package in format 9, the
+skills writing every tool by its full name (decision 168) and `style/empty-block` as decisions 167
+to 177 left it. With this command, and `SCORED_KEEP=true`:
+
+```sh
+SCORED_MODEL=claude-opus-5-5 SCORED_TRIALS=10 SCORED_SESSION_LIMIT=3 SCORED_JUDGE_MODEL=claude-fable-5-2 SCORED_CLAUDE=<another Claude Code> SCORED_RECORD=records/scored/authoring-release-run-1.json CK3_GAME_PATH=<game dir> task scored:authoring
+```
+
+It ran once through, in about two hours: no trial was tried again and no stop rule was reached.
+`SCORED_RECORD` had it write beside the committed record rather than over it while it ran; it is a
+run of the whole list, so it is filed as
+[`records/scored/authoring.json`](../../records/scored/authoring.json), byte for byte as the run
+wrote it (its `command` names the file it was written to), and the record it replaces, the second
+run's, is kept as `authoring-run-2.json` ([records/README.md](../../records/README.md#authoring-records-scoredauthoring)).
+It is the second record of tool schema version 5 and the first of the skills of decision 168, so
+**it is not compared with `authoring-expert-run-2.json` without saying so**: below, its expert
+requests are set beside that run's for what changed in these sessions, not as one measure.
+
+| Request | Type | Difficulty | Held | No error | No warning | In the format | Every expectation | Judge: yes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `event-merchant-debt` | event | easy | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `event-sleepless-night` | event | medium | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `event-letter-from-spouse` | event | hard | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `decision-give-alms` | decision | easy | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `decision-night-vigil` | decision | medium | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `decision-hold-banquet` | decision | hard | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `effect-reward` | scripted effect | easy | 10 of 10 | 10 | 10 | 10 | 10 | 20 of 20 |
+| `effect-war-chest` | scripted effect | medium | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `effect-children-gift` | scripted effect | hard | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `trigger-can-host` | scripted trigger | easy | 10 of 10 | 10 | 10 | 10 | 10 | 20 of 20 |
+| `trigger-family-ready` | scripted trigger | medium | 10 of 10 | 10 | 10 | 10 | 10 | 20 of 20 |
+| `trigger-banquet-guest` | scripted trigger | hard | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `event-granary-inspection` | event | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `event-envoy-chain` | event | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `event-county-unrest` | event | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `decision-fund-granaries` | decision | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `decision-pardon-prisoners` | decision | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `decision-house-feast` | decision | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `effect-realm-relief` | scripted effect | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `effect-granary-gift-edit` | scripted effect | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `effect-heir-household` | scripted effect | expert | 10 of 10 | 10 | 10 | 10 | 10 | 40 of 40 |
+| `trigger-loyal-realm` | scripted trigger | expert | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `trigger-granary-patron` | scripted trigger | expert | 10 of 10 | 10 | 10 | 10 | 10 | 30 of 30 |
+| `trigger-settled-ruler` | scripted trigger | expert | 10 of 10 | 10 | 10 | 10 | 10 | 20 of 20 |
+| **All** | | | **240 of 240** | **240** | **240** | **240** | **240** | **800 of 800** |
+
+Against the owner's targets (`task scored:targets`, which reads the committed record by default
+and says first that its sessions were given the committed tool schema version 5 and that it was
+judged with the committed version 2): **a release run**, 10 trials that held of every request of
+the list; no error 240 of 240, no warning and in the format 240 of 240 each, every expectation 240
+of 240, and every judged dimension 100% yes (`effects-as-asked` 180 of 180, `text-as-asked` 120 of
+120, `nothing-unasked` 140 of 140, `conditions-as-asked` 210 of 210, `scope-as-asked` 150 of 150):
+**every target met**, and every target met again over the twelve requests that are not expert. Every
+trial held, every session ended by itself, none was denied a permission, and every judge session
+answered in one turn. **The judge said yes to every one of its 800 questions**: its ability to say
+no is not yet calibrated against grading by hand ([below](#what-the-release-run-shows-and-what-it-does-not)).
+
+### What the 240 kept trials show
+
+Read from the record and the kept output streams, with no model, as the second expert run's were
+(the same reading, which gives that run's published figures when run on its kept trials); its figures
+are in brackets, set beside this run's 120 sessions of the same twelve expert requests, and the
+figures over all 240 sessions come first. The first drafts were not rebuilt this time: what point 8
+says of the traps is read from the sessions' own calls.
+
+1. **`lookup` answered most first lookups whole.** The first `lookup` of every session asked for 2
+   to 19 names (median 7). In 165 of the 240 sessions it answered every name whole in one call: 83
+   of the 120 expert sessions (40 of 60) and 82 of the other 120. The other 75 named 1 to 10 names
+   each in `not_answered`, 309 in all, never a name cut short: 66 of those sessions looked some of
+   them up again (34 all of them), 223 of the 309 names in all (expert: 37 sessions, 115 names, 30
+   asking some again and 16 all, 78 names; before 20, 56, 14, 9 and 40). Of the 86 never asked
+   again, 45 were written in the result unlooked-up, each a field or word of the folder that the base
+   mod or another reading had shown (`name` and `type` 8 times each, `desc`, `title` and `option` 5,
+   `namespace` and `character_event` 3, `base` and `count` 2, `left_portrait`, `right_portrait`,
+   `theme` and `trigger` once), and the check after writing found nothing in them. Of all 395
+   `lookup` answers, 111 named something in `not_answered` and none was cut (expert: 201 and 55;
+   before 104 and 27). No cursor was given, so none was refused.
+2. **`source` was called 9 times, in 9 sessions, never refused** (expert: 2; before 3), each on
+   the game layer, each to see how the base game writes what the session was about to write:
+   `event-letter-from-spouse` 1, 5 and 7 on the game's `yearly_playable_pulse`
+   (`common/on_action/yearly_on_actions.txt` line 973, and the merchant pack's
+   `common/on_action/dlc/gdp/gdp_merchant_on_actions.txt` line 27), the on-action the request hooks;
+   `decision-give-alms` 5, `decision-hold-banquet` 6 and `decision-house-feast` 6 on
+   `common/decisions/00_artifact_decisions.txt` line 3, a decision's `picture`;
+   `decision-night-vigil` 8 and 9 on the head of `common/decisions/00_lifestyle_decisions.txt`
+   (lines 20 and 21, 39 and 40 lines shown); `decision-pardon-prisoners` 10 on
+   `common/casus_belli_types/05_fp3_wars.txt` line 1042, the game's own `release_from_prison`, as
+   two sessions did before. Each answer held 6 to 40 lines and 430 to 1,424 characters.
+   `explain_code` was called by no session; `find_references` once (`decision-give-alms` 5, on a
+   picture's file path, which it answered that nothing in the mod or the game writes) and `format`
+   once (`effect-granary-gift-edit` 2, on the file it was about to change).
+3. **`lookup`'s `evidence` was never asked for**, in any of the 395 calls (none of 104 before).
+   Only the explain-error skill names it, and every session loaded the write-content skill, once.
+4. **No `Read`, `Edit` or `Write` outside the mod** (none before). All 99 `Read`s were of the mod's
+   own files (expert: 75; before 38), none of a folder.
+5. **Tool errors: 2, both a call of `list_definitions` by its bare name** (before: 9, in 5 of 60
+   sessions, every one by a bare name). Both are `event-granary-inspection` sessions, 3 and 8, the
+   request with the most bare calls before, and both have one shape, the shape of seven of the nine
+   before: in its first message after the skill loaded, the session called three tools at once,
+   `list_definitions` of the folder `events` by the bare name with `limit` as a string (`"5"`), and
+   `mcp__pychivalry__list_definitions` and `mcp__pychivalry__check` by their listed names. Claude
+   Code answered "No such tool available", and each session called
+   `mcp__pychivalry__list_definitions` of `events` by its listed name in its next message, with
+   `limit` a number. So **the skills writing every tool by its full name in every step (decision
+   168) did not take the bare-name errors away, but cut them** from 9 in 60 sessions of the twelve
+   expert requests to 2 in 120 sessions of the same requests, and none in the 120 sessions of the
+   other twelve (the second run, on those twelve with tool schema version 3 and the skills of then:
+   13 in 4 of 60 sessions). No pychivalry tool answered with an error.
+6. **Every option of every event with several options got an AI weight** (rule 8). The 60 event
+   sessions each wrote one event with several options, 130 options in all, and every one has
+   `ai_chance = { base = N }`, the options of an event always the same: 50 in the 48 events of two
+   options of five requests, 100 in two of `event-granary-inspection`'s, and in
+   `event-sleepless-night`'s three options 100 in nine events and 10 in one (before: 15 events, 30
+   options, 50 in fourteen and 100 in one). Every event session looked `ai_chance` up before
+   writing its event, 55 of them with `folder` set to `events`. No check after writing reported
+   `style/option-without-ai-weight`.
+7. **No repair round was needed.** No session's check after writing reported an error or a
+   warning, so the repair loop and its five-round stop rule were never used (none before either).
+   42 sessions, all of decisions (all ten of `decision-night-vigil` and `decision-fund-granaries`,
+   nine of `decision-hold-banquet` and `decision-pardon-prisoners`, three of `decision-give-alms`,
+   one of `decision-house-feast`), changed a file after their first check after writing for advice:
+   the field order (`style/unusual-field-order`), a decision's `picture` (`fields/usually-present`)
+   or, in `decision-pardon-prisoners` 1 to 7 and 9, the empty `any_prisoner = { }` that asks for at
+   least one prisoner. `style/empty-block` now says so and suggests `count >= 1` (decision 167), and
+   each of the eight wrote it; the other two wrote `any_prisoner = { count >= 1 }` from the start,
+   so all ten results hold it (before: four drew the hint, whose message did not yet say what the
+   block means, and two kept the empty block). The results keep 52 information findings, every one
+   a decision without a `picture`, and 1 hint (`decision-hold-banquet` 7, a field order its check at
+   `min_severity` warning counted in its totals and did not list), none counted by a target
+   (before: 14 and 3). 217 sessions checked the mod before writing (expert: 102 of 120; before 54
+   of 60); every session checked after writing, 1 to 5 checks a session, median 2.
+8. **The traps were looked up, not fallen into.** Every `event-county-unrest` and
+   `trigger-loyal-realm` session looked `county_opinion` up before writing (20 of 20; 10 of 10
+   before), learned it was removed and wrote `popular_opinion`; `decision-house-feast` sessions
+   looked `house_power` up (6 of 10; 4 of 5 before) or went straight to `house_power_score`, which
+   all ten wrote; no session of `decision-pardon-prisoners` or `trigger-settled-ruler` named
+   `is_at_peace`, `has_spouse` or `release_prisoner`. No check after writing found an error or a
+   warning, so none of the eight traps the checker catches was in anything a session checked; in
+   the four requests whose trap only an expectation catches, no session wrote or changed a file
+   after its first check after writing, so what it first checked is what it handed in, and every
+   one meets every expectation.
+9. **Calls, turns and time.** `check` 557 (1 to 5 a session), `apply_format` 473 (in every session:
+   417 wrote the file, 56 found it already in the format, none refused), `Write` 406, `lookup` 395,
+   `Skill` 240 (once each), `find_definition` 219, `Read` 99, `Edit` 80, `list_definitions` 58 and 2
+   by the bare name, `source` 9, `find_references` 1, `format` 1: 2,540 calls, 6 to 20 a session,
+   median 10 (expert: 1,301, 6 to 20, median 9; before 664, 6 to 21, median 9). Every session ended
+   by itself in 8 to 22 turns, median 12 (expert: median 11; before 8 to 23, median 11), and 10 to 35
+   seconds, median 19 (expert: 11 to 35, median 21; before 11 to 34, median 20); 3,020 turns and
+   82.1 minutes of session time in all (expert: 1,541 and 42.4; before 784 and 20.8). Every judge
+   session answered in one turn, in 2 to 12 seconds (2 to 11 before).
+
+### What the release run shows, and what it does not
+
+- **It is the release run**: 10 trials of each of the 24 requests, as MVP.md's repetitions before a
+  release ask, every trial held, and every measure at its ceiling. It shows that what a session is
+  given at `c09fe1d` (tool schema version 5, the format 9 package, the skills of decision 168) meets
+  every one of the owner's targets as a release run, with and without the expert requests. It does
+  not show that a better or worse server or skill would score differently: no measure has room
+  left, and no session needed to repair an error, so the run says nothing of how a session repairs.
+- **The judge's ability to say no is not yet calibrated.** It said yes to all 800 of its questions,
+  which agrees with everything code checks (no error, no warning, every expectation met in every
+  result) and with version 2 of its prompt no longer saying no where the game says yes (decision
+  139). No run has shown that it says no where it should: that is what the owner's three
+  hand-graded calibration sheets measure, which decision 135 placed before this run and which the
+  owner chose to grade after it (decision 178). The judged half of the targets therefore rests on a
+  judge whose agreement with hand grading is not yet known.
+- **It measures Claude Code only.** How VS Code's own AI follows the same skills is the hand
+  checklist's to show ([docs/guide/ai-checklist.md](../../docs/guide/ai-checklist.md)), which has
+  not been run; nor has the by-hand check of a preview. The in-game load, the third measure, waits
+  for build step 11.
+- **Its expert half beside the second expert run** is of other skills (every tool by its full
+  name) and of a changed `style/empty-block` message, on the same tools and package, one model each
+  time; the figures say what changed in these sessions, not why, beyond what the streams show.
+
+### What was done after the release run
+
+Nothing in the kept trials shows a fault of pychivalry's own: no pychivalry tool answered with an
+error, none refused a call, and no answer was cut. **No code was changed.** The two tool errors are
+Claude Code's answer to a name it does not list, which never reached the agent server; the skills
+already write every tool by its listed name and say to call it again by that name, which both
+sessions did at their next message. The record is filed as `authoring.json` and the second run's
+kept as `authoring-run-2.json`; the test that lists every committed authoring record with the
+judge's version it was judged with (`judge.test.ts`) names both, and `authoring-targets.test.ts`
+reads the release run's targets from the committed record. The extension's version is 0.3.0 and
+the third preview's release text is drafted, not published
+([docs/preview-release-0.3.0.md](../../docs/preview-release-0.3.0.md)).
 
 ## Re-judging kept results
 

@@ -21,8 +21,8 @@ enforces and this page is fixed.
 | `baseline-2.3.0/speed-mods.json`, `speed-base-game.json`, `speed-editor.json` | `task baseline:speed` |
 | `baseline-2.3.0/results-base-game.json`, `results-mods.json` | `task baseline:results` |
 | `scored/agent-use.json` | `task scored:agent-use`, a scored test run in test sessions of the developer's own Claude Code ([below](#scored-records)) |
-| `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code: the latest run ([below](#authoring-records-scoredauthoring)) |
-| `scored/authoring-run-<n>.json` | An earlier authoring run's record, kept unchanged when a later run replaced `authoring.json`: `authoring-run-1.json` is the first run's ([below](#authoring-records-scoredauthoring)) |
+| `scored/authoring.json` | `task scored:authoring`, the scored authoring test, in test sessions of the developer's own Claude Code: the latest run of the whole request list, since 2026-11-26 the third preview's release run ([below](#authoring-records-scoredauthoring)) |
+| `scored/authoring-run-<n>.json` | An earlier authoring run's record, kept unchanged when a later run replaced `authoring.json`: `authoring-run-1.json` is the first run's, `authoring-run-2.json` the second's ([below](#authoring-records-scoredauthoring)) |
 | `scored/authoring-<set>-run-<n>.json` | A run of some requests only, filed beside `authoring.json`: `authoring-expert-run-1.json` is the expert requests' first development run, `authoring-expert-run-2.json` their second, the first made on tool schema version 5 ([below](#authoring-records-scoredauthoring)) |
 | `scored/<record>-judge-<version>.json` | `task scored:rejudge`: an authoring record's kept results judged again with version `<version>` of the judge's prompt, written beside the record, never over it ([below](#authoring-records-scoredauthoring)) |
 | `scored/calibration.json`, or the file of `scored/` that `SCORED_RECORD` names | `task scored:calibrate`, the judge's calibration against hand grades, in test sessions of the same; one record per sheet graded (`calibration-hand-made.json`, `calibration-run-2.json`) ([below](#calibration-records-scoredcalibration)) |
@@ -384,7 +384,12 @@ files of code that changed since the record's own.
 **Which file.** `authoring.json` is always the latest run of the whole request list; when a run of
 the whole list replaces it, the record it replaces is kept beside it, unchanged, as
 `authoring-run-<n>.json`, `<n>` its run's number: the first run's is `authoring-run-1.json`, the
-second's is `authoring.json`. **A run of some requests only** (`SCORED_REQUESTS` naming fewer than
+second's `authoring-run-2.json`, and the third, the third preview's release run (decision 132), is
+`authoring.json`. That run was given `SCORED_RECORD` naming `authoring-release-run-1.json`, so that
+it wrote beside the committed record rather than over it while it ran; being a run of the whole
+list, it is filed as `authoring.json`, byte for byte as the run wrote it (its `command` still names
+the file it was written to), the second run's record moved to `authoring-run-2.json` with `git mv`
+in a commit of its own, so that git's history follows it. **A run of some requests only** (`SCORED_REQUESTS` naming fewer than
 every request) never replaces `authoring.json`. It is filed beside it, as the run wrote it, as
 `authoring-<set>-run-<n>.json`: `<set>` a word for the requests it covers, `expert` for the twelve
 expert requests, and `<n>` the number of that set's runs, from 1. A run given `SCORED_RECORD` with
@@ -393,7 +398,7 @@ the name, byte for byte, and giving `authoring.json` back as committed (`git res
 commit. `task records:check` checks every one of them like any record, and `task scored:targets`
 reads one with `SCORED_RECORD`. The expert requests' development run (decision 134), continued
 from the record its first part wrote into `authoring.json`, finished on 2026-11-25 and is filed so,
-as `authoring-expert-run-1.json`; `authoring.json` is the second run's, as committed. Their second
+as `authoring-expert-run-1.json`; `authoring.json` was then the second run's, as committed. Their second
 development run (decision 165), given `SCORED_RECORD`, wrote `authoring-expert-run-2.json` itself
 on 2026-11-26, and it is committed as the run wrote it.
 
@@ -414,7 +419,8 @@ without it, every one committed before, was made with version 3 or earlier (no `
 in pages, game places that did not say how they are read). `task scored:targets` says which a
 record's sessions were given and that records of different versions are not comparable without
 saying so, and a run refuses to continue a record of another version. The first record of version
-5, the one committed, is `authoring-expert-run-2.json` (no record was made on version 4).
+5 is `authoring-expert-run-2.json`, and the second the release run's, `authoring.json` (no record
+was made on version 4).
 
 ### Calibration records (`scored:calibration`)
 

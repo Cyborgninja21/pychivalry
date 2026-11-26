@@ -40,31 +40,33 @@ Until the third preview is published, the check runs on an extension file built 
 repository's `main`, on the machine where you run the check:
 
 1. **Build it.** In an up-to-date clone of `main` (`git pull`), run `task install` and then
-   `task vscode:package`. It writes `packages/vscode/dist/pychivalry-0.2.0.vsix` and prints its
-   contents: the list includes `extension/dist/bundle/skills/`, the three skills. The version in
-   its name is still 0.2.0: `main` has not been given a new version since the second preview, so
-   the file has the preview's version but not its contents.
+   `task vscode:package`. It writes `packages/vscode/dist/pychivalry-0.3.0.vsix` and prints its
+   contents: the list includes `extension/dist/bundle/skills/`, the three skills. Its version is
+   0.3.0, the third preview's: `main` was given it on 2026-11-26 with the third preview's release
+   run, before that preview is published, so until it is, a build from `main` has the coming
+   preview's version, and only the commit it was built from tells two such builds apart.
 2. **Install it over 0.2.0.** From a terminal, with VS Code closed:
 
    ```sh
-   code --install-extension packages/vscode/dist/pychivalry-0.2.0.vsix --force
+   code --install-extension packages/vscode/dist/pychivalry-0.3.0.vsix --force
    ```
 
-   It replaces the installed 0.2.0 in place, in the same folder
-   (`~/.vscode/extensions/cyborgninja21.pychivalry-0.2.0/`, on Windows
-   `%USERPROFILE%\.vscode\extensions\cyborgninja21.pychivalry-0.2.0\`); VS Code 1.147's command line
-   installs a file of the same version over the installed one, and `--force` makes sure of it. If
-   VS Code was open, run "Developer: Reload Window" afterwards. Going back to the preview is the
-   same command with the preview's own file.
-3. **Tell which one is installed.** Both say version 0.2.0 everywhere VS Code shows a version
-   (the Extensions view, `code --list-extensions --show-versions`), so the version cannot tell
-   them apart. The build from `main` has, and the preview has not:
+   It updates the installed 0.2.0 to 0.3.0, in the folder
+   `~/.vscode/extensions/cyborgninja21.pychivalry-0.3.0/` (on Windows
+   `%USERPROFILE%\.vscode\extensions\cyborgninja21.pychivalry-0.3.0\`); VS Code removes the old
+   version's folder. `--force` also installs a file of the same version over the installed one, as
+   a later build from `main` is. If VS Code was open, run "Developer: Reload Window" afterwards.
+   Going back to the preview is the same command with the preview's own file.
+3. **Tell which one is installed.** The Extensions view and
+   `code --list-extensions --show-versions` say 0.3.0 for the build from `main` and 0.2.0 for the
+   preview. The build from `main` also has, and the preview has not:
    - the command **"pychivalry: Remove from Claude Code"** in the Command Palette (type
      `pychivalry`: the preview offers only "Set up for Claude Code");
    - the three skills when you type `/` in the Chat view (the first check below);
    - the folder `dist/bundle/skills/` in the installed extension's folder named above.
 
-   If any of the three is missing, the preview is still installed: install the build again.
+   If the version says 0.2.0, or any of the three is missing, the preview is still installed:
+   install the build again.
 
 ## Before the requests
 
@@ -182,7 +184,8 @@ Write down for each request: pass or fail on each line below, and what you saw.
 The check passes when every line passes for every request, or each that fails has a reason
 written down that is VS Code's or the model's, not pychivalry's. Note the date, the operating
 system, VS Code's version (Help, About), the model the chat used, and pychivalry's version (for
-a build from `main`, the commit it was built from, `git rev-parse --short HEAD` in the clone, since
-its version still reads 0.2.0), and give the notes to the owner: the result is recorded with build step 9 in
+a build from `main`, also the commit it was built from, `git rev-parse --short HEAD` in the clone,
+since it reads 0.3.0 as the coming preview will), and give the notes to the owner: the result is
+recorded with build step 9 in
 [PLAN.md](../PLAN.md). When something fails because of pychivalry, report it on the repository's
 issues page with the request, the chat's tool calls and the "pychivalry" output channel's text.

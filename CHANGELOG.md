@@ -600,6 +600,27 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `nothing-unasked` 35 of 35, `conditions-as-asked` 55 of 55: every target met. The judge again
   said yes to all 220 questions. What its 60 kept trials show, beside the first expert run's 61,
   is in [tools/scored-run/README.md](tools/scored-run/README.md#the-expert-requests-second-development-run-decision-165).
+- `records/scored/authoring.json`: the third preview's release run (decision 132), made on the
+  owner's word of 2026-11-26, before his hand calibration and his hand checklist (decision 178),
+  from the merge of #168, and committed as the run wrote it (decision 179): all 24 requests, 10
+  trials each, 480 test sessions of Claude Code (Opus 5.5 writing, Fable 5.2 judging with version 2
+  of its prompt), each with session limit 3, every trial held; no error, no warning, in the format
+  and every expectation 240 of 240; `effects-as-asked` 180 of 180, `text-as-asked` 120 of 120,
+  `nothing-unasked` 140 of 140, `conditions-as-asked` 210 of 210, `scope-as-asked` 150 of 150:
+  every target met as a release run, and again without the expert requests. The judge said yes to
+  all 800 of its questions and is not yet calibrated against hand grading, so whether it says no
+  where it should is still unmeasured. What its 240 kept trials show, beside the second expert
+  run's, is in [tools/scored-run/README.md](tools/scored-run/README.md#the-third-previews-release-run-decision-132):
+  2 tool errors, both a tool called by its bare name (9 in the second expert run's 60 sessions),
+  no file read outside the mod, every option weighted, no repair round needed; no fault of
+  pychivalry's, so no code changed.
+- `docs/preview-release-0.3.0.md`: the third preview's pre-release, drafted (item 9.9): the tag
+  `v0.3.0`, the title "pychivalry 0.3.0 (preview)", the file `pychivalry-0.3.0.vsix`, what is new
+  since 0.2.0, and the notes. **Nothing is published**: no tag and no release; the owner decides.
+- A test that reads the release run's targets from the committed record: a release run, 240 of 240
+  on every measure, every target met with and without the expert requests, its sessions given the
+  committed tool schema version and judged with the committed judge's prompt
+  (`authoring-targets.test.ts`).
 
 ### Changed
 
@@ -1001,6 +1022,19 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (`jomini is not a layer read here; the layers are mod, game`, and without a game `the base game
   is not read, so the only layer is mod`) and a place that ends past the file (`the place ends at
   line N, past the end of the file`).
+- The second scored authoring run's record is kept as `records/scored/authoring-run-2.json`, byte
+  for byte, moved with `git mv` in a commit of its own, since the release run's record is
+  `authoring.json` now (records/README.md); `judge.test.ts` lists both with the judge's version
+  each was judged with (`authoring.json` version 2, `authoring-run-2.json` version 1), the test of
+  the second run reads it by name, and every document naming the file says which run it is.
+- The extension's version is 0.3.0 (`packages/vscode/package.json` and the lock file), the third
+  preview's, before that preview is published: a build from `main` writes
+  `pychivalry-0.3.0.vsix`. The hand checklist says how to install it over 0.2.0 and tell the two
+  apart by their versions; the install guide names the file a build writes; the extension's own
+  README names formatting and quick fixes, the agent server's `source` and `format`, "Remove from
+  Claude Code" and the three skills.
+- The guide's calibration page and the second run's calibration sheet say where the second run's
+  record is now, and that the three sheets are graded after the release run (decision 178).
 
 ### Fixed
 
@@ -1039,13 +1073,13 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
-- Build step 9: the judge's calibration (item 9.6), on its three sheets, all before the release
-  run (decision 135), and the hand checklist on VS Code's AI (item 9.7), on an extension file
-  built from `main`, are the owner's to run, and the third preview (9.9) waits for both. The
-  development run of the expert requests on tool schema version 5 was made on his word of
-  2026-11-26 and met every target (decisions 165 and 166). The third preview's release run, 10
-  trials of each of the 24 requests, 480 test sessions, is made once on his word after the
-  calibration and the checklist (decision 132).
+- Build step 9: the judge's calibration (item 9.6), on its three sheets, and the hand checklist on
+  VS Code's AI (item 9.7), on an extension file built from `main`, are the owner's to run. The
+  third preview's release run was made on his word of 2026-11-26, before both (decision 178), and
+  met every target (decision 179); its judge said yes to all 800 of its questions, and only the
+  calibration can show that it says no where it should. The third preview, 0.3.0, is drafted in
+  `docs/preview-release-0.3.0.md` and not published; whether it is published before the
+  calibration and the checklist is asked of the owner.
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - The game-concept half of `references/unknown-name` stays blocked: without a concept's aliases
