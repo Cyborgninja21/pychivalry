@@ -9,7 +9,9 @@
  * `cases` ("every other key of the body is a case label whose block keeps the context"), and
  * whose body it read as triggers or effects; the case is any key of that body that is not one of
  * the rule's `params`. The reader judges no case's key, so neither row 167 nor row 172 covers
- * one. From the package's data:
+ * one. Where the reader judges no key, in a block it reads as record fields or as a script value
+ * (inside the body of an effect the package gives no rule for), the container's name decides by
+ * the same table, as it does for a `limit` there (`empty-open.ts`). From the package's data:
  *
  * - **An entry of a random list**: a case of a container whose cases take parameters of their
  *   own, from the table its `case_params` names (the package's `random_list_entry`: the entry's
@@ -42,7 +44,9 @@ export interface EmptyCase {
 export interface CasePlace {
     /** The folder of the spec's list the file is in, if any. */
     readonly directory: string | null;
-    /** The reader's judgement of the key whose block the empty one is written in, if it judged it. */
+    /** The pair whose block the empty one is written in, if it is written in a pair's block. */
+    readonly around: Pair | undefined;
+    /** The reader's judgement of that pair's key, when it judged it. */
     readonly container: JudgedKey | undefined;
     /** How the reader reads the block the empty one is written in, if it reads it. */
     readonly parent: BlockKind | undefined;
@@ -53,21 +57,29 @@ export interface CasePlace {
  * (see the head of this file).
  */
 export function emptyCase(spec: Spec, pair: Pair, place: CasePlace): EmptyCase | null {
-    const { container } = place;
-    if (
-        container === undefined ||
-        container.reading.kind !== 'keyword' ||
-        (place.parent !== 'trigger' && place.parent !== 'effect')
-    ) {
+    const { around, container, parent } = place;
+    if (around === undefined) {
         return null;
     }
-    const name = container.folded ?? container.pair.key.text;
+    let name: string;
+    if (container === undefined) {
+        // Not judged: read by its name, in a block read as record fields or as a script value.
+        if (parent !== 'none' && parent !== 'script-value') {
+            return null;
+        }
+        name = around.key.text;
+    } else {
+        if (container.reading.kind !== 'keyword' || (parent !== 'trigger' && parent !== 'effect')) {
+            return null;
+        }
+        name = container.folded ?? around.key.text;
+    }
     const rule = tablesOf(spec).containers.get(name);
     if (rule === undefined || !rule.cases || rule.params.has(pair.key.text)) {
         return null;
     }
     if (rule.caseParams.size > 0) {
-        return { kind: 'random-entry', container: container.pair.key.text };
+        return { kind: 'random-entry', container: around.key.text };
     }
     return null;
 }

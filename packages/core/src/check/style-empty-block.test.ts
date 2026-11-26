@@ -499,6 +499,38 @@ test(`${CODE}: an empty entry of a random list is never offered for removal`, ()
     );
 });
 
+test(`${CODE}: an empty random list entry where the reader judges no key is read by the container's name`, () => {
+    // Inside the body of an effect the package gives no rule for (a `duel`'s outcome), which the
+    // reader reads as record fields: the table's name decides, as for a `limit` there. The
+    // `duel`'s own empty outcome is no case of a container the package describes: as before.
+    assert.deepEqual(
+        meanings(
+            [
+                'my_effect = {',
+                '\tadd_gold = 1',
+                '\tduel = {',
+                '\t\tskill = prowess',
+                '\t\ttarget = root',
+                '\t\t40 = {',
+                '\t\t\tadd_gold = 1',
+                '\t\t\trandom_list = {',
+                '\t\t\t\t10 = {}',
+                '\t\t\t\t5 = { add_gold = 1 }',
+                '\t\t\t}',
+                '\t\t}',
+                '\t\t60 = {}',
+                '\t}',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [
+            ['10', 'random-entry'],
+            ['60', undefined],
+        ],
+    );
+});
+
 test('the random lists come from the package: the containers whose cases take parameters of their own', () => {
     const containers = [...tablesOf(committedSpec()).containers];
     assert.deepEqual(

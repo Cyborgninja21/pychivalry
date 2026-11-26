@@ -96,6 +96,7 @@ function run(input: BestPracticeInput): AdviceResult {
         const { reading } = readingOf();
         return emptyCase(input.spec, pair, {
             directory: reading.directory,
+            around,
             container: around === undefined ? undefined : keyOf(around),
             parent: reading.blocks.get(inner.parent),
         });
