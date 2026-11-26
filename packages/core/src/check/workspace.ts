@@ -5,11 +5,12 @@
  * and runs on each script file the parser and every engine check (`checkFile`, which holds
  * the list of checks); no surface lists checks of its own.
  *
- * - **The files checked** are the mod's script files (`.txt`) and localization files (`.yml`)
- *   in the folders the spec lists: the files the index reads (docs/decisions.md, step 3: a
- *   file in a folder the spec does not list is not read at all). Those in other folders are
- *   counted, by folder, and not checked. A localization file is read as the index reads it,
- *   and its engine checks are those of item 4.6 (`checkLocalizationFile`).
+ * - **The files checked** are the mod's script files (`.txt`), localization files (`.yml`) and,
+ *   since build step 10, GUI files (`.gui`) in the folders the spec lists: the files the index
+ *   reads (docs/decisions.md, step 3: a file in a folder the spec does not list is not read at
+ *   all). Those in other folders are counted, by folder, and not checked. A localization file is
+ *   read as the index reads it, and its engine checks are those of item 4.6
+ *   (`checkLocalizationFile`); a GUI file gets the GUI parser's findings alone (`guiFindings`).
  * - **The base game** is the index `openGameIndex` gives: loaded from the on-disk cache when
  *   it answers for the installed game, otherwise built and saved there (docs/PLAN.md item
  *   5.7), and the mod is indexed over it.
@@ -68,6 +69,7 @@ import {
 } from '../index/rules.js';
 import type { SourceSet } from '../index/source-text.js';
 import { fileKindOf, WorkspaceIndex } from '../index/workspace.js';
+import { readGui, type GuiParseResult } from '../gui/parser.js';
 import { forkBaseSteps, type SharedBase } from '../share/base.js';
 import type { Spec } from '../spec/reader.js';
 import { drain, type Steps } from '../steps.js';
@@ -312,6 +314,31 @@ export interface ScriptInput {
     readonly measure?: ScopeMeasure | undefined;
     /** The text of the mod's other files, for a fix that edits one (`ModText`). */
     readonly modText?: ModText | undefined;
+}
+
+/**
+ * Every finding on one GUI file (docs/gui-syntax.md): the GUI parser's, in the order of where
+ * each starts, and nothing else. No engine check reads a GUI file, no `style/` rule judges one
+ * (build step 10 leaves GUI files out of the formatter), and no finding of one carries a fix.
+ */
+export function guiFindings(
+    file: string,
+    layer: string,
+    parsed: GuiParseResult,
+): WorkspaceFinding[] {
+    return parsed.findings.map((f) => ({
+        file,
+        layer,
+        code: f.id,
+        severity: f.severity,
+        range: f.range,
+        start: f.start,
+        end: f.end,
+        message: findingMessage(f, { file }),
+        evidence: f.evidence,
+        data: {},
+        fix: null,
+    }));
 }
 
 /**
@@ -717,7 +744,8 @@ export type CheckSource =
           /** True when the file on disk has the byte-order mark, which an editor's text never holds. */
           readonly bom?: boolean | undefined;
       }
-    | { readonly localization: LocalizationFile; readonly bom?: boolean | undefined };
+    | { readonly localization: LocalizationFile; readonly bom?: boolean | undefined }
+    | { readonly gui: GuiParseResult };
 
 /** One file of a workspace to check, and what its checks see. */
 export interface FileCheckInput {
@@ -753,8 +781,20 @@ export function checkSourceFile(input: FileCheckInput): {
 } {
     const source = input.source;
     let found: WorkspaceFinding[];
-    if (fileKindOf(input.file) === 'localization') {
-        if ('script' in source) {
+    const kind = fileKindOf(input.file);
+    if (kind === 'gui') {
+        if ('script' in source || 'localization' in source) {
+            throw new Error(`checkSourceFile: ${input.file} is a GUI file`);
+        }
+        found = guiFindings(
+            input.file,
+            input.layer,
+            'gui' in source
+                ? source.gui
+                : readGui(source.bytes, { fallbackEncoding: input.fallbackEncoding }),
+        );
+    } else if (kind === 'localization') {
+        if ('script' in source || 'gui' in source) {
             throw new Error(`checkSourceFile: ${input.file} is a localization file`);
         }
         found = parsedLocalizationFindings(
@@ -775,7 +815,7 @@ export function checkSourceFile(input: FileCheckInput): {
             'localization' in source ? (source.bom ?? source.localization.bom) : undefined,
         );
     } else {
-        if ('localization' in source) {
+        if ('localization' in source || 'gui' in source) {
             throw new Error(`checkSourceFile: ${input.file} is a script file`);
         }
         const scriptInput = {
@@ -804,8 +844,9 @@ export function checkSourceFile(input: FileCheckInput): {
 
 /**
  * The definitions a run's checks see over a workspace (`openWorkspace`): for a mod with the base
- * game, the index's, with the words of the mod's files the index does not read (its interface
- * files) counted as uses of a localization key (`localization/unused-key`; `unreadWords`, given
+ * game, the index's, with the words of the mod's files the index does not read (files of
+ * folders the spec does not describe) counted as uses of a localization key
+ * (`localization/unused-key`; `unreadWords`, given
  * when the caller keeps them); for a mod without the base game, none unknown
  * (`GAME_NOT_LOADED`); for the base game itself, the index's.
  */

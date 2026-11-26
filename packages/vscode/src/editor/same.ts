@@ -13,6 +13,8 @@
  *   carries the game folder the setting `pychivalry.gamePath` names, and asked `check` with every
  *   severity, page after page to the end.
  *
+ * Since build step 10 it covers going to a GUI file's definitions too (`assertSameDefinitions`).
+ *
  * Since build step 8 it covers formatting too (`assertSameFormatting`): every script and
  * localization file of the mod formatted by the editor's Format Document, by the command line's
  * `format` typed into a terminal on a copy of the mod, and by the agent server's `format`, with
@@ -27,7 +29,7 @@ import path from 'node:path';
 import * as vscode from 'vscode';
 import { formatKindOf, fixTooLongToList, type WorkspaceFinding } from '@pychivalry/core';
 import type { PychivalryApi } from '../extension.js';
-import { checkAll, formatAll } from './agent.js';
+import { checkAll, findDefinitions, formatAll } from './agent.js';
 import {
     bySeverity,
     differences,
@@ -502,4 +504,138 @@ export async function assertSameFormatting(
     }
     assert.deepEqual(differ, [], 'the three surfaces format alike');
     return { files: files.length, changed, left };
+}
+
+/** A definition a surface goes to, as `<layer> <file>:<line>`, the line counted from 1. */
+type Target = string;
+
+/**
+ * The targets of a definition answer as the editor shows them (the language server's rule): in
+ * each group, the one definition in force where the override rules name it, every definition
+ * where not.
+ */
+function shownTargets(
+    groups: readonly {
+        readonly definitions: readonly {
+            readonly layer: string;
+            readonly file: string;
+            readonly inForce: string;
+            readonly line: number;
+        }[];
+    }[],
+): Target[] {
+    return groups
+        .flatMap((g) => {
+            const inForce = g.definitions.filter((d) => d.inForce === 'yes');
+            return inForce.length === 1 ? inForce : g.definitions;
+        })
+        .map((d) => `${d.layer} ${d.file}:${String(d.line)}`)
+        .sort();
+}
+
+/**
+ * Go to definition on every place given, of one GUI file of the mod VS Code has open (build step
+ * 10): VS Code's definition provider (the language server), the command line's `lookup --json` of
+ * the name written there, typed into a terminal, and the agent server's `find_definition` at the
+ * place must go to the same definitions. `places` are the names, each found at its first place in
+ * the file where it is written as a use. Returns how many places were compared.
+ */
+export async function assertSameDefinitions(
+    api: PychivalryApi,
+    mod: string,
+    game: string,
+    work: string,
+    file: string,
+    names: readonly string[],
+): Promise<number> {
+    const uri = vscode.Uri.file(path.join(mod, ...file.split('/')));
+    const text = readFileSync(uri.fsPath, 'utf8').replace(/^\uFEFF/, '');
+    const document = await vscode.workspace.openTextDocument(uri);
+    const gameRoot = path.dirname(game);
+    const targetOf = (location: vscode.Location | vscode.LocationLink): Target => {
+        const target = 'targetUri' in location ? location.targetUri : location.uri;
+        const range = 'targetUri' in location ? location.targetRange : location.range;
+        const inMod = relativeTo(mod, target.fsPath);
+        if (inMod !== null) {
+            return `mod ${inMod}:${String(range.start.line + 1)}`;
+        }
+        const inGame = relativeTo(gameRoot, target.fsPath) ?? target.fsPath;
+        const [layer = '', ...rest] = inGame.split('/');
+        return `${layer} ${rest.join('/')}:${String(range.start.line + 1)}`;
+    };
+    const [definition] = await api.definitions();
+    assert.ok(definition !== undefined, 'the extension gives VS Code an agent server');
+    const places = names.map((name) => {
+        // Its first place as a use: a value after `=`, or a key at the start of its line.
+        const offset = text.search(
+            new RegExp(`(?<==[ \\t]*)${name}\\b|(?<=^[ \\t]*)${name}(?=[ \\t]*=)`, 'm'),
+        );
+        assert.ok(offset >= 0, name);
+        const position = document.positionAt(offset + 1);
+        return { name, position };
+    });
+    const agent = await findDefinitions(
+        {
+            command: definition.command,
+            args: definition.args,
+            env: definition.env,
+            ...(definition.cwd === undefined ? {} : { cwd: definition.cwd.fsPath }),
+        },
+        places.map((p) => ({
+            file,
+            line: p.position.line + 1,
+            column: p.position.character + 1,
+        })),
+    );
+    const differ: string[] = [];
+    for (const [i, place] of places.entries()) {
+        const located = await vscode.commands.executeCommand<
+            (vscode.Location | vscode.LocationLink)[]
+        >('vscode.executeDefinitionProvider', uri, place.position);
+        const inEditor = located.map(targetOf).sort();
+        const answer = agent[i] ?? {};
+        const fromAgent = shownTargets(
+            (answer['definitions'] ?? []) as Parameters<typeof shownTargets>[0],
+        );
+        const cli = await pychivalryInTerminal(path.join(work, `lookup-${String(i)}`), [
+            'lookup',
+            place.name,
+            '--json',
+            '--vanilla',
+            game,
+            '--mod',
+            mod,
+        ]);
+        assert.equal(cli.code, 0, `pychivalry lookup exited ${String(cli.code)}:\n${cli.stderr}`);
+        const printed = JSON.parse(cli.stdout) as {
+            definitions: {
+                groups?: {
+                    definitions: {
+                        layer: string;
+                        file: string;
+                        inForce: string;
+                        range: { start: { line: number } };
+                    }[];
+                }[];
+            };
+        };
+        const fromCli = shownTargets(
+            (printed.definitions.groups ?? []).map((g) => ({
+                definitions: g.definitions.map((d) => ({ ...d, line: d.range.start.line + 1 })),
+            })),
+        );
+        if (inEditor.length === 0) {
+            differ.push(`${place.name}: the editor goes nowhere`);
+        }
+        if (
+            JSON.stringify(inEditor) !== JSON.stringify(fromAgent) ||
+            JSON.stringify(inEditor) !== JSON.stringify(fromCli)
+        ) {
+            differ.push(
+                `${place.name}: the editor ${JSON.stringify(inEditor)}, the command line ${JSON.stringify(fromCli)}, the agent server ${JSON.stringify(fromAgent)}`,
+            );
+        }
+    }
+    assert.deepEqual(differ, [], 'the three surfaces go to the same definitions');
+    return places.length;
 }

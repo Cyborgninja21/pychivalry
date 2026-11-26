@@ -7,7 +7,7 @@
  * A place is given as every result writes it: its layer (`game`, `jomini`, `clausewitz`,
  * `dlc:<pack>`, or `mod` with `--mod`), its file's path inside that layer with `/`, and its line,
  * counted from 1; `--end-line` for a place of several lines, `--context` for the lines around it.
- * Only a script or localization file the index reads is shown, never an address on disk.
+ * Only a script, localization or GUI file the index reads is shown, never an address on disk.
  *
  * The base game is found as `lookup` finds it (`--vanilla`, `--no-vanilla`, or Steam's
  * libraries), but nothing is indexed: the folders are listed as the index would list them
@@ -58,7 +58,7 @@ const NO_VANILLA_OPTION: OptionSpec = {
 const MOD_OPTION: OptionSpec = {
     name: '--mod',
     value: '<mod>',
-    help: 'a mod folder, whose script and localization files are then read as the layer mod',
+    help: 'a mod folder, whose script, localization and GUI files are then read as the layer mod',
 };
 
 /** Each argument the core names, as this command takes it. */
@@ -102,7 +102,7 @@ export const sourceCommand: Command = {
     name: 'source',
     args: '<layer> <file> <line>',
     summary:
-        "The text around a place a result named: the base game's own script or localization, or the mod's, at most 40 lines",
+        "The text around a place a result named: the base game's own script, localization or GUI files, or the mod's, at most 40 lines",
     options: [
         END_LINE_OPTION,
         CONTEXT_OPTION,

@@ -18,3 +18,12 @@ export {
     type GuiType,
 } from './tree.js';
 export { parseGui, readGui, type GuiParseResult, type GuiSourceFile } from './parser.js';
+export {
+    extractGui,
+    GUI_DATABASES,
+    GUI_LOCAL_TEMPLATES_DATABASE,
+    GUI_LOCAL_TYPES_DATABASE,
+    GUI_TEMPLATES_DATABASE,
+    GUI_TYPES_DATABASE,
+    guiWords,
+} from './extract.js';

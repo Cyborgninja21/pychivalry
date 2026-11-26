@@ -17,6 +17,8 @@
  */
 
 import { createHash } from 'node:crypto';
+import { extractGui } from '../gui/extract.js';
+import { parseGui, readGui } from '../gui/parser.js';
 import { decodeScript, type Decoded, type FallbackEncoding } from '../syntax/decode.js';
 import { parse } from '../syntax/parser.js';
 import type { Position, Range } from '../syntax/position.js';
@@ -56,6 +58,7 @@ import {
     databaseMatches,
     decides,
     fileConditionRules,
+    foldingDatabases,
     ROW_STATUSES,
     rulesFor,
     type ContainerEntries,
@@ -77,8 +80,11 @@ import {
 import { LayeredMap } from './layered.js';
 import { StringTable } from './strings.js';
 
-/** Which files the index reads: script files and localization files. */
-export type FileKind = 'script' | 'localization';
+/**
+ * Which files the index reads: script files, localization files, and since build step 10 GUI
+ * files (docs/gui-syntax.md).
+ */
+export type FileKind = 'script' | 'localization' | 'gui';
 
 /** The kind of a file from its extension, or undefined when the index does not read it. */
 export function fileKindOf(relative: string): FileKind | undefined {
@@ -88,6 +94,9 @@ export function fileKindOf(relative: string): FileKind | undefined {
     }
     if (extension === '.yml') {
         return 'localization';
+    }
+    if (extension === '.gui') {
+        return 'gui';
     }
     return undefined;
 }
@@ -532,6 +541,12 @@ export class WorkspaceIndex {
     readonly rules: readonly Rule[];
     /** Every row that holds on the platform, deciding or not: for the reasons of an unknown. */
     readonly platformRules: readonly Rule[];
+    /**
+     * The databases whose names a deciding `key-identity` row says are compared in lower case
+     * (`key_identity.compare: lowercase`, `foldingDatabases`): `gui`, the GUI types, by the row
+     * `key-identity-gui-types` (build step 10). A name of one of them is found in any letter case.
+     */
+    readonly foldingDatabases: ReadonlySet<string>;
     /** The rows whose `file_condition` the index applies on its platform (format 8). */
     readonly fileConditions: readonly Rule[];
     private readonly fallbackEncoding: FallbackEncoding | undefined;
@@ -541,6 +556,8 @@ export class WorkspaceIndex {
     private readonly paths: PathTable<number>;
     /** Where each name is defined: a handle per definition (`SPAN`). */
     private readonly byName: LayeredMap<number, number[]>;
+    /** The definitions of the folding databases, by their name in lower case (`foldingDatabases`). */
+    private readonly byFolded: LayeredMap<string, number[]>;
     /** The files that save a scope as each name. */
     private readonly bySave: LayeredMap<number, number[]>;
     /** The files that read each name as a saved scope. */
@@ -578,6 +595,7 @@ export class WorkspaceIndex {
         this.byKey = new Map(base?.byKey);
         this.paths = base === undefined ? new PathTable<number>() : base.paths.copy();
         this.byName = base === undefined ? new LayeredMap() : base.byName.fork();
+        this.byFolded = base === undefined ? new LayeredMap() : base.byFolded.fork();
         this.bySave = base === undefined ? new LayeredMap() : base.bySave.fork();
         this.byRead = base === undefined ? new LayeredMap() : base.byRead.fork();
         this.byVarSet = base === undefined ? new LayeredMap() : base.byVarSet.fork();
@@ -588,6 +606,7 @@ export class WorkspaceIndex {
         this.platformRules =
             options.platform === undefined ? [] : rulesFor(options.rules, options.platform);
         this.rules = this.platformRules.filter(decides);
+        this.foldingDatabases = foldingDatabases(this.platformRules);
         this.fileConditions =
             options.platform === undefined
                 ? []
@@ -724,8 +743,9 @@ export class WorkspaceIndex {
         if (kind === undefined) {
             return undefined;
         }
-        if (kind === 'script' && this.folders.scriptStatus(path)?.script === false) {
+        if (kind !== 'localization' && this.folders.scriptStatus(path)?.script === false) {
             // The spec says the file is no script (format 9, `directories[].files`): not read.
+            // A `.gui` file is read only in a folder whose reader takes `.gui` files (`gui`).
             return undefined;
         }
         const match = this.folders.classify(path);
@@ -754,6 +774,16 @@ export class WorkspaceIndex {
                 variables: this.folders.variables,
                 entries: folder === null ? null : this.entriesFor(folder),
                 stores: folder === null ? null : this.storesFor(folder),
+            });
+            lineStarts = parsed.lines.lineStarts;
+        } else if (kind === 'gui') {
+            const parsed =
+                typeof content === 'string'
+                    ? parseGui(content)
+                    : readGui(content, { fallbackEncoding: this.fallbackEncoding });
+            extracted = extractGui(parsed.file, {
+                strings: this.strings,
+                defines: folder !== null,
             });
             lineStarts = parsed.lines.lineStarts;
         } else {
@@ -840,6 +870,15 @@ export class WorkspaceIndex {
             } else {
                 handles.push(id * SPAN + i);
             }
+            const folded = this.foldedKey(file.defs, i);
+            if (folded !== null) {
+                const same = this.byFolded.mutable(folded, copyList);
+                if (same === undefined) {
+                    this.byFolded.set(folded, [id * SPAN + i]);
+                } else {
+                    same.push(id * SPAN + i);
+                }
+            }
         }
         for (const [array, map] of [
             [file.saves, this.bySave],
@@ -873,6 +912,22 @@ export class WorkspaceIndex {
                 this.byName.set(name, handles);
             }
         }
+        const folded = new Set<string>();
+        for (let i = 0; i * DEF_STRIDE < file.defs.length; i++) {
+            const key = this.foldedKey(file.defs, i);
+            if (key !== null) {
+                folded.add(key);
+            }
+        }
+        for (const key of folded) {
+            const handles =
+                this.byFolded.get(key)?.filter((h) => Math.floor(h / SPAN) !== id) ?? [];
+            if (handles.length === 0) {
+                this.byFolded.delete(key);
+            } else {
+                this.byFolded.set(key, handles);
+            }
+        }
         for (const [array, map] of [
             [file.saves, this.bySave],
             [file.reads, this.byRead],
@@ -891,6 +946,18 @@ export class WorkspaceIndex {
         this.byKey.delete(`${file.layer}\u0000${file.path}`);
         this.paths.remove(file.path, id);
         this.changed();
+    }
+
+    /** The lower-case name of a file's definition `i` when its database folds case, else null. */
+    private foldedKey(defs: Int32Array, i: number): string | null {
+        if (this.foldingDatabases.size === 0) {
+            return null;
+        }
+        const database = this.strings.get(defs[i * DEF_STRIDE + DEF.database] ?? 0);
+        if (!this.foldingDatabases.has(database)) {
+            return null;
+        }
+        return this.strings.get(defs[i * DEF_STRIDE + DEF.name] ?? 0).toLowerCase();
     }
 
     private *useNames(uses: ArrayLike<number>): Generator<number> {
@@ -1535,9 +1602,26 @@ export class WorkspaceIndex {
         };
     }
 
-    private handlesOf(name: string): number[] {
+    /**
+     * The handles of a name's definitions: written so, and, in a database whose names are
+     * compared in lower case (`foldingDatabases`), in any letter case. With `database` given,
+     * only a folding database looks further than the name as written.
+     */
+    private handlesOf(name: string, database?: string): number[] {
         const id = this.strings.find(name);
-        return id < 0 ? [] : (this.byName.get(id) ?? []);
+        const exact = id < 0 ? [] : (this.byName.get(id) ?? []);
+        if (
+            this.foldingDatabases.size === 0 ||
+            (database !== undefined && !this.foldingDatabases.has(database))
+        ) {
+            return exact;
+        }
+        const folded = this.byFolded.get(name.toLowerCase());
+        if (folded === undefined) {
+            return exact;
+        }
+        const seen = new Set(exact);
+        return [...exact, ...folded.filter((h) => !seen.has(h))];
     }
 
     /**
@@ -1548,7 +1632,7 @@ export class WorkspaceIndex {
         name: string,
         filter: { readonly database?: string; readonly container?: string | null } = {},
     ): Definition[] {
-        return this.handlesOf(name)
+        return this.handlesOf(name, filter.database)
             .map((h) => this.definition(h))
             .filter(
                 (d) =>
@@ -2435,24 +2519,47 @@ export class WorkspaceIndex {
 
     // ─── Uses ─────────────────────────────────────────────────────────────
 
-    /** Every use of a name, sorted by layer, path and place (item 3.4). */
+    /**
+     * Every use of a name, sorted by layer, path and place (item 3.4). A name a folding database
+     * defines (a GUI type, `foldingDatabases`) is found in a GUI file in any letter case too, as
+     * the game reads it there.
+     */
     references(name: string): Use[] {
         const id = this.strings.find(name);
-        if (id < 0) {
+        const lower = name.toLowerCase();
+        const folds = this.foldingDatabases.size > 0 && this.byFolded.get(lower) !== undefined;
+        if (id < 0 && !folds) {
             return [];
         }
         const out: Use[] = [];
         for (const file of this.files) {
-            if (file === undefined || !containsSorted(file.names, id)) {
+            if (file === undefined) {
+                continue;
+            }
+            // In a GUI file, the case variants of a folded name; elsewhere, the name as written.
+            const ids = new Set<number>();
+            if (id >= 0 && containsSorted(file.names, id)) {
+                ids.add(id);
+            }
+            if (folds && file.kind === 'gui') {
+                for (const n of file.names) {
+                    if (n !== id && this.strings.get(n).toLowerCase() === lower) {
+                        ids.add(n);
+                    }
+                }
+            }
+            if (ids.size === 0) {
                 continue;
             }
             const read = this.statusOf(file.id).read;
             for (let i = 0; i < file.uses.length; i += USE_STRIDE) {
-                if (file.uses[i] === id) {
+                const use = file.uses[i] ?? -1;
+                if (ids.has(use)) {
+                    const written = use === id ? name : this.strings.get(use);
                     const start = file.uses[i + 1] ?? 0;
-                    const end = start + name.length;
+                    const end = start + written.length;
                     out.push({
-                        name,
+                        name: written,
                         layer: file.layer,
                         file: file.path,
                         start,

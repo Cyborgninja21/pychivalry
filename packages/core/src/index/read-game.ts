@@ -248,7 +248,8 @@ function addSource(
         count(listing.notDescribed, folders.undescribedFolder(rel));
         return;
     }
-    const status = fileKindOf(rel) === 'script' ? folders.scriptStatus(rel) : undefined;
+    // A script or GUI file is read only where the folder's reader takes its extension (format 9).
+    const status = fileKindOf(rel) === 'localization' ? undefined : folders.scriptStatus(rel);
     if (status !== undefined && !status.script) {
         listing.notScript.push({
             layer,
@@ -311,9 +312,10 @@ export const UNREAD_TEXT_EXTENSIONS: readonly string[] = ['.gui', '.txt', '.yml'
 const WORD = /[A-Za-z0-9_][A-Za-z0-9_.-]*/g;
 
 /**
- * Every word of the mod's text files the index does not read: its interface files (`.gui`,
- * read by no step before 10), and `.txt`, `.yml` and `.asset` files of folders the spec does
- * not describe (`data_binding/`, a stray folder). A word is a run of letters, digits, `_`,
+ * Every word of the mod's text files the index does not read: `.txt`, `.yml` and `.gui` files
+ * of folders the spec does not describe (`data_binding/`, a stray folder), and every `.asset`
+ * file. Since build step 10 the index reads a GUI file of `gui/` itself, and its words are the
+ * index's uses (gui/extract.ts). A word is a run of letters, digits, `_`,
  * `.` and `-`, wherever it stands: inside quotes, inside a data-binding expression
  * (`[Localize('key')]`), in a comment too, since what such a file does with it is not read.
  * Used by `localization/unused-key`, which must not call a key unused that an interface file

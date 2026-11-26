@@ -1,13 +1,13 @@
 /**
- * The text of a file the index read, as the index read it: the game's own script or
- * localization, or the mod's, by its layer and its path inside the layer, never by an address on
+ * The text of a file the index read, as the index read it: the game's own script, localization
+ * or GUI files, or the mod's, by its layer and its path inside the layer, never by an address on
  * disk an agent or a person names. One reading for two surfaces (docs/PLAN.md item 9.8): the
  * agent server's `source` tool and the command line's `pychivalry source` both call `readSource`,
  * so that they show the same lines, refuse the same places and keep to the same limits.
  *
  * A file is found only in the listings the index is built from (`SourceListing`: the base
- * game's install folders and the mod), so only a script or localization file in a folder the
- * spec lists can be read, and only at the path the index knows it by. The listing never holds a
+ * game's install folders and the mod), so only a script, localization or GUI file in a folder
+ * the spec lists can be read, and only at the path the index knows it by. The listing never holds a
  * link (`walkFiles` does not follow one), and the file is looked at again when it is read: one
  * that has become a link since, or whose real address is outside its layer's real folder, is
  * refused. The bytes are decoded as the index decodes them (`WorkspaceIndex.decode`: UTF-8, its
@@ -176,7 +176,7 @@ export function findListedFile(
     }
     throw new SourceRefused(
         otherCase === null
-            ? `the layer ${layer} has no file ${wanted} that pychivalry reads (a script or localization file of a folder the game reads, at the path a result names)`
+            ? `the layer ${layer} has no file ${wanted} that pychivalry reads (a script, localization or GUI file of a folder the game reads, at the path a result names)`
             : `the layer ${layer} has no file ${wanted}; it has ${otherCase}`,
     );
 }

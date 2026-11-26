@@ -25,6 +25,36 @@ export function assertFixtureAnswer(answer: CheckAnswer): void {
     );
 }
 
+/**
+ * The GUI file of the planted copy (`plantedCopy`, build step 10): a type and a template it
+ * defines and uses, the type once in other letter case, and one GUI finding, a block without its
+ * `=`, which the same-answers test compares on every surface.
+ */
+export const GUI_FILE = 'gui/harvest_gui_window.gui';
+export const GUI_TEXT = [
+    '\uFEFFtypes HarvestGuiTypes',
+    '{',
+    '\ttype harvest_gui_button = button {',
+    '\t\tsize = { 30 30 }',
+    '\t}',
+    '}',
+    '',
+    'template Harvest_Gui_Background',
+    '{',
+    '\talpha = 0.5',
+    '}',
+    '',
+    'window = {',
+    '\tname = "harvest_gui_window"',
+    '\tusing = Harvest_Gui_Background',
+    '\tsize { 400 300 }',
+    '',
+    '\tHarvest_Gui_Button = {',
+    '\t}',
+    '}',
+    '',
+].join('\r\n');
+
 /** The line the update suite adds to each skill of its second version (`run.ts`). */
 export const SKILL_NOTE = (version: string): string =>
     `\nThis copy is the skill of version ${version}.\n`;

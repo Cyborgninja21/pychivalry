@@ -23,6 +23,7 @@
     "activationEvents": [
         "onLanguage:ck3",
         "onLanguage:ck3-localization",
+        "onLanguage:ck3-gui",
         "workspaceContains:**/descriptor.mod"
     ],
     "contributes": {
@@ -51,6 +52,15 @@
                 ],
                 "filenamePatterns": [
                     "**/localization/**/*.yml"
+                ]
+            },
+            {
+                "id": "ck3-gui",
+                "aliases": [
+                    "CK3 GUI"
+                ],
+                "filenamePatterns": [
+                    "**/gui/**/*.gui"
                 ]
             }
         ],

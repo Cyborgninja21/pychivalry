@@ -142,6 +142,7 @@ export {
     type NotUtf8Reading,
     type FileCheckInput,
     GAME_NOT_LOADED,
+    guiFindings,
     MAX_FINDINGS_PER_FILE,
     localizationFindings,
     openSources,

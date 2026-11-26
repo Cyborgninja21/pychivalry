@@ -34,6 +34,14 @@ export {
     type StylePlace,
 } from './style.js';
 
+/**
+ * Why a GUI file is not formatted, in the words every surface says it: build step 10 reads GUI
+ * files and leaves them out of the formatter (docs/gui-syntax.md); `formatKindOf` gives them no
+ * kind.
+ */
+export const GUI_NOT_FORMATTED =
+    'GUI files are not formatted: build step 10 leaves them out of the formatter (docs/gui-syntax.md)';
+
 /** What a file is formatted as, by its extension: `.txt` script, `.yml` localization. */
 export function formatKindOf(file: string): FormatKind | undefined {
     const extension = extensionOf(file);

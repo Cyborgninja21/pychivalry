@@ -1,0 +1,6 @@
+﻿types FixtureSharedTypes
+{
+	type fixture_shared_type = hbox {
+		spacing = 4
+	}
+}

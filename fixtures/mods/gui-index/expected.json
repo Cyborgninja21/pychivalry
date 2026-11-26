@@ -1,0 +1,296 @@
+{
+    "about": "What a correct index answers on this mod over the game stub gui-index: every GUI definition with the status of docs/overrides.md (single, unknown: winner not known) and each definition's layer, file, line and whether the game reads it; each name written at a place of the mod (line and column from 1) and the definitions it goes to; and the uses of two names, a type found in any letter case in a GUI file.",
+    "definitions": [
+        {
+            "database": "gui",
+            "name": "fixture_button",
+            "status": "unknown",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 14,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "database": "gui",
+            "name": "fixture_replaced_type",
+            "status": "single",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_replaced.gui",
+                    "line": 3,
+                    "read": "no"
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_replaced.gui",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "database": "gui",
+            "name": "fixture_shared_type",
+            "status": "unknown",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/shared/fixture_shared.gui",
+                    "line": 3,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "database": "gui:local_types",
+            "name": "fixture_local_type",
+            "status": "single",
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 6,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "database": "gui:templates",
+            "name": "Fixture_Engine_Template",
+            "status": "single",
+            "definitions": [
+                {
+                    "layer": "jomini",
+                    "file": "gui/fixture_engine.gui",
+                    "line": 1,
+                    "read": "no"
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_engine.gui",
+                    "line": 1,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "database": "gui:templates",
+            "name": "Fixture_Mod_Template",
+            "status": "single",
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 10,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "database": "gui:templates",
+            "name": "Fixture_Window_Background",
+            "status": "single",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 19,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "database": "gui:local_templates",
+            "name": "Fixture_Local",
+            "status": "single",
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 15,
+                    "read": "yes"
+                }
+            ]
+        }
+    ],
+    "go_to": [
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 3,
+            "column": 10,
+            "name": "Fixture_Mod_Template",
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 10,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 4,
+            "column": 10,
+            "name": "Fixture_Window_Background",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 19,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 5,
+            "column": 10,
+            "name": "Fixture_Local",
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 15,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 7,
+            "column": 2,
+            "name": "FIXTURE_BUTTON",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 14,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 10,
+            "column": 2,
+            "name": "fixture_replaced_type",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_replaced.gui",
+                    "line": 3,
+                    "read": "no"
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_replaced.gui",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 12,
+            "column": 2,
+            "name": "fixture_shared_type",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/shared/fixture_shared.gui",
+                    "line": 3,
+                    "read": "unknown"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_window.gui",
+            "line": 14,
+            "column": 2,
+            "name": "fixture_local_type",
+            "definitions": [
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 6,
+                    "read": "yes"
+                }
+            ]
+        },
+        {
+            "file": "gui/fixture_mod_types.gui",
+            "line": 3,
+            "column": 7,
+            "name": "fixture_button",
+            "definitions": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 14,
+                    "read": "yes"
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_types.gui",
+                    "line": 3,
+                    "read": "yes"
+                }
+            ]
+        }
+    ],
+    "references": [
+        {
+            "name": "fixture_button",
+            "uses": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 5
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 8
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_window.gui",
+                    "line": 7
+                }
+            ]
+        },
+        {
+            "name": "Fixture_Window_Background",
+            "uses": [
+                {
+                    "layer": "game",
+                    "file": "gui/fixture_window.gui",
+                    "line": 3
+                },
+                {
+                    "layer": "mod",
+                    "file": "gui/fixture_mod_window.gui",
+                    "line": 4
+                }
+            ]
+        }
+    ]
+}

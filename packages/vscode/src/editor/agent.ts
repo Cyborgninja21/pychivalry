@@ -143,6 +143,36 @@ export async function formatAll(
     });
 }
 
+/** A place of the mod as the agent server takes it: a file, a line and a column from 1. */
+export interface ModPlace {
+    readonly file: string;
+    readonly line: number;
+    readonly column: number;
+}
+
+/** Start the server from `entry` and call `find_definition` at each place: its structured outputs. */
+export async function findDefinitions(
+    entry: Entry,
+    places: readonly ModPlace[],
+): Promise<Record<string, unknown>[]> {
+    return withServer(entry, async (client) => {
+        const out: Record<string, unknown>[] = [];
+        for (const place of places) {
+            const result = (await client.callTool(
+                { name: 'find_definition', arguments: { ...place } },
+                { timeout: 600_000 },
+            )) as { structuredContent?: Record<string, unknown>; isError?: boolean };
+            if (result.isError === true || result.structuredContent === undefined) {
+                throw new Error(
+                    `find_definition at ${JSON.stringify(place)} returned an error: ${JSON.stringify(result)}`,
+                );
+            }
+            out.push(result.structuredContent);
+        }
+        return out;
+    });
+}
+
 async function callCheck(
     client: Client,
     args: Record<string, unknown>,

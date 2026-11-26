@@ -111,6 +111,7 @@ export {
     decides,
     DECIDING_STATUSES,
     decidingRules,
+    foldingDatabases,
     EXTENSION_KINDS,
     FILE_CONDITIONS,
     FILE_EFFECTS,

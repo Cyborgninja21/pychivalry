@@ -5,8 +5,8 @@
  * setting `pychivalry.gamePath` names. It activates; the language server's diagnostics appear;
  * hover and completion answer; the agent server's definition is given to VS Code's AI with the
  * game folder; the command line runs from the terminal's path; the editor, the command line
- * and the agent server give the same findings; and VS Code lists the three skills it holds
- * (item 9.1).
+ * and the agent server give the same findings, and go to the same definitions of a GUI file's
+ * names (item 10.4); and VS Code lists the three skills it holds (item 9.1).
  */
 
 import { openSpec } from '@pychivalry/core';
@@ -19,10 +19,15 @@ import { EXTENSION_ID } from '../ids.js';
 import { CLI_FILE, LSP_FILE, LSP_FOLDER, SERVER_FILE, SPEC_FOLDER } from '../launch.js';
 import { SKILL_FILE, SKILLS_FOLDER } from '../skills.js';
 import { BIN_FOLDER } from '../terminal.js';
-import { isInside, sameFile, samePath } from './fixture.js';
+import { GUI_FILE, isInside, sameFile, samePath } from './fixture.js';
 import { given, type EditorCase } from './harness.js';
 import { activeExtension, contributedSkills, displayCase } from './main.js';
-import { assertSameAnswers, assertSameFormatting, pychivalryInTerminal } from './same.js';
+import {
+    assertSameAnswers,
+    assertSameDefinitions,
+    assertSameFormatting,
+    pychivalryInTerminal,
+} from './same.js';
 
 /** Every file below `dir`, relative to it and written with `/`. */
 function filesUnder(dir: string, base = dir): string[] {
@@ -212,6 +217,22 @@ export function smokeCases(): readonly EditorCase[] {
                 const report = await assertSameAnswers(theExt().exports, mod, game, work);
                 console.log(`  same answers: ${JSON.stringify(report)}`);
                 assert.ok(report.bySeverity.error > 0 && report.bySeverity.warning > 0);
+            },
+        },
+        {
+            name: '10.4: the editor, the command line and the agent server go to the same GUI definitions',
+            run: async () => {
+                // The copy's GUI file (run.ts): a template, and a type written in other letter
+                // case than its definition, which the game compares in lower case (part D1).
+                const compared = await assertSameDefinitions(
+                    theExt().exports,
+                    mod,
+                    game,
+                    work,
+                    GUI_FILE,
+                    ['Harvest_Gui_Background', 'Harvest_Gui_Button'],
+                );
+                assert.equal(compared, 2);
             },
         },
         {

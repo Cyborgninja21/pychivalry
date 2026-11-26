@@ -58,6 +58,8 @@ import { checkThrough } from './agent.js';
 import { readOrNull, virtualDisplay } from './display.js';
 import {
     asEntry,
+    GUI_FILE,
+    GUI_TEXT,
     assertFixtureAnswer,
     claudeEntryFor,
     FIXTURE_MOD,
@@ -185,6 +187,10 @@ function plantedCopy(root: string): string {
     cpSync(path.join(REPO, 'fixtures', 'defects', 'mod'), mod, { recursive: true });
     const lf = path.join(mod, ...LF_FILE.split('/'));
     writeFileSync(lf, readFileSync(lf, 'utf8').replaceAll('\r\n', '\n'), 'utf8');
+    // A GUI file (build step 10), in the copy only: the planted mod itself is unchanged.
+    const gui = path.join(mod, ...GUI_FILE.split('/'));
+    mkdirSync(path.dirname(gui), { recursive: true });
+    writeFileSync(gui, GUI_TEXT, 'utf8');
     return mod;
 }
 

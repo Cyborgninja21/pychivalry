@@ -632,8 +632,10 @@ test("a mod file at a game file's path also names the users of what the game fil
 
 test('a file of a kind the index does not read is ignored', () => {
     const ix = workspace();
-    assert.equal(ix.setFile('mod', 'gui/a.gui', 'x = { }').file, null);
     assert.equal(ix.addFile('mod', 'gfx/a.dds', new Uint8Array()), false);
+    assert.equal(ix.setFile('mod', 'gfx/a.asset', 'x = { }').file, null);
+    // Since build step 10 a GUI file is read (gui/index.test.ts).
+    assert.equal(ix.setFile('mod', 'gui/a.gui', 'x = { }').file?.kind, 'gui');
 });
 
 test('uses are recorded with their places and the read status of their file', () => {

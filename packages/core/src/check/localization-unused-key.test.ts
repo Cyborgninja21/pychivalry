@@ -67,9 +67,10 @@ test(`${CODE}: what counts as a use beside the index's words`, () => {
     const mod = 'localization-unused-key-bad';
     const index = fixtureIndex(GAME, mod);
     const words = unreadWords(path.join(REPO_ROOT, 'fixtures', 'mods', mod), index);
-    // The interface file, which the index does not read.
-    assert.ok(words.has('fixture_unused_in_gui'));
-    assert.ok(!index.isUsed('fixture_unused_in_gui'));
+    // The interface file: since build step 10 the index reads it, a GUI file of `gui/`, and its
+    // words are uses of the index's, no more words of a file it does not read.
+    assert.ok(!words.has('fixture_unused_in_gui'));
+    assert.ok(index.isUsed('fixture_unused_in_gui'));
     const names = definedNamesOf(index, { unreadWords: words });
     assert.equal(names.isUsed('fixture_unused_in_gui'), true);
     assert.equal(names.isUsed('fixture_unused_in_text'), true);

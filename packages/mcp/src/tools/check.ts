@@ -223,7 +223,10 @@ export const checkTool: Tool<CheckArgs> = {
     output: {
         type: 'object',
         properties: {
-            files_checked: { ...COUNT, description: 'The script and localization files checked' },
+            files_checked: {
+                ...COUNT,
+                description: 'The script, localization and GUI files checked',
+            },
             totals: {
                 type: 'object',
                 properties: {
@@ -321,7 +324,7 @@ function* checkSteps(args: CheckArgs, session: Session): Steps<Record<string, un
     const notes = session.notes();
     if (run.files.length === 0 && target !== null) {
         notes.push(
-            `${args.path ?? ''} holds no file the game reads as script or localization: nothing was checked`,
+            `${args.path ?? ''} holds no file the game reads as script, localization or GUI: nothing was checked`,
         );
     }
     const notChecked = [...run.notChecked].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));

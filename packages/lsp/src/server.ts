@@ -39,6 +39,8 @@ import {
     fileKindOf,
     folderTableFromSpec,
     formatKindOf,
+    GUI_NOT_FORMATTED,
+    parseGui,
     ON_TYPE_TRIGGERS,
     lookup,
     openWorkspace,
@@ -834,6 +836,10 @@ export class LanguageServer {
                 bom: disk.bom,
             };
         }
+        if (doc.kind === 'gui') {
+            // A GUI file (build step 10): its text read by the GUI parser, as a whole.
+            return { gui: parseGui(doc.text) };
+        }
         return { bytes: same && disk.bytes !== null ? disk.bytes : this.editorBytes(doc) };
     }
 
@@ -1174,7 +1180,18 @@ export class LanguageServer {
         return result.edits;
     }
 
+    /** A GUI file asked to be formatted: no edit, said once (build step 10). */
+    private guiNotFormatted(uri: string): TextEdit[] | null {
+        return this.docs.get(uri)?.kind === 'gui'
+            ? this.formatted(uri, { edits: [], left: GUI_NOT_FORMATTED })
+            : null;
+    }
+
     private formatDocument(params: DocumentFormattingParams): TextEdit[] {
+        const gui = this.guiNotFormatted(params.textDocument.uri);
+        if (gui !== null) {
+            return gui;
+        }
         const target = this.formattable(params.textDocument.uri);
         if (target === null) {
             return [];
@@ -1184,6 +1201,10 @@ export class LanguageServer {
     }
 
     private formatRange(params: DocumentRangeFormattingParams): TextEdit[] {
+        const gui = this.guiNotFormatted(params.textDocument.uri);
+        if (gui !== null) {
+            return gui;
+        }
         const target = this.formattable(params.textDocument.uri);
         if (target === null) {
             return [];

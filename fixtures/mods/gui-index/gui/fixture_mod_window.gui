@@ -1,0 +1,16 @@
+﻿window = {
+	name = "fixture_mod_window"
+	using = Fixture_Mod_Template
+	using = Fixture_Window_Background
+	using = Fixture_Local
+
+	FIXTURE_BUTTON = {
+		text = "FIXTURE_MOD_TEXT"
+	}
+	fixture_replaced_type = {
+	}
+	fixture_shared_type = {
+	}
+	fixture_local_type = {
+	}
+}

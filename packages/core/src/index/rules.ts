@@ -468,7 +468,7 @@ export const SKIPPED_KINDS: Readonly<Record<string, string>> = {
     'mount-dependencies':
         "what a descriptor's dependencies do to the mount order of several mods; the index holds one mod",
     'key-identity':
-        "what makes two keys one key: the text byte for byte (or its hash), case not folded, which is how the index already compares keys; the one row that folds case, key-identity-gui-types, is for GUI type names, and the index reads no .gui file. Format 9's key_identity on a store of statements (a province id compared as an integer) is applied where the store is read",
+        "what makes two keys one key: the text byte for byte (or its hash), case not folded, which is how the index already compares keys; the one row that folds case, key-identity-gui-types, is applied to the database it names, gui, the GUI types (foldingDatabases, build step 10). Format 9's key_identity on a store of statements (a province id compared as an integer) is applied where the store is read",
     'field-outcomes':
         'per field of an on-action declared again; the index resolves an on-action as a whole (its declarations add up)',
     'path-case-mechanism':
@@ -1026,6 +1026,36 @@ export function rulesFor(table: RulesTable, platform: Platform): Rule[] {
 /** Whether a row decides: its kind is one the index applies, and its status one it builds on. */
 export function decides(rule: Rule): boolean {
     return APPLIED_KINDS.has(rule.kind) && DECIDING_STATUSES.has(rule.status);
+}
+
+/**
+ * The databases whose names are compared in lower case (build step 10): those a `key-identity`
+ * row of a status the index builds on (`settled`, `derived`) names exactly, with
+ * `key_identity.compare: lowercase`. On the format 9 package, `gui`, by the row
+ * `key-identity-gui-types`: a GUI type name is lower-cased before it is registered. The row says
+ * its folding holds for type names only (template names were not read), so a database is folded
+ * only when the row names it, never a database below it (`gui:templates`).
+ */
+export function foldingDatabases(rules: readonly Rule[]): Set<string> {
+    const out = new Set<string>();
+    for (const rule of rules) {
+        if (
+            rule.kind !== 'key-identity' ||
+            !DECIDING_STATUSES.has(rule.status) ||
+            rule.key_identity?.compare !== 'lowercase'
+        ) {
+            continue;
+        }
+        const databases = rule['databases'];
+        if (Array.isArray(databases)) {
+            for (const database of databases) {
+                if (typeof database === 'string') {
+                    out.add(database);
+                }
+            }
+        }
+    }
+    return out;
 }
 
 /** The rows the index applies on a platform: those that hold there and decide. */

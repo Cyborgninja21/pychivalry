@@ -1,0 +1,6 @@
+﻿types FixtureReplacedTypes
+{
+	type fixture_replaced_type = widget {
+		size = { 10 10 }
+	}
+}

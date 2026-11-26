@@ -1,0 +1,18 @@
+﻿types FixtureModTypes
+{
+	type fixture_button = button {
+		size = { 40 40 }
+	}
+	local_type fixture_local_type = widget {
+	}
+}
+
+template Fixture_Mod_Template
+{
+	alpha = 1
+}
+
+local_template Fixture_Local
+{
+	alpha = 0.2
+}
