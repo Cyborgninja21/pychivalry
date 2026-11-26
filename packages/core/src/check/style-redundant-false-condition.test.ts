@@ -67,7 +67,7 @@ test(`${CODE} never decides on an empty block, nor on a block the part says noth
     assert.deepEqual(found('\tor = {\n\t\talways = no\n\t\tis_adult = yes\n\t}'), []);
 });
 
-test(`${CODE} leaves ${HOLDS} as it was: each judges its own fixed result, never the other's`, () => {
+test(`${CODE} and ${HOLDS} each judge their own fixed result, never the other's`, () => {
     const codes = (body: string): string[] =>
         checkText('common/scripted_triggers/x.txt', `x = {\n${body}\n}\n`, {}, {}, { style: true })
             .filter((f) => f.code === CODE || f.code === HOLDS)
@@ -79,11 +79,15 @@ test(`${CODE} leaves ${HOLDS} as it was: each judges its own fixed result, never
     // An OR holding both: the one that always holds makes it hold, the one that always fails
     // changes nothing; only the second is reported, and the block keeps the first.
     assert.deepEqual(codes('\tOR = {\n\t\talways = yes\n\t\talways = no\n\t}'), [`${CODE} OR`]);
-    // A block the reader reads as a trigger whose body holds triggers: this code judges every
-    // block part D4 names (`all_false`); the other code was built on structural keywords only
-    // and is left so, its `any_false` not judged (decision 158 keeps its meaning).
+    // A block the reader reads as a trigger whose body holds triggers: each code judges every
+    // block part D4 names for its result, `all_false` this one, `any_false` the other (decision
+    // 163), and neither the other's.
     assert.deepEqual(codes('\tall_false = {\n\t\talways = no\n\t\tis_adult = yes\n\t}'), [
         `${CODE} all_false`,
     ]);
-    assert.deepEqual(codes('\tany_false = {\n\t\talways = yes\n\t\tis_adult = yes\n\t}'), []);
+    assert.deepEqual(codes('\tany_false = {\n\t\talways = yes\n\t\tis_adult = yes\n\t}'), [
+        `${HOLDS} any_false`,
+    ]);
+    assert.deepEqual(codes('\tall_false = {\n\t\talways = yes\n\t\tis_adult = yes\n\t}'), []);
+    assert.deepEqual(codes('\tany_false = {\n\t\talways = no\n\t\tis_adult = yes\n\t}'), []);
 });

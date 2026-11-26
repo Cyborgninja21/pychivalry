@@ -9,4 +9,9 @@
 		always = yes
 		has_trait = shy
 	}
+	any_false = {
+		is_imprisoned = yes
+		is_incapable = yes
+		always = yes
+	}
 }

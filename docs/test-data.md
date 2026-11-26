@@ -146,7 +146,10 @@ in the format: `style-redundant-false-condition` (an `always = no` in an `OR`, a
 71 check pairs in all. The requests' frozen results were brought into
 `style/option-without-ai-weight` (decision 160): every option of the example results and of the
 expert sheet's hand-made results that had no AI weight now has one
-([fixtures/requests/README.md](../fixtures/requests/README.md)).
+([fixtures/requests/README.md](../fixtures/requests/README.md)). Since decision 163 the pair
+`style-redundant-condition` also holds an `any_false`, with an `always = yes` beside two other
+conditions in the bad half, reported, its safe fix leaving the file in the format; 71 check pairs
+still.
 
 ## The planted-defect mod
 
