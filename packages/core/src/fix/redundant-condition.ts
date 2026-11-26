@@ -1,7 +1,8 @@
 /**
- * The fix of `style/redundant-condition`: safe, the condition taken away. Part D4 says a child
- * that always holds changes nothing in its block while another child remains (the block's
- * `child_always_true` is `neutral`), and the check reports one only while the block keeps
+ * The fix of `style/redundant-condition` and `style/redundant-false-condition`: safe, the
+ * condition taken away. Part D4 says a child that always holds, or always fails, changes nothing
+ * in its block while another child remains (the block's `child_always_true`, or
+ * `child_always_false`, is `neutral`), and each check reports one only while the block keeps
  * another item, so the block reads the same after it. The pair goes with its line when it is
  * alone on it, otherwise with the spaces after it. Like every safe fix, it is checked by
  * construction (`fix/verify.ts`): where taking it away leaves the file out of pychivalry's format

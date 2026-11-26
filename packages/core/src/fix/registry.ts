@@ -346,6 +346,11 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         what: 'The condition taken away, the block keeping its other conditions; a suggestion where that leaves the file out of the format.',
         fixer: redundantConditionFix,
     },
+    'style/redundant-false-condition': {
+        offer: 'safe',
+        what: 'The condition taken away, the block keeping its other conditions; a suggestion where that leaves the file out of the format.',
+        fixer: redundantConditionFix,
+    },
     'style/option-without-ai-weight': {
         offer: 'none',
         what: "None: how much the AI should want the option is the author's to say.",

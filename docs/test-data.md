@@ -140,6 +140,14 @@ over the stub `event-targets-and-localization`, which now also sets a variable).
 `localization-unbalanced-brackets` gained four openers left open and a `]` inside an open
 parenthesis, which the check does not decide. 70 check pairs in all.
 
+The hint for a condition that always fails where it changes nothing (decision 158) added one pair,
+in the format: `style-redundant-false-condition` (an `always = no` in an `OR`, a `NOR` and an
+`all_false`, each beside two other conditions, whose safe fixes leave the file in the format).
+71 check pairs in all. The requests' frozen results were brought into
+`style/option-without-ai-weight` (decision 160): every option of the example results and of the
+expert sheet's hand-made results that had no AI weight now has one
+([fixtures/requests/README.md](../fixtures/requests/README.md)).
+
 ## The planted-defect mod
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7

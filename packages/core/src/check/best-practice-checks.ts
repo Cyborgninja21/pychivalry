@@ -11,6 +11,7 @@ import { check as styleEmptyBlock } from './style-empty-block.js';
 import { check as styleNotUtf8 } from './style-not-utf8.js';
 import { check as styleOptionWithoutAiWeight } from './style-option-without-ai-weight.js';
 import { check as styleRedundantCondition } from './style-redundant-condition.js';
+import { check as styleRedundantFalseCondition } from './style-redundant-false-condition.js';
 import { check as styleUnusualFieldOrder } from './style-unusual-field-order.js';
 
 /** Every best-practice rule this build ships. */
@@ -20,6 +21,7 @@ export const BEST_PRACTICE_CHECKS: readonly BestPracticeCheck[] = [
     styleNotUtf8,
     styleOptionWithoutAiWeight,
     styleRedundantCondition,
+    styleRedundantFalseCondition,
     styleUnusualFieldOrder,
 ];
 

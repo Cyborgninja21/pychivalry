@@ -1,0 +1,40 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 3,
+            "column": 3,
+            "code": "style/redundant-false-condition",
+            "severity": "hint",
+            "message": "'always = no' changes nothing in 'OR', which holds another condition: take it away.",
+            "data": {
+                "condition": "always",
+                "block": "OR"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 9,
+            "column": 3,
+            "code": "style/redundant-false-condition",
+            "severity": "hint",
+            "message": "'always = no' changes nothing in 'NOR', which holds another condition: take it away.",
+            "data": {
+                "condition": "always",
+                "block": "NOR"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 15,
+            "column": 3,
+            "code": "style/redundant-false-condition",
+            "severity": "hint",
+            "message": "'always = no' changes nothing in 'all_false', which holds another condition: take it away.",
+            "data": {
+                "condition": "always",
+                "block": "all_false"
+            }
+        }
+    ]
+}
