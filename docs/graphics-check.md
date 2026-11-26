@@ -106,7 +106,13 @@ with the check's own reading by a one-off script over the base game, not committ
 
 ## The five test mods
 
-`task game:mods` (records/game/mods.json): the counts are in its record, by mod and by code.
+`task game:mods` (records/game/mods.json): 3 warnings, all in `rice`, and none in
+`balance-of-power-ui`, `divine-intervention`, `elf-destiny` or `viet-events`. The three are one
+decision of rice (`common/decisions/RICE_mayo_decisions.txt`, lines 425, 431 and 437), whose
+pictures name `gfx/interface/illustrations/event_scenes/decision_erect_homer_monument.dds`,
+`decision_visit_western_oasis_springs.dds` and `decision_RICE_east_asian_garden.dds`: the mod ships
+all three in `gfx/interface/illustrations/decisions/`, not in `event_scenes/`, and the game has
+none of them. Every other warning of the five mods is as before.
 
 ## What the spec package does not say yet
 
