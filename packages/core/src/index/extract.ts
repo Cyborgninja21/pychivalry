@@ -52,7 +52,13 @@
 import type { SaveRule } from '../spec/tables.js';
 import { chainSegments, classifyWord } from '../syntax/lexer.js';
 import type { Block, FileNode, Item, Pair, Scalar, Value } from '../syntax/tree.js';
-import { keyMatcher, type NestedRule, type SpecFolder } from './folders.js';
+import {
+    keyMatcher,
+    type NestedRule,
+    type SpecFolder,
+    type TextScopeForms,
+    type VariableRule,
+} from './folders.js';
 import type { LocalizationFile } from './localization.js';
 import { FORMS, type Form } from './rules.js';
 import type { StringTable } from './strings.js';
@@ -195,6 +201,13 @@ export interface ScriptContext {
      * head of a chain written with one of them, anywhere in the file, records a read of its name.
      */
     readonly scopeLinks?: ReadonlySet<string>;
+    /**
+     * Format 9, the table `variables`: per keyword (lower case), the variable it names
+     * (`FolderTable.variables`): a pair with one of them, anywhere in the file, records the name
+     * its rule's `name_in` says where to find, and a chain segment written with one of its links
+     * (`var:x`) a statement of `x`.
+     */
+    readonly variables?: ReadonlyMap<string, VariableRule>;
     /** Format 8: per container key, what its children are (a containers row's `entries`). */
     readonly entries?: ReadonlyMap<string, ContainerReading> | null;
     /** Format 8: the stores of a folder that holds statements (`details.statements`). */
@@ -214,6 +227,138 @@ export interface Extracted {
      * where it starts: each stands for every name it can become, a saved scope's among them.
      */
     readonly templates?: number[];
+    /**
+     * Format 9: the variables it sets (a keyword of the table `variables` that gives a variable
+     * its name), each as `<namespace>\u0001<holds>\u0001<name>` (`variableKey`), with where the
+     * name starts; a name holding a `$PARAM$` stands for every name it can become.
+     */
+    readonly varSets?: number[];
+    /**
+     * Format 9: the plain name of every variable statement it writes, set or read (a keyword of
+     * the table `variables`, or a link of it in a chain: `var:x`), each with where it starts.
+     */
+    readonly varNames?: number[];
+    /**
+     * Format 9, a localization file: the names its entries' text reads as a saved scope or value
+     * (part D9's forms, `FolderTable.textScopeForms`), each with where it starts in the file.
+     */
+    readonly textReads?: number[];
+}
+
+/** The key a variable set is recorded under: its namespace, its kind and its name. */
+export function variableKey(namespace: string, holds: string, name: string): string {
+    return `${namespace}\u0001${holds}\u0001${name}`;
+}
+
+/** A variable key's three parts (`variableKey`), or undefined for another string. */
+export function variableKeyParts(
+    key: string,
+): { readonly namespace: string; readonly holds: string; readonly name: string } | undefined {
+    const [namespace, holds, name, more] = key.split('\u0001');
+    return namespace === undefined ||
+        holds === undefined ||
+        name === undefined ||
+        more !== undefined
+        ? undefined
+        : { namespace, holds, name };
+}
+
+/** A variable statement a pair writes: its rule, and the scalar that names the variable. */
+export interface VariableStatement {
+    readonly key: string;
+    readonly rule: VariableRule;
+    readonly name: Scalar;
+}
+
+/**
+ * The variables a pair names (format 9, the table `variables`): when its key is one of the
+ * table's keywords, in any letter case, the names written where the rule's `name_in` says: the
+ * pair's own value (`value`), or a parameter of its block (`name`, `variable`; `has_variable = {
+ * name = a name = b }` names both). A link's forms (`link_data`, `link_argument`) are read from
+ * chains (`variableLinkReads`). A name is a word: a plain name, or one holding a `$PARAM$`.
+ */
+export function variableStatementsOf(
+    pair: Pair,
+    variables: ReadonlyMap<string, VariableRule>,
+): VariableStatement[] {
+    const rule = variables.get(pair.key.text.toLowerCase());
+    if (rule === undefined || rule.kind === VARIABLE_LINK) {
+        return [];
+    }
+    const out: VariableStatement[] = [];
+    const word = (value: Value | null | undefined): Scalar | undefined =>
+        value?.kind === 'scalar' && (value.type === 'name' || value.type === 'parameter')
+            ? value
+            : undefined;
+    for (const form of rule.nameIn) {
+        if (form === NAME_IN_VALUE) {
+            const name = word(pair.value);
+            if (name !== undefined) {
+                out.push({ key: pair.key.text, rule, name });
+            }
+            continue;
+        }
+        if (pair.value?.kind !== 'block') {
+            continue;
+        }
+        const wanted = form.toLowerCase();
+        for (const item of pair.value.items) {
+            if (item.kind === 'pair' && item.key.text.toLowerCase() === wanted) {
+                const name = word(item.value);
+                if (name !== undefined) {
+                    out.push({ key: pair.key.text, rule, name });
+                }
+            }
+        }
+    }
+    return out;
+}
+
+/** A read of a variable by a link in a chain (`var:x`, `variable_map(x|k)`). */
+export interface VariableLinkRead {
+    readonly link: string;
+    readonly rule: VariableRule;
+    readonly name: string;
+    /** Where the name starts in the file. */
+    readonly start: number;
+}
+
+/**
+ * The variables a scalar's chain reads by a link of the table `variables` (format 9): a segment
+ * `<link>:<name>` (`name_in` `link_data`) or `<link>(<name>|<key>)` (`link_argument`), the link
+ * in any letter case. A name holding a `$PARAM$` is no one name and is not read.
+ */
+export function variableLinkReads(
+    scalar: Scalar,
+    variables: ReadonlyMap<string, VariableRule>,
+): VariableLinkRead[] {
+    if (scalar.type !== 'chain' || variables.size === 0) {
+        return [];
+    }
+    const out: VariableLinkRead[] = [];
+    let at = scalar.start;
+    for (const segment of scalar.segments ?? chainSegments(scalar.text) ?? []) {
+        const data = /^([A-Za-z_][A-Za-z0-9_]*):([^$:|]+)$/.exec(segment);
+        const argument = /^([A-Za-z_][A-Za-z0-9_]*)\(([^$|()]+)[|)]/.exec(segment);
+        for (const [match, form] of [
+            [data, NAME_IN_LINK_DATA],
+            [argument, NAME_IN_LINK_ARGUMENT],
+        ] as const) {
+            const link = match?.[1];
+            const name = match?.[2];
+            const rule = link === undefined ? undefined : variables.get(link.toLowerCase());
+            if (
+                link !== undefined &&
+                name !== undefined &&
+                rule?.kind === VARIABLE_LINK &&
+                rule.nameIn.includes(form)
+            ) {
+                out.push({ link, rule, name, start: at + link.length + 1 });
+            }
+        }
+        at += segment.length + 1;
+    }
+    return out;
 }
 
 const WHOLE_NUMBER = /^[0-9]+$/;
@@ -553,6 +698,11 @@ export function nameTemplatePattern(word: string): RegExp {
 /** The `name_in` form of a save rule for the key's own value (`key = name`), format 9. */
 const NAME_IN_VALUE = 'value';
 
+/** The table `variables`' forms of a link's name (`name_in`) and its word for a link (`kind`). */
+const NAME_IN_LINK_DATA = 'link_data';
+const NAME_IN_LINK_ARGUMENT = 'link_argument';
+const VARIABLE_LINK = 'link';
+
 /** A scalar that is one plain name: no chain, no `$PARAM$`. */
 function plainName(value: Value | null | undefined): Scalar | undefined {
     return value?.kind === 'scalar' && value.type === 'name' && !value.text.includes('$')
@@ -640,9 +790,13 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
     const uses: number[] = [];
     const saves: number[] = [];
     const saveRules = context.saveRules;
+    const variables = context.variables;
+    const varSets: number[] = [];
+    const varNames: number[] = [];
     // `save_scope_as = name`, `save_scope_value_as = { name = x }`: a save of the name. A name
-    // holding a `$PARAM$` stands for many.
-    const onPair =
+    // holding a `$PARAM$` stands for many. `set_variable = { name = x }`: a variable set, and
+    // every statement of the table `variables` a statement of its name.
+    const onSave =
         saveRules === undefined || saveRules.size === 0
             ? undefined
             : (pair: Pair): void => {
@@ -651,15 +805,55 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
                       saves.push(strings.intern(value.text), value.start);
                   }
               };
+    const onVariable =
+        variables === undefined || variables.size === 0
+            ? undefined
+            : (pair: Pair): void => {
+                  for (const statement of variableStatementsOf(pair, variables)) {
+                      const name = statement.name;
+                      if (statement.rule.defines) {
+                          varSets.push(
+                              strings.intern(
+                                  variableKey(
+                                      statement.rule.namespace,
+                                      statement.rule.holds,
+                                      name.text,
+                                  ),
+                              ),
+                              name.start,
+                          );
+                      }
+                      if (!name.text.includes('$')) {
+                          varNames.push(strings.intern(name.text), name.start);
+                      }
+                  }
+              };
+    const onPair =
+        onSave === undefined && onVariable === undefined
+            ? undefined
+            : (pair: Pair): void => {
+                  onSave?.(pair);
+                  onVariable?.(pair);
+              };
     const reads: number[] = [];
     const templates: number[] = [];
     const scopeLinks = context.scopeLinks;
     // `scope:name`, as a key or a value, alone or at the head of a chain: a read of `name`. A
-    // name built with a `$PARAM$` (`save_scope_as = been_to_$SCENE$`): a template.
+    // name built with a `$PARAM$` (`save_scope_as = been_to_$SCENE$`): a template. `var:name`
+    // anywhere in a chain: a variable statement of `name`.
     const onScalar =
-        scopeLinks === undefined || scopeLinks.size === 0
+        (scopeLinks === undefined || scopeLinks.size === 0) &&
+        (variables === undefined || variables.size === 0)
             ? undefined
             : (scalar: Scalar): void => {
+                  if (variables !== undefined) {
+                      for (const read of variableLinkReads(scalar, variables)) {
+                          varNames.push(strings.intern(read.name), read.start);
+                      }
+                  }
+                  if (scopeLinks === undefined || scopeLinks.size === 0) {
+                      return;
+                  }
                   if (scalar.type === 'name' && isNameTemplate(scalar.text)) {
                       templates.push(strings.intern(scalar.text), scalar.start);
                       return;
@@ -774,7 +968,7 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
     if (context.database === null) {
         // No listed folder holds the file: the spec does not say what it defines.
         collectUses(file.items, push, onPair, onScalar);
-        return { defs, uses, saves, reads, templates };
+        return { defs, uses, saves, reads, templates, varSets, varNames };
     }
     if (folder?.fileNamed === true && context.fileStem !== null && context.fileStem !== undefined) {
         // The file is the record: named by its stem, it spans the whole file.
@@ -870,13 +1064,19 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
         }
     }
     collectUses(rest, push, onPair, onScalar);
-    return { defs, uses, saves, reads, templates };
+    return { defs, uses, saves, reads, templates, varSets, varNames };
 }
 
-/** What a localization file defines and uses. */
-export function extractLocalization(file: LocalizationFile, strings: StringTable): Extracted {
+/** What a localization file defines and uses; with D9's forms, what its texts read as saved scopes. */
+export function extractLocalization(
+    file: LocalizationFile,
+    strings: StringTable,
+    forms?: TextScopeForms,
+): Extracted {
     const defs: number[] = [];
     const uses: number[] = [];
+    const textReads: number[] = [];
+    const reading = forms !== undefined && (forms.heads || forms.functions.size > 0);
     for (const entry of file.entries) {
         defs.push(
             strings.intern(entry.key),
@@ -891,9 +1091,152 @@ export function extractLocalization(file: LocalizationFile, strings: StringTable
             -1,
             0,
         );
+        if (reading) {
+            textScopeReads(file.text.slice(entry.textStart, entry.textEnd), forms, (name, at) =>
+                textReads.push(strings.intern(name), entry.textStart + at),
+            );
+        }
     }
     for (const use of file.uses) {
         uses.push(strings.intern(use.name), use.start);
     }
-    return { defs, uses };
+    return reading ? { defs, uses, textReads } : { defs, uses };
+}
+
+/** A part of a bracket expression and where it starts in the text. */
+interface Part {
+    readonly text: string;
+    readonly at: number;
+}
+
+const QUOTE = 39; // '
+const BACKSLASH = 92;
+
+/**
+ * The parts of `text` split at each `separator` outside single quotes and parentheses, each
+ * with where it starts (`at` is where `text` starts).
+ */
+function splitOutside(text: string, at: number, separator: string): Part[] {
+    const out: Part[] = [];
+    let depth = 0;
+    let quoted = false;
+    let from = 0;
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        if (quoted) {
+            if (code === QUOTE && text.charCodeAt(i - 1) !== BACKSLASH) {
+                quoted = false;
+            }
+            continue;
+        }
+        const ch = text.charAt(i);
+        if (code === QUOTE) {
+            quoted = true;
+        } else if (ch === '(') {
+            depth++;
+        } else if (ch === ')') {
+            depth = Math.max(0, depth - 1);
+        } else if (ch === separator && depth === 0) {
+            out.push({ text: text.slice(from, i), at: at + from });
+            from = i + 1;
+        }
+    }
+    out.push({ text: text.slice(from), at: at + from });
+    return out;
+}
+
+/** The data-binding statements of a text, `[...]`, each without its brackets. */
+function statementsOf(text: string): Part[] {
+    const out: Part[] = [];
+    let open = -1;
+    let quoted = false;
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        if (open < 0) {
+            if (text.charAt(i) === '[') {
+                open = i;
+            }
+            continue;
+        }
+        if (quoted) {
+            if (code === QUOTE && text.charCodeAt(i - 1) !== BACKSLASH) {
+                quoted = false;
+            }
+        } else if (code === QUOTE) {
+            quoted = true;
+        } else if (text.charAt(i) === '[') {
+            // An extra `[`: what the game reads from here is not known.
+            return out;
+        } else if (text.charAt(i) === ']') {
+            out.push({ text: text.slice(open + 1, i), at: open + 1 });
+            open = -1;
+        }
+    }
+    return out;
+}
+
+const WORD = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+const CALL = /^([A-Za-z_][A-Za-z0-9_]*)\s*\(/;
+const QUOTED_WORD = /^'([A-Za-z_][A-Za-z0-9_]*)'$/;
+
+/**
+ * The names a localization text reads as a saved scope or value, by part D9's forms (its
+ * `consumer` text): each `[...]` split at its last `|` outside quotes and parentheses (the
+ * formatting suffix), then at `.` outside them. The first word of the chain is a saved name
+ * (`heads`, the form `saved_scope_head`), unless the whole expression is one word with a game
+ * concept's suffix (`conceptSuffix`, `E`; part D9's `game_concept`); a function of `functions` anywhere in
+ * the chain reads the name its argument at that position holds, when it is one quoted word
+ * (`TopScope.sC('name')`). Which first words are globals of the data types, not names, is the
+ * reader's to know (part C3).
+ */
+export function textScopeReads(
+    text: string,
+    forms: TextScopeForms,
+    push: (name: string, at: number) => void,
+): void {
+    for (const statement of statementsOf(text)) {
+        const bars = splitOutside(statement.text, statement.at, '|');
+        const suffix = bars.length > 1 ? (bars[bars.length - 1]?.text ?? '') : null;
+        const bodyEnd = bars.length > 1 ? (bars[bars.length - 1]?.at ?? 0) - 1 : null;
+        const body =
+            bodyEnd === null
+                ? statement
+                : {
+                      text: statement.text.slice(0, bodyEnd - statement.at),
+                      at: statement.at,
+                  };
+        const chain = splitOutside(body.text, body.at, '.');
+        const head = chain[0];
+        if (forms.heads && head !== undefined) {
+            const word = head.text.trim();
+            const concept =
+                chain.length === 1 &&
+                suffix !== null &&
+                forms.conceptSuffix !== null &&
+                suffix.includes(forms.conceptSuffix);
+            if (WORD.test(word) && !concept) {
+                push(word, head.at + head.text.indexOf(word));
+            }
+        }
+        for (const segment of chain) {
+            const trimmed = segment.text.trimStart();
+            const call = CALL.exec(trimmed);
+            const position = call?.[1] === undefined ? undefined : forms.functions.get(call[1]);
+            if (call === null || position === undefined) {
+                continue;
+            }
+            const open = segment.at + (segment.text.length - trimmed.length) + call[0].length;
+            const close = trimmed.lastIndexOf(')');
+            if (close < call[0].length) {
+                continue;
+            }
+            const inner = trimmed.slice(call[0].length, close);
+            const arg = splitOutside(inner, open, ',')[position];
+            const quoted = arg === undefined ? null : QUOTED_WORD.exec(arg.text.trim());
+            if (arg !== undefined && quoted?.[1] !== undefined) {
+                push(quoted[1], arg.at + arg.text.indexOf(quoted[1]));
+            }
+        }
+    }
 }

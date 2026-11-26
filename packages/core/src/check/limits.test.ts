@@ -194,6 +194,8 @@ const EVERYTHING: WorkspaceNames = {
     isUsed: () => true,
     hasDefinition: () => true,
     isRecordName: () => true,
+    isVariableSet: () => true,
+    textScopeReads: () => [],
 };
 
 const place = (f: WorkspaceFinding): string =>

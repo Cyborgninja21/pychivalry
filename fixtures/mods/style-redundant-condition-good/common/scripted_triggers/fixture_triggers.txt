@@ -1,0 +1,10 @@
+﻿fixture_can_host_trigger = {
+	AND = {
+		is_adult = yes
+		is_ruler = yes
+	}
+	NAND = {
+		is_ai = yes
+		has_trait = shy
+	}
+}

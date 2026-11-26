@@ -10,7 +10,12 @@
  * "Lessons from 2.3.0").
  */
 
-import { localizationDatabase, nameTemplatePattern } from '../index/extract.js';
+import {
+    localizationDatabase,
+    nameTemplatePattern,
+    variableKey,
+    variableKeyParts,
+} from '../index/extract.js';
 import { layerKind } from '../index/order.js';
 import type { WorkspaceIndex } from '../index/workspace.js';
 import type { DefinedNames } from './context.js';
@@ -44,6 +49,20 @@ export interface WorkspaceNames extends DefinedNames {
     hasDefinition(name: string): boolean;
     /** Whether `name` is the name of a definition that is no localization key: a record's. */
     isRecordName(name: string): boolean;
+    /**
+     * Format 9, the table `variables`: whether a variable of this namespace and kind may be set
+     * as `name`: a keyword that gives such a variable its name sets it in a file the game reads
+     * or may read; or one sets a name built with a `$PARAM$` that can become it
+     * (`flag_$TYPE$`); or one sets a name that is only a `$PARAM$` (`name = $VAR$`) and some
+     * file writes `name` other than in a variable statement (a value passed to that parameter
+     * may be it). False only when no script can set it.
+     */
+    isVariableSet(namespace: string, holds: string, name: string): boolean;
+    /**
+     * Format 9, part D9: the names the text of a localization key reads as a saved scope or
+     * value (`WorkspaceIndex.textScopeReads`), each once, sorted.
+     */
+    textScopeReads(key: string): readonly string[];
 }
 
 /**
@@ -58,7 +77,9 @@ export function withBaseGame(names: Partial<WorkspaceNames>): WorkspaceNames | u
         names.isBaseGameLocalizationKey !== undefined &&
         names.isUsed !== undefined &&
         names.hasDefinition !== undefined &&
-        names.isRecordName !== undefined
+        names.isRecordName !== undefined &&
+        names.isVariableSet !== undefined &&
+        names.textScopeReads !== undefined
         ? (names as WorkspaceNames)
         : undefined;
 }
@@ -84,6 +105,34 @@ export function definedNamesOf(index: WorkspaceIndex, options: NamesOptions = {}
     const known = new Map<string, boolean>();
     const saved = new Map<string, boolean>();
     let patterns: RegExp[] | undefined;
+    const variables = new Map<string, boolean>();
+    let variablePatterns:
+        Map<string, { readonly patterns: RegExp[]; readonly anyName: boolean }> | undefined;
+    const variableTemplatesOf = (
+        namespace: string,
+        holds: string,
+    ): { readonly patterns: RegExp[]; readonly anyName: boolean } | undefined => {
+        if (variablePatterns === undefined) {
+            variablePatterns = new Map();
+            for (const key of index.variableSetTemplates()) {
+                const parts = variableKeyParts(key);
+                if (parts === undefined) {
+                    continue;
+                }
+                const kind = `${parts.namespace}\u0001${parts.holds}`;
+                const known = variablePatterns.get(kind) ?? { patterns: [], anyName: false };
+                const literal = parts.name.replace(/\$[^$\s]+\$/g, '') !== '';
+                variablePatterns.set(kind, {
+                    patterns: literal
+                        ? [...known.patterns, nameTemplatePattern(parts.name)]
+                        : known.patterns,
+                    anyName: known.anyName || !literal,
+                });
+            }
+        }
+        return variablePatterns.get(`${namespace}\u0001${holds}`);
+    };
+    const texts = new Map<string, readonly string[]>();
     const keys = new Map<string, { any: boolean; base: boolean; record: boolean }>();
     const keyOf = (key: string): { any: boolean; base: boolean; record: boolean } => {
         let answer = keys.get(key);
@@ -130,5 +179,26 @@ export function definedNamesOf(index: WorkspaceIndex, options: NamesOptions = {}
             unread?.has(word) === true,
         hasDefinition: (name) => index.hasDefinition(name),
         isRecordName: (name) => keyOf(name).record,
+        isVariableSet(namespace: string, holds: string, name: string): boolean {
+            const key = variableKey(namespace, holds, name);
+            let answer = variables.get(key);
+            if (answer === undefined) {
+                const templates = variableTemplatesOf(namespace, holds);
+                answer =
+                    index.variableSets(namespace, holds, name).some((s) => s.read !== 'no') ||
+                    (templates?.patterns.some((p) => p.test(name)) ?? false) ||
+                    (templates?.anyName === true && index.isUsedBesideVariableStatements(name));
+                variables.set(key, answer);
+            }
+            return answer;
+        },
+        textScopeReads(key: string): readonly string[] {
+            let answer = texts.get(key);
+            if (answer === undefined) {
+                answer = index.textScopeReads(key);
+                texts.set(key, answer);
+            }
+            return answer;
+        },
     };
 }

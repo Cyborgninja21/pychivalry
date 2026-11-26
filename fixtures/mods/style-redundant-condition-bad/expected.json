@@ -1,0 +1,28 @@
+{
+    "findings": [
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 3,
+            "column": 3,
+            "code": "style/redundant-condition",
+            "severity": "hint",
+            "message": "'always = yes' changes nothing in 'AND', which holds another condition: take it away.",
+            "data": {
+                "condition": "always",
+                "block": "AND"
+            }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 9,
+            "column": 3,
+            "code": "style/redundant-condition",
+            "severity": "hint",
+            "message": "'always = yes' changes nothing in 'NAND', which holds another condition: take it away.",
+            "data": {
+                "condition": "always",
+                "block": "NAND"
+            }
+        }
+    ]
+}

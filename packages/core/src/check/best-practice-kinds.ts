@@ -15,7 +15,9 @@ export type BestPracticeCode =
     | 'style/deep-nesting'
     | 'style/not-utf8'
     | 'style/unusual-field-order'
-    | 'style/localization-key-characters';
+    | 'style/localization-key-characters'
+    | 'style/redundant-condition'
+    | 'style/option-without-ai-weight';
 
 function style(
     severity: 'warning' | 'information' | 'hint',
@@ -64,5 +66,17 @@ export const BEST_PRACTICE_KINDS: Readonly<Record<BestPracticeCode, CheckKind>> 
         2,
         "A localization key that starts with a digit or holds a character other than a letter, a digit, '_' or '.': release 2.3.0's LOC-001.",
         "The localization key '%s' %s; a key starts with a letter or '_' and holds only letters, digits, '_' and '.'.",
+    ),
+    'style/redundant-condition': style(
+        'hint',
+        2,
+        "A condition that always holds, written in a block where it changes nothing while another condition remains: release 2.3.0's CK3872.",
+        "'%s' changes nothing in '%s', which holds another condition: take it away.",
+    ),
+    'style/option-without-ai-weight': style(
+        'hint',
+        3,
+        "An option of a shown event with several options that gives the AI no weight to choose it by: release 2.3.0's CK3613.",
+        "Option %s of '%s' has neither %s, by which the AI weighs an event's options; the game documents no weight for an option without one.",
     ),
 };

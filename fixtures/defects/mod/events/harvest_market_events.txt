@@ -13,6 +13,7 @@ harvest_market.0001 = {
 
 	option = {
 		name = harvest_market.0001.a
+		ai_chance = { base = 50 }
 		add_gold = -10
 		add_character_modifier = {
 			modifier = harvest_bounty_modifier
@@ -25,6 +26,7 @@ harvest_market.0001 = {
 	}
 	option = {
 		name = harvest_market.0001.b
+		ai_chance = { base = 50 }
         add_prestige = 5
 	}
 }

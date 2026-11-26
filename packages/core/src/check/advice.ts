@@ -19,7 +19,7 @@ import {
     type Item,
     type Pair,
 } from '../syntax/tree.js';
-import type { DefinedNames } from './context.js';
+import type { DefinedNames, FileReading } from './context.js';
 import type { CheckCode, CheckFinding } from './finding.js';
 import type { CheckContext } from './report.js';
 
@@ -32,6 +32,11 @@ export interface AdviceInput {
     readonly tree: FileNode;
     readonly names: DefinedNames;
     readonly context: CheckContext;
+    /**
+     * The file's context reading (`readContext`), when the runner has made it: the checks that
+     * judge keywords by what they are in their place read it, and make it when it is not given.
+     */
+    readonly reading?: FileReading | undefined;
 }
 
 /** What an advice check found on one file, and how many units it judged there. */

@@ -2,6 +2,19 @@
     "findings": [
         {
             "file": "localization/english/fixture_brackets_l_english.yml",
+            "line": 4,
+            "column": 31,
+            "code": "localization/unbalanced-brackets",
+            "severity": "warning",
+            "message": "Loc key `fixture_brackets_unclosed`: Unterminated '[' at position 0 in [...] data statement - file `localization/english/fixture_brackets_l_english.yml`",
+            "data": {
+                "key": "fixture_brackets_unclosed",
+                "bracket": "[",
+                "problem": "unterminated"
+            }
+        },
+        {
+            "file": "localization/english/fixture_brackets_l_english.yml",
             "line": 5,
             "column": 57,
             "code": "localization/unbalanced-brackets",
@@ -9,7 +22,8 @@
             "message": "Loc key `fixture_brackets_extra_open`: Unexpected extra `[` at position 24 - file `localization/english/fixture_brackets_l_english.yml`",
             "data": {
                 "key": "fixture_brackets_extra_open",
-                "bracket": "["
+                "bracket": "[",
+                "problem": "extra"
             }
         },
         {
@@ -21,7 +35,47 @@
             "message": "Loc key `fixture_brackets_extra_close`: Unexpected extra `]` at position 22 - file `localization/english/fixture_brackets_l_english.yml`",
             "data": {
                 "key": "fixture_brackets_extra_close",
-                "bracket": "]"
+                "bracket": "]",
+                "problem": "extra"
+            }
+        },
+        {
+            "file": "localization/english/fixture_brackets_l_english.yml",
+            "line": 7,
+            "column": 48,
+            "code": "localization/unbalanced-brackets",
+            "severity": "warning",
+            "message": "Loc key `fixture_brackets_open_paren`: Unterminated '(' at position 15 in [(...)] data parenthesis statement - file `localization/english/fixture_brackets_l_english.yml`",
+            "data": {
+                "key": "fixture_brackets_open_paren",
+                "bracket": "(",
+                "problem": "unterminated"
+            }
+        },
+        {
+            "file": "localization/english/fixture_brackets_l_english.yml",
+            "line": 8,
+            "column": 57,
+            "code": "localization/unbalanced-brackets",
+            "severity": "warning",
+            "message": "Loc key `fixture_brackets_open_quote`: Unterminated `'` at position 24 in ['...'] data single quotes - file `localization/english/fixture_brackets_l_english.yml`",
+            "data": {
+                "key": "fixture_brackets_open_quote",
+                "bracket": "'",
+                "problem": "unterminated"
+            }
+        },
+        {
+            "file": "localization/english/fixture_brackets_l_english.yml",
+            "line": 9,
+            "column": 39,
+            "code": "localization/unbalanced-brackets",
+            "severity": "warning",
+            "message": "Loc key `fixture_brackets_open_dollar`: Unterminated '$' at position 5 in $...$ localization replacement - file `localization/english/fixture_brackets_l_english.yml`",
+            "data": {
+                "key": "fixture_brackets_open_dollar",
+                "bracket": "$",
+                "problem": "unterminated"
             }
         }
     ]

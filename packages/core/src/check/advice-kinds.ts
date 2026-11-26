@@ -191,4 +191,16 @@ export const ADVICE_KINDS: Readonly<Record<AdviceCode, CheckKind>> = {
         "A scope read in an event's description that the event saves only after its window is shown.",
         "'%s' is read in '%s', but the event saves it only in %s, after the window is shown.",
     ),
+    'scope/title-text-reads-scope-saved-late': advice(
+        'information',
+        3,
+        "The localization text of an event's title reads a scope that the event saves only after its window is shown.",
+        "The title text '%s' reads the scope '%s', but the event saves it only in %s, after the window is shown.",
+    ),
+    'variables/read-without-set': advice(
+        'information',
+        4,
+        'A variable read or tested in a namespace and as a kind that no keyword of that namespace and kind sets under its name in the mod or the base game.',
+        "'%s' is read with '%s' as a variable %s of the namespace '%s', but nothing in the mod or the base game sets one of that name there.",
+    ),
 };

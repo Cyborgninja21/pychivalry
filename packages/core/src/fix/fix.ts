@@ -54,6 +54,8 @@ export const MAX_FIX_ALTERNATIVES = 5;
  *   code page the game's own message for title history asks for ("ansi").
  * - `field-order`: the usual order of a folder's record fields, from the core's field-order data, in
  *   a folder whose record fields the game reads by name.
+ * - `keyword-roles`: part D4's roles of the spec package: a condition that always holds changes
+ *   nothing in a block whose `child_always_true` is `neutral` while another child remains.
  */
 export type FixBasis =
     | 'retired'
@@ -68,7 +70,8 @@ export type FixBasis =
     | 'declared-names'
     | 'formatting'
     | 'windows-1252'
-    | 'field-order';
+    | 'field-order'
+    | 'keyword-roles';
 
 /** One edit: a span of a file replaced with new text. */
 export interface FixEdit {

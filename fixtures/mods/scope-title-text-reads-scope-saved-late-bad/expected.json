@@ -1,0 +1,32 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 9,
+            "column": 12,
+            "code": "scope/title-text-reads-scope-saved-late",
+            "severity": "information",
+            "message": "The title text 'fixture.0001.t.adult' reads the scope 'fixture_rival', but the event saves it only in 'option' or 'after', after the window is shown.",
+            "data": {
+                "key": "fixture.0001.t.adult",
+                "scope": "fixture_rival",
+                "block": "title",
+                "saved_in": ["option", "after"]
+            }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 11,
+            "column": 11,
+            "code": "scope/title-text-reads-scope-saved-late",
+            "severity": "information",
+            "message": "The title text 'fixture.0001.t' reads the scope 'fixture_rival', but the event saves it only in 'option' or 'after', after the window is shown.",
+            "data": {
+                "key": "fixture.0001.t",
+                "scope": "fixture_rival",
+                "block": "title",
+                "saved_in": ["option", "after"]
+            }
+        }
+    ]
+}

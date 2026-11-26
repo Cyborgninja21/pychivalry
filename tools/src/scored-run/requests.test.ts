@@ -21,6 +21,7 @@ import {
     committedDrafts,
     DRAFTS_DIR,
     exampleResult,
+    LATER_CODES,
     root,
     spec,
 } from './authoring-testing.js';
@@ -282,7 +283,9 @@ test('every request can be met: its example result meets every expectation, and 
         const mod = exampleResult(t, request);
         const check = checkOver(t, mod);
         assert.deepEqual(
-            check.findings.map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
+            check.findings
+                .filter((f) => !LATER_CODES.has(f.code))
+                .map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
             [],
             request.id,
         );

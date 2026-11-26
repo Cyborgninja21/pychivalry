@@ -1,0 +1,17 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 11,
+            "column": 2,
+            "code": "style/option-without-ai-weight",
+            "severity": "hint",
+            "message": "Option 2 of 'fixture.0001' has neither 'ai_chance' nor 'ai_will_select', by which the AI weighs an event's options; the game documents no weight for an option without one.",
+            "data": {
+                "event": "fixture.0001",
+                "option": "2",
+                "keywords": ["ai_chance", "ai_will_select"]
+            }
+        }
+    ]
+}

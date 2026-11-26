@@ -144,7 +144,7 @@ test(
                 information: output.totals.by_severity['information'] ?? 0,
                 hint: output.totals.by_severity['hint'] ?? 0,
             },
-            { error: 26, warning: 9, information: 0, hint: 1 },
+            { error: 26, warning: 10, information: 0, hint: 1 },
         );
         const planted = manifest.defects.flatMap((d) =>
             reportedAt(d).map((p) => `${d.code} ${p.file}:${String(p.line)}`),

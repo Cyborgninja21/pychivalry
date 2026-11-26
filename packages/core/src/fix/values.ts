@@ -13,11 +13,12 @@
  * - `localization/unbalanced-brackets`: for an extra `[`, the statement still open before it
  *   closed after its command (`[ROOT.Char.GetFirstName [x]` gives `[ROOT.Char.GetFirstName]
  *   [x]`); for an extra `]`, a statement opened before the command it closes; and the extra
- *   bracket taken away. Each offered only where the entry is then balanced, as the check reads
- *   it. Suggestions: which bracket is wrong is a choice.
+ *   bracket taken away. For an opener left open (format 9): a `[` closed after its command, a
+ *   `$` after its name, and the opener taken away. Each offered only where the entry is then
+ *   balanced, as the check reads it. Suggestions: which bracket is wrong is a choice.
  */
 
-import { extraBracket } from '../check/localization-unbalanced-brackets.js';
+import { extraBracket, openBracket } from '../check/localization-unbalanced-brackets.js';
 import { listCandidates } from './candidates.js';
 import { dataList, dataText, type FixableFinding, type FixFile } from './file.js';
 import { MAX_FIX_ALTERNATIVES, suggestion, type FindingFix, type FixAlternative } from './fix.js';
@@ -135,7 +136,25 @@ export function unbalancedBracketFix(finding: FixableFinding, file: FixFile): Fi
     }
     const inEntry = at - entry.start;
     const candidates: { title: string; at: number; remove: boolean; text: string }[] = [];
-    if (bracket === '[') {
+    if (dataText(finding.data, 'problem') === 'unterminated') {
+        // An opener left open: close it after its run, where that is a command or a name, or
+        // take it away.
+        const after = entry.text.slice(inEntry + 1);
+        const run =
+            bracket === '['
+                ? commandOf(COMMAND.exec(after)?.[0])
+                : bracket === '$'
+                  ? /^[^\s$|]+/.exec(after)?.[0]
+                  : undefined;
+        if (run !== undefined) {
+            candidates.push({
+                title: `Close ${bracket}${run} with '${bracket === '[' ? ']' : bracket}'`,
+                at: inEntry + 1 + run.length,
+                remove: false,
+                text: bracket === '[' ? ']' : bracket,
+            });
+        }
+    } else if (bracket === '[') {
         // The statement still open is the last `[` before this one: close it after its command.
         const open = entry.text.lastIndexOf('[', inEntry - 1);
         const command =
@@ -163,7 +182,10 @@ export function unbalancedBracketFix(finding: FixableFinding, file: FixFile): Fi
         }
     }
     candidates.push({
-        title: `Remove the extra '${bracket}'`,
+        title:
+            dataText(finding.data, 'problem') === 'unterminated'
+                ? `Remove the '${bracket}' left open`
+                : `Remove the extra '${bracket}'`,
         at: inEntry,
         remove: true,
         text: '',
@@ -173,7 +195,7 @@ export function unbalancedBracketFix(finding: FixableFinding, file: FixFile): Fi
         const changed = c.remove
             ? entry.text.slice(0, c.at) + entry.text.slice(c.at + 1)
             : entry.text.slice(0, c.at) + c.text + entry.text.slice(c.at);
-        return extraBracket(changed) === undefined;
+        return extraBracket(changed) === undefined && openBracket(changed) === undefined;
     });
     return suggestion(
         'parser',

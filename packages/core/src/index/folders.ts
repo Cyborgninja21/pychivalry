@@ -54,6 +54,52 @@ import { extensionOf, fileNameOf, foldCase, parentOf, segmentsOf } from './paths
  * takes (lower case), or null when the package does not settle it; `notScript` the files and
  * patterns it names as no script, each with what it is and its status.
  */
+/**
+ * Format 9, a keyword of the table `variables`: as what it is registered (`kind`: `effect`,
+ * `trigger`, `link`, `list`), what it does (`does`), the variable's `namespace` (`scope`,
+ * `local`, `global`, `dead_character`) and `holds` (`value`, `list`, `map`), where the name is
+ * written (`name_in`), and whether it gives the variable its name (`defines`: by the table's own
+ * `consumer` text, `does: set` with `holds: value`, or `does: add_item` with a list or a map).
+ */
+export interface VariableRule {
+    readonly kind: string;
+    readonly does: string;
+    readonly namespace: string;
+    readonly holds: string;
+    readonly nameIn: readonly string[];
+    readonly defines: boolean;
+}
+
+/**
+ * Format 9, part D9: the forms of localization text that read a saved scope or value by name:
+ * the head of a chain (`heads`), and the functions whose argument at a position (from 0) is
+ * such a name (`functions`); and the formatting suffix that makes a one-word expression a game
+ * concept instead (`conceptSuffix`, the confirmed `bare_key` form of `game_concept`).
+ */
+export interface TextScopeForms {
+    readonly heads: boolean;
+    readonly functions: ReadonlyMap<string, number>;
+    readonly conceptSuffix: string | null;
+}
+
+/** The table `variables`' words for what an entry does and holds (its `about.attributes`). */
+const VARIABLE_SET = 'set';
+const VARIABLE_ADD_ITEM = 'add_item';
+const VARIABLE_VALUE = 'value';
+
+/** Part D9's kinds of name that a script save gives (its `consumer` text). */
+const SAVED_READS: ReadonlySet<string> = new Set([
+    'saved_scope',
+    'saved_value',
+    'saved_scope_or_value',
+]);
+
+/** Part D9's kind of name of a game concept's key. */
+const CONCEPT_READS = 'game_concept';
+
+/** The statuses of a D9 form that advice may read: rank 1 to 3 evidence, or the measurement. */
+const TEXT_FORM_STATUSES: ReadonlySet<string> = new Set(['confirmed', 'measured-only']);
+
 export interface FolderFiles {
     readonly extensions: readonly string[] | null;
     readonly notScript: readonly NotScriptRule[];
@@ -460,6 +506,96 @@ export function scopeLinksFromSpec(specPackage: unknown): string[] {
  * The folder table of a spec package: its folders, the scope part D2 gives a constant, the
  * keys that save a scope and the links that read one.
  */
+/**
+ * Format 9, the table `variables`: its confirmed entries, by key, each with what it does and on
+ * what (`VariableRule`); sorted by key.
+ */
+export function variablesFromSpec(specPackage: unknown): [string, VariableRule][] {
+    if (!isJson(specPackage) || !isJson(specPackage['tables'])) {
+        return [];
+    }
+    const data = specPackage['tables']['data'];
+    const table = isJson(data) ? data['variables'] : undefined;
+    const entries = isJson(table) && isJson(table['entries']) ? table['entries'] : {};
+    const out: [string, VariableRule][] = [];
+    for (const [key, entry] of Object.entries(entries)) {
+        if (!isJson(entry) || entry['evidence_status'] !== 'confirmed') {
+            continue;
+        }
+        const { kind, does, holds, namespace } = entry;
+        if (
+            typeof kind !== 'string' ||
+            typeof does !== 'string' ||
+            typeof holds !== 'string' ||
+            typeof namespace !== 'string'
+        ) {
+            continue;
+        }
+        const nameIn = Array.isArray(entry['name_in'])
+            ? (entry['name_in'] as unknown[]).filter((v): v is string => typeof v === 'string')
+            : [];
+        const defines =
+            (does === VARIABLE_SET && holds === VARIABLE_VALUE) ||
+            (does === VARIABLE_ADD_ITEM && holds !== VARIABLE_VALUE);
+        out.push([key, { kind, does, namespace, holds, nameIn, defines }]);
+    }
+    return out.sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/**
+ * Format 9, part D9: the forms of localization text that read a scope or a value the script
+ * saved under a name, as its `consumer` text lists them for "a check that a text reads a scope
+ * saved too late" (the rows whose `reads` is `saved_scope`, `saved_value` or
+ * `saved_scope_or_value`), whose status is `confirmed` or `measured-only`: the head of a chain
+ * (`saved_scope_head`, confirmed), and each function whose argument at `name_arg` is such a name
+ * (`TopScope.sC`, measured only). A form whose status is `unknown` is not read. What they read
+ * feeds advice only (`scope/title-text-reads-scope-saved-late`).
+ */
+export function textScopeFormsFromSpec(specPackage: unknown): TextScopeForms {
+    const none: TextScopeForms = { heads: false, functions: new Map(), conceptSuffix: null };
+    if (!isJson(specPackage)) {
+        return none;
+    }
+    const forms = partData(specPackage, 'localization_forms')['forms'];
+    if (!Array.isArray(forms)) {
+        return none;
+    }
+    let heads = false;
+    let conceptSuffix: string | null = null;
+    const functions = new Map<string, number>();
+    for (const form of forms as unknown[]) {
+        if (
+            isJson(form) &&
+            form['reads'] === CONCEPT_READS &&
+            form['shape'] === 'bare_key' &&
+            form['status'] === 'confirmed' &&
+            typeof form['suffix'] === 'string'
+        ) {
+            conceptSuffix = form['suffix'];
+        }
+        if (
+            !isJson(form) ||
+            typeof form['reads'] !== 'string' ||
+            !SAVED_READS.has(form['reads']) ||
+            typeof form['status'] !== 'string' ||
+            !TEXT_FORM_STATUSES.has(form['status'])
+        ) {
+            continue;
+        }
+        if (form['shape'] === 'head') {
+            heads = true;
+        } else if (form['shape'] === 'function' && typeof form['name_arg'] === 'number') {
+            const names = Array.isArray(form['function']) ? form['function'] : [form['function']];
+            for (const name of names as unknown[]) {
+                if (typeof name === 'string') {
+                    functions.set(name, form['name_arg']);
+                }
+            }
+        }
+    }
+    return { heads, functions, conceptSuffix };
+}
+
 export function folderTableFromSpec(specPackage: unknown): FolderTable {
     return new FolderTable(
         foldersFromSpec(specPackage),
@@ -467,6 +603,10 @@ export function folderTableFromSpec(specPackage: unknown): FolderTable {
         saveRulesFromSpec(specPackage),
         scopeLinksFromSpec(specPackage),
         savedFromCodeFromSpec(specPackage),
+        {
+            variables: variablesFromSpec(specPackage),
+            textScopeForms: textScopeFormsFromSpec(specPackage),
+        },
     );
 }
 
@@ -498,6 +638,17 @@ export class FolderTable {
      * (`scopeLinksFromSpec`). Empty, the index records no reads.
      */
     readonly scopeLinks: ReadonlySet<string>;
+    /**
+     * Format 9, the table `variables`: per keyword (lower case), what it does and on what kind
+     * of variable, and where the name is written (`variablesFromSpec`). Empty, the index records
+     * no variable.
+     */
+    readonly variables: ReadonlyMap<string, VariableRule>;
+    /**
+     * Format 9, part D9: the forms of localization text that read a saved scope or value by
+     * name (`textScopeFormsFromSpec`). With none, the index records no such read.
+     */
+    readonly textScopeForms: TextScopeForms;
     private readonly byFolded = new Map<string, SpecFolder>();
 
     constructor(
@@ -506,6 +657,10 @@ export class FolderTable {
         saveRules: readonly (readonly [string, SaveRule])[] = [],
         scopeLinks: readonly string[] = [],
         savedFromCode: readonly string[] = [],
+        more: {
+            readonly variables?: readonly (readonly [string, VariableRule])[];
+            readonly textScopeForms?: TextScopeForms;
+        } = {},
     ) {
         this.folders = folders;
         this.constantScope = constantScope;
@@ -513,6 +668,14 @@ export class FolderTable {
         this.saveKeys = new Set(this.saveRules.keys());
         this.scopeLinks = new Set(scopeLinks.map((k) => k.toLowerCase()));
         this.savedFromCode = new Set(savedFromCode);
+        this.variables = new Map(
+            (more.variables ?? []).map(([key, rule]) => [key.toLowerCase(), rule]),
+        );
+        this.textScopeForms = more.textScopeForms ?? {
+            heads: false,
+            functions: new Map(),
+            conceptSuffix: null,
+        };
         for (const folder of folders) {
             this.byFolded.set(foldCase(folder.path), folder);
         }

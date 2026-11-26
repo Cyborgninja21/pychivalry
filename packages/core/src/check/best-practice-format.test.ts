@@ -21,6 +21,7 @@ for (const [pair, code] of [
     ['style-empty-block-bad', 'style/empty-block'],
     ['style-unusual-field-order-bad', 'style/unusual-field-order'],
     ['style-not-utf8-bad', 'style/not-utf8'],
+    ['style-redundant-condition-bad', 'style/redundant-condition'],
 ] as const) {
     test(`${pair}: after the fixes of ${code} the formatter finds nothing`, () => {
         const copy = copyMod(path.join(MODS, pair));
@@ -43,6 +44,7 @@ for (const [pair, code] of [
 for (const [pair, code] of [
     ['style-deep-nesting-bad', 'style/deep-nesting'],
     ['style-localization-key-characters-bad', 'style/localization-key-characters'],
+    ['style-option-without-ai-weight-bad', 'style/option-without-ai-weight'],
 ] as const) {
     test(`${pair} has no fix, and the formatter finds nothing in it`, () => {
         const run = checkFixtureMod(path.join(MODS, pair));

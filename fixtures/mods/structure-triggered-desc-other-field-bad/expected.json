@@ -1,0 +1,17 @@
+{
+    "findings": [
+        {
+            "file": "events/fixture_events.txt",
+            "line": 11,
+            "column": 5,
+            "code": "structure/triggered-desc-other-field",
+            "severity": "warning",
+            "message": "The body of triggered_desc can only take desc and/or trigger. events/fixture_events.txt:11",
+            "data": {
+                "key": "first_valid",
+                "block": "triggered_desc",
+                "allowed": ["desc", "trigger"]
+            }
+        }
+    ]
+}
