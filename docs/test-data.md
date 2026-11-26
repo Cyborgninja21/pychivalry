@@ -158,7 +158,10 @@ fixes leave it there; 71 check pairs still. Since decision 172 the pair's empty 
 block whose meaning when empty the package leaves open, reported saying so and offered no fix, and
 the bad half also holds a `liege` (a scope switch) and an `OR` beside a condition in a `limit` (a
 logical operator), each reported the same way; the good half gives the `liege` an effect and the
-`OR` a condition; 71 check pairs still.
+`OR` a condition; 71 check pairs still. Since decision 174 the bad half also holds an empty
+`random_list` entry and an empty case of a `switch` that has a `fallback`, each reported saying
+what taking it away would change and offered no fix; the good half gives each an effect; 71 check
+pairs still.
 
 ## The planted-defect mod
 
