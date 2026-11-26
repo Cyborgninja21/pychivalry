@@ -24,4 +24,13 @@ fixture_empty_effect = {
 		}
 		add_gold = 1
 	}
+	random_list = {
+		10 = {}
+		90 = { add_gold = 1 }
+	}
+	switch = {
+		trigger = has_trait
+		brave = {}
+		fallback = { add_gold = 1 }
+	}
 }

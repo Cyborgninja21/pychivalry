@@ -673,6 +673,21 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `OR`). The fixture pair gained a `liege` and an `OR`. `pychivalry-tools advice proof` counts
   each best-practice rule's findings by the fix offered and by what they mean. The game-file
   suites, re-run, give the same figures but their times; their records are not committed.
+- `style/empty-block` never offers to take away an empty `random_list` entry or `switch` case
+  either (decisions 174 and 175): each is still a hint, its message saying what taking it away
+  would change (`: an entry of 'random_list', a chance of nothing; taking it away changes the
+  odds of the others`, `means: random-entry`; `: a case of 'switch'; taking it away lets
+  'fallback' run for its value`, `case`; an empty `fallback` itself, `fallback-case`), with no
+  fix. Read from the package, no keyword in the code: a case of a container of the table
+  `containers` with `cases`, an entry where its cases take the parameters of the table
+  `random_list_entry`, a case of a case list where part D4 gives the container `case_list`, the
+  fallback by D4's `fallback_case`; where the context reader judges no key (inside the body of
+  an effect the package gives no rule for), by the container's name. On all of the base game's
+  24,274 empty blocks: 263 entries, 28 cases and 1 fallback, 179 removals withdrawn (152, 26
+  and 1), 22,273 left; in the five mods 172 (rice 149, viet-events 20, elf-destiny 2,
+  divine-intervention 1). The fixture pair gained an entry and a case. `pychivalry-tools advice
+  proof` also counts each fix offered by the block it would change. The game-file suites, re-run,
+  give the same figures but their times; their records are not committed.
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as
@@ -1038,7 +1053,9 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   iterator is read where the package's rules do not place it, and what an empty logical
   operator, plain trigger block or scope switch evaluates to; until it says, the rule offers no
   fix for those last (decision 172). Whether it should also stop offering to take away an empty
-  `random_list` entry or `switch` case is a question for the owner (docs/decisions.md).
+  event `option` (5 in the base game) or a `duel`'s empty outcome (1) is a question for the owner
+  (docs/decisions.md), and a row of the table `containers` for `duel`, whose body the game
+  documents as a `random_list`'s, goes back to the spec work (decision 175).
 - The seventeen requests of 2026-11-25 are answered by format 9 (docs/decisions.md, row 150),
   what the package still leaves open with them; one new request goes back to the spec work
   (row 151): the trait groups and the game concepts' aliases, which part D6 names as databases and

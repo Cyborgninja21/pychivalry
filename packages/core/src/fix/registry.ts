@@ -325,7 +325,7 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     },
     'style/empty-block': {
         offer: 'suggestion',
-        what: "The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. Never for an empty iterator that is a condition, which asks for at least one item: its test written out instead, with the parameter the spec package documents for how many items must match; none for an iterator the package does not say how to read where it is written, for a trigger or an effect written with an empty block, or for a logical operator, a scope switch or a trigger block (a `limit`), whose meaning when empty the spec package leaves open.",
+        what: "The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. Never for an empty iterator that is a condition, which asks for at least one item: its test written out instead, with the parameter the spec package documents for how many items must match; none for an iterator the package does not say how to read where it is written, for a trigger or an effect written with an empty block, for a logical operator, a scope switch or a trigger block (a `limit`), whose meaning when empty the spec package leaves open, or for an entry of a random list or a case of a `switch`, its `fallback` among them, whose removal changes the odds of the other entries or lets the fallback run for its value.",
         fixer: emptyBlockFix,
     },
     'style/deep-nesting': {

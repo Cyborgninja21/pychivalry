@@ -19,6 +19,10 @@
  *   `scope-switch`, `trigger-block`; a `limit`), whose meaning when empty the spec package
  *   leaves open (the owner's decision of 2026-11-26, `check/empty-open.ts`): nothing, until the
  *   spec work says what each evaluates to.
+ * - **A case of a container** (`random-entry`, `case`, `fallback-case`; the owner's decision of
+ *   the same day, row 174, `check/empty-case.ts`): nothing. Taking an empty entry of a random list
+ *   away changes the odds of the others (it may be a deliberate chance of nothing), and taking an
+ *   empty case away lets the fallback run for its value.
  */
 
 import {

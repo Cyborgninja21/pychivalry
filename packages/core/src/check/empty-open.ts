@@ -33,8 +33,9 @@
  * script value), the reader's own rule that a chain or a link there is a scope switch, and a
  * structural keyword whose block the table reads as triggers (a `limit` in a script value's
  * `if`). A key the reader does not judge in a trigger or effect block is a case of the block
- * around it (a `random_list` entry, a `switch` case), and a key of a modifier block or of a
- * block the reader does not read is none of these: both are read as before.
+ * around it (a `random_list` entry, a `switch` case), which `empty-case.ts` reads (row 174), and
+ * a key of a modifier block or of a block the reader does not read is none of these: read as
+ * before.
  */
 
 import type { Spec } from '../spec/reader.js';
@@ -92,7 +93,7 @@ export function openEmptyBlock(spec: Spec, pair: Pair, place: EmptyPlace): OpenE
     const { key, directory } = place;
     if (key === undefined) {
         if (place.parent !== 'none' && place.parent !== 'script-value') {
-            // A case of a container, a modifier block's own key, or a block not read.
+            // A case of a container (`empty-case.ts`), a modifier block's key, or a block not read.
             return null;
         }
         const name = pair.key.text;

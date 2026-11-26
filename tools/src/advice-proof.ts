@@ -20,7 +20,9 @@
  * lists its findings only when there are few. It also counts its findings by the fix each is
  * offered (the fix's basis, or `none`), and by what their data says the place means
  * (`data.means`, where a finding says), so that a change to what a rule offers is measured on
- * the base game by this command, not by a script of its own.
+ * the base game by this command, not by a script of its own; and, for each fix offered, its
+ * findings by the block their data names (`data.block`), most first, so that what a fix would
+ * change can be looked over by the kind of block it changes.
  */
 
 import { readFileSync } from 'node:fs';
@@ -84,6 +86,14 @@ export interface NamedCount {
 /** The name under which a style row counts its findings that are offered no fix. */
 export const NO_FIX = 'none';
 
+/** The findings offered one fix, by the block their data names. */
+export interface FixedBlocks {
+    /** The fix's basis. */
+    readonly fix: string;
+    /** By block name, most first, then in code-point order. */
+    readonly blocks: readonly NamedCount[];
+}
+
 /** One advice row, or one best-practice rule, on the base game. */
 export interface ProofRow {
     readonly code: string;
@@ -106,6 +116,12 @@ export interface ProofRow {
      * code-point order, those that say nothing left out; empty for an advice row.
      */
     readonly byMeaning: readonly NamedCount[];
+    /**
+     * A style row's findings offered a fix, for each fix's basis in code-point order, by the
+     * block their data names (`data.block`), those that name none left out; empty for an advice
+     * row and for a row whose findings name no block.
+     */
+    readonly byFixedBlock: readonly FixedBlocks[];
 }
 
 /** A map of counts as rows, in code-point order of their names. */
@@ -113,6 +129,11 @@ function namedCounts(counts: ReadonlyMap<string, number>): NamedCount[] {
     return [...counts]
         .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
         .map(([name, fires]) => ({ name, fires }));
+}
+
+/** A map of counts as rows, most first, then in code-point order of their names. */
+function mostFirst(counts: ReadonlyMap<string, number>): NamedCount[] {
+    return namedCounts(counts).sort((a, b) => b.fires - a.fires);
 }
 
 function bump(counts: Map<string, number>, name: string): void {
@@ -166,6 +187,7 @@ export function adviceProof(
             byFolder: Map<string, FolderCount>;
             byFix: Map<string, number>;
             byMeaning: Map<string, number>;
+            byFixedBlock: Map<string, Map<string, number>>;
         }
     >(
         [...BEST_PRACTICE_CHECKS.map((c) => c.code), LOCALIZATION_KEY_CODE].map((code) => [
@@ -177,6 +199,7 @@ export function adviceProof(
                 byFolder: new Map(),
                 byFix: new Map(),
                 byMeaning: new Map(),
+                byFixedBlock: new Map(),
             },
         ]),
     );
@@ -195,10 +218,17 @@ export function adviceProof(
         // it: only its basis is counted).
         const fixes = fixFileFindings(found, { spec, folders, file, names, ...source }, undefined);
         for (const [i, f] of found.entries()) {
-            bump(count.byFix, fixes[i]?.basis ?? NO_FIX);
+            const basis = fixes[i]?.basis ?? NO_FIX;
+            bump(count.byFix, basis);
             const means = f.data['means'];
             if (typeof means === 'string') {
                 bump(count.byMeaning, means);
+            }
+            const block = f.data['block'];
+            if (basis !== NO_FIX && typeof block === 'string') {
+                const blocks = count.byFixedBlock.get(basis) ?? new Map<string, number>();
+                bump(blocks, block);
+                count.byFixedBlock.set(basis, blocks);
             }
         }
         // A localization file is counted by its language's folder (`localization/english`).
@@ -295,6 +325,7 @@ export function adviceProof(
         byFolder: [],
         byFix: [],
         byMeaning: [],
+        byFixedBlock: [],
     }));
     for (const [code, c] of styles) {
         rows.push({
@@ -309,6 +340,9 @@ export function adviceProof(
                 .sort((a, b) => (a.folder < b.folder ? -1 : a.folder > b.folder ? 1 : 0)),
             byFix: namedCounts(c.byFix),
             byMeaning: namedCounts(c.byMeaning),
+            byFixedBlock: [...c.byFixedBlock]
+                .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+                .map(([fix, blocks]) => ({ fix, blocks: mostFirst(blocks) })),
         });
     }
     return { files, rows };
@@ -325,8 +359,9 @@ function countsLine(counts: readonly NamedCount[]): string {
 }
 
 /**
- * The proof as text: one line per row; a style row's findings by the fix offered and by what
- * they mean, and its counts by folder; then each finding of a row that fires.
+ * The proof as text: one line per row; a style row's findings by the fix offered, by what they
+ * mean and, for each fix, by block, and its counts by folder; then each finding of a row that
+ * fires.
  */
 export function proofText(proof: Proof): string {
     const lines = [`advice proof: ${String(proof.files)} script files read`];
@@ -340,6 +375,9 @@ export function proofText(proof: Proof): string {
         }
         if (row.byMeaning.length > 0) {
             lines.push(`  what they mean: ${countsLine(row.byMeaning)}`);
+        }
+        for (const fixed of row.byFixedBlock) {
+            lines.push(`  ${fixed.fix} offered, by block: ${countsLine(fixed.blocks)}`);
         }
         for (const f of row.byFolder) {
             if (f.fires > 0 || row.code === 'style/unusual-field-order') {
