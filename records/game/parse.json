@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-25T23:50:14.726Z",
+    "made_at": "2026-11-26T21:31:04.247Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "165cf89d54156485f97ddbd9875d66a30db14f5f",
+        "commit": "736e828e9b94ca53b5ee564814bfec96dbeddbfa",
         "dirty": false
     },
     "machine": {
@@ -27,12 +27,22 @@
         "sha256": "61343931063b00efd3a323862b4f9ce9daf89b10ad887267a4ad06109ef06b47",
         "package_format": 9
     },
-    "corpus": null,
+    "corpus": {
+        "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
+        "slugs": [
+            "balance-of-power-ui",
+            "divine-intervention",
+            "elf-destiny",
+            "rice",
+            "viet-events"
+        ]
+    },
     "notes": [
         "The folders and extensions read, with the evidence that each holds script and the number of files expected, are listed in results.folders; text files not read, and why, in results.not_read (docs/encoding.md, \"What the parser reads\").",
         "Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and counted (not_utf8 in results.folders); the parse gives no finding for it (its information note, encoding/not-utf8, was retired on 2026-11-23: the warning style/not-utf8 of the check suite reports such a file).",
         "Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.",
         "results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.",
+        "results.gui is the GUI parse suite (docs/PLAN.md item 10.3; docs/gui-syntax.md): every .gui file of the install's game/, jomini/ and clausewitz/ folders, in the folders of results.gui.folders, each with the files expected and the evidence for it, parsed by the GUI parser; every finding (each is information: no catalogue message is the GUI reader's) listed and classified in tools/data/gui-parse-classifications.json, matched by layer, file, finding and line; forms counts every form of GUI syntax the files write, each with the files that write it and its first place, the files read in path order; mods lists, for each corpus mod read, its .gui files, the trees and every finding, unclassified: a mod's GUI file is not the base game's. parse_ms is the time to decode and parse, on this machine, in one process.",
         "results.round_trip is the formatter's round trip (docs/PLAN.md item 8.3) over every file parsed, with the rules every surface uses (docs/formatting.md): each is formatted, its output parsed and compared with the input without offsets (the same items in order and nesting, of the same kinds, with the same texts, scalar types, operators, names before keys, closings and chain segments, and comments but for their trailing spaces and tabs), its tokens compared, its comments counted and each checked to keep the tokens around it and its own line or not, and formatted a second time to the same bytes. A file with a parse error is left as it is (results.round_trip.left). by_rule counts the places, files and lines each style/ hint names; width the lines over 120 columns (a tab to the next multiple of four, every code point one column) before formatting, formatted without the 120-column rule and with it, and the files that rule changes on its own. format_ms is formatting alone, in one process. results.round_trip_localization is the same over the game's localization/ .yml files, their reading by the index's localization reader compared."
     ],
     "results": {
@@ -40,7 +50,7 @@
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 7538,
+        "parse_ms": 6977,
         "folders": [
             {
                 "folder": "common",
@@ -51,7 +61,7 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 2958,
+                "parse_ms": 2198,
                 "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
@@ -64,7 +74,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1770,
+                "parse_ms": 1568,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -77,7 +87,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 1461,
+                "parse_ms": 1411,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -90,7 +100,7 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1331,
+                "parse_ms": 1768,
                 "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
@@ -108,7 +118,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 17,
+                "parse_ms": 25,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
@@ -121,7 +131,7 @@
                 "bom": 3,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 0,
+                "parse_ms": 4,
                 "why": "In the spec; paths.settings names music/music_player_categories.",
                 "excluded": []
             },
@@ -134,7 +144,7 @@
                 "bom": 0,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 0,
+                "parse_ms": 1,
                 "why": "In the spec; paths.settings names sound/map/ambience.",
                 "excluded": [
                     {
@@ -165,7 +175,7 @@
                 "bom": 22,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1,
+                "parse_ms": 2,
                 "why": "In the game's checksum manifest: data-binding macros, in script syntax.",
                 "excluded": []
             },
@@ -218,8 +228,8 @@
         "notes": [],
         "not_read": [
             {
-                "what": "gui/**/*.gui",
-                "why": "GUI syntax: its own parser and suite, build step 10."
+                "what": "gui/**/*.gui, and every other .gui file of the install",
+                "why": "Not script: GUI syntax, read by the GUI parser in results.gui (build step 10, docs/gui-syntax.md)."
             },
             {
                 "what": "localization/**/*.yml",
@@ -911,11 +921,11 @@
                 "lines_over_after": 9784,
                 "files_changed_by_width_alone": 990
             },
-            "format_ms": 33555,
+            "format_ms": 29618,
             "largest_file": {
                 "file": "gfx/map/map_object_data/generated/tree_leaf_high_generator_1.txt",
                 "bytes": 13167832,
-                "format_ms": 186
+                "format_ms": 191
             },
             "failures": []
         },
@@ -1006,13 +1016,876 @@
                 "lines_over_after": 620910,
                 "files_changed_by_width_alone": 0
             },
-            "format_ms": 7066,
+            "format_ms": 5702,
             "largest_file": {
                 "file": "localization/russian/custom_localization/ru_custom_loc_l_russian.yml",
                 "bytes": 1307118,
-                "format_ms": 7
+                "format_ms": 9
             },
             "failures": []
+        },
+        "gui": {
+            "passed": true,
+            "failures": [],
+            "files": 583,
+            "trees": 583,
+            "parse_ms": 245,
+            "folders": [
+                {
+                    "layer": "game",
+                    "folder": "gui",
+                    "expected_files": 441,
+                    "files": 441,
+                    "trees": 441,
+                    "bom": 192,
+                    "not_utf8": 0,
+                    "findings": 6,
+                    "parse_ms": 225,
+                    "why": "The game's GUI folder: the spec lists `gui` (content type gui, 441 .gui files), and the game's checksum_manifest.txt names it with its sub-directories."
+                },
+                {
+                    "layer": "game",
+                    "folder": "tweakergui_assets",
+                    "expected_files": 1,
+                    "files": 1,
+                    "trees": 1,
+                    "bom": 0,
+                    "not_utf8": 0,
+                    "findings": 0,
+                    "parse_ms": 0,
+                    "why": "The tweaker's GUI file, interface/tweakergui.gui: read by the spec package's GUI companion (C2), which counts 442 files; no folder of the spec lists it, so the index does not read it."
+                },
+                {
+                    "layer": "jomini",
+                    "folder": "gui",
+                    "expected_files": 91,
+                    "files": 91,
+                    "trees": 91,
+                    "bom": 0,
+                    "not_utf8": 0,
+                    "findings": 3,
+                    "parse_ms": 12,
+                    "why": "The install's jomini/ folder, mounted below game/ (part D1, search-path-order); game/gui holds 21 of its paths and replaces each whole (game-file-replaces-jomini-and-clausewitz)."
+                },
+                {
+                    "layer": "jomini",
+                    "folder": "jomini",
+                    "expected_files": 1,
+                    "files": 1,
+                    "trees": 1,
+                    "bom": 0,
+                    "not_utf8": 0,
+                    "findings": 0,
+                    "parse_ms": 0,
+                    "why": "jomini/jomini/gui/encyclopedia/jomini_encyclopedia.gui: a GUI file of the install outside every gui/ folder; whether the game reads it is not shown, and the index does not."
+                },
+                {
+                    "layer": "clausewitz",
+                    "folder": "gui",
+                    "expected_files": 49,
+                    "files": 49,
+                    "trees": 49,
+                    "bom": 0,
+                    "not_utf8": 0,
+                    "findings": 9,
+                    "parse_ms": 7,
+                    "why": "The install's clausewitz/ folder, mounted first (part D1, search-path-order): the engine's own tool windows."
+                }
+            ],
+            "findings": [
+                {
+                    "layer": "game",
+                    "file": "gui/debug/window_drag_drop_test.gui",
+                    "line": 32,
+                    "column": 11,
+                    "id": "syntax/gui-missing-equals",
+                    "message": "'margin' and its value have no '=' between them: a GUI file writes 'key = value' and 'key = { ... }'.",
+                    "classification": "game-defect",
+                    "reason": "'margin { 50 0 }' in a debug test window, written without its '='. The base game's GUI files write 'margin = { ... }' 3,364 times and 'margin { ... }' only here; no evidence shows the GUI reader reads it as 'margin = { 50 0 }'."
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/window_character.gui",
+                    "line": 5452,
+                    "column": 40,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after 'struggle_tooltip', which GUI syntax does not use: it is read as part of the word, 'struggle_tooltip;'.",
+                    "classification": "game-defect",
+                    "reason": "'tooltipwidget = struggle_tooltip;': the ';' makes the value the word 'struggle_tooltip;', which nothing defines. The base game writes 'tooltipwidget = struggle_tooltip' twice elsewhere (gui/hud.gui:5645) and defines the template struggle_tooltip in gui/shared/cooltip.gui; no other value of the base game's GUI files ends with ';' but 'expanding;' in gui/window_dlc_info.gui."
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/window_dlc_info.gui",
+                    "line": 213,
+                    "column": 40,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after 'expanding', which GUI syntax does not use: it is read as part of the word, 'expanding;'.",
+                    "classification": "game-defect",
+                    "reason": "'layoutpolicy_horizontal = expanding;': the ';' makes the value the word 'expanding;'. The base game's GUI files write 'layoutpolicy_horizontal = expanding' 9,795 times and 'expanding;' only here."
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/window_dynasty_house.gui",
+                    "line": 1828,
+                    "column": 13,
+                    "id": "syntax/gui-missing-equals",
+                    "message": "'align' and its value have no '=' between them: a GUI file writes 'key = value' and 'key = { ... }'.",
+                    "classification": "game-defect",
+                    "reason": "'align right|top' written without its '=' among a text_single's properties. The base game's GUI files write 'align = ...' 3,034 times and a key followed by its value with no '=' only here."
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/window_dynasty_house.gui",
+                    "line": 2894,
+                    "column": 13,
+                    "id": "syntax/gui-missing-equals",
+                    "message": "'size' and its value have no '=' between them: a GUI file writes 'key = value' and 'key = { ... }'.",
+                    "classification": "game-defect",
+                    "reason": "'size { 5 0 }' in a spacer, written without its '='. The base game's GUI files write 'size = { ... }' 11,677 times and 'size { ... }' twice, here and in gui/window_legends.gui."
+                },
+                {
+                    "layer": "game",
+                    "file": "gui/window_legends.gui",
+                    "line": 1002,
+                    "column": 12,
+                    "id": "syntax/gui-missing-equals",
+                    "message": "'size' and its value have no '=' between them: a GUI file writes 'key = value' and 'key = { ... }'.",
+                    "classification": "game-defect",
+                    "reason": "'size { ... }' written without its '='. The base game's GUI files write 'size = { ... }' 11,677 times and 'size { ... }' twice, here and in gui/window_dynasty_house.gui."
+                },
+                {
+                    "layer": "jomini",
+                    "file": "gui/social/add_friend_window_base.gui",
+                    "line": 76,
+                    "column": 50,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[Friends.SetSearchString]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties. Two of the file's 79 properties end with ';' (lines 76 and 78), the other 77 with none; no file of the base game's own game/gui folder writes a ';' after a statement but the two words of gui/window_character.gui and gui/window_dlc_info.gui."
+                },
+                {
+                    "layer": "jomini",
+                    "file": "gui/social/add_friend_window_base.gui",
+                    "line": 78,
+                    "column": 43,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[Friends.Search]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties. Two of the file's 79 properties end with ';' (lines 76 and 78), the other 77 with none; no file of the base game's own game/gui folder writes a ';' after a statement but the two words of gui/window_character.gui and gui/window_dlc_info.gui."
+                },
+                {
+                    "layer": "jomini",
+                    "file": "gui/social/chat_window_base.gui",
+                    "line": 263,
+                    "column": 52,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[ChatWindow.SendMessage]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties. One of the file's 155 properties ends with ';', the other 154 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 245,
+                    "column": 51,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[TextureEntry.IsAvailable]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 257,
+                    "column": 56,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[Not(TextureEntry.IsAvailable)]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 337,
+                    "column": 41,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[OutputEntry.GetPath]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 344,
+                    "column": 41,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[OutputEntry.GetPath]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 364,
+                    "column": 51,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[TextureEntry.IsAvailable]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 365,
+                    "column": 44,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[TextureEntry.GetName]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 372,
+                    "column": 56,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[Not(TextureEntry.IsAvailable)]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/texture_importer.gui",
+                    "line": 373,
+                    "column": 44,
+                    "id": "syntax/gui-trailing-semicolon",
+                    "message": "A ';' after '\"[TextureEntry.GetName]\"', which GUI syntax does not use: it is read as a value of its own.",
+                    "classification": "game-defect",
+                    "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+                },
+                {
+                    "layer": "clausewitz",
+                    "file": "gui/applicationutils/tools_gui_dialogs.gui",
+                    "line": 217,
+                    "column": 1,
+                    "id": "syntax/gui-unexpected-closing-brace",
+                    "message": "A '}' at the top level of the file, where no block is open.",
+                    "classification": "game-defect",
+                    "reason": "The file's last line is a '}' that closes no block: counted outside comments and quoted text the file has 46 '{' and 47 '}', and its depth is last zero on line 216, where its types block ends. A tool window of the engine's own folder."
+                }
+            ],
+            "forms": {
+                "comment": {
+                    "count": 7506,
+                    "files": 421,
+                    "by_layer": {
+                        "game": 6771,
+                        "jomini": 600,
+                        "clausewitz": 135
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:68"
+                },
+                "constant-definition:in-a-block": {
+                    "count": 18,
+                    "files": 7,
+                    "by_layer": {
+                        "game": 18
+                    },
+                    "example": "game gui/frontend_main.gui:125"
+                },
+                "constant-definition:top-level": {
+                    "count": 35,
+                    "files": 11,
+                    "by_layer": {
+                        "game": 26,
+                        "jomini": 9
+                    },
+                    "example": "game gui/event_windows/character_event.gui:1"
+                },
+                "list-value": {
+                    "count": 53210,
+                    "files": 537,
+                    "by_layer": {
+                        "game": 47278,
+                        "jomini": 3829,
+                        "clausewitz": 2103
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:5"
+                },
+                "list-value:constant": {
+                    "count": 295,
+                    "files": 12,
+                    "by_layer": {
+                        "game": 255,
+                        "jomini": 40
+                    },
+                    "example": "game gui/frontend_main.gui:133"
+                },
+                "list-value:number": {
+                    "count": 48790,
+                    "files": 487,
+                    "by_layer": {
+                        "game": 43193,
+                        "jomini": 3602,
+                        "clausewitz": 1995
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:5"
+                },
+                "list-value:percent": {
+                    "count": 3931,
+                    "files": 316,
+                    "by_layer": {
+                        "game": 3636,
+                        "jomini": 187,
+                        "clausewitz": 108
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:94"
+                },
+                "list-value:word": {
+                    "count": 194,
+                    "files": 14,
+                    "by_layer": {
+                        "game": 194
+                    },
+                    "example": "game gui/event_windows/anonymous_letter_event.gui:239"
+                },
+                "named:block": {
+                    "count": 3397,
+                    "files": 222,
+                    "by_layer": {
+                        "game": 2806,
+                        "jomini": 496,
+                        "clausewitz": 95
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:80"
+                },
+                "named:block:in-a-block": {
+                    "count": 3397,
+                    "files": 222,
+                    "by_layer": {
+                        "game": 2806,
+                        "jomini": 496,
+                        "clausewitz": 95
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:80"
+                },
+                "named:block:name-bare": {
+                    "count": 6,
+                    "files": 6,
+                    "by_layer": {
+                        "game": 3,
+                        "clausewitz": 3
+                    },
+                    "example": "game gui/window_intrigue.gui:2081"
+                },
+                "named:block:name-quoted": {
+                    "count": 3388,
+                    "files": 220,
+                    "by_layer": {
+                        "game": 2800,
+                        "jomini": 496,
+                        "clausewitz": 92
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:80"
+                },
+                "named:block:name-single-quoted": {
+                    "count": 3,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 3
+                    },
+                    "example": "game gui/shared/mapmodes.gui:417"
+                },
+                "named:block:with-equals": {
+                    "count": 5,
+                    "files": 4,
+                    "by_layer": {
+                        "game": 3,
+                        "jomini": 1,
+                        "clausewitz": 1
+                    },
+                    "example": "game gui/shared/buttons.gui:598"
+                },
+                "named:blockoverride": {
+                    "count": 9302,
+                    "files": 404,
+                    "by_layer": {
+                        "game": 8558,
+                        "jomini": 449,
+                        "clausewitz": 295
+                    },
+                    "example": "game gui/achievements/jomini_achievements_window.gui:32"
+                },
+                "named:blockoverride:in-a-block": {
+                    "count": 9302,
+                    "files": 404,
+                    "by_layer": {
+                        "game": 8558,
+                        "jomini": 449,
+                        "clausewitz": 295
+                    },
+                    "example": "game gui/achievements/jomini_achievements_window.gui:32"
+                },
+                "named:blockoverride:name-bare": {
+                    "count": 6,
+                    "files": 5,
+                    "by_layer": {
+                        "game": 3,
+                        "clausewitz": 3
+                    },
+                    "example": "game gui/window_struggle.gui:545"
+                },
+                "named:blockoverride:name-quoted": {
+                    "count": 9293,
+                    "files": 404,
+                    "by_layer": {
+                        "game": 8552,
+                        "jomini": 449,
+                        "clausewitz": 292
+                    },
+                    "example": "game gui/achievements/jomini_achievements_window.gui:32"
+                },
+                "named:blockoverride:name-single-quoted": {
+                    "count": 3,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 3
+                    },
+                    "example": "game gui/shared/mapmodes.gui:1284"
+                },
+                "named:blockoverride:with-equals": {
+                    "count": 31,
+                    "files": 7,
+                    "by_layer": {
+                        "game": 31
+                    },
+                    "example": "game gui/interaction_marriage.gui:190"
+                },
+                "named:layer": {
+                    "count": 13,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 13
+                    },
+                    "example": "game gui/shared/windows.gui:4"
+                },
+                "named:layer:name-bare": {
+                    "count": 13,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 13
+                    },
+                    "example": "game gui/shared/windows.gui:4"
+                },
+                "named:layer:top-level": {
+                    "count": 13,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 13
+                    },
+                    "example": "game gui/shared/windows.gui:4"
+                },
+                "named:local_template": {
+                    "count": 1,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 1
+                    },
+                    "example": "game gui/window_confederation.gui:1942"
+                },
+                "named:local_template:name-bare": {
+                    "count": 1,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 1
+                    },
+                    "example": "game gui/window_confederation.gui:1942"
+                },
+                "named:local_template:top-level": {
+                    "count": 1,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 1
+                    },
+                    "example": "game gui/window_confederation.gui:1942"
+                },
+                "named:template": {
+                    "count": 760,
+                    "files": 111,
+                    "by_layer": {
+                        "game": 590,
+                        "jomini": 76,
+                        "clausewitz": 94
+                    },
+                    "example": "game gui/activity_window_widgets/tournament_widget_types.gui:1125"
+                },
+                "named:template:name-bare": {
+                    "count": 759,
+                    "files": 110,
+                    "by_layer": {
+                        "game": 589,
+                        "jomini": 76,
+                        "clausewitz": 94
+                    },
+                    "example": "game gui/activity_window_widgets/tournament_widget_types.gui:1125"
+                },
+                "named:template:name-quoted": {
+                    "count": 1,
+                    "files": 1,
+                    "by_layer": {
+                        "game": 1
+                    },
+                    "example": "game gui/window_situation_list.gui:1592"
+                },
+                "named:template:top-level": {
+                    "count": 760,
+                    "files": 111,
+                    "by_layer": {
+                        "game": 590,
+                        "jomini": 76,
+                        "clausewitz": 94
+                    },
+                    "example": "game gui/activity_window_widgets/tournament_widget_types.gui:1125"
+                },
+                "named:template:with-equals": {
+                    "count": 1,
+                    "files": 1,
+                    "by_layer": {
+                        "jomini": 1
+                    },
+                    "example": "jomini gui/entity_editor/entity_editor.gui:66"
+                },
+                "named:types": {
+                    "count": 366,
+                    "files": 298,
+                    "by_layer": {
+                        "game": 273,
+                        "jomini": 58,
+                        "clausewitz": 35
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:1"
+                },
+                "named:types:keyword-written-Types": {
+                    "count": 3,
+                    "files": 3,
+                    "by_layer": {
+                        "game": 3
+                    },
+                    "example": "game gui/debug/window_watch.gui:328"
+                },
+                "named:types:name-bare": {
+                    "count": 348,
+                    "files": 280,
+                    "by_layer": {
+                        "game": 273,
+                        "jomini": 44,
+                        "clausewitz": 31
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:1"
+                },
+                "named:types:name-quoted": {
+                    "count": 18,
+                    "files": 18,
+                    "by_layer": {
+                        "jomini": 14,
+                        "clausewitz": 4
+                    },
+                    "example": "jomini gui/log_viewer/log_viewer.gui:1"
+                },
+                "named:types:top-level": {
+                    "count": 366,
+                    "files": 298,
+                    "by_layer": {
+                        "game": 273,
+                        "jomini": 58,
+                        "clausewitz": 35
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:1"
+                },
+                "property": {
+                    "count": 220375,
+                    "files": 574,
+                    "by_layer": {
+                        "game": 199440,
+                        "jomini": 14468,
+                        "clausewitz": 6467
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:4"
+                },
+                "property:block-empty": {
+                    "count": 4353,
+                    "files": 350,
+                    "by_layer": {
+                        "game": 4086,
+                        "jomini": 252,
+                        "clausewitz": 15
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:36"
+                },
+                "property:block-list": {
+                    "count": 25559,
+                    "files": 537,
+                    "by_layer": {
+                        "game": 22788,
+                        "jomini": 1831,
+                        "clausewitz": 940
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:5"
+                },
+                "property:block-statements": {
+                    "count": 48837,
+                    "files": 551,
+                    "by_layer": {
+                        "game": 44232,
+                        "jomini": 3207,
+                        "clausewitz": 1398
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:8"
+                },
+                "property:without-equals": {
+                    "count": 4,
+                    "files": 3,
+                    "by_layer": {
+                        "game": 4
+                    },
+                    "example": "game gui/debug/window_drag_drop_test.gui:32"
+                },
+                "top-level-property:block": {
+                    "count": 1752,
+                    "files": 471,
+                    "by_layer": {
+                        "game": 1565,
+                        "jomini": 132,
+                        "clausewitz": 55
+                    },
+                    "example": "game gui/achievements/jomini_achievements_window.gui:1"
+                },
+                "type-definition:local_type": {
+                    "count": 6,
+                    "files": 2,
+                    "by_layer": {
+                        "jomini": 4,
+                        "clausewitz": 2
+                    },
+                    "example": "jomini gui/map_editor/materialsetter.gui:5"
+                },
+                "type-definition:local_type:in-types-block": {
+                    "count": 6,
+                    "files": 2,
+                    "by_layer": {
+                        "jomini": 4,
+                        "clausewitz": 2
+                    },
+                    "example": "jomini gui/map_editor/materialsetter.gui:5"
+                },
+                "type-definition:type": {
+                    "count": 2728,
+                    "files": 296,
+                    "by_layer": {
+                        "game": 2256,
+                        "jomini": 260,
+                        "clausewitz": 212
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:3"
+                },
+                "type-definition:type:base-is-itself": {
+                    "count": 19,
+                    "files": 3,
+                    "by_layer": {
+                        "game": 18,
+                        "clausewitz": 1
+                    },
+                    "example": "game gui/preload/defaults.gui:102"
+                },
+                "type-definition:type:in-types-block": {
+                    "count": 2728,
+                    "files": 296,
+                    "by_layer": {
+                        "game": 2256,
+                        "jomini": 260,
+                        "clausewitz": 212
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:3"
+                },
+                "using:quoted-text": {
+                    "count": 9,
+                    "files": 4,
+                    "by_layer": {
+                        "game": 2,
+                        "jomini": 7
+                    },
+                    "example": "game gui/shared/dialogs.gui:65"
+                },
+                "using:word": {
+                    "count": 10556,
+                    "files": 424,
+                    "by_layer": {
+                        "game": 9524,
+                        "jomini": 778,
+                        "clausewitz": 254
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:18"
+                },
+                "value-among-statements": {
+                    "count": 11,
+                    "files": 3,
+                    "by_layer": {
+                        "jomini": 3,
+                        "clausewitz": 8
+                    },
+                    "example": "jomini gui/social/add_friend_window_base.gui:76"
+                },
+                "value:arithmetic": {
+                    "count": 2,
+                    "files": 2,
+                    "by_layer": {
+                        "game": 2
+                    },
+                    "example": "game gui/window_activity_locale.gui:321"
+                },
+                "value:constant": {
+                    "count": 280,
+                    "files": 12,
+                    "by_layer": {
+                        "game": 279,
+                        "jomini": 1
+                    },
+                    "example": "game gui/event_windows/character_event.gui:686"
+                },
+                "value:data-binding": {
+                    "count": 246,
+                    "files": 49,
+                    "by_layer": {
+                        "game": 88,
+                        "jomini": 94,
+                        "clausewitz": 64
+                    },
+                    "example": "game gui/activity_window_widgets/tournament_bottom_middle_widget.gui:114"
+                },
+                "value:flags": {
+                    "count": 3207,
+                    "files": 341,
+                    "by_layer": {
+                        "game": 2642,
+                        "jomini": 387,
+                        "clausewitz": 178
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:155"
+                },
+                "value:number": {
+                    "count": 22554,
+                    "files": 473,
+                    "by_layer": {
+                        "game": 20963,
+                        "jomini": 937,
+                        "clausewitz": 654
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:6"
+                },
+                "value:number-with-f": {
+                    "count": 25,
+                    "files": 10,
+                    "by_layer": {
+                        "game": 25
+                    },
+                    "example": "game gui/frontend_bookmarks.gui:1313"
+                },
+                "value:percent": {
+                    "count": 28,
+                    "files": 19,
+                    "by_layer": {
+                        "game": 1,
+                        "jomini": 19,
+                        "clausewitz": 8
+                    },
+                    "example": "game gui/debug/ai_war_coordinator_watch_window.gui:206"
+                },
+                "value:quoted-data-binding": {
+                    "count": 21501,
+                    "files": 451,
+                    "by_layer": {
+                        "game": 19240,
+                        "jomini": 1565,
+                        "clausewitz": 696
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:11"
+                },
+                "value:quoted-data-binding-with-space": {
+                    "count": 12273,
+                    "files": 340,
+                    "by_layer": {
+                        "game": 11792,
+                        "jomini": 459,
+                        "clausewitz": 22
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:24"
+                },
+                "value:quoted-text": {
+                    "count": 32304,
+                    "files": 547,
+                    "by_layer": {
+                        "game": 29108,
+                        "jomini": 2307,
+                        "clausewitz": 889
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:29"
+                },
+                "value:word": {
+                    "count": 49206,
+                    "files": 543,
+                    "by_layer": {
+                        "game": 44194,
+                        "jomini": 3409,
+                        "clausewitz": 1603
+                    },
+                    "example": "game gui/achievements/jomini_achievements_types.gui:4"
+                }
+            },
+            "mods": [
+                {
+                    "slug": "balance-of-power-ui",
+                    "files": 2,
+                    "trees": 2,
+                    "parse_ms": 1,
+                    "findings": []
+                },
+                {
+                    "slug": "divine-intervention",
+                    "files": 88,
+                    "trees": 88,
+                    "parse_ms": 127,
+                    "findings": []
+                },
+                {
+                    "slug": "elf-destiny",
+                    "files": 52,
+                    "trees": 52,
+                    "parse_ms": 32,
+                    "findings": [
+                        {
+                            "file": "gui/window_character.gui",
+                            "line": 5454,
+                            "column": 40,
+                            "id": "syntax/gui-trailing-semicolon",
+                            "message": "A ';' after 'struggle_tooltip', which GUI syntax does not use: it is read as part of the word, 'struggle_tooltip;'."
+                        }
+                    ]
+                },
+                {
+                    "slug": "rice",
+                    "files": 67,
+                    "trees": 67,
+                    "parse_ms": 2,
+                    "findings": []
+                },
+                {
+                    "slug": "viet-events",
+                    "files": 0,
+                    "trees": 0,
+                    "parse_ms": 0,
+                    "findings": []
+                }
+            ]
         }
     }
 }
