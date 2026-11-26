@@ -1,7 +1,8 @@
 /**
- * Part D4 as the one reader gives it (`keyword-roles.ts`), for the roles format 9 adds: the ones
- * the checks blocked on them can now read (docs/checks.md: the redundant `always = yes`, the
- * option of a shown event with no AI weight). No check reads them yet.
+ * Part D4 as the one reader gives it (`keyword-roles.ts`), for the roles format 9 adds, which the
+ * checks blocked on them read (docs/checks.md): `style/redundant-condition` and
+ * `style/redundant-false-condition` (a condition that always holds or always fails, and what it
+ * does to its block), and `style/option-without-ai-weight` (the AI weight of an event's option).
  */
 
 import assert from 'node:assert/strict';

@@ -40,8 +40,9 @@ export interface RoleRow {
      * Format 9, a row with the role `combines_conditions`: how the block combines the conditions
      * it holds (`all`, `any`, `negation`, `none`, `not_all`, `count`, `weighted_count`), and what a
      * child that always holds or always fails does to it (`neutral`, `makes_it_hold`,
-     * `makes_it_fail`; null where the part gives no answer). No check reads them yet
-     * (docs/checks.md: a redundant `always = yes`).
+     * `makes_it_fail`; null where the part gives no answer). `child_always_true` is read by
+     * `style/redundant-condition`, `child_always_false` by `style/redundant-false-condition`;
+     * `combination` decides no check.
      */
     readonly combination: string | null;
     readonly childAlwaysTrue: string | null;

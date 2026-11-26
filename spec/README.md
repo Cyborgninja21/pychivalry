@@ -136,11 +136,22 @@ genes). Lookup (item 4.8) reads every part a name can be in: the buckets with th
 descriptions and scopes, D2, D4, D5 (a modifier's localization keys, `MOD_<NAME>` from
 `buckets.modifiers` since format 9), D6, D7, D8,
 `scope_types`, `noise_dropped`, the schema's fields, the tables of part C4 with what the trust
-rule does with them, and the data-types companion when it is asked for. Read and exposed for the
-checks that will need them, by no check yet: D9 (`localizationFormsOf`), the table `variables`
-(`Tables.variables`), D4's `combination`, `child_always_*`, `holds_with` and `fails_with` and
-the roles of `ai_chance`, `ai_will_select` and `always` (`check/keyword-roles.ts`), and the
-catalogue's "Unterminated ..." and `triggered_desc` messages.
+rule does with them, and the data-types companion when it is asked for.
+
+What format 9 added for checks that waited on it is read by those checks (pull request #161,
+and decision 158 for the last): D9 (`localizationFormsOf`), whose forms that read a saved scope
+the index records for each localization entry, by `scope/title-text-reads-scope-saved-late` (its
+`game_concept` forms by no check yet: a concept's aliases are not defined, docs/decisions.md row
+151); the table `variables` (`Tables.variables`), with which the index records every variable
+set and every variable statement's name, by `variables/read-without-set`; and of D4's new keys,
+read through `check/keyword-roles.ts`, `holds_with` with `child_always_true` (the role
+`constant_condition` of `always`, the role `combines_conditions`) by `style/redundant-condition`,
+`fails_with` with `child_always_false` by `style/redundant-false-condition`, and the role
+`ai_weight` of `ai_chance` and `ai_will_select` by `style/option-without-ai-weight`;
+`combination` is read with each row and decides no check. The catalogue's four "Unterminated
+..." messages are read by `localization/unbalanced-brackets` (the opener a text leaves open), and
+its `triggered_desc` message, with D4's `closed_body` and `allows_only`, by
+`structure/triggered-desc-other-field`.
 
 ## The format 4 copy
 
