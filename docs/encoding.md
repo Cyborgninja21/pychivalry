@@ -192,7 +192,7 @@ Not read, and why:
 
 | What | Why |
 | --- | --- |
-| `gui/**/*.gui` | GUI syntax: its own parser and suite, build step 10 |
+| `gui/**/*.gui` | GUI syntax: decoded as script files are, read by the GUI parser and parsed in `task game:parse`'s `results.gui` (build step 10, [gui-syntax.md](gui-syntax.md)) |
 | `localization/**/*.yml` | Localization: read by the index, build step 3 |
 | `**/*.asset` | `.asset` files come after the MVP |
 | `**/*.info` | Paradox's documentation files: prose with examples, not loaded as script |

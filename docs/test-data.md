@@ -49,6 +49,15 @@ the findings and tree a correct parser gives in its `expected.json`; and
 tables in the test files under `packages/core/src/syntax/`: the 74 parser cases of 2.3.0, and
 one case per token and per form.
 
+Build step 10 added the GUI fixtures ([gui-syntax.md](gui-syntax.md)): thirteen pairs
+`gui-<what>-bad` and `-good`, one per finding of the GUI parser, each bad half with the findings
+and the tree a correct parser gives in its `expected.json`; and the mod `gui-index` over the
+game stub `gui-index`, whose `expected.json` says what a correct index answers for every GUI
+type and template (in force, or winner not known), each name written at a place of the mod and
+the definitions it goes to, and the uses of a type in any letter case. The editor tests write a
+GUI file into their copy of the planted-defect mod, never into the mod itself, so that the
+same-answers test covers a GUI file's findings, its formatting left alone and its definitions.
+
 Build step 3 added the index's fixtures. The first game stub,
 [`fixtures/game/override-rules`](../fixtures/game/README.md), is an install with the three folders
 `game/`, `jomini/` and `clausewitz/` and one DLC pack, holding the game's side of every rule in
@@ -252,14 +261,16 @@ Read from the local install of the current game version. The suites state the bu
 of the game's file manifest in each record. `task game:parse` reads 4,854 script files of game
 1.21.0.3 in ten folders and measures the encoding of all 20,530 text files; its record is
 `records/game/parse.json`, and every parse error in it is classified in
-`tools/data/parse-classifications.json` ([encoding.md](encoding.md)).
+`tools/data/parse-classifications.json` ([encoding.md](encoding.md)). Since build step 10 it also
+parses the install's 583 GUI files and the five mods' 209, every GUI finding of the base game
+classified in `tools/data/gui-parse-classifications.json` ([gui-syntax.md](gui-syntax.md)).
 
-`task game:index` indexes the whole base game (17,302 files of 1.21.0.3 in the 236 folders of
-the spec's list that hold files, with the install's `jomini/` and `clausewitz/` folders and the
+`task game:index` indexes the whole base game (17,880 files of 1.21.0.3 since build step 10, the
+581 GUI files of `gui/` among them, in the folders of the spec's list that hold files, with the install's `jomini/` and `clausewitz/` folders and the
 DLC packs), caches and reloads the index, and indexes each of the five mods over it; its record
 is `records/game/index.json` ([records/README.md](../records/README.md#index-records-gameindex)).
 
-`task game:check` runs every check on those 17,302 files and `task game:mods` on each of the
+`task game:check` runs every check on those 17,880 files and `task game:mods` on each of the
 five mods, through the same code the command line runs; their records are
 `records/game/check.json` and `records/game/mods.json`
 ([records/README.md](../records/README.md#check-records-gamecheck-gamemods)). Every error and

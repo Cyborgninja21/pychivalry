@@ -67,7 +67,10 @@ only a partial row states (12 folders) or no row states (rule 4), the 32 folders
 parent (rule 5), a gene after a refused one in its block and the decal atlases of
 `common/genes` (rule 6, the open part of `gene-database-later-wins` and a partial row), the
 order of two DLC packs or two mods against each other (rule 1's mount order, not applied: the
-index holds one mod), and the per-field outcomes of an on-action declared twice (rule 6, not
+index holds one mod), a GUI type or template written again in another file (rule 5:
+`msg-gui-type-already-registered` and `gui-types-and-templates` are partial; templates were not
+read), every GUI file below a sub-folder of `gui/` (rule 4: no row; build step 10,
+[gui-syntax.md](gui-syntax.md#how-a-mods-gui-overrides-the-base-games)), and the per-field outcomes of an on-action declared twice (rule 6, not
 applied). The rows the package keeps `open` (7) and `partial` (15) are listed in [decisions.md](decisions.md#awaiting-confirmation) with what the index does with
 each kind.
 
@@ -226,8 +229,11 @@ title key, nested or not). Two keys are one key when their bytes are equal, lett
 folded (`key-identity-generic-database`, `key-identity-byte-exact-readers`), which is how the
 index compares them. 32 folders have no row (`coverage` class `unknown`) and `gui` is `open`:
 their names stay "winner not known". GUI type names are lower-cased before they are stored
-(`key-identity-gui-types`, settled); the index reads no `.gui` file, so the row decides nothing
-it answers.
+(`key-identity-gui-types`, settled); since build step 10 the index reads GUI files and applies
+the row to the database it names, `gui`, the GUI types: a type is found in any letter case. A
+mod's GUI file replaces the base game's at the same path by rule 1, as every file does; a type
+written again in another file is "winner not known"
+([gui-syntax.md](gui-syntax.md#how-a-mods-gui-overrides-the-base-games)).
 
 **Coats of arms written as alias lines** (format 8, `coat-of-arms-alias`, settled; derived from
 the code, not observed in a running game): a top-level `key = other_key` makes the key another

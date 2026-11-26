@@ -42,8 +42,8 @@ vocabulary come after the MVP ([MVP.md](MVP.md#not-in-the-mvp)).
 No DLC pack holds a GUI file. 192 of `game/gui/`'s 441 files start with the UTF-8 byte-order
 mark, none of the engine folders' do, and every one is valid UTF-8; they are decoded as script
 files are ([encoding.md](encoding.md)). The parse suite parses all 583. The index reads the GUI
-files of a folder the spec lists whose reader takes `.gui` files, `gui/` alone: 441 of `game/`
-and 91 of `jomini/`, the 21 that `game/` replaces among them.
+files of a folder the spec lists whose reader takes `.gui` files, `gui/` alone: 441 of `game/`,
+91 of `jomini/` and 49 of `clausewitz/`, 581, the 21 that `game/` replaces among them.
 
 ## What GUI syntax shares with script
 
@@ -214,6 +214,15 @@ a `using` value, a block's name, each word of quoted text and of a data binding 
 `localization/unused-key` sees a key a GUI file shows); not a number, `@[ ... ]` or a keyword.
 In a GUI file a use of a type's name is found in any letter case. A type outside a `types` block
 or a template inside a block, which the install never writes, defines nothing.
+
+On the base game ([records/game/index.json](../records/game/index.json)) the index reads 581 GUI
+files and records 3,495 GUI definitions; 44 GUI names written more than once are "winner not
+known", every one for the listing depth of `gui/` below. In the five mods, a GUI file's words are
+uses for every check that asks whether a name is written: `localization/unused-key` reports a key
+that a GUI file writes only in a comment (9 findings more in divine-intervention, 11 in
+elf-destiny), and `variables/read-without-set` is silent on `disable_toast_notifications` in
+elf-destiny, which its `gui/OVERRIDES_types.gui` reads with `GetGlobalVariable`, since a word
+beside a variable statement counts as a possible set.
 
 **Go to definition** is the index's, the same on every surface: the editor (go to definition,
 find references, hover, the outline of a GUI file), the command line's `lookup`, and the agent

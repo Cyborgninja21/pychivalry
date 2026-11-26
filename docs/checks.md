@@ -17,7 +17,9 @@
 > (`style/redundant-false-condition`) new on the owner's word of 2026-11-25, and
 > `localization/unused-key` is on by default (decision 108). Since decision 113 a
 > file not valid UTF-8 shows one finding, `style/not-utf8`: the parse note `encoding/not-utf8`
-> is retired ([Retired codes](#retired-codes)). The last column of each table, **State**, says which, and why
+> is retired ([Retired codes](#retired-codes)). Build step 10 added thirteen rows of the family
+> `syntax`, the GUI parser's `syntax/gui-*` codes, all built, all advice at information
+> ([Step 10: GUI syntax](#step-10-gui-syntax)). The last column of each table, **State**, says which, and why
 > where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
 > was decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
@@ -145,7 +147,7 @@ The families:
 
 | Family | What its findings are about | Items |
 | --- | --- | --- |
-| `syntax` | How a file reads: braces, operators, values, quoted text, `@[ ]` | Step 2 |
+| `syntax` | How a file reads: braces, operators, values, quoted text, `@[ ]`; since step 10 a GUI file too (`syntax/gui-*`) | Step 2, item 10.2 |
 | `encoding` | How a file's bytes decode | Step 2 |
 | `definitions` | What the index knows about a definition: a clash, a file the game does not read | 4.5 |
 | `names` | A keyword the game does not know in its place: trigger, effect, link, list, modifier, on-action | 4.2 |
@@ -644,7 +646,7 @@ check with the same catalogue entry, is decided in items 11.2 and 11.3 from capt
 ## The inventory in numbers
 
 78 rows: 11 built in step 2, and 67 proposed; 79 with the row format 9 added,
-`variables/read-without-set`. By state, after items 4.2 to 4.11 (2026-11-23) and the checks
+`variables/read-without-set`; 92 with step 10's thirteen rows of GUI syntax. By state, after items 4.2 to 4.11 (2026-11-23) and the checks
 format 9 unblocked (2026-11-25):
 
 | State | Rows | Which |
@@ -653,6 +655,7 @@ format 9 unblocked (2026-11-25):
 | Built in part | 4 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `references/unknown-name` (the game-concept half waits for the package to define a concept's aliases, docs/decisions.md row 151) |
 | Retired | 12 | The provisional advice rows item 4.7's re-proof found firing on the base game, and `encoding/not-utf8` (decision 113) ([Retired codes](#retired-codes)) |
 | Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
+| Built, step 10 | 13 | The GUI parser's codes, `syntax/gui-*`, all advice at information ([Step 10: GUI syntax](#step-10-gui-syntax)) |
 | Built, step 8 | 17 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; eight on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and seven hints, `style/redundant-condition` built and `style/option-without-ai-weight` added since format 9 gave part D4 the roles they read, and `style/redundant-false-condition` added on the owner's word of 2026-11-25 (decision 158) |
 
 The tables below are the inventory as item 4.1 proposed it.
