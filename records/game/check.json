@@ -2,12 +2,12 @@
     "record_format": 1,
     "suite": "game:check",
     "command": "task game:check",
-    "made_at": "2026-11-26T01:15:57.906Z",
+    "made_at": "2026-11-26T01:31:52.199Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "dff427f3f66e4fefd415d79a99c54f9fd6ccaf4d",
-        "dirty": true
+        "commit": "ce8723785447f85b0d57f67d7754565fb5b06303",
+        "dirty": false
     },
     "machine": {
         "os": "linux",
@@ -34,7 +34,7 @@
         "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
         "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
         "The style/ family (docs/formatting.md) rests on pychivalry's own formatting rules, not on the game: its warning (style/not-formatted, one a file not in the format) and its hints are counted in by_code and by_severity, never listed or classified; warnings and warning_list are the other warnings. The base game is not written in the format, so nearly every file has a style warning.",
-        "The load average over one minute was 1.70 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 5.17 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
@@ -2046,11 +2046,11 @@
             "keyword_uses_judged": 101162
         },
         "time_ms": {
-            "list": 439,
-            "build": 26645,
-            "check": 104126,
-            "total": 131210
+            "list": 482,
+            "build": 32400,
+            "check": 138820,
+            "total": 171702
         },
-        "peak_rss_kib": 3887284
+        "peak_rss_kib": 3919144
     }
 }
