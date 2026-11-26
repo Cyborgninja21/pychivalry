@@ -24,7 +24,10 @@
  * a case of a case list, its fallback among them (`empty-case.ts`, from the package's tables and
  * part D4), is never offered for removal either: taking an entry away changes the odds of the
  * others, taking a case away lets the fallback run for its value, and the message says which
- * (`data.means`, the kind). Every other empty block is reported as before.
+ * (`data.means`, the kind). Since the owner's decision of the same day (row 176) an empty option
+ * of an event (`empty-option.ts`, from part D4's role `event_option`) is never offered for removal
+ * either: taking it away takes a choice away from the player or the AI, and the message says so
+ * (`data.means`, `event-option`). Every other empty block is reported as before.
  */
 
 import { significantItems } from '../syntax/tree.js';
@@ -33,6 +36,7 @@ import { readContext, type FileReading, type JudgedKey } from './context.js';
 import { emptyCase, type EmptyCase } from './empty-case.js';
 import { emptyIterator } from './empty-iterator.js';
 import { openEmptyBlock, OPEN_EMPTY_WORDS, type OpenEmptyBlock } from './empty-open.js';
+import { eventOptionsOf, type EventOptionTest } from './empty-option.js';
 import type { CheckFinding, FindingData } from './finding.js';
 import type { Block, Pair } from '../syntax/tree.js';
 import { finding } from './report.js';
@@ -67,9 +71,18 @@ function changed(found: EmptyCase): string {
     }
 }
 
+/** What the message says after "is empty", for an event's option: the choice it takes away. */
+const TAKES_A_CHOICE =
+    ': a choice of its event; taking it away takes that choice away from the player or the AI';
+
 function run(input: BestPracticeInput): AdviceResult {
     let judged = 0;
     const findings: CheckFinding[] = [];
+    let options: EventOptionTest | undefined;
+    const isOption = (pair: Pair, inner: InnerBlock): boolean => {
+        options ??= eventOptionsOf(input);
+        return options(pair, inner.parent);
+    };
     let read: { reading: FileReading; keys: Map<Pair, JudgedKey> } | undefined;
     const readingOf = (): { reading: FileReading; keys: Map<Pair, JudgedKey> } => {
         if (read === undefined) {
@@ -121,11 +134,15 @@ function run(input: BestPracticeInput): AdviceResult {
             return;
         }
         const span = inner.pair ?? inner.block;
-        const key = inner.pair === null ? undefined : keyOf(inner.pair);
-        // A case is a label of its container, never a key read for itself: it is read first.
-        const kase = inner.pair === null || key !== undefined ? null : caseOf(inner.pair, inner);
+        // An event's option is a key of the event's own body, which the reader never judges:
+        // it is read first.
+        const option = inner.pair !== null && isOption(inner.pair, inner);
+        const key = inner.pair === null || option ? undefined : keyOf(inner.pair);
+        // A case is a label of its container, never a key read for itself: it is read next.
+        const kase =
+            inner.pair === null || option || key !== undefined ? null : caseOf(inner.pair, inner);
         const iterator =
-            inner.pair === null || kase !== null
+            inner.pair === null || option || kase !== null
                 ? null
                 : emptyIterator(input.spec, input.names, inner.pair, key);
         let data: FindingData = {
@@ -134,10 +151,14 @@ function run(input: BestPracticeInput): AdviceResult {
         };
         let said = '';
         const open =
-            inner.pair === null || kase !== null || iterator !== null
+            inner.pair === null || option || kase !== null || iterator !== null
                 ? null
                 : openOf(inner.pair, inner, key);
-        if (kase !== null) {
+        if (option) {
+            // Taking it away takes a choice away from the player or the AI: it is never offered.
+            data = { ...data, means: 'event-option' };
+            said = TAKES_A_CHOICE;
+        } else if (kase !== null) {
             // Taking it away changes what the script does: it is never offered.
             data = { ...data, means: kase.kind };
             said = changed(kase);

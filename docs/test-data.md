@@ -161,7 +161,10 @@ logical operator), each reported the same way; the good half gives the `liege` a
 `OR` a condition; 71 check pairs still. Since decision 174 the bad half also holds an empty
 `random_list` entry and an empty case of a `switch` that has a `fallback`, each reported saying
 what taking it away would change and offered no fix; the good half gives each an effect; 71 check
-pairs still.
+pairs still. Since decision 176 the bad half also holds an event whose one option is empty, with
+the localization of its title and description, reported saying that taking it away takes a choice
+away from the player or the AI and offered no fix; the good half gives the option an effect; 71
+check pairs still.
 
 ## The planted-defect mod
 
