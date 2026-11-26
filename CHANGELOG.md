@@ -619,6 +619,13 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (decision 161); nothing else under `spec/` changed.
 - MVP.md's definition of done 2 stays open until the spec work answers decisions 151 and 154
   (decision 157); its state, 13 base-game errors, each a defect of the game's files, beside it.
+- `style/redundant-condition` judges `any_false` too, as its row says (decision 163): the reader
+  it shares with `style/redundant-false-condition` judges every block part D4 names, whatever
+  the context reader calls it (a structural keyword, or a trigger whose body holds triggers), so
+  an `always = yes` beside other conditions in an `any_false` is reported, with the same safe fix.
+  Its code and grade are unchanged; its fixture pair gained an `any_false`. Neither the base game
+  nor the five mods writes an `any_false`: no count moved (the base game's 9,350 judged blocks and
+  1 finding, the five mods none).
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as

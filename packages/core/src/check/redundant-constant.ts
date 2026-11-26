@@ -11,11 +11,12 @@
  *   that always fails), read as that trigger in a trigger block;
  * - the block: a row whose role `combines_conditions` is confirmed and whose answer for a child
  *   of that result (`child_always_true`, `child_always_false`) is `neutral`: "the child can be
- *   removed without changing the result, as long as another child remains". It is read in a
- *   trigger block as that structural keyword (`AND`, `OR`) or, where a rule says so
- *   (`containers`), as that trigger of the triggers bucket whose body the reader reads as a
- *   trigger block (`all_false`, `any_false`, entries of the table `containers`). A block whose
- *   answer is another one, or none (`NOT`, of which the part says nothing), is not judged.
+ *   removed without changing the result, as long as another child remains". It is judged by the
+ *   name the reader reads the key as, in a trigger block, its body read as a trigger block,
+ *   whatever the reader calls the key: a structural keyword (`AND`, `OR`) or a trigger of the
+ *   triggers bucket (`all_false`, `any_false`, entries of the table `containers`). Both rules
+ *   judge every block part D4 names for their result (decision 163). A block whose answer is
+ *   another one, or none (`NOT`, of which the part says nothing), is not judged.
  *
  * What an empty block evaluates to is open in the package, so neither rule ever makes one: a
  * condition is reported only while the block keeps another item, and of a block holding nothing
@@ -44,14 +45,6 @@ export type FixedResult = 'holds' | 'fails';
 export interface RedundantConstantRule {
     readonly code: CheckCode;
     readonly result: FixedResult;
-    /**
-     * Whether a block read as a trigger of the triggers bucket (a container of the tables, whose
-     * body the reader reads as a trigger block: `all_false`, `any_false`) is judged beside one
-     * read as a structural keyword. `style/redundant-condition` was built reading structural
-     * keywords only and stays so (decision 158: its meaning is not changed);
-     * `style/redundant-false-condition` reads every block part D4 names.
-     */
-    readonly containers: boolean;
 }
 
 /** The value a constant condition's row gives for that result (`always = yes`, `always = no`). */
@@ -128,18 +121,16 @@ export function redundantConstant(
     let judged = 0;
     const findings: CheckFinding[] = [];
     for (const key of reading.keys) {
-        const read = key.reading;
-        const block =
-            read.kind === 'structural' ||
-            (rule.containers && read.kind === 'keyword' && read.bucket === 'triggers');
-        if (key.context !== 'trigger' || !block) {
+        if (key.context !== 'trigger') {
             continue;
         }
-        // Read by the name the reader gives it: the reader reads `and` and `And` as the game's
-        // own trigger `and`, of which the part says nothing, so no row matches it.
+        // Read by the name the reader gives it, whatever it reads the key as (a structural
+        // keyword, a trigger whose body holds triggers): the part's row decides. The reader reads
+        // `and` and `And` as the game's own trigger `and`, of which the part says nothing, so no
+        // row matches it.
         const row = blocks.get(nameOf(key));
         const body: Block | undefined = blockOf(key.pair.value);
-        if (row === undefined || body === undefined) {
+        if (row === undefined || body === undefined || reading.blocks.get(body) !== 'trigger') {
             continue;
         }
         judged++;

@@ -16,8 +16,8 @@
  *   `NOR`, `all_false`), read in a trigger block as that structural keyword (`OR`, `NOR`) or as
  *   that trigger, whose body the reader reads as a trigger block (`all_false`, a container of
  *   the tables). A block that has another answer (`AND` and `NAND`, which the condition makes
- *   fail or hold) or none (`NOT`) is not judged. (`style/redundant-condition` reads structural
- *   keywords only, as it was built, so its `any_false` is not judged: a question for the owner.)
+ *   fail or hold) or none (`NOT`) is not judged. (`style/redundant-condition` reads its own
+ *   blocks the same way, `any_false` among them: decision 163.)
  *
  * What an empty block evaluates to is open in the package, so the check never makes one: a
  * condition is reported only while the block keeps another item, and of a block holding nothing
@@ -37,5 +37,5 @@ export const CODE = 'style/redundant-false-condition';
 
 export const check: BestPracticeCheck = {
     code: CODE,
-    run: (input) => redundantConstant(input, { code: CODE, result: 'fails', containers: true }),
+    run: (input) => redundantConstant(input, { code: CODE, result: 'fails' }),
 };

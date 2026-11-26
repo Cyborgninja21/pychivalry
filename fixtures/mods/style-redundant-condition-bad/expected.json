@@ -23,6 +23,18 @@
                 "condition": "always",
                 "block": "NAND"
             }
+        },
+        {
+            "file": "common/scripted_triggers/fixture_triggers.txt",
+            "line": 15,
+            "column": 3,
+            "code": "style/redundant-condition",
+            "severity": "hint",
+            "message": "'always = yes' changes nothing in 'any_false', which holds another condition: take it away.",
+            "data": {
+                "condition": "always",
+                "block": "any_false"
+            }
         }
     ]
 }
