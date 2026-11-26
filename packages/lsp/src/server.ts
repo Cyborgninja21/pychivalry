@@ -29,6 +29,7 @@
  */
 
 import {
+    CallGraph,
     catalogueFromSpec,
     currentPlatform,
     shareBase,
@@ -43,6 +44,7 @@ import {
     lookup,
     openWorkspace,
     syncMod,
+    TEXTURE_EXTENSIONS,
     UNREAD_TEXT_EXTENSIONS,
     unreadWords,
     extensionOf,
@@ -71,6 +73,12 @@ import {
     MessageType,
     ShowMessageNotification,
     TextDocumentSyncKind,
+    type CallHierarchyIncomingCall,
+    type CallHierarchyIncomingCallsParams,
+    type CallHierarchyItem,
+    type CallHierarchyOutgoingCall,
+    type CallHierarchyOutgoingCallsParams,
+    type CallHierarchyPrepareParams,
     type CancellationToken,
     type CodeAction,
     type CodeActionParams,
@@ -94,6 +102,7 @@ import {
     type ReferenceParams,
     type WorkDoneProgressServerReporter,
 } from 'vscode-languageserver/node';
+import { incomingCalls, outgoingCalls, prepareItems, type CallHierarchyContext } from './calls.js';
 import { codeActions, FIX_ALL_KIND } from './code-actions.js';
 import { completionList } from './completion.js';
 import { toDiagnostic } from './diagnostics.js';
@@ -299,6 +308,8 @@ export class LanguageServer {
     private opened: Opened | null = null;
     private opening = 0;
     private generation = 0;
+    /** The call graph of the workspace as it is, made once per state of the index. */
+    private callGraph: { readonly generation: number; readonly graph: CallGraph } | null = null;
     private readonly results = new Map<string, { uri: string; findings: WorkspaceFinding[] }>();
     /** The files the background covers: the first `fileLimit` of the mod, and every file opened. */
     private covered = new Set<string>();
@@ -386,6 +397,9 @@ export class LanguageServer {
         c.onDocumentRangeFormatting((params) => this.formatRange(params));
         c.onDocumentOnTypeFormatting((params) => this.formatOnType(params));
         c.languages.inlayHint.on((params, token) => this.inlay(params, token));
+        c.languages.callHierarchy.onPrepare((params) => this.prepareCalls(params));
+        c.languages.callHierarchy.onIncomingCalls((params) => this.incomingCalls(params));
+        c.languages.callHierarchy.onOutgoingCalls((params) => this.outgoingCalls(params));
         c.onRequest(FINDINGS_REQUEST, (params: FindingsParams): FindingsResult => {
             const file = this.pathOf(params.uri);
             return { file, findings: file === null ? [] : this.fileFindings(file) };
@@ -429,6 +443,7 @@ export class LanguageServer {
                 hoverProvider: true,
                 definitionProvider: true,
                 referencesProvider: true,
+                callHierarchyProvider: true,
                 documentSymbolProvider: true,
                 completionProvider: { resolveProvider: false },
                 codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix, FIX_ALL_KIND] },
@@ -462,6 +477,8 @@ export class LanguageServer {
                     ...UNREAD_TEXT_EXTENSIONS.filter((e) => e !== '.txt' && e !== '.yml').map(
                         (e) => ({ globPattern: `**/*${e}` }),
                     ),
+                    // A texture added or removed changes what `graphics/missing-file` finds.
+                    ...TEXTURE_EXTENSIONS.map((e) => ({ globPattern: `**/*${e}` })),
                 ],
             });
         }
@@ -1682,6 +1699,59 @@ export class LanguageServer {
             );
         }
         return out;
+    }
+
+    /**
+     * The call hierarchy's view of the workspace (`calls.ts`): the call graph over the index with
+     * every open file's text in it, made again when the index changed; null with no workspace.
+     */
+    private calls(): CallHierarchyContext | null {
+        const opened = this.opened;
+        if (opened === null) {
+            return null;
+        }
+        for (const doc of this.docs.values()) {
+            this.ensureFresh(doc);
+        }
+        if (this.callGraph?.generation !== this.generation) {
+            this.callGraph = {
+                generation: this.generation,
+                graph: new CallGraph({
+                    spec: this.spec,
+                    index: opened.index,
+                    files: (layer, file) => this.contentOf(layer, file),
+                }),
+            };
+        }
+        return { graph: this.callGraph.graph, location: (item) => this.location(item) };
+    }
+
+    private prepareCalls(params: CallHierarchyPrepareParams): CallHierarchyItem[] | null {
+        const doc = this.docs.get(params.textDocument.uri);
+        if (doc === undefined) {
+            return null;
+        }
+        const at = this.nameAt(doc, params.position);
+        const context = this.calls();
+        if (at === null || context === null) {
+            return null;
+        }
+        const place = this.placeOf(doc);
+        return prepareItems(
+            context,
+            at.name,
+            place === null ? null : { ...place, position: params.position },
+        );
+    }
+
+    private incomingCalls(params: CallHierarchyIncomingCallsParams): CallHierarchyIncomingCall[] {
+        const context = this.calls();
+        return context === null ? [] : incomingCalls(context, params.item);
+    }
+
+    private outgoingCalls(params: CallHierarchyOutgoingCallsParams): CallHierarchyOutgoingCall[] {
+        const context = this.calls();
+        return context === null ? [] : outgoingCalls(context, params.item);
     }
 
     private symbols(params: DocumentSymbolParams): DocumentSymbol[] | null {

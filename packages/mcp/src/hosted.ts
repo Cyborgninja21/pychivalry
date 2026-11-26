@@ -9,6 +9,7 @@ import type { Steps } from '@pychivalry/core';
 import { bad, BadInput, ok, type CallToolResult } from './result.js';
 import type { Session } from './session.js';
 import { listed, type ListedTool } from './tool.js';
+import { callGraphTool } from './tools/calls.js';
 import { checkTool } from './tools/check.js';
 import {
     findDefinitionTool,
@@ -28,6 +29,7 @@ export const TOOLS: readonly ListedTool[] = [
     listed(findReferencesTool),
     listed(listDefinitionsTool),
     listed(sourceTool),
+    listed(callGraphTool),
     listed(explainTool),
     listed(formatTool),
     listed(applyFormatTool),
