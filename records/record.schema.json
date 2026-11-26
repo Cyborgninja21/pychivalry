@@ -483,6 +483,32 @@
                 "properties": { "folder": { "$ref": "#/$defs/text" }, "files": { "$ref": "#/$defs/count" }, "beside_spec_folders": { "type": "boolean" } }
             }
         },
+        "notScript": {
+            "description": "The script files of folders the spec lists that the spec package says are not script (format 9, directories[].files): each with its layer, path, folder, why (not-script: a not_script entry names it, with the entry's file or pattern, its what and its status; extension: the folder's reader takes other extensions).",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["layer", "file", "folder", "why", "entry"],
+                "properties": {
+                    "layer": { "$ref": "#/$defs/text" },
+                    "file": { "$ref": "#/$defs/text" },
+                    "folder": { "$ref": "#/$defs/text" },
+                    "why": { "enum": ["not-script", "extension"] },
+                    "entry": {
+                        "oneOf": [
+                            { "type": "null" },
+                            {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "required": ["written", "what", "status"],
+                                "properties": { "written": { "$ref": "#/$defs/text" }, "what": { "$ref": "#/$defs/text" }, "status": { "$ref": "#/$defs/text" } }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
         "indexResults": {
             "description": "The base-game index suite (records/README.md, \"Index records\"): the base game indexed in every folder the spec lists, its cache saved and reloaded, and each corpus mod indexed over it.",
             "type": "object",
@@ -502,7 +528,7 @@
                 "base_game": {
                     "type": "object",
                     "additionalProperties": false,
-                    "required": ["layers", "packs", "files", "lines", "definitions", "uses", "uses_of_defined_names", "names", "definitions_by_form", "folders_indexed", "folders", "spec_folders_without_files", "not_described", "not_read", "defined_more_than_once", "time_ms", "peak_rss_kib", "heap_used_after_build_mib", "cache"],
+                    "required": ["layers", "packs", "files", "lines", "definitions", "uses", "uses_of_defined_names", "names", "definitions_by_form", "folders_indexed", "folders", "spec_folders_without_files", "not_described", "not_script", "not_read", "defined_more_than_once", "time_ms", "peak_rss_kib", "heap_used_after_build_mib", "cache"],
                     "properties": {
                         "layers": {
                             "type": "array",
@@ -549,6 +575,7 @@
                         },
                         "spec_folders_without_files": { "type": "array", "items": { "$ref": "#/$defs/text" } },
                         "not_described": { "$ref": "#/$defs/notDescribed" },
+                        "not_script": { "$ref": "#/$defs/notScript" },
                         "not_read": {
                             "type": "array",
                             "items": {
@@ -590,7 +617,7 @@
                     "items": {
                         "type": "object",
                         "additionalProperties": false,
-                        "required": ["slug", "files", "definitions", "uses", "uses_of_defined_names", "replace_paths", "game_files_replaced", "game_files_hidden", "game_files_read_unknown", "mod_files_read_unknown", "not_described", "not_read_files", "defined_more_than_once", "time_ms", "peak_rss_kib"],
+                        "required": ["slug", "files", "definitions", "uses", "uses_of_defined_names", "replace_paths", "game_files_replaced", "game_files_hidden", "game_files_read_unknown", "mod_files_read_unknown", "not_described", "not_script", "not_read_files", "defined_more_than_once", "time_ms", "peak_rss_kib"],
                         "properties": {
                             "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
                             "files": { "$ref": "#/$defs/count" },
@@ -603,6 +630,7 @@
                             "game_files_read_unknown": { "$ref": "#/$defs/count" },
                             "mod_files_read_unknown": { "$ref": "#/$defs/count" },
                             "not_described": { "$ref": "#/$defs/notDescribed" },
+                            "not_script": { "$ref": "#/$defs/notScript" },
                             "not_read_files": { "$ref": "#/$defs/count" },
                             "defined_more_than_once": { "$ref": "#/$defs/duplicates" },
                             "time_ms": {

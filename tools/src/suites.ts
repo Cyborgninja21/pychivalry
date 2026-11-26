@@ -24,11 +24,17 @@ import {
     selectSlugs,
     verifyCorpus,
 } from './corpus.js';
-import { catalogueFromSpec, currentPlatform, openSpec } from '@pychivalry/core';
+import {
+    catalogueFromSpec,
+    currentPlatform,
+    folderTableFromSpec,
+    openSpec,
+} from '@pychivalry/core';
 import { runCheckSuite, runModsSuite } from './check-suite.js';
 import { gameInfo, requireGameDir } from './game.js';
 import { runIndexSuite } from './index-suite.js';
 import {
+    notScriptOf,
     readClassifications,
     runParseSuite,
     type ParseSuiteResults,
@@ -190,8 +196,10 @@ export function gameSuiteRecord(
         corpus,
     };
     if (suite === 'parse') {
+        const spec = openSpec(path.join(root, 'spec'));
         const results: ParseSuiteResults = runParseSuite(gameDir, {
-            catalogue: catalogueFromSpec(openSpec(path.join(root, 'spec')).data),
+            catalogue: catalogueFromSpec(spec.data),
+            notScript: notScriptOf(folderTableFromSpec(spec.data)),
             classifications: readClassifications(
                 options.classificationsFile ?? parseClassificationsFile(root),
             ),

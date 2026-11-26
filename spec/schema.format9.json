@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format8.json",
-  "title": "CK3 spec package, format 8",
-  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 8: format 7 (spec/package/schema.format7.json) plus the additions of the third pass of 2026-11-22 (spec/FORMAT_5_PLAN.md, \"Format 8\"), all inside parts that exist: on every `nested` row of `definitions` (D3) the scope of the name (name_scope, scope_parent, name_scope_status, name_scope_basis, name_scope_references, name_scope_evidence, name_scope_qualifier) with its vocabulary; on a row of `declarations` (D2) `alias`; and, described here for the first time, the row fields `file_condition`, `entries`, `alias` and `replayed` of `override_rules` (D1). No top-level key and no part is added. Every format 7 key keeps its name, meaning and shape; tools/python/build_spec_package.py checks that this file is schema.format7.json plus additions (only property names, $defs entries and required/enum items added; the format number is the only value that differs), as each schema file is the one before it plus additions, back to schema.json (format 4). Built by tools/python/build_spec_package.py. The data of the three heavy parts (C1 info_docs, C2 gui, C3 data_types) is in companion files beside the package file (ck3-spec-<version>.info.json, .gui.json, .data_types.json, each with its .sha256), listed in manifest.companions with their sha256; their shapes are $defs companionInfo, companionGui and companionDataTypes. The parts of formats 6 and 7 are in the package file.",
+  "$id": "https://github.com/Cyborgninja21/pdx-parser-re/spec/package/schema.format9.json",
+  "title": "CK3 spec package, format 9",
+  "description": "One versioned bundle of the CK3 script vocabulary derived from one executable (see manifest.exe.sha256), in package format 9: format 8 (spec/package/schema.format8.json) plus the additions of pass 4 of 2026-11-25 (spec/FORMAT_5_PLAN.md, \"Format 9\"), the answer to pychivalry's seventeen items: three top-level parts, localization_forms (D9), saved_from_code (O1) and not_scope_types (O2); on every directory `files` (which of its files are script) and, where examined, the root-scope rule (root_scope_rule, root_scope_from, root_scope_evidence), which the schema directories carry too; `open_keys` on a schema directory, field or sub-field whose keys are names of another database, and `key_of` on the fields that are such names; a table `variables` and new attributes of the tables (save_keys, variables); new row fields of D1, D4, D5 (its `buckets` rows) and D6. Nothing is removed or reshaped. Companion files are separate: $defs companionInfo, companionGui, companionDataTypes.",
   "type": "object",
   "required": [
     "package_format",
@@ -33,13 +33,16 @@
     "implicit_loc_keys",
     "field_references",
     "modifier_block_areas",
-    "iterator_kinds"
+    "iterator_kinds",
+    "localization_forms",
+    "saved_from_code",
+    "not_scope_types"
   ],
   "additionalProperties": false,
   "properties": {
     "package_format": {
-      "const": 8,
-      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. 6 (2026-11-22, the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 6\"): format 5 plus additions, nothing removed or reshaped: the five top-level objects override_rules (D1), declarations (D2), definitions (D3), keyword_roles (D4) and implicit_loc_keys (D5), and their five entries of parts; each companion file states package_format 6. The top level of format 5 is closed (additionalProperties false), so a format-5 loader rejects the new top-level keys instead of reading a package it only half understands, hence the bump, as for every format before. The format 4 schema is spec/package/schema.json, the format 5 schema spec/package/schema.format5.json. 7 (2026-11-22, the second pull request of the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 7\"): format 6 plus additions, nothing removed or reshaped: the three top-level objects field_references (D6), modifier_block_areas (D7) and iterator_kinds (D8), each {status, data} as the parts of format 6, and their three entries of parts; each companion states package_format 7. The top level of format 6 is closed (additionalProperties false in schema.format6.json), so a format 6 reader refuses the three new keys instead of reading a package it only half understands, hence the bump. 8 (2026-11-22, the third pass, spec/FORMAT_5_PLAN.md \"Format 8\"): format 7 plus additions, nothing removed or reshaped, and no new top-level key or part: every `nested` row of definitions (D3) carries the scope of its name (name_scope, name_scope_status and name_scope_evidence on every row; scope_parent, name_scope_basis, name_scope_references and name_scope_qualifier where they apply), with five vocabulary entries; a row of declarations (D2) may carry `alias`, with one vocabulary entry; and the row fields file_condition, entries, alias and replayed of override_rules (D1) are described. The rows of D3 and D2 and their vocabularies are closed in schema.format7.json (additionalProperties false), so a format 7 reader refuses the new keys instead of reading rows it only half understands, hence the bump; the rows of D1 are open, so its new fields alone would not have needed one (file_condition was first built into a format 7 package, in the second commit of the pass). The format 7 package of the same data (build_spec_package.py --format 7 --plain-names) is this package less exactly the D3 and D2 keys named above; each companion states package_format 8."
+      "const": 9,
+      "description": "Shape version. 2 (2026-10-01): adds keyword_templates. 3 (2026-10-02): scope_validity filled from the game's own script_docs output and the new top-level scope_types; a format-2 loader rejects the unknown top-level key, hence the bump. 4 (2026-10-03, post-2.0 Phase 6): schema fields may carry `scope` (the scope types the game evaluates the field in when they are not the record's root, measured on vanilla) and `scope_evidence`, and `provenance: corpus` for an unconfirmed wiki field the real-mod corpus sets; a format-3 loader rejects both (fields are closed, provenance an enum), hence the bump. 5 (2026-11-21, spec/FORMAT_5_PLAN.md phase L2): format 4 plus additions, nothing removed or reshaped: the top-level list parts and the part objects modifier_template_tags (phase L3), info_docs, gui, data_types and tables, manifest.info_text, and optional keys on bucket entries (use_areas, takes), schema fields (record_usage, description_source, value_type, value_type_evidence, wiki_type, values, loc_key, loc_key_evidence, source) and errors (script_facing, reason); a format-4 loader rejects the new top-level keys (additionalProperties false), hence the bump. 6 (2026-11-22, the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 6\"): format 5 plus additions, nothing removed or reshaped: the five top-level objects override_rules (D1), declarations (D2), definitions (D3), keyword_roles (D4) and implicit_loc_keys (D5), and their five entries of parts; each companion file states package_format 6. The top level of format 5 is closed (additionalProperties false), so a format-5 loader rejects the new top-level keys instead of reading a package it only half understands, hence the bump, as for every format before. The format 4 schema is spec/package/schema.json, the format 5 schema spec/package/schema.format5.json. 7 (2026-11-22, the second pull request of the follow-up pass, spec/FORMAT_5_PLAN.md \"Format 7\"): format 6 plus additions, nothing removed or reshaped: the three top-level objects field_references (D6), modifier_block_areas (D7) and iterator_kinds (D8), each {status, data} as the parts of format 6, and their three entries of parts; each companion states package_format 7. The top level of format 6 is closed (additionalProperties false in schema.format6.json), so a format 6 reader refuses the three new keys instead of reading a package it only half understands, hence the bump. 8 (2026-11-22, the third pass, spec/FORMAT_5_PLAN.md \"Format 8\"): format 7 plus additions, nothing removed or reshaped, and no new top-level key or part: every `nested` row of definitions (D3) carries the scope of its name (name_scope, name_scope_status and name_scope_evidence on every row; scope_parent, name_scope_basis, name_scope_references and name_scope_qualifier where they apply), with five vocabulary entries; a row of declarations (D2) may carry `alias`, with one vocabulary entry; and the row fields file_condition, entries, alias and replayed of override_rules (D1) are described. The rows of D3 and D2 and their vocabularies are closed in schema.format7.json (additionalProperties false), so a format 7 reader refuses the new keys instead of reading rows it only half understands, hence the bump; the rows of D1 are open, so its new fields alone would not have needed one (file_condition was first built into a format 7 package, in the second commit of the pass). The format 7 package of the same data (build_spec_package.py --format 7 --plain-names) is this package less exactly the D3 and D2 keys named above; each companion states package_format 8. 9 (2026-11-25, pass 4, spec/FORMAT_5_PLAN.md \"Format 9\"): format 8 plus additions, nothing removed or reshaped: three top-level objects, localization_forms (D9: the bracket forms of localization text that name a game concept, a saved scope, a variable), saved_from_code (O1: the names the game's code saves for script, from its own output) and not_scope_types (O2: what a scope value that is no scope type means, `none`), each {status, data} with an entry of parts; keys on format 4 objects: directories[].files, root_scope_rule, root_scope_from and root_scope_evidence on directories and schema directories, open_keys on schema directories, fields and sub-fields, key_of on fields; inside parts that exist: the table variables and the attributes saves, source, name_in, temporary, parameter_of, fixed_names, kind, does, holds, namespace, duration, duration_required, duration_written (C4), new row fields of D1 (key_identity, on_replace, within, merge and the file-layer fields; its own schema), D4 (combination, child_always_true, child_always_false, holds_with, fails_with), D5 (the `buckets` rows) and D6 (miss_values, sentinels, value_is, contradicted, named_by_evidence; the status not-a-key). The top level of format 8, its directories, schema entries and fields, and the rows of C4, D4, D5 and D6 are closed (additionalProperties false), so a format 8 reader refuses them instead of reading a package it only half understands, hence the bump. The format 8 package of the same data (build_spec_package.py --format 8 --plain-names) is this package less exactly those keys and the table variables; each companion states package_format 9."
     },
     "manifest": {
       "$ref": "#/$defs/manifest"
@@ -215,15 +218,15 @@
       "additionalProperties": {
         "$ref": "#/$defs/scopeType"
       },
-      "description": "Every scope type the game's script_docs output names (none excluded), with the links whose output produces it, the lists that iterate it, the on_actions that expect it, how many triggers and effects support it and its index in the binary's scope-type table (registrar walk) when it has one."
+      "description": "Every scope type the game's script_docs output names (none excluded): the types its trigger, effect, event target and on_action documentation names and, since format 9 (owner decision 2026-11-25), every type of its own list of scope types (event_scopes.log), with the links whose output produces it, the lists that iterate it, the on_actions that expect it, how many triggers and effects support it, its index in the binary's scope-type table (registrar walk) when it has one, where the game's list names it and whether a keyword does."
     },
     "parts": {
       "type": "array",
-      "minItems": 20,
+      "minItems": 23,
       "items": {
         "$ref": "#/$defs/partEntry"
       },
-      "description": "Every addition since format 4 (A1-A5, B1-B3, C1-C4 of format 5 and D1-D5 of format 6 and D6-D8 of format 7; spec/FORMAT_5_PLAN.md), one entry each in that order, with its status: one look says what this package holds. A part that is not built gives a reason and puts none of its keys in the package; a part that is built carries them and names its input files (each also in manifest.sources and manifest.source_sha256)."
+      "description": "Every addition since format 4 (A1-A5, B1-B3, C1-C4 of format 5 and D1-D5 of format 6, D6-D8 of format 7 and D9, O1, O2 of format 9; spec/FORMAT_5_PLAN.md), one entry each in that order, with its status: one look says what this package holds. A part that is not built gives a reason and puts none of its keys in the package; a part that is built carries them and names its input files (each also in manifest.sources and manifest.source_sha256)."
     },
     "modifier_template_tags": {
       "$ref": "#/$defs/modifierTemplateTagsPart",
@@ -286,6 +289,15 @@
     "iterator_kinds": {
       "$ref": "#/$defs/iteratorKindsPart",
       "description": "D8: iterator kinds: which kind of block each list-iterator prefix belongs in (`any_` a trigger, `every_`, `random_` and `ordered_` effects), with the evidence (the game's own documentation output, the registrar walk, the base game's use); every list with its documented forms; the names that carry a prefix and are no iterator, and the places the rule does not apply (`departures`); the context rules the measurement reads a block's kind with; and whether a trigger-kind iterator may stand in the `limit` of an effect block (`limit_rule`). The data is the output of tools/python/iterator_kinds.py, whole."
+    },
+    "localization_forms": {
+      "$ref": "#/$defs/localizationFormsPart"
+    },
+    "saved_from_code": {
+      "$ref": "#/$defs/savedFromCodePart"
+    },
+    "not_scope_types": {
+      "$ref": "#/$defs/notScopeTypesPart"
     }
   },
   "$defs": {
@@ -512,6 +524,43 @@
         },
         "default_scope": {
           "type": "string"
+        },
+        "files": {
+          "$ref": "#/$defs/directoryFiles"
+        },
+        "root_scope_rule": {
+          "enum": [
+            "fixed",
+            "caller",
+            "record-field",
+            "per-record",
+            "no-script"
+          ],
+          "description": "What the root of a record of the directory is: fixed (one scope type, the directory's default_scope / the schema's root_scope), caller (the scope of the place that names the record), record-field (what one of the record's fields names: root_scope_from), per-record (a root the code sets for each record), no-script (the records hold no trigger and no effect). Absent: the directory was not examined (spec/directories/root_scopes.yml)."
+        },
+        "root_scope_from": {
+          "type": "object",
+          "required": [
+            "field",
+            "names"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "type": "string",
+              "minLength": 1
+            },
+            "names": {
+              "enum": [
+                "scope_type",
+                "list"
+              ]
+            }
+          },
+          "description": "With root_scope_rule record-field: the record's field whose value gives the root, and whether it names a scope type or a list whose elements are the root."
+        },
+        "root_scope_evidence": {
+          "$ref": "#/$defs/rootScopeEvidence"
         }
       }
     },
@@ -883,6 +932,19 @@
             }
           },
           "description": "C1, on a field or sub-field a .info file of the same directory names (build_schema.py, info_docs.schema_links()): the field facts that name it. Their types, defaults, allowed values, scope notes and comment text stay in info_docs; what they say about the field is also given here as info_type, info_scope and (description_source info) a description, each beside the measured values and never replacing them (owner decision after J1)."
+        },
+        "open_keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/openKeysRow"
+          },
+          "description": "The keys of this field's block are names of another database, not fields (openKeysRow)."
+        },
+        "key_of": {
+          "type": "string",
+          "minLength": 1,
+          "description": "This field is a key the base game writes in a block whose keys are names of the database named here (an open_keys row of the directory or of the parent field): a name, not a field of its own; a name the base game does not write is as valid."
         }
       }
     },
@@ -975,6 +1037,48 @@
             "$ref": "#/$defs/unconfirmed"
           },
           "description": "Fields pychivalry documents that vanilla 1.20 never sets; not part of the schema."
+        },
+        "root_scope_rule": {
+          "enum": [
+            "fixed",
+            "caller",
+            "record-field",
+            "per-record",
+            "no-script"
+          ],
+          "description": "What the root of a record of the directory is: fixed (one scope type, the directory's default_scope / the schema's root_scope), caller (the scope of the place that names the record), record-field (what one of the record's fields names: root_scope_from), per-record (a root the code sets for each record), no-script (the records hold no trigger and no effect). Absent: the directory was not examined (spec/directories/root_scopes.yml)."
+        },
+        "root_scope_from": {
+          "type": "object",
+          "required": [
+            "field",
+            "names"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "field": {
+              "type": "string",
+              "minLength": 1
+            },
+            "names": {
+              "enum": [
+                "scope_type",
+                "list"
+              ]
+            }
+          },
+          "description": "With root_scope_rule record-field: the record's field whose value gives the root, and whether it names a scope type or a list whose elements are the root."
+        },
+        "root_scope_evidence": {
+          "$ref": "#/$defs/rootScopeEvidence"
+        },
+        "open_keys": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/openKeysRow"
+          },
+          "description": "The record's own keys are names of another database (pass 4, item 6: an ethnicity's keys are gene names): see openKeysRow."
         }
       }
     },
@@ -1004,7 +1108,8 @@
           "enum": [
             "<=1.19.0.6",
             "1.20.0.2",
-            "1.21.0.3"
+            "1.21.0.3",
+            "<=1.21.0.3"
           ]
         },
         "note": {
@@ -1322,7 +1427,9 @@
         "effects",
         "input_of_links",
         "named_as",
-        "binary_index"
+        "binary_index",
+        "listed_in",
+        "named_by_keywords"
       ],
       "additionalProperties": false,
       "properties": {
@@ -1367,6 +1474,32 @@
             "integer",
             "null"
           ]
+        },
+        "listed_in": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "required": [
+            "file",
+            "line"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "line": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "description": "Format 9: where the game's own list of scope types (research/oracle/<version>/event_scopes.log, written by the console command script_docs) names the type: the file and the line of its `name:` heading; null for a type the keywords name that the list does not (none in 1.21.0.3)."
+        },
+        "named_by_keywords": {
+          "type": "boolean",
+          "description": "Format 9: whether a trigger, effect, link, list or on_action names the type (named_as is not empty). False for a type the record has only because the game's own list names it (1.21.0.3: court_position): no keyword produces, iterates, expects or supports it."
         }
       }
     },
@@ -1391,7 +1524,10 @@
         "D5",
         "D6",
         "D7",
-        "D8"
+        "D8",
+        "D9",
+        "O1",
+        "O2"
       ]
     },
     "partKeys": {
@@ -5106,7 +5242,7 @@
                   }
                 }
               },
-              "minItems": 1
+              "description": "Where the table was in the old engine's code. Empty for a table the code did not have (pass 4: variables, asked for by the consumer); then about.entries_in_code is 0."
             }
           }
         },
@@ -5281,6 +5417,134 @@
             "none"
           ],
           "description": "Added by the package from the entry's own evidence: confirmed, at least one item supports it and nothing contradicts it (measured); contradicted, the game's files or output show it wrong or incomplete (contradicted gives the claim, the finding and the evidence; it may also have support); none, no evidence was found (evidence: none): kept by hand, as the old engine had it."
+        },
+        "saves": {
+          "enum": [
+            "scope",
+            "value"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.saves says what it means there."
+        },
+        "source": {
+          "enum": [
+            "current_scope",
+            "value_parameter",
+            "opinion_of_target",
+            "created_object",
+            "duel",
+            "listed_objects"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.source says what it means there."
+        },
+        "name_in": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "value",
+              "name",
+              "fixed",
+              "keys",
+              "variable",
+              "link_data",
+              "link_argument"
+            ]
+          },
+          "description": "Where the name is written, a list of the forms (the table's about.attributes.name_in says which it uses)."
+        },
+        "temporary": {
+          "type": "boolean",
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.temporary says what it means there."
+        },
+        "parameter_of": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.parameter_of says what it means there."
+        },
+        "fixed_names": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.fixed_names says what it means there."
+        },
+        "kind": {
+          "enum": [
+            "effect",
+            "trigger",
+            "link",
+            "list"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.kind says what it means there."
+        },
+        "does": {
+          "enum": [
+            "set",
+            "change",
+            "remove",
+            "add_item",
+            "remove_item",
+            "clear",
+            "has",
+            "has_item",
+            "size",
+            "read",
+            "iterate"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.does says what it means there."
+        },
+        "holds": {
+          "enum": [
+            "value",
+            "list",
+            "map"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.holds says what it means there."
+        },
+        "namespace": {
+          "enum": [
+            "scope",
+            "local",
+            "global",
+            "dead_character"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.namespace says what it means there."
+        },
+        "duration": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.duration says what it means there."
+        },
+        "duration_required": {
+          "type": "boolean",
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.duration_required says what it means there."
+        },
+        "duration_written": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.duration_written says what it means there."
         }
       },
       "description": "One entry with the attributes the old engine's code gave it (the table's about.attributes says what each means) and its evidence. An entry the code did not have was added from its evidence by the owner's decision, and its notes say so."
@@ -5400,6 +5664,134 @@
         "notes": {
           "type": "string",
           "minLength": 1
+        },
+        "saves": {
+          "enum": [
+            "scope",
+            "value"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.saves says what it means there."
+        },
+        "source": {
+          "enum": [
+            "current_scope",
+            "value_parameter",
+            "opinion_of_target",
+            "created_object",
+            "duel",
+            "listed_objects"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.source says what it means there."
+        },
+        "name_in": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "value",
+              "name",
+              "fixed",
+              "keys",
+              "variable",
+              "link_data",
+              "link_argument"
+            ]
+          },
+          "description": "Where the name is written, a list of the forms (the table's about.attributes.name_in says which it uses)."
+        },
+        "temporary": {
+          "type": "boolean",
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.temporary says what it means there."
+        },
+        "parameter_of": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.parameter_of says what it means there."
+        },
+        "fixed_names": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.fixed_names says what it means there."
+        },
+        "kind": {
+          "enum": [
+            "effect",
+            "trigger",
+            "link",
+            "list"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.kind says what it means there."
+        },
+        "does": {
+          "enum": [
+            "set",
+            "change",
+            "remove",
+            "add_item",
+            "remove_item",
+            "clear",
+            "has",
+            "has_item",
+            "size",
+            "read",
+            "iterate"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.does says what it means there."
+        },
+        "holds": {
+          "enum": [
+            "value",
+            "list",
+            "map"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.holds says what it means there."
+        },
+        "namespace": {
+          "enum": [
+            "scope",
+            "local",
+            "global",
+            "dead_character"
+          ],
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.namespace says what it means there."
+        },
+        "duration": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.duration says what it means there."
+        },
+        "duration_required": {
+          "type": "boolean",
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.duration_required says what it means there."
+        },
+        "duration_written": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "enum": [
+              "days",
+              "weeks",
+              "months",
+              "years"
+            ]
+          },
+          "description": "An attribute of the table's entries (pass 4); the table's about.attributes.duration_written says what it means there."
         }
       },
       "description": "A name the evidence shows the table lacks: listed apart. A candidate becomes an entry only by the owner's decision; it then leaves the candidates and the entry's notes say so (check_tables.py ADDED_NOTE), and about.entries_in_code does not count it."
@@ -5669,6 +6061,11 @@
                 "block",
                 "scalar"
               ]
+            },
+            "link": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Instead of key: the words that read through this link with a name (`<link>:<name>`, `<link>(<name>...)`), alone or as a segment of a chain; with dir."
             }
           }
         },
@@ -5991,7 +6388,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 8
+          "const": 9
         },
         "game": {
           "const": "ck3"
@@ -6078,7 +6475,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 8
+          "const": 9
         },
         "game": {
           "const": "ck3"
@@ -6158,7 +6555,7 @@
           "description": "The package file this companion belongs to (beside it), which records its sha256."
         },
         "package_format": {
-          "const": 8
+          "const": 9
         },
         "game": {
           "const": "ck3"
@@ -8092,6 +8489,7 @@
           "type": "object",
           "required": [
             "condition_from",
+            "further_qualifiers_of_role",
             "opens",
             "qualifier_of_role",
             "rank",
@@ -8124,6 +8522,15 @@
               "$ref": "#/$defs/vocabularyTree"
             },
             "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "combination": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "child_effect": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "further_qualifiers_of_role": {
               "$ref": "#/$defs/vocabularyTree"
             }
           },
@@ -8399,6 +8806,44 @@
         "range": {
           "type": "string",
           "minLength": 1
+        },
+        "combination": {
+          "enum": [
+            "all",
+            "any",
+            "none",
+            "not_all",
+            "negation",
+            "count",
+            "weighted_count"
+          ],
+          "description": "With the role combines_conditions: how the operator combines the conditions it holds (vocabulary.combination)."
+        },
+        "child_always_true": {
+          "enum": [
+            "neutral",
+            "makes_it_hold",
+            "makes_it_fail"
+          ],
+          "description": "With combines_conditions: what a child condition that always holds does to the operator's result (vocabulary.child_effect)."
+        },
+        "child_always_false": {
+          "enum": [
+            "neutral",
+            "makes_it_hold",
+            "makes_it_fail"
+          ],
+          "description": "With combines_conditions: what a child condition that always fails does to the operator's result (vocabulary.child_effect)."
+        },
+        "holds_with": {
+          "type": "string",
+          "minLength": 1,
+          "description": "With the role constant_condition: the value that makes the condition hold."
+        },
+        "fails_with": {
+          "type": "string",
+          "minLength": 1,
+          "description": "With the role constant_condition: the value that makes it fail."
         }
       }
     },
@@ -8527,6 +8972,7 @@
       "required": [
         "about",
         "below_threshold",
+        "buckets",
         "counts",
         "directories",
         "format",
@@ -8623,6 +9069,7 @@
         "counts": {
           "type": "object",
           "required": [
+            "bucket_rows",
             "by_requirement",
             "by_requirement_and_source",
             "by_status",
@@ -8778,6 +9225,9 @@
             "two_name_patterns_listed": {
               "type": "integer",
               "minimum": 0
+            },
+            "bucket_rows": {
+              "$ref": "#/$defs/countTree"
             }
           },
           "description": "Counts of the rows, by status and by kind, and of what was read."
@@ -8908,6 +9358,7 @@
             "exe",
             "hand",
             "info",
+            "modifier_table",
             "oracle",
             "package",
             "strings_in_exe"
@@ -8970,6 +9421,10 @@
               "minLength": 1
             },
             "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            },
+            "modifier_table": {
               "type": "string",
               "minLength": 1
             }
@@ -9126,9 +9581,12 @@
         "vocabulary": {
           "type": "object",
           "required": [
+            "bucket_measured",
             "condition_from",
             "exe_literals",
             "format_strings",
+            "key_source",
+            "literal_keys",
             "measured",
             "name_from",
             "numbered_family",
@@ -9139,7 +9597,8 @@
             "shows",
             "status",
             "supports",
-            "thresholds"
+            "thresholds",
+            "transform"
           ],
           "additionalProperties": false,
           "properties": {
@@ -9187,9 +9646,37 @@
             },
             "thresholds": {
               "$ref": "#/$defs/vocabularyTree"
+            },
+            "transform": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "key_source": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "literal_keys": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "bucket_measured": {
+              "$ref": "#/$defs/vocabularyTree"
             }
           },
           "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
+        },
+        "buckets": {
+          "type": "object",
+          "required": [
+            "modifiers"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "modifiers": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/implicitLocKeysBucketRow"
+              }
+            }
+          },
+          "description": "Rows for names that are no record of a folder, by bucket of the package (pass 4, item 8: buckets.modifiers)."
         }
       }
     },
@@ -9348,7 +9835,8 @@
             "oracle",
             "catalogue",
             "info",
-            "base_game"
+            "base_game",
+            "modifier_table"
           ]
         },
         "string": {
@@ -10222,6 +10710,58 @@
           },
           "type": "array"
         },
+        "among": {
+          "additionalProperties": false,
+          "description": "On a mount-order row (vocabulary.among): inside the layers dlc and mod, `by` what two of the layer are ordered and which `wins`.",
+          "minProperties": 1,
+          "properties": {
+            "dlc": {
+              "additionalProperties": false,
+              "properties": {
+                "by": {
+                  "enum": [
+                    "descriptor-name",
+                    "enabled-mods-index"
+                  ]
+                },
+                "wins": {
+                  "enum": [
+                    "smallest",
+                    "last"
+                  ]
+                }
+              },
+              "required": [
+                "by",
+                "wins"
+              ],
+              "type": "object"
+            },
+            "mod": {
+              "additionalProperties": false,
+              "properties": {
+                "by": {
+                  "enum": [
+                    "descriptor-name",
+                    "enabled-mods-index"
+                  ]
+                },
+                "wins": {
+                  "enum": [
+                    "smallest",
+                    "last"
+                  ]
+                }
+              },
+              "required": [
+                "by",
+                "wins"
+              ],
+              "type": "object"
+            }
+          },
+          "type": "object"
+        },
         "checked": {
           "enum": [
             "confirmed",
@@ -10234,6 +10774,12 @@
           "minLength": 1,
           "type": "string"
         },
+        "compare_unit": {
+          "description": "On a file-order row: what `compare` is applied to (component: one file or directory name at a time, never the whole relative path).",
+          "enum": [
+            "component"
+          ]
+        },
         "databases": {
           "items": {
             "minLength": 1,
@@ -10243,6 +10789,681 @@
           "type": "array"
         },
         "details": {
+          "description": "Fields pychivalry's row does not have, per extension (`extends`). Two of them are closed here because they carry data a consumer applies: `statements` (a row whose `resolve` is statements: one entry per kind of statement) and, inside an entry of `key_spaces` (one entry per key space of the folder's containers rows), `key_identity` and `on_replace`.",
+          "properties": {
+            "key_spaces": {
+              "additionalProperties": {
+                "properties": {
+                  "key_identity": {
+                    "additionalProperties": false,
+                    "allOf": [
+                      {
+                        "else": {
+                          "not": {
+                            "required": [
+                              "key_space"
+                            ]
+                          }
+                        },
+                        "if": {
+                          "properties": {
+                            "scope": {
+                              "const": "key-space"
+                            }
+                          },
+                          "required": [
+                            "scope"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "key_space"
+                          ]
+                        }
+                      },
+                      {
+                        "if": {
+                          "properties": {
+                            "compare": {
+                              "const": "hash"
+                            }
+                          },
+                          "required": [
+                            "compare"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "hash"
+                          ]
+                        }
+                      },
+                      {
+                        "else": {
+                          "required": [
+                            "findings"
+                          ]
+                        },
+                        "if": {
+                          "properties": {
+                            "compare": {
+                              "const": "unknown"
+                            }
+                          },
+                          "required": [
+                            "compare"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "open"
+                          ]
+                        }
+                      },
+                      {
+                        "if": {
+                          "required": [
+                            "status"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "open"
+                          ]
+                        }
+                      }
+                    ],
+                    "description": "What makes two keys the same key (vocabulary.key_identity). `compare`: how the key (its first part) compares: hash (the hash of the bytes as written, the text never compared), bytes (the text byte for byte), integer (the text parsed as a decimal integer: `007` and `7` are one key), lowercase (lower-cased first), keyword (one of the reader's fixed keywords), unknown. `parts`: what the key is made of, in order. `part_compare`: a part that compares otherwise than `compare`. `scope`: the set of keys it is one of, with `key_space` exactly when the scope is key-space. `hash`: the hash function. `nested_kinds`: part D3's nested kinds whose names are keys of this space. `findings`: the finding ids that state it; `from`: the row that carries the evidence; `status` when the field is less firm than its row, with `open`.",
+                    "properties": {
+                      "compare": {
+                        "enum": [
+                          "hash",
+                          "bytes",
+                          "integer",
+                          "lowercase",
+                          "keyword",
+                          "unknown"
+                        ]
+                      },
+                      "findings": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "from": {
+                        "pattern": "^[a-z0-9][a-z0-9-]*$",
+                        "type": "string"
+                      },
+                      "hash": {
+                        "enum": [
+                          "murmur3-x86-32",
+                          "fnv-1a-32"
+                        ]
+                      },
+                      "key_space": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "nested_kinds": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "open": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "part_compare": {
+                        "additionalProperties": false,
+                        "minProperties": 1,
+                        "properties": {
+                          "field": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "group": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "id": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "keyword": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "name": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "portrait_group": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "province_id": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "parts": {
+                        "items": {
+                          "enum": [
+                            "name",
+                            "id",
+                            "group",
+                            "portrait_group",
+                            "province_id",
+                            "field",
+                            "keyword"
+                          ]
+                        },
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": true
+                      },
+                      "scope": {
+                        "enum": [
+                          "database",
+                          "container",
+                          "key-space",
+                          "statement-kind",
+                          "descriptors"
+                        ]
+                      },
+                      "status": {
+                        "enum": [
+                          "partial",
+                          "derived"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "compare",
+                      "parts",
+                      "scope"
+                    ],
+                    "type": "object"
+                  },
+                  "on_replace": {
+                    "additionalProperties": false,
+                    "allOf": [
+                      {
+                        "else": {
+                          "not": {
+                            "required": [
+                              "nested_kinds"
+                            ]
+                          }
+                        },
+                        "if": {
+                          "properties": {
+                            "nested": {
+                              "enum": [
+                                "dropped",
+                                "kept"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "nested"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "nested_kinds",
+                            "findings"
+                          ]
+                        }
+                      },
+                      {
+                        "if": {
+                          "required": [
+                            "status"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "open"
+                          ]
+                        }
+                      }
+                    ],
+                    "description": "What the replacement of a definition takes with it (vocabulary.on_replace). `nested`: what happens to the nested definitions of the replaced definition: dropped (they go with it), kept (they stay entries of the database), not-applicable (part D3 lists none inside these definitions), unknown; `nested_kinds`: part D3's kind names, exactly when dropped or kept. `position`: the definition's place in the database's order: kept (that of its first definition), moved, not-applicable, unknown. `findings`, `status`, `open` as in key_identity.",
+                    "properties": {
+                      "findings": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "nested": {
+                        "enum": [
+                          "dropped",
+                          "kept",
+                          "not-applicable",
+                          "unknown"
+                        ]
+                      },
+                      "nested_kinds": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "open": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "position": {
+                        "enum": [
+                          "kept",
+                          "moved",
+                          "not-applicable",
+                          "unknown"
+                        ]
+                      },
+                      "status": {
+                        "enum": [
+                          "partial",
+                          "derived"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "nested",
+                      "position"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              },
+              "minProperties": 1,
+              "type": "object"
+            },
+            "statements": {
+              "additionalProperties": {
+                "additionalProperties": false,
+                "dependentRequired": {
+                  "unknown_value_message": [
+                    "unknown_value_outcome"
+                  ],
+                  "unknown_value_outcome": [
+                    "unknown_value_message"
+                  ]
+                },
+                "description": "One kind of statement of a folder whose rows are statements (vocabulary.statements).",
+                "properties": {
+                  "combine": {
+                    "enum": [
+                      "whole",
+                      "fields",
+                      "partial"
+                    ]
+                  },
+                  "fields": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "form": {
+                    "enum": [
+                      "value",
+                      "block"
+                    ]
+                  },
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "key_identity": {
+                    "additionalProperties": false,
+                    "allOf": [
+                      {
+                        "else": {
+                          "not": {
+                            "required": [
+                              "key_space"
+                            ]
+                          }
+                        },
+                        "if": {
+                          "properties": {
+                            "scope": {
+                              "const": "key-space"
+                            }
+                          },
+                          "required": [
+                            "scope"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "key_space"
+                          ]
+                        }
+                      },
+                      {
+                        "if": {
+                          "properties": {
+                            "compare": {
+                              "const": "hash"
+                            }
+                          },
+                          "required": [
+                            "compare"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "hash"
+                          ]
+                        }
+                      },
+                      {
+                        "else": {
+                          "required": [
+                            "findings"
+                          ]
+                        },
+                        "if": {
+                          "properties": {
+                            "compare": {
+                              "const": "unknown"
+                            }
+                          },
+                          "required": [
+                            "compare"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "open"
+                          ]
+                        }
+                      },
+                      {
+                        "if": {
+                          "required": [
+                            "status"
+                          ]
+                        },
+                        "then": {
+                          "required": [
+                            "open"
+                          ]
+                        }
+                      }
+                    ],
+                    "description": "What makes two keys the same key (vocabulary.key_identity). `compare`: how the key (its first part) compares: hash (the hash of the bytes as written, the text never compared), bytes (the text byte for byte), integer (the text parsed as a decimal integer: `007` and `7` are one key), lowercase (lower-cased first), keyword (one of the reader's fixed keywords), unknown. `parts`: what the key is made of, in order. `part_compare`: a part that compares otherwise than `compare`. `scope`: the set of keys it is one of, with `key_space` exactly when the scope is key-space. `hash`: the hash function. `nested_kinds`: part D3's nested kinds whose names are keys of this space. `findings`: the finding ids that state it; `from`: the row that carries the evidence; `status` when the field is less firm than its row, with `open`.",
+                    "properties": {
+                      "compare": {
+                        "enum": [
+                          "hash",
+                          "bytes",
+                          "integer",
+                          "lowercase",
+                          "keyword",
+                          "unknown"
+                        ]
+                      },
+                      "findings": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "from": {
+                        "pattern": "^[a-z0-9][a-z0-9-]*$",
+                        "type": "string"
+                      },
+                      "hash": {
+                        "enum": [
+                          "murmur3-x86-32",
+                          "fnv-1a-32"
+                        ]
+                      },
+                      "key_space": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "nested_kinds": {
+                        "items": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "minItems": 1,
+                        "type": "array"
+                      },
+                      "open": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "part_compare": {
+                        "additionalProperties": false,
+                        "minProperties": 1,
+                        "properties": {
+                          "field": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "group": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "id": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "keyword": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "name": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "portrait_group": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          },
+                          "province_id": {
+                            "enum": [
+                              "hash",
+                              "bytes",
+                              "integer",
+                              "lowercase",
+                              "keyword",
+                              "unknown"
+                            ]
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "parts": {
+                        "items": {
+                          "enum": [
+                            "name",
+                            "id",
+                            "group",
+                            "portrait_group",
+                            "province_id",
+                            "field",
+                            "keyword"
+                          ]
+                        },
+                        "minItems": 1,
+                        "type": "array",
+                        "uniqueItems": true
+                      },
+                      "scope": {
+                        "enum": [
+                          "database",
+                          "container",
+                          "key-space",
+                          "statement-kind",
+                          "descriptors"
+                        ]
+                      },
+                      "status": {
+                        "enum": [
+                          "partial",
+                          "derived"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "compare",
+                      "parts",
+                      "scope"
+                    ],
+                    "type": "object"
+                  },
+                  "keys": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "merge": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "on_repeat": {
+                    "enum": [
+                      "later-wins",
+                      "earlier-wins"
+                    ]
+                  },
+                  "store": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "unknown_value": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "unknown_value_message": {
+                    "pattern": "^msg-[a-z0-9-]+$",
+                    "type": "string"
+                  },
+                  "unknown_value_outcome": {
+                    "enum": [
+                      "stored-as-none"
+                    ]
+                  }
+                },
+                "required": [
+                  "keys",
+                  "form",
+                  "key_identity",
+                  "on_repeat",
+                  "combine"
+                ],
+                "type": "object"
+              },
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
           "type": "object"
         },
         "entries": {
@@ -10362,9 +11583,286 @@
           },
           "type": "array"
         },
+        "hides_scope": {
+          "additionalProperties": false,
+          "description": "On a replace-path row (vocabulary.hides_scope): `acts_on` (listings: only directory listings are filtered), `mods` (earlier-in-load-order: `mod` in `hides` means the mods earlier in the load order), `several` (highest-on-search-path: of several mods naming one path, that one sets the cut).",
+          "properties": {
+            "acts_on": {
+              "enum": [
+                "listings"
+              ]
+            },
+            "findings": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "mods": {
+              "enum": [
+                "earlier-in-load-order"
+              ]
+            },
+            "several": {
+              "enum": [
+                "highest-on-search-path"
+              ]
+            }
+          },
+          "required": [
+            "acts_on",
+            "mods",
+            "several",
+            "findings"
+          ],
+          "type": "object"
+        },
         "id": {
           "pattern": "^[a-z0-9][a-z0-9-]*$",
           "type": "string"
+        },
+        "key_identity": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "else": {
+                "not": {
+                  "required": [
+                    "key_space"
+                  ]
+                }
+              },
+              "if": {
+                "properties": {
+                  "scope": {
+                    "const": "key-space"
+                  }
+                },
+                "required": [
+                  "scope"
+                ]
+              },
+              "then": {
+                "required": [
+                  "key_space"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "compare": {
+                    "const": "hash"
+                  }
+                },
+                "required": [
+                  "compare"
+                ]
+              },
+              "then": {
+                "required": [
+                  "hash"
+                ]
+              }
+            },
+            {
+              "else": {
+                "required": [
+                  "findings"
+                ]
+              },
+              "if": {
+                "properties": {
+                  "compare": {
+                    "const": "unknown"
+                  }
+                },
+                "required": [
+                  "compare"
+                ]
+              },
+              "then": {
+                "required": [
+                  "open"
+                ]
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "required": [
+                  "open"
+                ]
+              }
+            }
+          ],
+          "description": "What makes two keys the same key (vocabulary.key_identity). `compare`: how the key (its first part) compares: hash (the hash of the bytes as written, the text never compared), bytes (the text byte for byte), integer (the text parsed as a decimal integer: `007` and `7` are one key), lowercase (lower-cased first), keyword (one of the reader's fixed keywords), unknown. `parts`: what the key is made of, in order. `part_compare`: a part that compares otherwise than `compare`. `scope`: the set of keys it is one of, with `key_space` exactly when the scope is key-space. `hash`: the hash function. `nested_kinds`: part D3's nested kinds whose names are keys of this space. `findings`: the finding ids that state it; `from`: the row that carries the evidence; `status` when the field is less firm than its row, with `open`.",
+          "properties": {
+            "compare": {
+              "enum": [
+                "hash",
+                "bytes",
+                "integer",
+                "lowercase",
+                "keyword",
+                "unknown"
+              ]
+            },
+            "findings": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "from": {
+              "pattern": "^[a-z0-9][a-z0-9-]*$",
+              "type": "string"
+            },
+            "hash": {
+              "enum": [
+                "murmur3-x86-32",
+                "fnv-1a-32"
+              ]
+            },
+            "key_space": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "nested_kinds": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "open": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "part_compare": {
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "field": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                },
+                "group": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                },
+                "id": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                },
+                "keyword": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                },
+                "name": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                },
+                "portrait_group": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                },
+                "province_id": {
+                  "enum": [
+                    "hash",
+                    "bytes",
+                    "integer",
+                    "lowercase",
+                    "keyword",
+                    "unknown"
+                  ]
+                }
+              },
+              "type": "object"
+            },
+            "parts": {
+              "items": {
+                "enum": [
+                  "name",
+                  "id",
+                  "group",
+                  "portrait_group",
+                  "province_id",
+                  "field",
+                  "keyword"
+                ]
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "scope": {
+              "enum": [
+                "database",
+                "container",
+                "key-space",
+                "statement-kind",
+                "descriptors"
+              ]
+            },
+            "status": {
+              "enum": [
+                "partial",
+                "derived"
+              ]
+            }
+          },
+          "required": [
+            "compare",
+            "parts",
+            "scope"
+          ],
+          "type": "object"
         },
         "kind": {
           "enum": [
@@ -10387,6 +11885,105 @@
             "open-question"
           ]
         },
+        "merge": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "else": {
+                "not": {
+                  "required": [
+                    "per_field"
+                  ]
+                }
+              },
+              "if": {
+                "properties": {
+                  "same_target": {
+                    "const": "per-field"
+                  }
+                },
+                "required": [
+                  "same_target"
+                ]
+              },
+              "then": {
+                "required": [
+                  "per_field"
+                ]
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "required": [
+                  "open"
+                ]
+              }
+            }
+          ],
+          "description": "How the definitions of one key add up (vocabulary.merge), on a key-resolution row whose `resolve` is all or whose `combine` is partial: `unit` (what is added), `how`, `applied` (the order they take effect in), `same_target` (which is in force where two set the same thing), `per_field` (a field-outcomes row, exactly when same_target is per-field). `findings`, `status`, `open` as in key_identity.",
+          "properties": {
+            "applied": {
+              "enum": [
+                "read-order",
+                "date-then-read-order"
+              ]
+            },
+            "findings": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "how": {
+              "enum": [
+                "read-into-one-object",
+                "appended"
+              ]
+            },
+            "open": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "per_field": {
+              "pattern": "^[a-z0-9][a-z0-9-]*$",
+              "type": "string"
+            },
+            "same_target": {
+              "enum": [
+                "later",
+                "per-field",
+                "unknown"
+              ]
+            },
+            "status": {
+              "enum": [
+                "partial",
+                "derived"
+              ]
+            },
+            "unit": {
+              "enum": [
+                "declaration",
+                "entry"
+              ]
+            }
+          },
+          "required": [
+            "unit",
+            "how",
+            "applied",
+            "same_target",
+            "findings"
+          ],
+          "type": "object"
+        },
         "message": {
           "pattern": "^msg-[a-z0-9-]+$",
           "type": "string"
@@ -10394,6 +11991,101 @@
         "note": {
           "minLength": 1,
           "type": "string"
+        },
+        "on_replace": {
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "else": {
+                "not": {
+                  "required": [
+                    "nested_kinds"
+                  ]
+                }
+              },
+              "if": {
+                "properties": {
+                  "nested": {
+                    "enum": [
+                      "dropped",
+                      "kept"
+                    ]
+                  }
+                },
+                "required": [
+                  "nested"
+                ]
+              },
+              "then": {
+                "required": [
+                  "nested_kinds",
+                  "findings"
+                ]
+              }
+            },
+            {
+              "if": {
+                "required": [
+                  "status"
+                ]
+              },
+              "then": {
+                "required": [
+                  "open"
+                ]
+              }
+            }
+          ],
+          "description": "What the replacement of a definition takes with it (vocabulary.on_replace). `nested`: what happens to the nested definitions of the replaced definition: dropped (they go with it), kept (they stay entries of the database), not-applicable (part D3 lists none inside these definitions), unknown; `nested_kinds`: part D3's kind names, exactly when dropped or kept. `position`: the definition's place in the database's order: kept (that of its first definition), moved, not-applicable, unknown. `findings`, `status`, `open` as in key_identity.",
+          "properties": {
+            "findings": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "nested": {
+              "enum": [
+                "dropped",
+                "kept",
+                "not-applicable",
+                "unknown"
+              ]
+            },
+            "nested_kinds": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "open": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "position": {
+              "enum": [
+                "kept",
+                "moved",
+                "not-applicable",
+                "unknown"
+              ]
+            },
+            "status": {
+              "enum": [
+                "partial",
+                "derived"
+              ]
+            }
+          },
+          "required": [
+            "nested",
+            "position"
+          ],
+          "type": "object"
         },
         "open": {
           "minLength": 1,
@@ -10411,6 +12103,83 @@
           "maximum": 11,
           "minimum": 1,
           "type": "integer"
+        },
+        "pack": {
+          "additionalProperties": false,
+          "description": "On a pack-layer row (vocabulary.pack): `descriptors` (any-depth: the descriptor files are listed recursively) and `archive_key` (the descriptor key that names an archive instead of a folder).",
+          "properties": {
+            "archive_key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "descriptors": {
+              "enum": [
+                "any-depth"
+              ]
+            }
+          },
+          "required": [
+            "descriptors",
+            "archive_key"
+          ],
+          "type": "object"
+        },
+        "path_match": {
+          "additionalProperties": false,
+          "description": "How a path is tested (vocabulary.path_match), on a folder-wins or replace-path row: `compare` (bytes: letter case is not folded), `where` (anywhere-in-path: `text` is searched in the whole relative path; whole-listed-directory: the path must equal the directory being listed), `text` exactly when where is anywhere-in-path.",
+          "else": {
+            "not": {
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "if": {
+            "properties": {
+              "where": {
+                "const": "anywhere-in-path"
+              }
+            },
+            "required": [
+              "where"
+            ]
+          },
+          "properties": {
+            "compare": {
+              "enum": [
+                "bytes"
+              ]
+            },
+            "findings": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "text": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "where": {
+              "enum": [
+                "anywhere-in-path",
+                "whole-listed-directory"
+              ]
+            }
+          },
+          "required": [
+            "compare",
+            "where",
+            "findings"
+          ],
+          "then": {
+            "required": [
+              "text"
+            ]
+          },
+          "type": "object"
         },
         "platform_basis": {
           "additionalProperties": false,
@@ -10473,6 +12242,34 @@
           "minItems": 1,
           "type": "array",
           "uniqueItems": true
+        },
+        "read_first": {
+          "additionalProperties": false,
+          "description": "On a file-order row (vocabulary.read_first): `files` read before the folder's listing whatever their name, how they are merged (`as`: replace) and whether the listing reads them again (`listed_again`).",
+          "properties": {
+            "as": {
+              "enum": [
+                "replace"
+              ]
+            },
+            "files": {
+              "items": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            "listed_again": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "files",
+            "as",
+            "listed_again"
+          ],
+          "type": "object"
         },
         "replayed": {
           "description": "On a row with `alias`: the committed output of the tool that replays the row's rule over the base game's files, carried whole. Derived, not observed in the game (`basis`). `names`: one entry per name with more than one definition of which at least one is an alias line; `in_force` is null when every alias line of the name misses its target.",
@@ -10624,6 +12421,45 @@
         "wins": {
           "minLength": 1,
           "type": "string"
+        },
+        "within": {
+          "description": "Where the row's main rule does not decide or does not hold, what does (vocabulary.within): per `scope` (same-priority: a tie of a priority row; same-block: two statements of one key inside one block; same-segment: two files both under the row's segment folder) the `resolve` in read order, what the winner takes (`combine`) and the message row logged for it.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "combine": {
+                "enum": [
+                  "whole",
+                  "fields",
+                  "partial"
+                ]
+              },
+              "message": {
+                "pattern": "^msg-[a-z0-9-]+$",
+                "type": "string"
+              },
+              "resolve": {
+                "enum": [
+                  "earlier-wins",
+                  "later-wins"
+                ]
+              },
+              "scope": {
+                "enum": [
+                  "same-priority",
+                  "same-block",
+                  "same-segment"
+                ]
+              }
+            },
+            "required": [
+              "scope",
+              "resolve"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
         }
       },
       "required": [
@@ -10727,12 +12563,17 @@
             "databases_named",
             "directories",
             "directories_present",
+            "miss_values_by_why",
             "own_name_fields",
             "rows",
+            "rows_contradicted",
             "rows_measured_disagrees",
             "rows_naming_on_action",
             "rows_not_in_schema",
             "rows_with_an_on_action_value_not_naming_it",
+            "rows_with_misses",
+            "rows_with_sentinels",
+            "rows_with_undefined_misses",
             "script_files_read",
             "units_measured",
             "units_with_values"
@@ -10799,6 +12640,21 @@
               "$ref": "#/$defs/countTree"
             },
             "units_with_values": {
+              "$ref": "#/$defs/countTree"
+            },
+            "miss_values_by_why": {
+              "$ref": "#/$defs/countTree"
+            },
+            "rows_contradicted": {
+              "$ref": "#/$defs/countTree"
+            },
+            "rows_with_misses": {
+              "$ref": "#/$defs/countTree"
+            },
+            "rows_with_sentinels": {
+              "$ref": "#/$defs/countTree"
+            },
+            "rows_with_undefined_misses": {
               "$ref": "#/$defs/countTree"
             }
           },
@@ -10967,6 +12823,7 @@
         "vocabulary": {
           "type": "object",
           "required": [
+            "contradicted",
             "databases",
             "doc_words",
             "in_schema",
@@ -10975,14 +12832,20 @@
             "measured",
             "measured_disagrees",
             "members",
+            "miss_values",
+            "miss_why",
             "not_databases",
             "own_name_fields",
             "rank",
             "secondary",
+            "sentinels",
+            "set_aside",
             "status",
             "supports",
             "thresholds",
-            "value_form"
+            "value_form",
+            "value_is",
+            "value_is_kind"
           ],
           "additionalProperties": false,
           "properties": {
@@ -11030,6 +12893,13 @@
                   "secondary": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "values_of_field": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1
+                    }
                   }
                 }
               }
@@ -11125,6 +12995,27 @@
             },
             "value_form": {
               "$ref": "#/$defs/vocabularyTree"
+            },
+            "contradicted": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "miss_values": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "miss_why": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "sentinels": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "set_aside": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "value_is": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "value_is_kind": {
+              "$ref": "#/$defs/vocabularyTree"
             }
           },
           "description": "Every word the rows use (status, rank, and the part's own enums), each with its meaning."
@@ -11219,6 +13110,11 @@
         "where": {
           "type": "string",
           "minLength": 1
+        },
+        "set_aside": {
+          "type": "string",
+          "minLength": 1,
+          "description": "On an item that names a database where the row's own evidence of rank 1 to 3 says the value is no key (not-a-key): why it is kept, as presence."
         }
       },
       "description": "An evidence item of part D6: its rank (1 the executable to 5 wiki-era hints), what it supports (role or presence), what it says and where it is; `source: takes` is a reading of the package's A5 `takes`, with its `ref`, `sources` and `text`."
@@ -11392,6 +13288,10 @@
             "values": {
               "type": "integer",
               "minimum": 0
+            },
+            "misses_unexplained": {
+              "type": "integer",
+              "minimum": 0
             }
           }
         },
@@ -11428,7 +13328,8 @@
           "enum": [
             "confirmed",
             "measured-only",
-            "unknown"
+            "unknown",
+            "not-a-key"
           ]
         },
         "tied": {
@@ -11449,6 +13350,110 @@
             "list of keys",
             null
           ]
+        },
+        "miss_values": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "uses",
+              "value",
+              "why"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uses": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "why": {
+                "enum": [
+                  "sentinel",
+                  "scope_link",
+                  "undefined"
+                ]
+              }
+            }
+          },
+          "description": "Every distinct value the base game writes there that is a key of none of the row's databases, with why (vocabulary.miss_why)."
+        },
+        "sentinels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "evidence",
+              "says",
+              "value"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1
+              },
+              "says": {
+                "type": "string",
+                "minLength": 1
+              },
+              "uses": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "evidence": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/fieldReferencesEvidence"
+                }
+              }
+            }
+          },
+          "description": "Words accepted there that are no key of a database (none, auto, 0), each with evidence of rank 1 to 3: accept them without a lookup."
+        },
+        "value_is": {
+          "type": "object",
+          "required": [
+            "kind",
+            "says",
+            "values"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "kind": {
+              "enum": [
+                "closed_list"
+              ]
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "says": {
+              "type": "string"
+            }
+          },
+          "description": "On a not-a-key row: what the value is (vocabulary.value_is_kind)."
+        },
+        "contradicted": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Why a row whose evidence of rank 3 names databases is not confirmed: an undefined value of the base game contradicts it."
+        },
+        "named_by_evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "On a contradicted row: the databases its evidence names."
         }
       },
       "description": "A place whose values name a database: `id` (<folder>::<field>[.<sub-field>], <bucket>::<name>[.<param>] or <folder>::<path>), `kind`, the databases it refers to with their status and evidence, what was measured."
@@ -12980,6 +14985,1510 @@
         }
       },
       "description": "An item of a nested row's `name_scope_evidence` (part D3): the part's evidence item, with `supports` scope (the item shows the scope of the names) or presence, and for an executable item an optional `finding`. An executable item without `string` is a code item: `where` names the functions and findings of the stored analysis it rests on, `verified_in` the findings file and the excerpts."
+    },
+    "directoryFilesEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "info",
+            "base_game"
+          ]
+        },
+        "supports": {
+          "enum": [
+            "extensions",
+            "recursive",
+            "names",
+            "not_script"
+          ]
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "One item of evidence of a directory's `files`: its rank in the order of trust (1 the executable, 3 Paradox's .info files, 4 the base game), what it says, where it is, and which part of the fact it supports (the script extensions, the reading of sub-folders, the files the executable names, a file that is not script)."
+    },
+    "directoryFiles": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "holds_script",
+        "measured",
+        "not_script",
+        "script",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "confirmed",
+            "partial",
+            "measured-only",
+            "unknown"
+          ],
+          "description": "confirmed: the reader's listing call (its extension and depth) is read in the executable; partial: only part of it is; measured-only: the base game's files alone; unknown: not settled."
+        },
+        "holds_script": {
+          "type": [
+            "boolean",
+            "null"
+          ],
+          "description": "Whether the directory holds script files at all (null: not settled)."
+        },
+        "script": {
+          "type": "object",
+          "required": [
+            "extensions",
+            "recursive"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "extensions": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "pattern": "^\\.[a-z]+$"
+              },
+              "description": "The file extensions the reader takes as script (null: not settled)."
+            },
+            "recursive": {
+              "type": [
+                "boolean",
+                "null"
+              ],
+              "description": "Whether the reader reads the sub-folders too (null: not settled)."
+            },
+            "named_in_executable": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "Which files are script: the extensions and whether sub-folders are read; for a directory whose files the executable names one by one, those names."
+        },
+        "not_script": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/directoryNotScript"
+          },
+          "description": "The files present in the directory that are not script, though some have the script extension (sound/GUIDs.txt, gfx/models/buildings/naming.txt): a file (`file`) or a pattern of files (`pattern`) with what it is and its evidence."
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/directoryFilesEvidence"
+          }
+        },
+        "measured": {
+          "type": "object",
+          "required": [
+            "files"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "by_extension": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^\\.[A-Za-z0-9]+$"
+              },
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "empty": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "files": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in_subfolders": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_script_files": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "script_files": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "description": "The files of the directory in the base game: by extension, empty ones, in sub-folders, script and not script."
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Which files of the directory are script (pass 4, item 1; tools/python/directory_files.py, research/directories/<version>/files.json): a consumer reads as script only the files of `script.extensions` (with the sub-folders when `script.recursive`), less those of `not_script`."
+    },
+    "directoryNotScript": {
+      "type": "object",
+      "required": [
+        "status",
+        "what"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "required": [
+            "file"
+          ]
+        },
+        {
+          "required": [
+            "pattern"
+          ]
+        }
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "what": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/directoryFilesEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        }
+      },
+      "description": "A file (path relative to the directory, with its evidence) or a pattern of files (`pattern`, with `count`: Paradox's .info files and the like, measured by extension) of the directory that is not script: what it is and the status."
+    },
+    "rootScopeEvidence": {
+      "type": "object",
+      "required": [
+        "measured",
+        "says",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "wiki-only"
+          ],
+          "description": "confirmed: a .info statement or the game's own output says it, and the measurement agrees; measured-only: the base game's records; wiki-only: only the wiki-era seed gives the type (not to be relied on)."
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "info": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "line",
+              "words"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "minLength": 1
+              },
+              "line": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "words": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "seed": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "see": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "The evidence of a directory's root-scope rule (tools/python/measure_root_scopes.py, research/analysis/ROOT_SCOPES_<version>.json, and the .info lines checked against the committed text); `seed` is the wiki-era seed's type, kept."
+    },
+    "openKeysEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports",
+        "where"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "info",
+            "base_game"
+          ]
+        },
+        "supports": {
+          "enum": [
+            "role",
+            "presence"
+          ]
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "strings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "before": {
+          "type": "string",
+          "minLength": 1
+        },
+        "after": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "One item of evidence of an open_keys row: for the executable, the reader's messages (`strings`) found between the source paths of the reader's file and the next (`before`, `after`)."
+    },
+    "openKeysRow": {
+      "type": "object",
+      "required": [
+        "database",
+        "evidence",
+        "measured",
+        "recognised_by",
+        "status",
+        "what"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "what": {
+          "const": "reference"
+        },
+        "database": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "recognised_by": {
+          "type": "object",
+          "required": [
+            "forms",
+            "path",
+            "type"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "enum": [
+                "any-block-child"
+              ]
+            },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "forms": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "enum": [
+                  "block",
+                  "value"
+                ]
+              }
+            },
+            "except": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "entries": {
+          "type": "object",
+          "required": [
+            "database",
+            "field",
+            "key",
+            "of"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "database": {
+              "type": "string",
+              "minLength": 1
+            },
+            "field": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "type": "string",
+              "minLength": 1
+            },
+            "of": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/openKeysEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "Keys that are names of another database (pass 4, item 6; tools/python/open_keys.py, spec/open_keys/open_keys.yml, research/analysis/OPEN_KEYS_<version>.json), in part D3's not_definitions vocabulary: every key of the block at recognised_by.path (but `except`) is a name of `database` (of the `kind` part D3 names, which `names` selects); `entries` says what the children of such a key name. Do not judge such a key against the schema's field list."
+    },
+    "implicitLocKeysBucketRow": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "measured",
+        "name_from",
+        "pattern",
+        "prefix",
+        "requirement",
+        "requirement_from",
+        "status",
+        "suffix"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/implicitLocKeysEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "name_from": {
+          "enum": [
+            "bucket:modifiers",
+            "bucket:modifier_templates"
+          ],
+          "description": "The names are the entries of a bucket of the package: buckets.modifiers, or the names that fill a template of modifier_templates."
+        },
+        "pattern": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "requirement": {
+          "enum": [
+            "always-present-in-base-game",
+            "optional",
+            "required",
+            "unknown"
+          ]
+        },
+        "requirement_from": {
+          "enum": [
+            "evidence",
+            "measured"
+          ]
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "suffix": {
+          "type": "string"
+        },
+        "exe_literals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "overridden_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "overridden_by_holds_a_loc_key": {
+          "type": "boolean"
+        },
+        "overridden_by_in_schema": {
+          "type": "boolean"
+        },
+        "format_strings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "numbered_family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition_from": {
+          "enum": [
+            "evidence",
+            "measured"
+          ]
+        },
+        "unsettled": {
+          "type": "string",
+          "minLength": 1
+        },
+        "transform": {
+          "enum": [
+            "upper"
+          ],
+          "description": "How the name is written in the key (vocabulary.transform)."
+        },
+        "key_source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The committed file the keys are read from (the walk of the executable's modifier table)."
+        },
+        "literal_keys": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Modifier -> localization key, for every modifier whose key in the executable's table is not the row's pattern."
+        }
+      },
+      "description": "A row of D5's `buckets`: the localization key of a name of a bucket of the package (pass 4, item 8: a modifier's MOD_<NAME>), in the shape of a directory row, with `transform`, `key_source` and `literal_keys`."
+    },
+    "localizationFormsEvidence": {
+      "type": "object",
+      "required": [
+        "rank",
+        "says",
+        "source",
+        "supports"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "enum": [
+            "executable",
+            "catalogue",
+            "info",
+            "oracle",
+            "data_types",
+            "base_game"
+          ]
+        },
+        "supports": {
+          "enum": [
+            "role",
+            "presence"
+          ]
+        },
+        "where": {
+          "type": "string",
+          "minLength": 1
+        },
+        "string": {
+          "type": "string",
+          "minLength": 1
+        },
+        "beside": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes_apart": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verified_in": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "One item of evidence of part D9, as in parts D2 to D8; source data_types (rank 2, presence) is the game's dump of data types as the data_types companion carries it (`name`: the function with its arguments, `file` and `line` in the dump)."
+    },
+    "localizationFormsForm": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "id",
+        "measured",
+        "reads",
+        "shape",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "shape": {
+          "enum": [
+            "bare_key",
+            "head",
+            "function"
+          ]
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "function": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "name_arg": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "suffix": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "reads": {
+          "type": "string",
+          "minLength": 1
+        },
+        "returns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "also_member_of": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localizationFormsEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unsettled": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "A form of a localization bracket expression that names something by a name: its shape (the whole expression, the head of a chain, or an argument of a function: owner, function, name_arg), the suffix it needs, what the name is (`reads`, a key of vocabulary.reads), the status and the evidence, and how the base game's English localization uses it (`measured`)."
+    },
+    "localizationFormsSuffix": {
+      "type": "object",
+      "required": [
+        "evidence",
+        "id",
+        "measured",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "character": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefix": {
+          "type": "string",
+          "minLength": 1
+        },
+        "meaning": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reads": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "measured-only",
+            "unknown"
+          ]
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localizationFormsEvidence"
+          }
+        },
+        "measured": {
+          "$ref": "#/$defs/measuredTree"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unsettled": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "description": "A formatting suffix after `|` in a bracket expression: one character (`character`) or the form `|:<rule>` (`prefix`), what it does where the evidence says, else measured only and unknown."
+    },
+    "localizationFormsReads": {
+      "type": "object",
+      "required": [
+        "says"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "refers_to": {
+          "type": "object",
+          "required": [
+            "folder"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "folder": {
+              "type": "string",
+              "minLength": 1
+            },
+            "also_field": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "saved_by": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "key"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "param": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      },
+      "description": "What a name of one kind is and how it comes to be: the keys of a folder (refers_to, with also_field for names listed in a field of its records) or the script keys that save it (saved_by: `key = name`, or `key = { <param> = name }`)."
+    },
+    "localizationFormsData": {
+      "type": "object",
+      "required": [
+        "about",
+        "counts",
+        "format",
+        "forms",
+        "generator",
+        "inputs",
+        "not_settled",
+        "snapshot",
+        "suffixes",
+        "version",
+        "vocabulary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "about": {
+          "type": "object",
+          "required": [
+            "consumer",
+            "meaning",
+            "name",
+            "rows",
+            "scope",
+            "status_rule"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "consumer": {
+              "type": "string",
+              "minLength": 1
+            },
+            "meaning": {
+              "type": "string",
+              "minLength": 1
+            },
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rows": {
+              "type": "string",
+              "minLength": 1
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status_rule": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/countTree"
+          },
+          "required": [
+            "expressions",
+            "expressions_distinct",
+            "expressions_not_read",
+            "expressions_with_a_suffix",
+            "forms",
+            "forms_by_reads",
+            "forms_by_shape",
+            "forms_by_status",
+            "forms_written_in_the_base_game",
+            "known_names",
+            "localization_files",
+            "localization_values",
+            "script_files_read",
+            "suffixes",
+            "suffixes_by_status"
+          ],
+          "propertyNames": {
+            "enum": [
+              "expressions",
+              "expressions_distinct",
+              "expressions_not_read",
+              "expressions_with_a_suffix",
+              "forms",
+              "forms_by_reads",
+              "forms_by_shape",
+              "forms_by_status",
+              "forms_written_in_the_base_game",
+              "known_names",
+              "localization_files",
+              "localization_values",
+              "script_files_read",
+              "suffixes",
+              "suffixes_by_status"
+            ]
+          }
+        },
+        "format": {
+          "const": "localization_forms"
+        },
+        "generator": {
+          "const": "tools/python/localization_forms.py"
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "snapshot": {
+          "type": "string",
+          "minLength": 1
+        },
+        "forms": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localizationFormsForm"
+          }
+        },
+        "suffixes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/localizationFormsSuffix"
+          }
+        },
+        "inputs": {
+          "type": "object",
+          "required": [
+            "catalogue",
+            "data_types",
+            "directories",
+            "exe",
+            "hand",
+            "info",
+            "oracle",
+            "strings_in_exe"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "catalogue": {
+              "type": "string",
+              "minLength": 1
+            },
+            "data_types": {
+              "type": "string",
+              "minLength": 1
+            },
+            "directories": {
+              "type": "string",
+              "minLength": 1
+            },
+            "hand": {
+              "type": "string",
+              "minLength": 1
+            },
+            "info": {
+              "type": "string",
+              "minLength": 1
+            },
+            "oracle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "strings_in_exe": {
+              "type": "string",
+              "minLength": 1
+            },
+            "exe": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "required": [
+                "bytes",
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              }
+            }
+          }
+        },
+        "not_settled": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "vocabulary": {
+          "type": "object",
+          "required": [
+            "also_member_of",
+            "measured",
+            "name_arg",
+            "rank",
+            "reads",
+            "returns",
+            "shape",
+            "status",
+            "supports",
+            "thresholds"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "also_member_of": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "measured": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "name_arg": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "rank": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "reads": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/localizationFormsReads"
+              }
+            },
+            "returns": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "shape": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "status": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "supports": {
+              "$ref": "#/$defs/vocabularyTree"
+            },
+            "thresholds": {
+              "$ref": "#/$defs/vocabularyTree"
+            }
+          }
+        }
+      },
+      "description": "Part D9's data: the committed output of tools/python/localization_forms.py (research/localization_forms/<version>/localization_forms.json), whole."
+    },
+    "localizationFormsPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/localizationFormsData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part D9 (localization text forms) as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "scopeNamesEvidence": {
+      "type": "object",
+      "required": [
+        "file",
+        "lines",
+        "quote",
+        "rank",
+        "says",
+        "source",
+        "verified_in"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "enum": [
+            2,
+            4
+          ]
+        },
+        "source": {
+          "enum": [
+            "oracle",
+            "base_game"
+          ]
+        },
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "type": "string",
+          "pattern": "^[0-9]+(-[0-9]+)?$"
+        },
+        "quote": {
+          "type": "string",
+          "minLength": 1
+        },
+        "says": {
+          "type": "string",
+          "minLength": 1
+        },
+        "verified_in": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "description": "One item of evidence of parts O1 and O2: a quote of a committed file at the lines given (oracle: the game's own script_docs output, research/oracle/<version>/; base_game: a committed measurement of the base game), checked by the builder on every build."
+    },
+    "savedFromCodeData": {
+      "type": "object",
+      "required": [
+        "also_keywords",
+        "consumer",
+        "counts",
+        "evidence",
+        "meaning",
+        "names",
+        "source"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "meaning": {
+          "type": "string",
+          "minLength": 1
+        },
+        "consumer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "names": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_]+$"
+          },
+          "description": "The names, sorted (research/oracle/<version>/oracle.json keeps the log's order)."
+        },
+        "also_keywords": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "minLength": 1
+          },
+          "additionalProperties": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "enum": [
+                "triggers",
+                "effects",
+                "links",
+                "lists",
+                "on_actions",
+                "modifiers"
+              ]
+            }
+          },
+          "description": "The names that are also keywords, with the buckets that list them."
+        },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/scopeNamesEvidence"
+          }
+        },
+        "counts": {
+          "type": "object",
+          "required": [
+            "also_keywords",
+            "names"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "names": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "also_keywords": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "source": {
+          "type": "object",
+          "required": [
+            "file",
+            "generator",
+            "key"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "key": {
+              "type": "string",
+              "minLength": 1
+            },
+            "generator": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      },
+      "description": "Part O1: the names the game's own code saves as scopes for script, with no script statement (`Event Targets Saved from Code`, the game's script_docs output; spec/scopes/scope_names.yml for what they mean)."
+    },
+    "savedFromCodePart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/savedFromCodeData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part O1 (names the game saves from its own code) as the package carries it: built, with its data, or not built, with the reason."
+    },
+    "notScopeTypesData": {
+      "type": "object",
+      "required": [
+        "checked",
+        "event_scopes",
+        "meaning",
+        "rule",
+        "values"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "meaning": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "values": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z_]+$"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "consumer",
+              "evidence",
+              "means",
+              "named_in"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "means": {
+                "type": "string",
+                "minLength": 1
+              },
+              "consumer": {
+                "type": "string",
+                "minLength": 1
+              },
+              "evidence": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/scopeNamesEvidence"
+                }
+              },
+              "named_in": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "description": "Where the package names the value, with the number of names (keywords, on-actions, directories, fields) that carry it."
+              },
+              "event_scopes": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "What the game's own list of scope types (event_scopes.log) prints for it."
+              }
+            }
+          }
+        },
+        "checked": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The places of the package the rule was checked in."
+        },
+        "event_scopes": {
+          "type": "object",
+          "required": [
+            "file",
+            "not_in_scope_types",
+            "types"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "types": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_in_scope_types": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "minLength": 1
+              },
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "description": "The game's own list of scope types compared with scope_types: the types it lists that scope_types has no record of, and why. Since the owner decision of 2026-11-25 every other type of the list is a scope type (scope_types.<type>.listed_in), so these are the values of `values`."
+        }
+      },
+      "description": "Part O2: the scope values the package names that are no scope type (`none`), what each means, and the rule that every scope value of the package is a key of scope_types or of `values`."
+    },
+    "notScopeTypesPart": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "data"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "const": "built"
+            },
+            "data": {
+              "$ref": "#/$defs/notScopeTypesData"
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/partNotBuilt"
+        }
+      ],
+      "description": "Part O2 (scope values that are no scope type) as the package carries it: built, with its data, or not built, with the reason."
     }
   }
 }

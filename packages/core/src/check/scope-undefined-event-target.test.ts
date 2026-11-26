@@ -35,7 +35,19 @@ test(`${CODE} rests on its catalogue message, at information`, () => {
 test(`${CODE}: the link that reads a saved scope and the keys that save one come from the package`, () => {
     const folders = specFolders();
     assert.deepEqual([...folders.scopeLinks], ['scope']);
-    assert.deepEqual([...folders.saveKeys].sort(), ['save_scope_as', 'save_temporary_scope_as']);
+    // Format 9: the keys that save a value under a name are entries too, each with its rule.
+    assert.deepEqual([...folders.saveKeys].sort(), [
+        'save_opinion_value_as',
+        'save_scope_as',
+        'save_scope_value_as',
+        'save_temporary_opinion_value_as',
+        'save_temporary_scope_as',
+        'save_temporary_scope_value_as',
+    ]);
+    assert.deepEqual(folders.saveRules.get('save_scope_value_as')?.nameIn, ['name']);
+    // Part O1: the names the game saves from its own code.
+    assert.equal(folders.savedFromCode.size, 409);
+    assert.ok(folders.savedFromCode.has('actor'));
 });
 
 test(`${CODE}: the index records where a scope is saved and read, and the templates`, () => {
@@ -49,9 +61,16 @@ test(`${CODE}: the index records where a scope is saved and read, and the templa
         index.savedScopes('fixture_base_saved').map((s) => [s.layer, s.file]),
         [['game', 'common/scripted_effects/fixture_base_effects.txt']],
     );
-    // A value save is no save key of the package, but writes the name: it may be saved there.
-    assert.deepEqual(index.savedScopes('fixture_target_saved_value'), []);
-    assert.equal(index.isUsedBesideScopeReads('fixture_target_saved_value'), true);
+    // Format 9: a value saved under a name (`save_scope_value_as = { name = x }`) is a save,
+    // its name where the entry's `name_in` says.
+    assert.deepEqual(
+        index
+            .savedScopes('fixture_target_saved_value')
+            .map((s) => [s.file, s.range.start.line + 1]),
+        [['common/scripted_effects/fixture_target_effects.txt', 5]],
+    );
+    // A name the game saves from its own code is saved by no script, and is read all the same.
+    assert.deepEqual(index.savedScopes('actor'), []);
     assert.equal(index.scopeReads('fixture_target_never_saved').length, 1);
     assert.equal(index.isUsedBesideScopeReads('fixture_target_never_saved'), false);
     assert.ok(index.nameTemplates().includes('fixture_target_built_$WHAT$'));

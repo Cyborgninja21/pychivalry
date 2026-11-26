@@ -72,6 +72,11 @@ export function inForceOf(
         case 'not-in-force':
             return 'no';
         case 'clash':
+            // Format 9: where the row says which one the game keeps on a tie (`within`).
+            if (resolution.kept !== undefined) {
+                return same(resolution.kept, definition) ? 'yes' : 'no';
+            }
+            return definition.read === 'no' ? 'no' : 'not-known';
         case 'unknown':
             return definition.read === 'no' ? 'no' : 'not-known';
     }

@@ -202,6 +202,7 @@ test('the folder list is read from a spec package, with its record schemas', () 
             notDefinitions: [],
             nested: [],
             fileNamed: false,
+            files: null,
         },
         {
             path: 'gfx/x',
@@ -213,6 +214,7 @@ test('the folder list is read from a spec package, with its record schemas', () 
             notDefinitions: [],
             nested: [],
             fileNamed: false,
+            files: null,
         },
     ]);
     assert.deepEqual(foldersFromSpec(null), []);

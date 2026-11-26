@@ -19,7 +19,7 @@ import { committedSpec, REPO_ROOT } from './testing.js';
 
 const specDir = path.join(REPO_ROOT, 'spec');
 
-test('the committed package opens: format 8, game 1.21.0.3, the checksum its .sha256 states', () => {
+test('the committed package opens: format 9, game 1.21.0.3, the checksum its .sha256 states', () => {
     const spec = committedSpec();
     assert.equal(spec.data.package_format, SPEC_FORMAT);
     assert.equal(spec.version, '1.21.0.3');
@@ -48,10 +48,10 @@ test('the typed package holds the counts docs/references/spec-package.md states'
         on_actions: 233,
         modifiers: 778,
     });
-    assert.equal(data.errors.length, 2023);
+    assert.equal(data.errors.length, 2671);
     assert.equal(Object.keys(data.schema).length, 198);
-    assert.equal(Object.keys(data.scope_types).length, 86);
-    assert.equal(Object.keys(data.tables.data).length, 19);
+    assert.equal(Object.keys(data.scope_types).length, 87);
+    assert.equal(Object.keys(data.tables.data).length, 20);
     const takesNull = (['triggers', 'effects'] as const)
         .flatMap((b) => Object.values(data.buckets[b]))
         .filter((e) => e.takes === null).length;
@@ -60,10 +60,10 @@ test('the typed package holds the counts docs/references/spec-package.md states'
     assert.equal(data.directories.length, 239);
 });
 
-test('the eight parts of formats 6 to 8 are built, typed, each row with its status and evidence', () => {
+test('the parts of formats 6 to 9 are built, typed, each row with its status and evidence', () => {
     const spec = committedSpec();
-    const built = spec.data.parts.filter((p) => /^D[1-8]$/.test(p.id) && p.status === 'built');
-    assert.equal(built.length, 8);
+    const built = spec.data.parts.filter((p) => /^(D[1-9]|O[12])$/.test(p.id) && p.status === 'built');
+    assert.equal(built.length, 11);
     const rules = spec.part('override_rules');
     assert.equal(rules?.rules.length, 95);
     assert.equal(rules.coverage.length, 239);
@@ -89,10 +89,10 @@ test('the eight parts of formats 6 to 8 are built, typed, each row with its stat
     assert.ok(byId.get('special-genes-container')?.['entries'] !== undefined);
     assert.ok(byId.get('coat-of-arms-alias')?.['alias'] !== undefined);
     assert.ok(byId.get('msg-localization-missing-bom')?.['file_condition'] !== undefined);
-    assert.equal(spec.part('keyword_roles')?.keywords.length, 61);
+    assert.equal(spec.part('keyword_roles')?.keywords.length, 68);
     const loc = Object.values(spec.part('implicit_loc_keys')?.directories ?? {}).flat();
     assert.equal(loc.length, 710);
-    assert.equal(spec.part('field_references')?.fields.length, 922);
+    assert.equal(spec.part('field_references')?.fields.length, 925);
     assert.equal(spec.part('modifier_block_areas')?.fields.length, 208);
     const kinds = Object.fromEntries(
         (spec.part('iterator_kinds')?.prefixes ?? []).map((p) => [p.prefix, p.kind]),
@@ -109,6 +109,8 @@ test('the eight parts of formats 6 to 8 are built, typed, each row with its stat
         ...(spec.part('field_references')?.fields ?? []),
         ...(spec.part('modifier_block_areas')?.fields ?? []),
         ...(spec.part('iterator_kinds')?.prefixes ?? []),
+        ...(spec.part('localization_forms')?.forms ?? []),
+        ...Object.values(spec.part('implicit_loc_keys')?.buckets ?? {}).flat(),
     ];
     for (const row of rows) {
         assert.equal(typeof row.status, 'string');
@@ -116,6 +118,80 @@ test('the eight parts of formats 6 to 8 are built, typed, each row with its stat
     }
     // Read once per process: the same object every time.
     assert.equal(spec.part('override_rules'), rules);
+});
+
+test('format 9: the keys and parts it adds are read and typed', () => {
+    const spec = committedSpec();
+    const { data } = spec;
+    // Which files of a directory are script (item 1 of the request of 2026-11-25).
+    const dirs = new Map(data.directories.map((d) => [d.path, d]));
+    assert.ok(data.directories.every((d) => d.files !== undefined));
+    const sound = dirs.get('sound')?.files;
+    assert.ok(sound);
+    assert.deepEqual(sound.script.extensions, ['.txt']);
+    assert.deepEqual(
+        sound.not_script.map((n) => [n.file, n.status]),
+        [['GUIDs.txt', 'confirmed']],
+    );
+    assert.deepEqual(
+        dirs.get('gfx/models/buildings')?.files?.not_script.map((n) => n.file),
+        ['naming.txt'],
+    );
+    // The root rule (items 3 and 4): laws at a character, scripted modifiers at the caller.
+    const laws = data.schema['common/laws'];
+    assert.deepEqual([laws?.root_scope, laws?.root_scope_rule], ['character', 'fixed']);
+    assert.equal(data.schema['history/titles']?.root_scope, 'landed_title');
+    const modifiers = data.schema['common/scripted_modifiers'];
+    assert.deepEqual([modifiers?.root_scope, modifiers?.root_scope_rule], [undefined, 'caller']);
+    const rules = new Map<string, number>();
+    for (const schema of Object.values(data.schema)) {
+        if (schema.root_scope_rule !== undefined) {
+            rules.set(schema.root_scope_rule, (rules.get(schema.root_scope_rule) ?? 0) + 1);
+        }
+    }
+    assert.deepEqual(Object.fromEntries(rules), {
+        fixed: 25,
+        caller: 4,
+        'record-field': 3,
+        'per-record': 2,
+        'no-script': 2,
+    });
+    // scope_types follows the game's own list: court_position, which no keyword names.
+    const court = data.scope_types['court_position'];
+    assert.deepEqual([court?.named_by_keywords, court?.named_as], [false, []]);
+    // O1 and O2.
+    assert.equal(spec.part('saved_from_code')?.names.length, 409);
+    assert.ok(spec.part('saved_from_code')?.names.includes('actor'));
+    assert.deepEqual(Object.keys(spec.part('not_scope_types')?.values ?? {}), ['none']);
+    assert.equal(data.scope_types['none'], undefined);
+    // An ethnicity's keys are gene names (item 6).
+    const ethnicities = data.schema['common/ethnicities'];
+    assert.equal(ethnicities?.open_keys?.[0]?.database, 'common/genes');
+    // D4 (items 15 to 17), D5 (item 8), D6 (item 5), D9 (item 12).
+    const roles = new Map(spec.part('keyword_roles')?.keywords.map((r) => [r.keyword, r]));
+    assert.deepEqual(
+        [roles.get('AND')?.combination, roles.get('AND')?.child_always_true],
+        ['all', 'neutral'],
+    );
+    assert.equal(roles.get('always')?.holds_with, 'yes');
+    const mods = spec.part('implicit_loc_keys')?.buckets?.['modifiers'] ?? [];
+    assert.deepEqual(
+        mods.map((r) => [r.pattern, r.status]),
+        [
+            ['MOD_<name>', 'confirmed'],
+            ['<name>', 'measured-only'],
+        ],
+    );
+    const refs = new Map(spec.part('field_references')?.fields.map((r) => [r.id, r]));
+    assert.equal(refs.get('common/governments::mechanic_type')?.status, 'not-a-key');
+    assert.deepEqual(
+        refs.get('history/provinces::holding')?.sentinels?.map((v) => v.value),
+        ['auto', 'none'],
+    );
+    const forms = spec.part('localization_forms');
+    assert.ok(forms);
+    assert.equal(forms.forms.length, 36);
+    assert.equal(forms.forms.find((f) => f.id === 'game_concept')?.suffix, 'E');
 });
 
 function tempDir(t: { after: (fn: () => void) => void }): string {
@@ -126,10 +202,10 @@ function tempDir(t: { after: (fn: () => void) => void }): string {
     return dir;
 }
 
-/** A small format 8 package with the keys the reader checks. */
+/** A small format 9 package with the keys the reader checks. */
 function smallPackage(overrides: Record<string, unknown> = {}): Record<string, unknown> {
     return {
-        package_format: 8,
+        package_format: 9,
         manifest: { game: 'ck3', version: '9.9.9.9', companions: {} },
         parts: [],
         buckets: Object.fromEntries(BUCKET_NAMES.map((b) => [b, {}])),
@@ -147,6 +223,8 @@ function smallPackage(overrides: Record<string, unknown> = {}): Record<string, u
         tables: { status: 'built', data: {} },
         modifier_template_tags: { status: 'built', data: {} },
         ...Object.fromEntries(PART_KEYS.map((k) => [k, { status: 'built', data: {} }])),
+        saved_from_code: { status: 'built', data: { names: [] } },
+        not_scope_types: { status: 'built', data: { values: {} } },
         ...overrides,
     };
 }
@@ -158,19 +236,50 @@ test('a package whose uncompressed bytes do not match the stated checksum is ref
     assert.equal(spec.version, '9.9.9.9');
 });
 
-test('a package of another format, without the format 8 keys, or of another version is refused', () => {
+test('a package of another format, without the format 9 keys, or of another version is refused', () => {
     const four = Buffer.from(JSON.stringify(smallPackage({ package_format: 4 })));
     assert.throws(() => readSpec(gzipSync(four), sha256Hex(four)), /format 4/);
-    // Formats 5 and 7 are refused: the index reads keys only format 8 carries.
-    for (const format of [5, 7]) {
+    // Formats 5, 7 and 8 are refused: the index and the checks read keys only format 9 carries.
+    for (const format of [5, 7, 8]) {
         const old = Buffer.from(JSON.stringify(smallPackage({ package_format: format })));
         assert.throws(
             () => readSpec(gzipSync(old), sha256Hex(old)),
-            new RegExp(`format ${String(format)}; the rebuild reads format 8 only`),
+            new RegExp(`format ${String(format)}; the rebuild reads format 9 only`),
         );
     }
-    const bare = Buffer.from(JSON.stringify({ package_format: 8, manifest: { version: '1' } }));
-    assert.throws(() => readSpec(gzipSync(bare), sha256Hex(bare)), /not a format 8 package/);
+    const bare = Buffer.from(JSON.stringify({ package_format: 9, manifest: { version: '1' } }));
+    assert.throws(() => readSpec(gzipSync(bare), sha256Hex(bare)), /not a format 9 package/);
+    // Format 8's shapes: a directory without its files, save_keys without name_in as a list.
+    const noFiles = Buffer.from(
+        JSON.stringify(smallPackage({ directories: [{ path: 'common/a', content_type: 'a' }] })),
+    );
+    assert.throws(
+        () => readSpec(gzipSync(noFiles), sha256Hex(noFiles)),
+        /directories\[0\] has no files with script and not_script/,
+    );
+    const oldSaves = Buffer.from(
+        JSON.stringify(
+            smallPackage({
+                tables: {
+                    status: 'built',
+                    data: {
+                        save_keys: {
+                            about: {},
+                            entries: { a: { evidence_status: 'confirmed', name_in: 'value', saves: 'scope' } },
+                        },
+                    },
+                },
+            }),
+        ),
+    );
+    assert.throws(() => readSpec(gzipSync(oldSaves), sha256Hex(oldSaves)), /has no name_in list/);
+    const noNames = Buffer.from(
+        JSON.stringify(smallPackage({ saved_from_code: { status: 'built', data: {} } })),
+    );
+    assert.throws(
+        () => readSpec(gzipSync(noNames), sha256Hex(noNames)),
+        /saved_from_code\.data has no list of names/,
+    );
     // A nested row of D3 without the scope of its name is format 7's shape.
     const unscoped = Buffer.from(
         JSON.stringify(

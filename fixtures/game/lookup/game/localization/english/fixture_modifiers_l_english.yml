@@ -1,2 +1,3 @@
 ﻿l_english:
  monthly_prestige:0 "Fixture prestige each month"
+ MOD_MONTHLY_PRESTIGE:0 "Fixture monthly prestige, by the key the executable gives it"

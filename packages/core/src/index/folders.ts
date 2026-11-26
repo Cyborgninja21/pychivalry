@@ -22,9 +22,15 @@
  *   named by their file (`history/cultures`). Since format 8 each row says where its name
  *   identifies the definition (`name_scope`): on its own, or only together with a parent
  *   (`scope_parent`); a scope that is not `confirmed` decides nothing (`NestedScope`).
+ *
+ * Since format 9 each directory also says which of its files are script (`files`): the
+ * extensions its reader takes (`script.extensions`) less the files it names as no script
+ * (`not_script`, a file or a pattern). A file of a listed folder that the package says is no
+ * script is not read as script (`FolderTable.scriptStatus`).
  */
 
-import type { DeclarationRow, NestedRow } from '../spec/package.js';
+import type { DeclarationRow, DirectoryFiles, NestedRow, NotScriptEntry } from '../spec/package.js';
+import type { SaveRule } from '../spec/tables.js';
 
 /**
  * Where a nested name identifies its definition (part D3, format 8), read from a row whose
@@ -41,7 +47,40 @@ export type NestedScope =
     | { readonly kind: 'global'; readonly qualifier: string | null }
     | { readonly kind: 'parent'; readonly depth: number }
     | { readonly kind: 'not-settled'; readonly status: string };
-import { foldCase, parentOf, segmentsOf } from './paths.js';
+import { extensionOf, fileNameOf, foldCase, parentOf, segmentsOf } from './paths.js';
+
+/**
+ * Format 9: which files of a folder are script. `extensions` is the list the folder's reader
+ * takes (lower case), or null when the package does not settle it; `notScript` the files and
+ * patterns it names as no script, each with what it is and its status.
+ */
+export interface FolderFiles {
+    readonly extensions: readonly string[] | null;
+    readonly notScript: readonly NotScriptRule[];
+}
+
+/** A file, or a pattern of file names, that a folder holds and that is no script (format 9). */
+export interface NotScriptRule {
+    /** A path inside the folder (`GUIDs.txt`), in folded case; or null for a pattern. */
+    readonly file: string | null;
+    /** A pattern of file names (`*.info`), as a whole-name pattern; or null for a file. */
+    readonly pattern: RegExp | null;
+    /** The package's own words: the file, or the pattern. */
+    readonly written: string;
+    readonly what: string;
+    readonly status: string;
+}
+
+/** Whether a file of a listed folder is read as script, and the package's reason when it is not. */
+export type ScriptStatus =
+    | { readonly script: true }
+    | {
+          readonly script: false;
+          /** `not-script`: a `not_script` entry names it; `extension`: its reader takes no such extension. */
+          readonly why: 'not-script' | 'extension';
+          readonly folder: string;
+          readonly rule: NotScriptRule | null;
+      };
 
 /** A top-level form that part D2 says declares no name: `namespace = x`, a setting. */
 export interface NotADefinition {
@@ -134,6 +173,8 @@ export interface SpecFolder {
     readonly nested: readonly NestedRule[];
     /** Part D3: true when its records are named by their file, the key being the file's stem. */
     readonly fileNamed: boolean;
+    /** Format 9: which of its files are script; null when the package does not say. */
+    readonly files: FolderFiles | null;
 }
 
 /** Where a file belongs: its folder, and whether its path spells that folder in the same case. */
@@ -190,6 +231,49 @@ function nestedOf(rows: unknown, contentTypes: ReadonlyMap<string, string>): Nes
                 scope: scopeOf(r),
             };
         });
+}
+
+/** A pattern of file names (`*.info`) as a whole-name pattern, in folded case. */
+function fileNamePattern(pattern: string): RegExp {
+    const parts = foldCase(pattern)
+        .split('*')
+        .map((p) => p.replace(/[.+?^${}()|[\]\\]/g, '\\$&'));
+    return new RegExp(`^${parts.join('.*')}$`);
+}
+
+/** A directory's `files` (format 9), as the folder table reads it; null when it has none. */
+export function folderFilesOf(files: DirectoryFiles | undefined): FolderFiles | null {
+    if (files === undefined || !isJson(files) || !isJson(files.script)) {
+        return null;
+    }
+    const written: unknown = files.script.extensions;
+    const extensions = Array.isArray(written)
+        ? written.filter((e): e is string => typeof e === 'string').map((e) => foldCase(e))
+        : null;
+    const notScript: NotScriptRule[] = [];
+    const entries: readonly NotScriptEntry[] = Array.isArray(files.not_script)
+        ? files.not_script
+        : [];
+    for (const entry of entries) {
+        if (typeof entry.file === 'string' && entry.file !== '') {
+            notScript.push({
+                file: foldCase(segmentsOf(entry.file).join('/')),
+                pattern: null,
+                written: entry.file,
+                what: entry.what,
+                status: entry.status,
+            });
+        } else if (typeof entry.pattern === 'string' && entry.pattern !== '') {
+            notScript.push({
+                file: null,
+                pattern: fileNamePattern(entry.pattern),
+                written: entry.pattern,
+                what: entry.what,
+                status: entry.status,
+            });
+        }
+    }
+    return { extensions, notScript };
 }
 
 /** The scope part D2 gives an `@name` constant (`all_directories`), when a confirmed row gives one. */
@@ -263,32 +347,68 @@ export function foldersFromSpec(specPackage: unknown): SpecFolder[] {
                 isJson(named) &&
                 named['status'] === 'confirmed' &&
                 named['name_from'] === 'file-stem',
+            files: folderFilesOf(entry['files'] as DirectoryFiles | undefined),
         });
     }
     return out;
 }
 
 /**
- * The keys that save the current scope under a name (`save_scope_as = x`, after which
- * `scope:x` reads it): the entries of the package's hand-kept table `save_keys` (part C4), read
- * by the trust rule of docs/decisions.md. A confirmed entry is read; one with no evidence is
- * read too, since a save only ever makes `scope:x` not a finding; a contradicted entry is not.
+ * The keys that save something under a name `scope:x` then reads (`save_scope_as = x`,
+ * `save_scope_value_as = { name = x value = 5 }`), each with its rule: the entries of the
+ * package's hand-kept table `save_keys` (part C4), read by the trust rule of docs/decisions.md.
+ * A confirmed entry is read; one with no evidence is read too, since a save only ever makes
+ * `scope:x` not a finding; a contradicted entry is not. Since format 9 each entry says what it
+ * saves (`saves`: a scope or a value) and where the name is written (`name_in`, a list:
+ * `value`, the key's own value, or the key of the parameter of its block that holds the name).
+ * Candidates are never entries.
  */
-export function saveKeysFromSpec(specPackage: unknown): string[] {
+export function saveRulesFromSpec(specPackage: unknown): [string, SaveRule][] {
     if (!isJson(specPackage) || !isJson(specPackage['tables'])) {
         return [];
     }
     const data = specPackage['tables']['data'];
     const table = isJson(data) ? data['save_keys'] : undefined;
     const entries = isJson(table) && isJson(table['entries']) ? table['entries'] : {};
+    const text = (value: unknown): string[] =>
+        Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
     return Object.entries(entries)
         .filter(
             ([, entry]) =>
                 isJson(entry) &&
                 (entry['evidence_status'] === 'confirmed' || entry['evidence_status'] === 'none'),
         )
-        .map(([key]) => key)
-        .sort();
+        .map(([key, entry]): [string, SaveRule] => {
+            const e = entry as Record<string, unknown>;
+            return [
+                key,
+                {
+                    saves: typeof e['saves'] === 'string' ? e['saves'] : '',
+                    source: typeof e['source'] === 'string' ? e['source'] : null,
+                    nameIn: text(e['name_in']),
+                    temporary: typeof e['temporary'] === 'boolean' ? e['temporary'] : null,
+                    parameterOf: text(e['parameter_of']),
+                },
+            ];
+        })
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+}
+
+/** The keys of `saveRulesFromSpec`, sorted. */
+export function saveKeysFromSpec(specPackage: unknown): string[] {
+    return saveRulesFromSpec(specPackage).map(([key]) => key);
+}
+
+/**
+ * Part O1 (format 9): the names the game's own code saves as scopes for script, with no script
+ * statement (`scope:actor` in an interaction): a `scope:<name>` whose name is listed is defined.
+ */
+export function savedFromCodeFromSpec(specPackage: unknown): string[] {
+    if (!isJson(specPackage)) {
+        return [];
+    }
+    const names = partData(specPackage, 'saved_from_code')['names'];
+    return Array.isArray(names) ? names.filter((n): n is string => typeof n === 'string') : [];
 }
 
 /** Whether the package documents a link that is global and takes data (`scope:x`, `title:x`). */
@@ -344,8 +464,9 @@ export function folderTableFromSpec(specPackage: unknown): FolderTable {
     return new FolderTable(
         foldersFromSpec(specPackage),
         constantScopeFromSpec(specPackage),
-        saveKeysFromSpec(specPackage),
+        saveRulesFromSpec(specPackage),
         scopeLinksFromSpec(specPackage),
+        savedFromCodeFromSpec(specPackage),
     );
 }
 
@@ -358,11 +479,19 @@ export class FolderTable {
      */
     readonly constantScope: string | null;
     /**
-     * The keys that save a scope under the name they are given (`save_scope_as`), in lower
-     * case: the index records every `key = name` with one of them, in any case, as a save of
-     * `name` (`saveKeysFromSpec`). Empty, the index records no saves.
+     * The keys that save a scope or a value under the name they are given (`save_scope_as`,
+     * `save_scope_value_as`), in lower case: the index records every save one of them makes, in
+     * any case, as a save of the name (`saveRulesFromSpec`). Empty, the index records no saves.
      */
     readonly saveKeys: ReadonlySet<string>;
+    /** Per key of `saveKeys` (lower case), what it saves and where its name is written (format 9). */
+    readonly saveRules: ReadonlyMap<string, SaveRule>;
+    /**
+     * Part O1 (format 9): the names the game's own code saves as scopes for script, with no
+     * script statement; a `scope:<name>` whose name is listed is defined. Empty when the package
+     * gives none.
+     */
+    readonly savedFromCode: ReadonlySet<string>;
     /**
      * The links that read a saved scope (`scope:x`), in lower case: the index records the head
      * of every chain written with one of them, in any case, as a read of `x`
@@ -374,13 +503,16 @@ export class FolderTable {
     constructor(
         folders: readonly SpecFolder[],
         constantScope: string | null = null,
-        saveKeys: readonly string[] = [],
+        saveRules: readonly (readonly [string, SaveRule])[] = [],
         scopeLinks: readonly string[] = [],
+        savedFromCode: readonly string[] = [],
     ) {
         this.folders = folders;
         this.constantScope = constantScope;
-        this.saveKeys = new Set(saveKeys.map((k) => k.toLowerCase()));
+        this.saveRules = new Map(saveRules.map(([key, rule]) => [key.toLowerCase(), rule]));
+        this.saveKeys = new Set(this.saveRules.keys());
         this.scopeLinks = new Set(scopeLinks.map((k) => k.toLowerCase()));
+        this.savedFromCode = new Set(savedFromCode);
         for (const folder of folders) {
             this.byFolded.set(foldCase(folder.path), folder);
         }
@@ -407,6 +539,36 @@ export class FolderTable {
             dir = parentOf(dir);
         }
         return undefined;
+    }
+
+    /**
+     * Whether the index reads a script file (`.txt`) of a listed folder as script (format 9): not
+     * when the folder's `not_script` names it (a file by its path inside the folder, or a pattern
+     * of file names), nor when the folder's reader takes a list of extensions without its own.
+     * A folder whose extensions the package does not settle (null), or that has no `files`, is
+     * read as before. Matching ignores letter case: a file the package says is no script is not
+     * read in any spelling. Undefined for a file no listed folder holds.
+     */
+    scriptStatus(relative: string): ScriptStatus | undefined {
+        const match = this.classify(relative);
+        if (match === undefined) {
+            return undefined;
+        }
+        const files = match.folder.files;
+        if (files === null) {
+            return { script: true };
+        }
+        const inside = foldCase(relative.slice(match.folder.path.length + 1));
+        const name = foldCase(fileNameOf(relative));
+        for (const rule of files.notScript) {
+            if (rule.file !== null ? rule.file === inside : rule.pattern?.test(name) === true) {
+                return { script: false, why: 'not-script', folder: match.folder.path, rule };
+            }
+        }
+        if (files.extensions !== null && !files.extensions.includes(extensionOf(relative))) {
+            return { script: false, why: 'extension', folder: match.folder.path, rule: null };
+        }
+        return { script: true };
     }
 
     /**

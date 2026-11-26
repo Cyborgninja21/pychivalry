@@ -6,8 +6,8 @@ and a mod, by two files, or twice in one file. Written by build step 3, item 3.1
 evidence. This page answers open question 1 of [MVP.md](MVP.md#open-questions) as far as that
 evidence goes, and names the in-game experiment for every rule it does not settle.
 
-**Since 2026-11-22 the rules are the spec package's part D1** (`override_rules`, format 7, and
-format 8 since 2026-11-23), read out of the Windows executable, and for the localization reader
+**Since 2026-11-22 the rules are the spec package's part D1** (`override_rules`, format 7,
+format 8 since 2026-11-23 and format 9 since 2026-11-25), read out of the Windows executable, and for the localization reader
 the Linux one, by the spec work: 95 rows, each with its evidence, its status and what it rests on per platform. The index
 reads them and holds no rule of its own; the stand-in table this page once fed is retired
 ([decisions.md](decisions.md#log)). Each rule below now says which row decides it, or that it
@@ -58,7 +58,7 @@ decide it:
 | 8 | `replace_path` in a mod's descriptor | Open: experiment 7 | Settled: `replace-path-hides-lower-layers-in-listings` |
 | 9 | Letter case in paths | Open: experiments 8a and 8b | `derived` per platform: case-insensitive on Windows (`path-case-windows`), exact on Linux (`path-case-linux`); the engine folds no case (`path-case-engine-folds-nothing`, settled) |
 | 10 | DLC folders | Settled for 1.21.0.3; a mod file at a DLC file's path open | Settled: `dlc-packs-layout`, `dlc-file-replaces-install-folders`, and a mod over a DLC by rule 1's row |
-| 11 | Duplicate keys within one file | Settled for events and character history; otherwise part of rule 5 | As rules 5 and 6; a define written twice in one block yields the first (`defines-later-wins-per-define`, `details.within_one_block`) |
+| 11 | Duplicate keys within one file | Settled for events and character history; otherwise part of rule 5 | As rules 5 and 6; a define written twice in one block yields the first (`defines-later-wins-per-define`, its `within`, format 9; `details.within_one_block` before) |
 
 What stays open, and the index answers "winner not known" for: character history defined more
 than once (rule 6, a partial row), a file below a subfolder of a folder whose depth
@@ -358,8 +358,10 @@ The same type again: the later wins, whole. Another type: an error, and the earl
 the reader leaves that block there, and what becomes of the genes after it is not traced, so
 the index names no winner for them. `age_presets` is a key space of its own (later wins,
 whole); `decal_atlases` is partial and decides nothing. A gene's templates are known by their
-gene; that the templates of a replaced gene are dropped with it (`details.templates`) is not
-applied, as no nested name follows its record's answer yet.
+gene. Since format 9 the row says as data that a replaced gene's templates are dropped with it
+(`details.key_spaces.genes.on_replace`: nested `dropped`), and the index applies it: a template
+written only in the earlier gene is in force nowhere, one the later gene writes again is the
+later's.
 
 **Province terrain: settled, not keyed.**
 `<game dir>/common/province_terrain/_province_terrain.info`, line 3: the folder is not a
@@ -369,8 +371,9 @@ reader): a statement written again is overwritten by the later read, a winter bl
 field, and a province's terrain line and its winter block are separate stores that never
 replace each other. The index keeps each store apart (a definition's `container` is the store)
 and answers within it. `msg-duplicate-modifier` is about entries inside a building of
-`common/buildings`, not this folder. A province id is compared as written (`007` and `7` are
-one key to the game: not applied).
+`common/buildings`, not this folder. A province id is compared as an integer (`007` and `7` are
+one key): since format 9 the row says so as data (`key_identity`, `compare: integer`), and the
+index applies it.
 
 **History of titles and provinces: open, experiment 5.** `<game dir>/history/_history.info`:
 every history file is a block of starting values followed by dated blocks whose values override
@@ -467,7 +470,8 @@ data folder.
 
 **Decided by** the rows of rules 5 and 6: within one file the later definition is the later
 one read, but for defines a name written twice inside one block yields the first
-(`details.within_one_block` of `defines-later-wins-per-define`).
+(the `within` of `defines-later-wins-per-define`, scope `same-block`, since format 9;
+`details.within_one_block` before).
 
 Settled where rule 6 settles it: an event id or a character id defined twice in one file is the
 error those rules describe. For every other keyed folder it is rule 5, and open: the generic

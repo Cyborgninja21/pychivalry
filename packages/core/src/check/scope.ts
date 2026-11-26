@@ -12,11 +12,16 @@
  *   `sets_root_scope` (an event's `scope = <type>`, where the record writes it); for a record of
  *   the on-action database (the database part D6 says adds the on-actions bucket), the one
  *   scope the game's own documentation expects that on-action in (`scope_validity.on_actions`);
- *   otherwise the directory schema's `root_scope`. A value that is no scope type of the
- *   package's `scope_types` (`title`, `none`) leaves the root unknown. None: a directory the
- *   table `root_scope_contradicted` lists; a directory of `vanilla_indexed_dirs`, whose
- *   definitions other script calls by name and which run in the caller's scope (scripted
- *   triggers, effects and modifiers, script values); an inline `scripted_trigger name = { }`.
+ *   otherwise the directory schema's `root_scope`, judged only where the directory's root rule
+ *   (format 9, `root_scope_rule`) is `fixed` and its evidence is more than the wiki-era seed
+ *   (`root_scope_evidence.status` `wiki-only` is open in the package). A rule of `caller`
+ *   (scripted triggers, effects, modifiers, script values), `record-field`, `per-record` or
+ *   `no-script` leaves the root unknown, with the rule as the reason; so does a directory the
+ *   package has not examined (no rule) and that gives no root. A value that is no scope type of
+ *   the package's `scope_types` leaves the root unknown. None: a directory the table
+ *   `root_scope_contradicted` lists; a directory of `vanilla_indexed_dirs`, whose definitions
+ *   other script calls by name and which run in the caller's scope; an inline
+ *   `scripted_trigger name = { }`.
  * - **A record's fields.** The record's frame, but: a field the schema gives a `scope` (the
  *   game evaluates it in another scope than the root, measured on the base game) runs in that
  *   scope, with its root not known; a field of the table `fields_outside_root` is unknown.
@@ -86,6 +91,13 @@ export type UnknownWhy =
     | 'root-contradicted'
     /** The directory schema gives no root scope. */
     | 'no-root-scope'
+    /**
+     * Format 9: the directory's root rule is not `fixed` (`caller`, `record-field`,
+     * `per-record`, `no-script`; the rule is the detail).
+     */
+    | 'root-rule'
+    /** Format 9: the root only the wiki-era seed gives (`root_scope_evidence.status` `wiki-only`). */
+    | 'root-wiki-only'
     /** A definition other script calls by name (`vanilla_indexed_dirs`): its caller's scope. */
     | 'called'
     /** The root the package or the record names is no scope type of `scope_types`. */
@@ -193,6 +205,11 @@ interface Model {
     readonly tables: Tables;
     /** The scope types of `scope_types`. */
     readonly types: ReadonlySet<string>;
+    /**
+     * Part O2 (format 9): the scope values the package names that are no scope type (`none`):
+     * a keyword whose scope data names one declares no requirement and is not judged.
+     */
+    readonly notTypes: ReadonlySet<string>;
     /** The head of `scope_heads` that is the record's root, and the one that is the current scope. */
     readonly rootHead: string | null;
     readonly thisHead: string | null;
@@ -211,8 +228,11 @@ interface Model {
 /** The D4 role of a key that sets its record's root scope: the part's own word. */
 const SETS_ROOT_SCOPE = 'sets_root_scope';
 
-/** The word of `scope_validity` for a keyword that declares no requirement (spec README). */
-const NO_REQUIREMENT = 'none';
+/** The root rule of a directory whose records all run in one scope type (format 9). */
+const FIXED_ROOT = 'fixed';
+
+/** The status of a root only the wiki-era seed gives: open in the package (format 9). */
+const WIKI_ONLY = 'wiki-only';
 
 /** The words a schema field's `info_scope` notes name their scopes by (part C1). */
 function infoScopeWords(schema: Readonly<Record<string, DirectorySchema>>): Set<string> {
@@ -311,6 +331,7 @@ function modelOf(spec: Spec): Model {
         vocabulary: vocabularyOf(spec),
         tables,
         types: new Set(Object.keys(spec.data.scope_types)),
+        notTypes: new Set(Object.keys(spec.part('not_scope_types')?.values ?? {})),
         rootHead: heads.root,
         thisHead: heads.this,
         sameScope: new Set([...tables.sameScopeStructural].map((k) => k.toLowerCase())),
@@ -428,8 +449,15 @@ class Walker {
             return unknown('called');
         }
         const schema = own(this.input.spec.data.schema, dir);
+        const rule = schema?.root_scope_rule;
+        if (rule !== undefined && rule !== FIXED_ROOT) {
+            return unknown('root-rule', rule);
+        }
         if (schema?.root_scope === undefined) {
             return unknown('no-root-scope');
+        }
+        if (schema.root_scope_evidence?.status === WIKI_ONLY) {
+            return unknown('root-wiki-only', schema.root_scope);
         }
         return this.scopeOf(schema.root_scope, 'not-a-scope-type');
     }
@@ -761,7 +789,7 @@ export type UnjudgedWhy =
     | UnknownWhy
     /** The game's documentation gives no scope data for the keyword. */
     | 'no-scope-data'
-    /** Its scope data declares no requirement (`none`). */
+    /** Its scope data names a scope value that is no scope type (part O2: `none`, no requirement). */
     | 'no-requirement'
     /** A keyword that is also a link, written as a block key: judged as a link. */
     | 'scope-switch'
@@ -838,7 +866,7 @@ export function keywordUses(spec: Spec, reading: FileReading, scopes: ScopeReadi
             continue;
         }
         const expected = data.supported_scopes;
-        if (expected.length === 0 || expected.includes(NO_REQUIREMENT)) {
+        if (expected.length === 0 || expected.some((scope) => model.notTypes.has(scope))) {
             unjudged('no-requirement');
             continue;
         }

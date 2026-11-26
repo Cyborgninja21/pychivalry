@@ -624,6 +624,38 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - `docs/checks.md` marks every row built, blocked or not built yet; the eleven provisional
   advice rows item 4.7's re-proof found firing on the base game are retired, in a Retired codes
   table.
+- The spec package is the 1.21.0.3 package in format 9 (the owner's word of 2026-11-25; 57.4 MB,
+  3.32 MB gzipped), with `spec/schema.format9.json`, answering the seventeen items of the request
+  of 2026-11-25 (docs/decisions.md, rows 147 to 152). Format 9 is format 8 plus the parts D9
+  (localization forms), O1 (names the game saves from its own code) and O2 (scope values that are
+  no scope type), keys on the folders, the record schemas and the scope types, and keys inside
+  C4, D1, D4, D5 and D6. The core's reader and `task spec:check` read format 9 only and refuse
+  format 8. The format 4 copy for release 2.3.0 is kept as it was: 2.3.0 cannot read the one the
+  format 9 pass built, and `legacy/` does not change.
+- The rebuild reads what format 9 gives where it read an older form or a measured stand-in. The
+  index reads which files of a folder are script: `sound/GUIDs.txt`,
+  `gfx/models/buildings/naming.txt` and a `.txt` file in `gui/` are not read (the index record
+  lists them, `not_script`), and `game:parse` takes its two exclusions from the package. The scope
+  checks judge a record's root only where its folder's rule is `fixed` and not on the wiki-era
+  seed alone: laws root at a character, title history at a landed title, scripted modifiers at
+  their caller; a keyword whose scopes name `none` (part O2) is not judged. A save of a value
+  (`save_scope_value_as`, its name in the block's `name`) is a save, and the 409 names the game
+  saves from its own code are defined. `references/unknown-key` reads D6's `sentinels` (`holding =
+  none`) and `miss_values`, not a measurement of its own, and leaves a row whose database the
+  index does not hold; `fields/unknown-field` takes an ethnicity's keys as gene names. Lookup gives
+  a modifier's localization key `MOD_<NAME>` (or the executable's own literal) from part D5. The
+  index compares a province id as an integer (`003` is `3`), drops a replaced gene's templates,
+  and reads `within`, `merge`, `path_match`, `compare_unit` and `pack` of the override rules. The
+  table of the keywords of variables, D9's forms, D4's new roles and the catalogue's new messages
+  are read and exposed for the checks that wait on them; none of those checks is built.
+- The game-file suites are re-run on format 9. The base game's errors: 806 to 13, every one a
+  defect of the game's own files (the 791 parse errors of the two files that are not script and
+  the 2 false `selection_count` errors are gone); its warnings 17,185 to 17,188 (4
+  `references/unknown-key` on values nothing in the install defines, which the package lists, and
+  one `style/not-formatted` fewer); `scope/undefined-event-target` 5,969 to 26. The scope check
+  judges 179,669 of 610,886 keyword uses (178,395 before), with no finding. In the mods:
+  elf-destiny's 6 false `fields/unknown-field` warnings on its genes are gone, and
+  `scope/undefined-event-target` falls from 258 to 1 in all; the errors are the same.
 - The spec package is the 1.21.0.3 package in format 8 (the owner's go of 2026-11-23; 55.7 MB,
   3.18 MB gzipped), with `spec/schema.format8.json`; the format 4 copy is unchanged. Format 8 is
   format 7 plus keys inside parts D1, D2 and D3, which answer the five points the format 7
@@ -879,18 +911,22 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (decision 141); it is not started until he says (decision 145). The third preview's release
   run, 10 trials of each of the 24 requests, 480 test sessions, is made once on his word after it
   (decision 132).
-- `style/redundant-condition` (release 2.3.0's CK3872) is blocked until part D4 of the spec
-  package gives `always` and the logical operators roles (decision 112).
+- `style/redundant-condition` (release 2.3.0's CK3872) was blocked until part D4 of the spec
+  package gave `always` and the logical operators roles (decision 112); format 9 gives them, and
+  the row is to build.
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
-- Two rows of the check inventory are blocked: `structure/triggered-desc-other-field` (its
-  message is not in the committed catalogue) and `scope/title-text-reads-scope-saved-late` (the
-  saved-scope form of localization text is not data). Parts of four more wait on the owner or
-  the spec work: the iterator sub-cases of `names/unknown-trigger` and `-effect`, the block and
-  word types of `fields/wrong-kind-of-value`, the open brackets of
-  `localization/unbalanced-brackets`, the game-concept half of `references/unknown-name`.
-- Twelve requests back to the spec work (decision 73); 793 of the base game's 806 errors are
-  spec-package faults until the package answers them.
+- Two rows of the check inventory were blocked and are unblocked by format 9, to build:
+  `structure/triggered-desc-other-field` (its message is in the catalogue now) and
+  `scope/title-text-reads-scope-saved-late` (part D9 gives the saved-scope forms of localization
+  text); so are the open brackets of `localization/unbalanced-brackets` and the game-concept half
+  of `references/unknown-name`. Parts of two more wait on the owner: the iterator sub-cases of
+  `names/unknown-trigger` and `-effect`, the block and word types of
+  `fields/wrong-kind-of-value`.
+- The seventeen requests of 2026-11-25 are answered by format 9 (docs/decisions.md, row 150),
+  what the package still leaves open with them; one new request goes back to the spec work
+  (row 151): the trait groups and the game concepts' aliases, which part D6 names as databases and
+  part D3 does not define, so that three confirmed rows of D6 cannot be read.
 - The override rules `docs/overrides.md` leaves open (rules 3, 4, 5, 7, 8 and 9, and the open
   parts of 6 and 10) are to arrive as rows of a table in the spec package, read out of the
   Windows and Linux executables; the 1.21.0.3 package does not carry it. Until it does the

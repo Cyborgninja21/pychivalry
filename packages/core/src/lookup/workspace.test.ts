@@ -140,11 +140,28 @@ test('uses are bounded: the whole count, per layer, and the first N', () => {
     assert.equal(narrow(look('fixture_scripted_trigger').uses, 'read').first.length, 5);
 });
 
-test("a modifier's localization: the D5 key of its format record, each copy's text and the one in force", () => {
+test("a modifier's localization: the D5 key of its bucket (format 9), then that of its format record", () => {
     const r = look('monthly_prestige');
     const localization = narrow(modifierOf(r).modifier?.localization, 'read');
-    const [key, ...others] = localization.keys;
+    const [bucketKey, key, ...others] = localization.keys;
     assert.deepEqual(others, []);
+    // `MOD_` and the name in upper case, the row of the modifiers bucket: confirmed.
+    assert.ok(bucketKey);
+    assert.equal(bucketKey.key, 'MOD_MONTHLY_PRESTIGE');
+    assert.deepEqual(
+        [
+            bucketKey.row.directory,
+            bucketKey.row.nameFrom,
+            bucketKey.row.pattern,
+            bucketKey.row.status,
+        ],
+        [null, 'bucket:modifiers', 'MOD_<name>', 'confirmed'],
+    );
+    assert.deepEqual(bucketKey.records, []);
+    assert.deepEqual(
+        bucketKey.texts.map((t) => [t.language, t.layer]),
+        [['l_english', 'game']],
+    );
     assert.ok(key);
     assert.equal(key.key, 'monthly_prestige');
     assert.equal(key.row.directory, 'common/modifier_definition_formats');
@@ -183,22 +200,39 @@ test("a modifier's localization: the D5 key of its format record, each copy's te
     );
 });
 
-test('a modifier whose D5 key has no text, and one with no format record, each say so', () => {
+test('format 9: a modifier whose executable literal is another word has that key (literal_keys)', () => {
+    const rows = committedSpec().part('implicit_loc_keys')?.buckets?.['modifiers'] ?? [];
+    const literal = rows[0]?.literal_keys ?? {};
+    const [name, expected] = Object.entries(literal)[0] ?? [];
+    assert.ok(name !== undefined && expected !== undefined);
+    assert.notEqual(expected, `MOD_${name.toUpperCase()}`);
+    const keys = narrow(modifierOf(look(name)).modifier?.localization, 'read').keys;
+    assert.equal(keys[0]?.key, expected);
+});
+
+test('a modifier whose D5 keys have no text, and one with no format record, each say so', () => {
     const none = narrow(
         modifierOf(look('monthly_prestige_gain_mult')).modifier?.localization,
         'read',
     );
     assert.deepEqual(
         none.keys.map((k) => [k.key, k.texts.length]),
-        [['monthly_prestige_gain_mult', 0]],
+        [
+            ['MOD_MONTHLY_PRESTIGE_GAIN_MULT', 0],
+            ['monthly_prestige_gain_mult', 0],
+        ],
     );
     assert.equal(none.why, null);
+    // No format record: the bucket's key alone.
     const unrecorded = narrow(
         modifierOf(look('accolade_glory_gain_mult')).modifier?.localization,
         'read',
     );
-    assert.deepEqual(unrecorded.keys, []);
-    assert.ok((unrecorded.why ?? '').includes('D5'));
+    assert.deepEqual(
+        unrecorded.keys.map((k) => [k.key, k.row.nameFrom]),
+        [['MOD_ACCOLADE_GLORY_GAIN_MULT', 'bucket:modifiers']],
+    );
+    assert.equal(unrecorded.why, null);
 });
 
 test('no game folder: the localization is absent, and so it is with no file source', () => {
@@ -226,6 +260,7 @@ test('a file source may hand over the text an editor holds; a file it cannot rea
     assert.deepEqual(
         read.keys.flatMap((k) => k.texts.map((t) => [t.layer, t.text])),
         [
+            ['game', 'Fixture monthly prestige, by the key the executable gives it'],
             ['game', 'Fixture prestige each month'],
             ['mod', 'As the editor holds it'],
         ],
@@ -236,7 +271,7 @@ test('a file source may hand over the text an editor holds; a file it cannot rea
         'read',
     );
     assert.ok(unread.keys.every((k) => k.texts.every((t) => t.text === null)));
-    assert.equal(unread.keys[0]?.texts.length, 3);
+    assert.equal(unread.keys[1]?.texts.length, 3);
 });
 
 test('a keyword template whose key the workspace defines, and one whose key it does not', () => {

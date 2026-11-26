@@ -140,9 +140,10 @@ test('a definition other script calls by name runs in its caller scope: unknown'
         probes('common/scripted_effects/fixture.txt', `fixture_effect = { ${PROBE} = yes }\n`),
         ['?called/?called'],
     );
-    // The package gives scripted modifiers the root scope character; they are called by name
-    // from blocks of every scope, so the call wins.
-    assert.equal(committedSpec().data.schema['common/scripted_modifiers']?.root_scope, 'character');
+    // Format 9: scripted modifiers have no root; they run in the scope of the place that names
+    // them (`root_scope_rule: caller`, item 3 of the request of 2026-11-25).
+    const modifiers = committedSpec().data.schema['common/scripted_modifiers'];
+    assert.deepEqual([modifiers?.root_scope, modifiers?.root_scope_rule], [undefined, 'caller']);
     assert.deepEqual(
         probes(
             'common/scripted_modifiers/fixture.txt',
@@ -156,13 +157,50 @@ test('an inline scripted trigger, and a root that is no scope type, are unknown'
     assert.deepEqual(probes(EVENT, `scripted_trigger fixture_inline = { ${PROBE} = yes }\n`), [
         '?inline-definition/?inline-definition',
     ]);
-    // history/titles has the root `title`, which is no scope type of the package.
+    // An event whose `scope` names no scope type of the package.
+    assert.deepEqual(
+        probes(
+            EVENT,
+            `fixture.1 = {\n\ttype = character_event\n\tscope = fixture_no_type\n\timmediate = { ${PROBE} = yes }\n}\n`,
+        ),
+        ['?not-a-scope-type/?not-a-scope-type'],
+    );
+});
+
+test('format 9: a root is judged only where its rule is fixed, and not on the wiki seed alone', () => {
+    // history/titles: the root `landed_title` (it was `title`, no scope type, in format 8).
     assert.deepEqual(
         probes(
             'history/titles/fixture.txt',
             `k_fixture = {\n\t1066.1.1 = {\n\t\teffect = { ${PROBE} = yes }\n\t}\n}\n`,
         ),
-        ['?not-a-scope-type/?not-a-scope-type'],
+        ['landed_title/landed_title'],
+    );
+    // common/laws: the root `character` (`Root scope = ruler`), fixed, confirmed by its .info.
+    const laws = committedSpec().data.schema['common/laws'];
+    assert.deepEqual(
+        [laws?.root_scope, laws?.root_scope_rule, laws?.root_scope_evidence?.status],
+        ['character', 'fixed', 'confirmed'],
+    );
+    // A rule other than `fixed`: the root comes from a field of the record (scripted GUIs).
+    assert.deepEqual(
+        probes(
+            'common/scripted_guis/fixture.txt',
+            `fixture_gui = {\n\tscope = character\n\teffect = { ${PROBE} = yes }\n}\n`,
+        ),
+        ['?root-rule/?root-rule'],
+    );
+    // A root only the wiki-era seed gives (common/nicknames: wiki-only) is not judged.
+    assert.equal(
+        committedSpec().data.schema['common/nicknames']?.root_scope_evidence?.status,
+        'wiki-only',
+    );
+    assert.deepEqual(
+        probes(
+            'common/nicknames/fixture.txt',
+            `fixture_nickname = {\n\tis_bad = yes\n\tfixture_block = { ${PROBE} = yes }\n}\n`,
+        ),
+        ['?root-wiki-only/?root-wiki-only'],
     );
 });
 

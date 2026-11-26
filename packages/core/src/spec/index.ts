@@ -5,6 +5,12 @@
  */
 
 export { DataTypes, dataTypesOf, type DataTypeEntry } from './data-types.js';
+export { bucketRowKey, bucketRows } from './implicit-keys.js';
+export {
+    formsReading,
+    localizationFormsOf,
+    type LocalizationForms,
+} from './localization-forms.js';
 export {
     BUCKET_NAMES,
     PART_KEYS,
@@ -15,10 +21,12 @@ export {
     type DeclarationsData,
     type DefinitionsData,
     type Directory,
+    type DirectoryFiles,
     type DirectorySchema,
     type FieldReferenceRow,
     type FieldReferencesData,
     type FileNamedRow,
+    type ImplicitLocKeyBucketRow,
     type ImplicitLocKeyRow,
     type ImplicitLocKeysData,
     type IteratorKindsData,
@@ -29,11 +37,17 @@ export {
     type KeywordRolesData,
     type KeywordTemplate,
     type LinkForm,
+    type LocalizationFormRow,
+    type LocalizationFormsData,
+    type LocalizationSuffixRow,
     type ModifierBlockAreaRow,
     type ModifierBlockAreasData,
     type ModifierTemplateMark,
     type ModifierTemplateTag,
     type NestedRow,
+    type NotScopeTypesData,
+    type NotScriptEntry,
+    type OpenKeysRow,
     type OverrideRulesData,
     type Part,
     type PartData,
@@ -42,8 +56,12 @@ export {
     type PartRow,
     type RecognisedBy,
     type RetiredEntry,
+    type RootScopeEvidence,
+    type RootScopeRule,
+    type SavedFromCodeData,
     type SchemaField,
     type ScopeRecord,
+    type ScopeTypeRecord,
     type ScopeValidity,
     type SpecData,
     type Table,
@@ -73,7 +91,9 @@ export {
     type Child,
     type ContainerRule,
     type IteratorParam,
+    type SaveRule,
     type TrustDecision,
+    type VariableKeyword,
 } from './tables.js';
 export {
     templatePattern,

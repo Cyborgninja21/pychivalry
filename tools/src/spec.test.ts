@@ -32,13 +32,13 @@ interface FolderOptions {
     legacyVersion?: string;
 }
 
-/** A small, valid spec folder: a format 8 package, one companion, the schema, the format 4 copy. */
+/** A small, valid spec folder: a format 9 package, one companion, the schema, the format 4 copy. */
 function specFolder(dir: string, options: FolderOptions = {}): string {
     const companion = Buffer.from(
         JSON.stringify({
             companion: 'info',
             package: PACKAGE,
-            package_format: 8,
+            package_format: 9,
             version: VERSION,
             data: {},
             ...options.companionHeader,
@@ -51,7 +51,7 @@ function specFolder(dir: string, options: FolderOptions = {}): string {
     };
     const json = Buffer.from(
         JSON.stringify({
-            package_format: options.format ?? 8,
+            package_format: options.format ?? 9,
             manifest: {
                 version: VERSION,
                 companions: { [INFO]: { part: 'C1', key: 'info_docs', ...record } },
@@ -72,10 +72,10 @@ function specFolder(dir: string, options: FolderOptions = {}): string {
         [`ck3-spec-${VERSION}.info.sha256`]: `${sha256(companion)}  ${INFO}\n`,
         [SCHEMA_FILE]: JSON.stringify({
             $schema: 'https://json-schema.org/draft/2020-12/schema',
-            $id: 'https://example.invalid/schema.format8.json',
+            $id: 'https://example.invalid/schema.format9.json',
             type: 'object',
             required: ['package_format', 'manifest'],
-            properties: { package_format: { const: options.schemaFormat ?? 8 } },
+            properties: { package_format: { const: options.schemaFormat ?? 9 } },
             $defs: {
                 companionInfo: {
                     type: 'object',
@@ -103,9 +103,9 @@ test('the committed spec folder passes the full check: the package, its companio
     assert.equal(check.legacy.file, `legacy/ck3-spec-${check.spec.version}.format4.json.gz`);
 });
 
-test("the committed package reads as format 8 through the core's spec reader, the one the suites use", () => {
+test("the committed package reads as format 9 through the core's spec reader, the one the suites use", () => {
     const spec = openSpec(path.join(repoRoot(), 'spec'));
-    assert.equal(spec.data.package_format, 8);
+    assert.equal(spec.data.package_format, 9);
     assert.equal(spec.sha256, checkSpec(path.join(repoRoot(), 'spec')).spec?.sha256);
     assert.ok(Array.isArray(spec.data.directories));
     assert.ok(Array.isArray(spec.data.errors));
@@ -127,20 +127,20 @@ test('a wrong checksum of the package fails', (t) => {
     assert.match(check.problems.join('\n'), /ck3-spec-1\.21\.0\.3\.sha256 says 0{64}/);
 });
 
-test('a package of format 4, 5 or 7 fails: the rebuild reads format 8 only', (t) => {
-    for (const format of [4, 5, 7]) {
+test('a package of format 4, 5, 7 or 8 fails: the rebuild reads format 9 only', (t) => {
+    for (const format of [4, 5, 7, 8]) {
         const check = checkSpec(specFolder(tempDir(t), { format, schemaFormat: format }));
         assert.equal(check.spec, undefined);
         assert.match(
             check.problems.join('\n'),
-            new RegExp(`package format ${String(format)}; the rebuild reads format 8 only`),
+            new RegExp(`package format ${String(format)}; the rebuild reads format 9 only`),
         );
     }
 });
 
 test('a schema of another format than the package fails', (t) => {
     const check = checkSpec(specFolder(tempDir(t), { schemaFormat: 5 }));
-    assert.match(check.problems.join('\n'), /schema of package format 5, but .* is format 8/);
+    assert.match(check.problems.join('\n'), /schema of package format 5, but .* is format 9/);
 });
 
 test('two packages, or a package committed uncompressed, fail', (t) => {
@@ -189,7 +189,7 @@ test('a companion that fails the schema, and a stray spec file, fail', (t) => {
     const invalid = checkSpec(specFolder(tempDir(t), { companionHeader: { data: 'none' } }), {
         full: true,
     });
-    assert.match(invalid.problems.join('\n'), /is not valid against schema\.format8\.json: \/data/);
+    assert.match(invalid.problems.join('\n'), /is not valid against schema\.format9\.json: \/data/);
     const dir = specFolder(tempDir(t));
     writeTree(dir, { 'ck3-spec-1.21.0.3.extra.json.gz': gzipSync('{}') });
     assert.match(
@@ -259,7 +259,7 @@ test("the committed package's rules table (part D1) reads with the core's reader
 function corePackage(dir: string, rules: unknown): void {
     const json = Buffer.from(
         JSON.stringify({
-            package_format: 8,
+            package_format: 9,
             manifest: { game: 'ck3', version: VERSION, companions: {} },
             parts: [],
             buckets: Object.fromEntries(BUCKET_NAMES.map((b) => [b, {}])),
@@ -277,6 +277,8 @@ function corePackage(dir: string, rules: unknown): void {
             tables: { status: 'built', data: {} },
             modifier_template_tags: { status: 'built', data: {} },
             ...Object.fromEntries(PART_KEYS.map((k) => [k, { status: 'built', data: {} }])),
+            saved_from_code: { status: 'built', data: { names: [] } },
+            not_scope_types: { status: 'built', data: { values: {} } },
             override_rules: rules,
         }),
     );

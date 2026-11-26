@@ -173,16 +173,23 @@ export interface LocalizationTextAnswer {
  */
 export interface LocalizationKeyAnswer {
     readonly key: string;
-    /** The definitions whose records the key belongs to (the name defined in the row's folder). */
+    /**
+     * The definitions whose records the key belongs to (the name defined in the row's folder);
+     * empty for a key of a bucket row, which belongs to no record.
+     */
     readonly records: readonly {
         readonly database: string;
         readonly layer: string;
         readonly file: string;
         readonly range: Range;
     }[];
-    /** The D5 row the key comes from, with its status and evidence. */
+    /**
+     * The D5 row the key comes from, with its status and evidence: a row of a folder
+     * (`directory`), or, since format 9, a row of the modifiers bucket (`directory` null,
+     * `nameFrom` `bucket:modifiers` or `bucket:modifier_templates`).
+     */
     readonly row: {
-        readonly directory: string;
+        readonly directory: string | null;
         readonly pattern: string;
         readonly nameFrom: string;
         readonly requirement: string;

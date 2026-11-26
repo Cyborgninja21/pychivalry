@@ -112,7 +112,86 @@ interface RuleBase {
      * (`msg-localization-missing-bom`: a localization file without a byte-order mark).
      */
     readonly file_condition?: FileCondition;
+    /** Format 9: what makes two keys of the row one key (`key_identity`). */
+    readonly key_identity?: KeyIdentity;
+    /** Format 9: what replacing a definition takes with it (`on_replace`). */
+    readonly on_replace?: OnReplace;
+    /** Format 9: where the row's main rule does not decide, what does (`within`). */
+    readonly within?: readonly Within[];
+    /** Format 9: how the definitions of one key add up (`merge`). */
+    readonly merge?: Merge;
+    /** Format 9, a folder-wins or replace-path row: how a path is tested (`path_match`). */
+    readonly path_match?: PathMatch;
+    /** Format 9, a file-order row: what its `compare` is applied to (`compare_unit`). */
+    readonly compare_unit?: string;
+    /** Format 9, a pack-layer row: how deep descriptors are looked for (`pack`). */
+    readonly pack?: { readonly descriptors?: string; readonly archive_key?: string };
     readonly [key: string]: unknown;
+}
+
+/**
+ * Format 9 (D1, `key_identity`): what makes two keys one key. `compare` how the key's first part
+ * compares (`bytes`, `hash`, `integer`, `keyword`, `lowercase` or `unknown`), `parts` what the key
+ * is made of, `part_compare` how another part compares, `scope` among which keys.
+ */
+export interface KeyIdentity {
+    readonly compare: string;
+    readonly parts: readonly string[];
+    readonly part_compare?: Readonly<Record<string, string>>;
+    readonly scope?: string;
+    readonly key_space?: string;
+    readonly nested_kinds?: readonly string[];
+    readonly status?: string;
+}
+
+/**
+ * Format 9 (D1, `on_replace`): what the replacement of a definition takes with it. `nested`:
+ * `dropped` (the replaced definition's nested definitions of `nested_kinds` go with it), `kept`,
+ * `unknown` or `not-applicable`; `position` what becomes of its place in the order.
+ */
+export interface OnReplace {
+    readonly nested: string;
+    readonly nested_kinds?: readonly string[];
+    readonly position: string;
+    readonly status?: string;
+}
+
+/**
+ * Format 9 (D1, `within`): where the row's main rule does not decide, what does: between two
+ * statements of one key in one block (`same-block`), between definitions of equal priority
+ * (`same-priority`), between two files under the row's folder (`same-segment`); `resolve` in read
+ * order, `combine` what the winner takes, `message` the message row the game logs for it.
+ */
+export interface Within {
+    readonly scope: string;
+    readonly resolve: string;
+    readonly combine: string;
+    readonly message?: string;
+}
+
+/**
+ * Format 9 (D1, `merge`): how the definitions of one key add up on a row whose `resolve` is
+ * `all` (or whose `combine` is partial): what is added (`unit`), how (`how`: `appended`,
+ * `read-into-one-object`), in what order they take effect (`applied`), and which is in force where
+ * two set the same thing (`same_target`).
+ */
+export interface Merge {
+    readonly unit: string;
+    readonly how: string;
+    readonly applied: string;
+    readonly same_target: string;
+    readonly per_field?: string;
+    readonly status?: string;
+}
+
+/**
+ * Format 9 (D1, `path_match`): how a folder-wins or replace-path row tests a path: `compare`
+ * (`bytes`), `where` (`anywhere-in-path`, with the `text` searched; `whole-listed-directory`).
+ */
+export interface PathMatch {
+    readonly compare: string;
+    readonly where: string;
+    readonly text?: string;
 }
 
 /**
@@ -389,7 +468,7 @@ export const SKIPPED_KINDS: Readonly<Record<string, string>> = {
     'mount-dependencies':
         "what a descriptor's dependencies do to the mount order of several mods; the index holds one mod",
     'key-identity':
-        'what makes two keys one key: the text byte for byte, case not folded, which is how the index already compares keys; the one row that folds case, key-identity-gui-types, is for GUI type names, and the index reads no .gui file',
+        "what makes two keys one key: the text byte for byte (or its hash), case not folded, which is how the index already compares keys; the one row that folds case, key-identity-gui-types, is for GUI type names, and the index reads no .gui file. Format 9's key_identity on a store of statements (a province id compared as an integer) is applied where the store is read",
     'field-outcomes':
         'per field of an on-action declared again; the index resolves an on-action as a whole (its declarations add up)',
     'path-case-mechanism':
@@ -565,6 +644,7 @@ function rowProblems(row: unknown, at: string): string[] {
     if ('file_condition' in row) {
         problems.push(...fileConditionProblems(row['file_condition'], `${at}.file_condition`));
     }
+    problems.push(...format9Problems(row, at));
     switch (kind) {
         case 'file-replace':
             if (!oneOf(row['layer'], LAYER_NAMES)) {
@@ -671,6 +751,61 @@ function rowProblems(row: unknown, at: string): string[] {
             break;
         default:
             break;
+    }
+    return problems;
+}
+
+/**
+ * The shapes of the format 9 fields of a row the index reads (`key_identity`, `on_replace`,
+ * `within`, `merge`, `path_match`, `compare_unit`, `pack`); their values are read where the
+ * index applies them, and a value it does not know makes the row decide nothing there.
+ */
+function format9Problems(row: Json, at: string): string[] {
+    const problems: string[] = [];
+    const text = (value: unknown): boolean => typeof value === 'string' && value !== '';
+    const identity = row['key_identity'];
+    if (
+        'key_identity' in row &&
+        (!isJson(identity) || !text(identity['compare']) || !stringList(identity['parts']))
+    ) {
+        problems.push(`${at}.key_identity: must give compare and parts`);
+    }
+    const replace = row['on_replace'];
+    if (
+        'on_replace' in row &&
+        (!isJson(replace) || !text(replace['nested']) || !text(replace['position']))
+    ) {
+        problems.push(`${at}.on_replace: must give nested and position`);
+    }
+    const within = row['within'];
+    if (
+        'within' in row &&
+        (!Array.isArray(within) ||
+            !within.every(
+                (w) => isJson(w) && text(w['scope']) && text(w['resolve']) && text(w['combine']),
+            ))
+    ) {
+        problems.push(`${at}.within: must list scope, resolve and combine`);
+    }
+    const merge = row['merge'];
+    if (
+        'merge' in row &&
+        (!isJson(merge) || !['unit', 'how', 'applied', 'same_target'].every((k) => text(merge[k])))
+    ) {
+        problems.push(`${at}.merge: must give unit, how, applied and same_target`);
+    }
+    const match = row['path_match'];
+    if (
+        'path_match' in row &&
+        (!isJson(match) || !text(match['compare']) || !text(match['where']))
+    ) {
+        problems.push(`${at}.path_match: must give compare and where`);
+    }
+    if ('compare_unit' in row && !text(row['compare_unit'])) {
+        problems.push(`${at}.compare_unit: must be text`);
+    }
+    if ('pack' in row && !isJson(row['pack'])) {
+        problems.push(`${at}.pack: must be an object`);
     }
     return problems;
 }

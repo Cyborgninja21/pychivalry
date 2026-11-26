@@ -29,6 +29,7 @@
 import { modifierAreaRow } from '../check/context.js';
 import type { Definition, WorkspaceIndex } from '../index/workspace.js';
 import { dataTypesOf } from '../spec/data-types.js';
+import { bucketRowKey, bucketRows } from '../spec/implicit-keys.js';
 import {
     BUCKET_NAMES,
     type BucketName,
@@ -119,7 +120,7 @@ const WHY = {
     noWorkspace: 'no workspace index was given',
     noGameFolder: 'no game folder is set: no workspace index or no file source was given',
     noLocalizationKey:
-        'the package ties no localization key to this name: no part D5 row for a folder of vanilla_indexed_dirs that defines it',
+        'the package ties no localization key to this name: no part D5 row of its bucket, and none for a folder of vanilla_indexed_dirs that defines it',
     valueType: 'the package measures no value type for this field',
     values: 'the package records the values of a field only where the base game writes at most 20',
     locKey: 'the package does not mark this field as holding a localization key',
@@ -212,6 +213,11 @@ function bucketOfBody(body: string | undefined): BucketName | null {
 }
 
 /** A D2 key pattern that matches every key describes a folder's records, not a name. */
+/** D5's rows of the modifiers bucket (format 9): the bucket's key in `buckets`, and the two `name_from`s. */
+const MODIFIERS_BUCKET = 'modifiers';
+const MODIFIER_NAMES = 'bucket:modifiers';
+const TEMPLATE_NAMES = 'bucket:modifier_templates';
+
 const MATCHES_EVERY_KEY = '.*';
 
 function buildModel(spec: Spec): Model {
@@ -779,7 +785,7 @@ class Looker {
                 bucket === 'modifiers'
                     ? {
                           provenance: entry.provenance ?? null,
-                          localization: this.modifierLocalization(name),
+                          localization: this.modifierLocalization(name, MODIFIER_NAMES),
                       }
                     : null,
         };
@@ -925,7 +931,7 @@ class Looker {
                         ? { status: 'not-documented', why: WHY.noTemplateTag }
                         : { status: 'by-template-tag', tags },
                 derivedOnly: null,
-                localization: this.modifierLocalization(name),
+                localization: this.modifierLocalization(name, TEMPLATE_NAMES),
             },
         ];
     }
@@ -1009,14 +1015,38 @@ class Looker {
     }
 
     /**
-     * A modifier's localization: the keys part D5 gives a record of the name in the folders of
-     * `vanilla_indexed_dirs` whose names any block may call, read through the index.
+     * A modifier's localization, read through the index: the key part D5 gives the names of the
+     * modifiers bucket (format 9, `buckets.modifiers`: `nameFrom` is `bucket:modifiers` for a name
+     * of the bucket, `MOD_` and the name in upper case unless the row's `literal_keys` gives the
+     * executable's own literal; `bucket:modifier_templates` for a name that fills a template,
+     * `<name>`, measured only), then the keys part D5 gives a record of the name in the folders
+     * of `vanilla_indexed_dirs` whose names any block may call. Each key once, with its row.
      */
-    modifierLocalization(name: string): LocalizationAnswer {
+    modifierLocalization(name: string, nameFrom: string): LocalizationAnswer {
         if (this.index === null || this.reader === null) {
             return { status: 'no-game-folder', why: WHY.noGameFolder };
         }
         const keys: LocalizationKeyAnswer[] = [];
+        for (const row of bucketRows(this.spec, MODIFIERS_BUCKET, nameFrom)) {
+            const key = bucketRowKey(row, name);
+            if (key === null || keys.some((k) => k.key === key)) {
+                continue;
+            }
+            keys.push({
+                key,
+                records: [],
+                row: {
+                    directory: null,
+                    pattern: row.pattern,
+                    nameFrom: row.name_from,
+                    requirement: row.requirement,
+                    requirementFrom: row.requirement_from,
+                    status: row.status,
+                    evidence: row.evidence,
+                },
+                texts: this.reader.texts(this.index, key, this.language),
+            });
+        }
         for (const { directory, calledAs } of this.model.callable) {
             if (calledAs !== null) {
                 continue;
@@ -1030,6 +1060,9 @@ class Looker {
                     continue;
                 }
                 const key = `${row.prefix}${name}${row.suffix}`;
+                if (keys.some((k) => k.key === key)) {
+                    continue;
+                }
                 keys.push({
                     key,
                     records: records.map((d) => ({

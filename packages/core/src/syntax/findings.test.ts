@@ -93,7 +93,7 @@ test('the catalogue is read from a package and ignores what is not an entry', ()
     assert.equal(catalogueFromSpec({ errors: 'no' }).size, 0);
 });
 
-test('a format 8 catalogue entry is read by its id and text; the keys format 5 added are not used', () => {
+test('a format 9 catalogue entry is read by its id and text; the keys format 5 added are not used', () => {
     const catalogue = catalogueFromSpec({
         package_format: 5,
         errors: [
@@ -112,8 +112,9 @@ test('a format 8 catalogue entry is read by its id and text; the keys format 5 a
     });
     assert.deepEqual([...catalogue], [['expected_after_arguments', 'Expected } after arguments']]);
     const spec = committedSpecPackage() as { package_format: number };
-    assert.equal(spec.package_format, 8);
-    assert.equal(committedCatalogue().size, 2023);
+    assert.equal(spec.package_format, 9);
+    // Format 9: 2,671 messages (2,023 of format 8, byte for byte but two subjects, and 648 more).
+    assert.equal(committedCatalogue().size, 2671);
 });
 
 test('every finding is in the structured shape: id, severity, offsets, range, args, evidence', () => {
@@ -127,4 +128,30 @@ test('every finding is in the structured shape: id, severity, offsets, range, ar
         'severity',
         'start',
     ]);
+});
+
+test('format 9: the catalogue holds the messages the blocked checks wait for', () => {
+    const catalogue = committedCatalogue();
+    // structure/triggered-desc-other-field (docs/decisions.md, row 74).
+    assert.equal(
+        catalogue.get('the_body_of_triggered_desc_can_only_take_desc_and_or_trigger'),
+        'The body of triggered_desc can only take desc and/or trigger. %s',
+    );
+    // The localization reader's "Unterminated ..." messages (localization/unbalanced-brackets).
+    const unterminated = [...catalogue].filter(([, text]) => text.includes('Unterminated'));
+    assert.ok(unterminated.length >= 5, String(unterminated.length));
+    assert.ok(unterminated.some(([, text]) => text.startsWith('Loc key `{}`: Unterminated')));
+    assert.ok(
+        unterminated.some(([, text]) => text === "Unterminated '[' when reading property '%.*s'"),
+    );
+});
+
+test('format 9: two catalogue rows of format 8 changed their subject, and nothing reads a subject', () => {
+    const errors = (committedSpecPackage() as { errors: { id: string; subject: string }[] }).errors;
+    const subject = (id: string): string | undefined => errors.find((e) => e.id === id)?.subject;
+    assert.equal(subject('invalid_court_position'), 'game_object');
+    assert.equal(
+        subject('attempt_to_destroy_an_court_position_that_is_already_invalid'),
+        'game_object',
+    );
 });

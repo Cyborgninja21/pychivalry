@@ -58,7 +58,7 @@ Everything goes through [Taskfile.yml](Taskfile.yml); `task --list` shows it all
 | `task test` | Every package's tests: Node's built-in test runner on the compiled output; no display, no editor (the extension's bundle is built first: one test starts its server) |
 | `task lint` | ESLint, type-aware, warnings as errors |
 | `task format:check` / `task format` | Prettier, check only / write |
-| `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 8, the JSON Schema, the format 4 copy, the override rules (part D1) |
+| `task spec:check` | The committed spec package: the checksums of the package file and its companions (uncompressed), format 9, the JSON Schema, the format 4 copy, the override rules (part D1) |
 | `task records:check` | Every committed record: valid format, made on the committed spec (a 2.3.0 baseline: on the format 4 copy) and corpus |
 | `task wiki:check` | The wiki builds from `docs/`: every published document exists and every link resolves |
 | `task vscode:bundle` | The extension's bundles (esbuild), in `packages/vscode/dist/bundle/`: the extension with its language client; the language server (`lsp/`); the agent server and the command line with the spec package beside them (`server/`); the editor tests in `dist/test-bundle/` |

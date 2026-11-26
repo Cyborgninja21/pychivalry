@@ -11,7 +11,7 @@ function decision(table: string, entry: string): string | undefined {
     return tables.decisions.find((d) => d.table === table && d.entry === entry)?.use;
 }
 
-test('every entry of the 19 tables gets a decision: 154 confirmed, 15 contradicted, 8 with no evidence', () => {
+test('every entry of the 20 tables gets a decision: 238 confirmed, 12 contradicted, 8 with no evidence', () => {
     const data = committedSpec().data.tables.data;
     const statuses: Record<string, number> = {};
     for (const table of Object.values(data)) {
@@ -19,7 +19,7 @@ test('every entry of the 19 tables gets a decision: 154 confirmed, 15 contradict
             statuses[entry.evidence_status] = (statuses[entry.evidence_status] ?? 0) + 1;
         }
     }
-    assert.deepEqual(statuses, { confirmed: 154, contradicted: 15, none: 8 });
+    assert.deepEqual(statuses, { confirmed: 238, contradicted: 12, none: 8 });
     for (const [name, table] of Object.entries(data)) {
         if (['file_kinds', 'event_types', 'effect_context_keys', 'trigger_context_keys'].includes(name)) {
             continue; // read by later items (the index, the call graph, the structural checks)
@@ -30,13 +30,63 @@ test('every entry of the 19 tables gets a decision: 154 confirmed, 15 contradict
     }
 });
 
-test("where the game documents a key for more lists, the entry is read with the game's lists too", () => {
-    assert.equal(decision('iterator_params', 'faith_filter'), 'widened');
+test("format 9: the entries the game's documentation widened carry its lists; selection_count too", () => {
+    // Format 8 had these three contradicted and widened by the game's lists; format 9 confirms
+    // them with the lists the game documents (item 7 of the request of 2026-11-25).
+    for (const name of ['faith_filter', 'continue', 'explicit']) {
+        assert.equal(decision('iterator_params', name), 'read', name);
+    }
     const faithFilter = tables.iteratorParams.get('faith_filter');
     assert.ok(faithFilter !== undefined && faithFilter.lists !== '*');
     assert.ok(faithFilter.lists.has('ruler'), "the game's own list");
     assert.ok(faithFilter.lists.has('character_doctrine'), "the entry's own list");
     assert.ok(tables.iteratorParamsFor('in_de_facto_hierarchy').has('continue'));
+    // `selection_count` of `top_trade_good_in_range`: 2 false unknown-effect errors in format 8.
+    assert.ok(tables.iteratorParamsFor('top_trade_good_in_range').has('selection_count'));
+    assert.ok(tables.iteratorParamsFor('desired_tenet').has('selection_count'));
+    assert.ok(tables.iteratorParamsFor('key_in_variable_map').has('variable'));
+});
+
+test('format 9: save_keys says what each key saves and where its name is written', () => {
+    assert.deepEqual([...tables.saveKeys].sort(), [
+        'save_opinion_value_as',
+        'save_scope_as',
+        'save_scope_value_as',
+        'save_temporary_opinion_value_as',
+        'save_temporary_scope_as',
+        'save_temporary_scope_value_as',
+    ]);
+    assert.deepEqual(tables.saveRules.get('save_scope_as')?.nameIn, ['value']);
+    assert.equal(tables.saveRules.get('save_scope_as')?.saves, 'scope');
+    assert.deepEqual(tables.saveRules.get('save_scope_value_as')?.nameIn, ['name']);
+    assert.equal(tables.saveRules.get('save_scope_value_as')?.saves, 'value');
+    assert.equal(tables.saveRules.get('save_temporary_scope_value_as')?.temporary, true);
+    // A candidate (an effect that saves under a fixed name) is no entry.
+    assert.equal(tables.saveRules.has('duel'), false);
+});
+
+test('format 9: the table of the keywords of variables is read, each with its namespace', () => {
+    assert.equal(tables.variables.size, 75);
+    const set = tables.variables.get('set_variable');
+    assert.deepEqual(
+        [set?.kind, set?.does, set?.holds, set?.namespace, set?.nameIn],
+        ['effect', 'set', 'value', 'scope', ['name', 'value']],
+    );
+    assert.deepEqual(
+        [tables.variables.get('var')?.kind, tables.variables.get('var')?.nameIn],
+        ['link', ['link_data']],
+    );
+    assert.equal(tables.variables.get('global_var')?.namespace, 'global');
+    const namespaces = new Map<string, number>();
+    for (const keyword of tables.variables.values()) {
+        namespaces.set(keyword.namespace, (namespaces.get(keyword.namespace) ?? 0) + 1);
+    }
+    assert.deepEqual(Object.fromEntries(namespaces), {
+        global: 23,
+        local: 23,
+        scope: 25,
+        dead_character: 4,
+    });
 });
 
 test('where the game registers a name the entry says is in no bucket, the entry keeps its role', () => {

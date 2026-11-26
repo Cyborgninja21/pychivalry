@@ -57,6 +57,43 @@ export interface ContainerRule {
     readonly caseScriptedModifiers: boolean;
 }
 
+/**
+ * Format 9: what an entry of `save_keys` saves and where its name is written. `nameIn` lists the
+ * forms: `value` (the key's own value, `key = name`) or the key of a parameter of the key's block
+ * that holds the name (`name`: `key = { name = x }`); `saves` is `scope` or `value`; `temporary`
+ * whether the name lasts only for the effect; `parameterOf` the effects inside whose block the
+ * key saves the object the effect creates.
+ */
+export interface SaveRule {
+    readonly saves: string;
+    readonly source: string | null;
+    readonly nameIn: readonly string[];
+    readonly temporary: boolean | null;
+    readonly parameterOf: readonly string[];
+}
+
+/**
+ * Format 9: a keyword of the table `variables` (75 entries): what it does to a variable, on
+ * what kind of variable, in which namespace, where the name is written, and the duration keys.
+ */
+export interface VariableKeyword {
+    /** As what the keyword is registered: `effect`, `trigger`, `link` or `list`. */
+    readonly kind: string;
+    /** `set`, `change`, `remove`, `add_item`, `remove_item`, `clear`, `has`, `has_item`, `size`, `read`, `iterate`. */
+    readonly does: string;
+    /** `value`, `list` or `map`. */
+    readonly holds: string;
+    /** `scope`, `local`, `global` or `dead_character`. */
+    readonly namespace: string;
+    /** Where the name is written: `value`, `name`, `variable`, `link_data`, `link_argument`. */
+    readonly nameIn: readonly string[];
+    /** The duration keys the game's documentation gives, and those the base game writes. */
+    readonly duration: readonly string[];
+    readonly durationRequired: boolean;
+    readonly durationWritten: readonly string[];
+    readonly status: TableEntry['evidence_status'];
+}
+
 /** A parameter of the list iterators (`iterator_params`). */
 export interface IteratorParam {
     readonly child: Child;
@@ -75,6 +112,40 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 function childOf(value: unknown): Child | undefined {
     return typeof value === 'string' && CHILDREN.has(value) ? (value as Child) : undefined;
+}
+
+function strings(value: unknown): string[] {
+    return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
+}
+
+/** An entry of `save_keys` as a rule (format 9). */
+function saveRuleOf(entry: TableEntry): SaveRule {
+    return {
+        saves: typeof entry['saves'] === 'string' ? entry['saves'] : '',
+        source: typeof entry['source'] === 'string' ? entry['source'] : null,
+        nameIn: strings(entry['name_in']),
+        temporary: typeof entry['temporary'] === 'boolean' ? entry['temporary'] : null,
+        parameterOf: strings(entry['parameter_of']),
+    };
+}
+
+/** An entry of `variables` (format 9). */
+function variableOf(entry: TableEntry): VariableKeyword {
+    const text = (key: string): string => {
+        const value = entry[key];
+        return typeof value === 'string' ? value : '';
+    };
+    return {
+        kind: text('kind'),
+        does: text('does'),
+        holds: text('holds'),
+        namespace: text('namespace'),
+        nameIn: strings(entry['name_in']),
+        duration: strings(entry['duration']),
+        durationRequired: entry['duration_required'] === true,
+        durationWritten: strings(entry['duration_written']),
+        status: entry.evidence_status,
+    };
 }
 
 /** How one contradiction is settled: the game's lists added, the role kept, or the entry dropped. */
@@ -105,6 +176,10 @@ export class Tables {
     readonly vanillaIndexedDirs = new Set<string>();
     readonly scopeHeads = new Set<string>();
     readonly saveKeys = new Set<string>();
+    /** Format 9: per key of `saveKeys`, what it saves and where its name is written. */
+    readonly saveRules = new Map<string, SaveRule>();
+    /** Format 9: the keywords that set, change, test, read or iterate variables (`variables`). */
+    readonly variables = new Map<string, VariableKeyword>();
     readonly sameScopeStructural = new Set<string>();
     /** Per directory, the record fields whose body runs outside the record's root scope. */
     readonly fieldsOutsideRoot = new Map<string, Set<string>>();
@@ -167,10 +242,20 @@ export class Tables {
             ['same_scope_structural', this.sameScopeStructural],
         ];
         for (const [table, set] of judging) {
-            for (const [name, , , acceptOnly] of this.read(table)) {
+            for (const [name, entry, , acceptOnly] of this.read(table)) {
                 if (!acceptOnly) {
                     set.add(name);
+                    if (table === 'save_keys') {
+                        this.saveRules.set(name, saveRuleOf(entry));
+                    }
                 }
+            }
+        }
+        // Format 9's table of the keywords of variables: read as written, for the checks that
+        // will need it; no check reads it yet (docs/checks.md, the five `variables/*` rows).
+        for (const [name, entry, , acceptOnly] of this.read('variables')) {
+            if (!acceptOnly) {
+                this.variables.set(name, variableOf(entry));
             }
         }
     }

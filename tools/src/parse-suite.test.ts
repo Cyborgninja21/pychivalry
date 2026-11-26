@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { test } from 'node:test';
-import { catalogueFromSpec, openSpec } from '@pychivalry/core';
+import { catalogueFromSpec, folderTableFromSpec, openSpec } from '@pychivalry/core';
 import {
     BASE_GAME_FOLDERS,
+    notScriptOf,
     readClassifications,
     runParseSuite,
     type ClassificationEntry,
@@ -167,4 +168,21 @@ test('every folder of the base-game list says why it is read, and every exclusio
         BASE_GAME_FOLDERS.reduce((n, f) => n + f.expected, 0),
         4854,
     );
+});
+
+test("format 9: the files of the game that are not script are the spec package's to name", () => {
+    const notScript = notScriptOf(
+        folderTableFromSpec(openSpec(path.join(repoRoot(), 'spec')).data),
+    );
+    assert.match(
+        notScript('sound/GUIDs.txt') ?? '',
+        /^Not script, the spec package says \(sound, not_script GUIDs\.txt, confirmed\): /,
+    );
+    assert.match(
+        notScript('gfx/models/buildings/naming.txt') ?? '',
+        /\(gfx\/models\/buildings, not_script naming\.txt, measured-only\)/,
+    );
+    assert.equal(notScript('sound/map/ambience/fixture.txt'), undefined);
+    // No folder of the base-game list keeps an exclusion of its own.
+    assert.ok(BASE_GAME_FOLDERS.every((f) => f.excluded === undefined));
 });

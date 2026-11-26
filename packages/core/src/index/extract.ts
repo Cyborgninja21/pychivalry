@@ -40,12 +40,16 @@
  * operators, a tagged value's tag or a prefix word.
  *
  * Saves, beside the uses: a pair anywhere in a script file whose key is one the spec package
- * says saves a scope (`save_scope_as = name`; `FolderTable.saveKeys`) and whose value is a
- * plain name records a save of that name; the head of a chain written with the link that reads
- * a saved scope (`scope:name`; `FolderTable.scopeLinks`) records a read of it (docs/checks.md,
- * `scope/undefined-event-target`). The name is a use as well in both, as every word is.
+ * says saves a scope or a value under a name (`FolderTable.saveRules`, the table `save_keys`)
+ * records a save of the name where the key's rule says it is written (format 9, `name_in`):
+ * the key's own value (`save_scope_as = name`), or the parameter of its block that holds it
+ * (`save_scope_value_as = { name = x value = 5 }`); the name must be a plain name. The head of a
+ * chain written with the link that reads a saved scope (`scope:name`; `FolderTable.scopeLinks`)
+ * records a read of it (docs/checks.md, `scope/undefined-event-target`). The name is a use as
+ * well in both, as every word is.
  */
 
+import type { SaveRule } from '../spec/tables.js';
 import { chainSegments, classifyWord } from '../syntax/lexer.js';
 import type { Block, FileNode, Item, Pair, Scalar, Value } from '../syntax/tree.js';
 import { keyMatcher, type NestedRule, type SpecFolder } from './folders.js';
@@ -141,6 +145,28 @@ export interface StatementStore {
     readonly form: 'value' | 'block';
     /** The keys it is written with, or null for a placeholder (`<province id>`): any other key. */
     readonly keys: ReadonlySet<string> | null;
+    /**
+     * Format 9: how two keys of the store compare (`key_identity.compare`): `integer`, a key is
+     * the decimal number its text gives (`007` and `7` are one key); otherwise as written.
+     */
+    readonly compare?: string;
+}
+
+/** The key identity a store's `compare` gives (format 9): `integer`, the number its text gives. */
+const INTEGER_KEYS = 'integer';
+
+/**
+ * A statement's key as its store compares it (format 9, `key_identity.compare`): for `integer`,
+ * the decimal number its text gives, written without leading zeros (`007` is `7`, `-0` is `0`),
+ * when the text is an optional `-` and digits, as the reader parses it; otherwise as written.
+ */
+export function storeKey(text: string, compare: string | undefined): string {
+    if (compare !== INTEGER_KEYS || !/^-?[0-9]+$/.test(text)) {
+        return text;
+    }
+    const negative = text.startsWith('-');
+    const digits = (negative ? text.slice(1) : text).replace(/^0+(?=[0-9])/, '');
+    return negative && digits !== '0' ? `-${digits}` : digits;
 }
 
 /** How to read one script file: its folder's database and what the rules say of it. */
@@ -159,10 +185,11 @@ export interface ScriptContext {
     /** The file's stem, the name of its record when the folder names records by their file. */
     readonly fileStem?: string | null;
     /**
-     * The keys that save a scope (`save_scope_as`), in lower case (`FolderTable.saveKeys`): a
-     * pair `key = name` with one of them, anywhere in the file, records a save of `name`.
+     * The keys that save a scope or a value under a name, in lower case, each with its rule
+     * (`FolderTable.saveRules`): a pair with one of them, anywhere in the file, records a save of
+     * the name its rule's `name_in` says where to find.
      */
-    readonly saveKeys?: ReadonlySet<string>;
+    readonly saveRules?: ReadonlyMap<string, SaveRule>;
     /**
      * The links that read a saved scope (`scope`), in lower case (`FolderTable.scopeLinks`): the
      * head of a chain written with one of them, anywhere in the file, records a read of its name.
@@ -477,12 +504,12 @@ function storeOf(
     stores: readonly StatementStore[] | null | undefined,
     form: 'value' | 'block',
     key: string,
-): string | null {
+): StatementStore | null {
     if (stores === null || stores === undefined) {
         return null;
     }
     const named = stores.find((s) => s.form === form && s.keys?.has(key) === true);
-    return (named ?? stores.find((s) => s.form === form && s.keys === null))?.store ?? null;
+    return named ?? stores.find((s) => s.form === form && s.keys === null) ?? null;
 }
 
 /** Whether a D3 `container-child` rule makes a top-level key a container. */
@@ -523,19 +550,63 @@ export function nameTemplatePattern(word: string): RegExp {
     return new RegExp(`^${parts.join('.+')}$`);
 }
 
-/**
- * The scope a pair saves under a name (`save_scope_as = name`): the value, when the pair's key
- * is one of the keys that save a scope (`FolderTable.saveKeys`, lower case) and the value is a
- * plain name. A name holding a `$PARAM$` stands for many and saves none of them.
- */
-export function scopeSaveOf(pair: Pair, saveKeys: ReadonlySet<string>): Scalar | undefined {
-    const value = pair.value;
-    return value?.kind === 'scalar' &&
-        value.type === 'name' &&
-        !value.text.includes('$') &&
-        saveKeys.has(pair.key.text.toLowerCase())
+/** The `name_in` form of a save rule for the key's own value (`key = name`), format 9. */
+const NAME_IN_VALUE = 'value';
+
+/** A scalar that is one plain name: no chain, no `$PARAM$`. */
+function plainName(value: Value | null | undefined): Scalar | undefined {
+    return value?.kind === 'scalar' && value.type === 'name' && !value.text.includes('$')
         ? value
         : undefined;
+}
+
+/**
+ * The name a pair saves a scope or a value under, with the rule of its key: when the pair's key
+ * is one of the keys that save (`FolderTable.saveRules`, lower case), the name where the rule's
+ * `name_in` says it is written (format 9): `value`, the pair's own value (`save_scope_as =
+ * name`); another word, the parameter of that key in the pair's block (`save_scope_value_as = {
+ * name = x value = 5 }`: `name_in` is `name`), in any letter case, as the key itself is read. The
+ * first form the pair has wins. Only a plain name is a save: a name holding a `$PARAM$` stands
+ * for many and saves none of them.
+ */
+export function savedNameOf(
+    pair: Pair,
+    saveRules: ReadonlyMap<string, SaveRule>,
+): { readonly name: Scalar; readonly rule: SaveRule } | undefined {
+    const rule = saveRules.get(pair.key.text.toLowerCase());
+    if (rule === undefined) {
+        return undefined;
+    }
+    for (const form of rule.nameIn) {
+        if (form === NAME_IN_VALUE) {
+            const name = plainName(pair.value);
+            if (name !== undefined) {
+                return { name, rule };
+            }
+            continue;
+        }
+        if (pair.value?.kind !== 'block') {
+            continue;
+        }
+        const wanted = form.toLowerCase();
+        for (const item of pair.value.items) {
+            if (item.kind === 'pair' && item.key.text.toLowerCase() === wanted) {
+                const name = plainName(item.value);
+                if (name !== undefined) {
+                    return { name, rule };
+                }
+            }
+        }
+    }
+    return undefined;
+}
+
+/** The name a pair saves under (`savedNameOf`), without its rule. */
+export function scopeSaveOf(
+    pair: Pair,
+    saveRules: ReadonlyMap<string, SaveRule>,
+): Scalar | undefined {
+    return savedNameOf(pair, saveRules)?.name;
 }
 
 /**
@@ -568,13 +639,14 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
     const defs: number[] = [];
     const uses: number[] = [];
     const saves: number[] = [];
-    const saveKeys = context.saveKeys;
-    // `save_scope_as = name`: a save of `name`. A name holding a `$PARAM$` stands for many.
+    const saveRules = context.saveRules;
+    // `save_scope_as = name`, `save_scope_value_as = { name = x }`: a save of the name. A name
+    // holding a `$PARAM$` stands for many.
     const onPair =
-        saveKeys === undefined || saveKeys.size === 0
+        saveRules === undefined || saveRules.size === 0
             ? undefined
             : (pair: Pair): void => {
-                  const value = scopeSaveOf(pair, saveKeys);
+                  const value = scopeSaveOf(pair, saveRules);
                   if (value !== undefined) {
                       saves.push(strings.intern(value.text), value.start);
                   }
@@ -614,9 +686,10 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
         extra: number,
         detail: string | null = null,
         flags = 0,
+        name: string = pair.key.text,
     ): void => {
         defs.push(
-            strings.intern(pair.key.text),
+            strings.intern(name),
             strings.intern(database),
             formCode(form),
             container === null ? -1 : strings.intern(container),
@@ -764,24 +837,31 @@ export function extractScript(file: FileNode, context: ScriptContext): Extracted
             }
             if (value?.kind === 'block') {
                 const priority = context.priority;
+                const store = storeOf(context.stores, 'block', item.key.text);
                 define(
                     item,
                     database,
                     'record',
-                    storeOf(context.stores, 'block', item.key.text),
+                    store?.store ?? null,
                     priority === null ? NONE : priorityOf(value, priority.field, priority.fallback),
+                    null,
+                    0,
+                    storeKey(item.key.text, store?.compare),
                 );
                 defineNested(item, 0, identityIn(new Map()));
             } else {
+                const store = storeOf(context.stores, 'value', item.key.text);
                 define(
                     item,
                     database,
                     'value',
-                    storeOf(context.stores, 'value', item.key.text),
+                    store?.store ?? null,
                     NONE,
                     value?.kind === 'scalar' && (value.type === 'name' || value.type === 'number')
                         ? value.text
                         : null,
+                    0,
+                    storeKey(item.key.text, store?.compare),
                 );
             }
         }

@@ -21,3 +21,9 @@ age_presets = {
 	# Its own key space: the later wins, whole.
 	fixture_preset = {}
 }
+# Format 9 (on_replace): the later gene replaces the earlier whole, its templates with it.
+morph_genes = {
+	fixture_gene_replaced = {
+		fixture_template_kept = {}
+	}
+}

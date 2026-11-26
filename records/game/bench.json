@@ -2,17 +2,17 @@
     "record_format": 1,
     "suite": "game:bench",
     "command": "task game:bench",
-    "made_at": "2026-11-23T08:35:35.431Z",
+    "made_at": "2026-11-26T00:01:41.954Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "6b51b5ff4cadf66e39b867c2c1160f2fd71c84cd",
+        "commit": "165cf89d54156485f97ddbd9875d66a30db14f5f",
         "dirty": false
     },
     "machine": {
         "os": "linux",
         "arch": "x64",
-        "logical_cpus": 16,
+        "logical_cpus": 10,
         "memory_gib": 62,
         "node": "v22.23.4"
     },
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "b72678ccecdae4fce74a5983ebdba8b0004141881158f7be6bd9bd6eab6a70f7",
-        "package_format": 8
+        "sha256": "61343931063b00efd3a323862b4f9ce9daf89b10ad887267a4ad06109ef06b47",
+        "package_format": 9
     },
     "corpus": {
         "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",

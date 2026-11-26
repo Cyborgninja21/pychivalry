@@ -298,6 +298,14 @@ Nothing from a session is kept beyond their fields: not its text, not the tools'
 results, not its id, no figure Claude Code reports about the session's use of the developer's
 plan, nothing about how Claude Code runs as the developer.
 
+Since 2026-11-25 the committed package is format 9 (docs/decisions.md, row 147); every committed
+scored record names format 8 (`sha256` `b72678cc...`) and stays as made. A record names its spec
+by that checksum, so a record made on format 8 and one made on format 9 are told apart without
+git; what the tools answer changed with the package (lookup's modifier keys, the roots of laws
+and of title history, the saves of a value), so the two are not compared without saying so. A
+run continuing a record, and a re-judging of its kept results, refuse a record made on another
+spec ([tools/scored-run/README.md](../tools/scored-run/README.md#the-spec-package-in-format-9-2026-11-25)).
+
 ### Agent-use records (`scored:agent-use`)
 
 `task scored:agent-use` (build step 6, items 6.8 and 6.10) is a developer's test script, never

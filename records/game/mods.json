@@ -2,17 +2,17 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-24T03:10:46.227Z",
+    "made_at": "2026-11-25T23:59:15.582Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "3cad807073faaacd0e72b60dbf5ee1d4fda76b1d",
+        "commit": "165cf89d54156485f97ddbd9875d66a30db14f5f",
         "dirty": false
     },
     "machine": {
         "os": "linux",
         "arch": "x64",
-        "logical_cpus": 16,
+        "logical_cpus": 10,
         "memory_gib": 62,
         "node": "v22.23.4"
     },
@@ -24,8 +24,8 @@
     },
     "spec": {
         "version": "1.21.0.3",
-        "sha256": "b72678ccecdae4fce74a5983ebdba8b0004141881158f7be6bd9bd6eab6a70f7",
-        "package_format": 8
+        "sha256": "61343931063b00efd3a323862b4f9ce9daf89b10ad887267a4ad06109ef06b47",
+        "package_format": 9
     },
     "corpus": {
         "manifest_sha256": "da1a745c50330a3a50dee079fe53609cd236f2f8db8c9533084cfb96fbb0b2c6",
@@ -43,14 +43,14 @@
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 1.71 on 16 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 2.85 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 14647,
-            "peak_rss_kib": 1547168
+            "build_ms": 32213,
+            "peak_rss_kib": 1325880
         },
         "mods": [
             {
@@ -123,7 +123,7 @@
                     "findings": 0,
                     "unjudged_by_reason": [
                         {
-                            "reason": "no-root-scope",
+                            "reason": "root-rule",
                             "uses": 38
                         },
                         {
@@ -160,11 +160,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1067,
-                    "check": 150,
-                    "total": 1218
+                    "load_base": 2281,
+                    "check": 234,
+                    "total": 2515
                 },
-                "peak_rss_kib": 760388
+                "peak_rss_kib": 725432
             },
             {
                 "slug": "divine-intervention",
@@ -178,7 +178,7 @@
                 "by_severity": {
                     "error": 0,
                     "warning": 429,
-                    "information": 3,
+                    "information": 0,
                     "hint": 107258
                 },
                 "by_code": [
@@ -186,11 +186,6 @@
                         "code": "style/not-formatted",
                         "severity": "warning",
                         "count": 429
-                    },
-                    {
-                        "code": "scope/undefined-event-target",
-                        "severity": "information",
-                        "count": 3
                     },
                     {
                         "code": "style/indentation",
@@ -344,8 +339,8 @@
                             "uses": 66124
                         },
                         {
-                            "reason": "no-root-scope",
-                            "uses": 47545
+                            "reason": "root-rule",
+                            "uses": 47501
                         },
                         {
                             "reason": "list-element",
@@ -358,6 +353,10 @@
                         {
                             "reason": "sub-field",
                             "uses": 329
+                        },
+                        {
+                            "reason": "no-root-scope",
+                            "uses": 44
                         },
                         {
                             "reason": "no-scope-data",
@@ -393,11 +392,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1115,
-                    "check": 19215,
-                    "total": 20330
+                    "load_base": 2088,
+                    "check": 34074,
+                    "total": 36162
                 },
-                "peak_rss_kib": 3152860
+                "peak_rss_kib": 3170076
             },
             {
                 "slug": "elf-destiny",
@@ -414,8 +413,8 @@
                 ],
                 "by_severity": {
                     "error": 2,
-                    "warning": 952,
-                    "information": 443,
+                    "warning": 946,
+                    "information": 422,
                     "hint": 70607
                 },
                 "by_code": [
@@ -432,7 +431,7 @@
                     {
                         "code": "fields/unknown-field",
                         "severity": "warning",
-                        "count": 72
+                        "count": 66
                     },
                     {
                         "code": "localization/missing-key",
@@ -453,11 +452,6 @@
                         "code": "localization/missing-key",
                         "severity": "information",
                         "count": 129
-                    },
-                    {
-                        "code": "scope/undefined-event-target",
-                        "severity": "information",
-                        "count": 21
                     },
                     {
                         "code": "references/unknown-name",
@@ -556,7 +550,7 @@
                         "reason": "'convert_faith_development_penalty' in 'scope:county.convert_faith_development_penalty' is no link of game 1.21.0.3 and no script value the mod or the base game defines (no file of the base game names it): the development penalties went with development in 1.21.0.3, while the file's own text already reads prosperity_level. The game fails to parse the link (catalogue \"failed_to_parse_data_for_event_target_link_link_X_location_X\"). Release 2.3.0 reported the same error. The mod's descriptor declares supported_version \"1.21.*\"."
                     }
                 ],
-                "warnings": 79,
+                "warnings": 73,
                 "warning_list": [
                     {
                         "file": "common/decisions/debuging_decisions.txt",
@@ -564,48 +558,6 @@
                         "column": 26,
                         "code": "references/unknown-key",
                         "message": "Failed to read key reference elf_destiny_debug_menu.001 from database events"
-                    },
-                    {
-                        "file": "common/ethnicities/dark_elf_ethnicities.txt",
-                        "line": 67,
-                        "column": 4,
-                        "code": "fields/unknown-field",
-                        "message": "Unknown 'gene_special_skin_color' in ethnicity 'drow_skin_grey'"
-                    },
-                    {
-                        "file": "common/ethnicities/dark_elf_ethnicities.txt",
-                        "line": 71,
-                        "column": 4,
-                        "code": "fields/unknown-field",
-                        "message": "Unknown 'gene_special_hair_color' in ethnicity 'drow_skin_grey'"
-                    },
-                    {
-                        "file": "common/ethnicities/dark_elf_ethnicities.txt",
-                        "line": 144,
-                        "column": 4,
-                        "code": "fields/unknown-field",
-                        "message": "Unknown 'gene_special_skin_color' in ethnicity 'drow_skin_purple'"
-                    },
-                    {
-                        "file": "common/ethnicities/dark_elf_ethnicities.txt",
-                        "line": 148,
-                        "column": 4,
-                        "code": "fields/unknown-field",
-                        "message": "Unknown 'gene_special_hair_color' in ethnicity 'drow_skin_purple'"
-                    },
-                    {
-                        "file": "common/ethnicities/dark_elf_ethnicities.txt",
-                        "line": 190,
-                        "column": 4,
-                        "code": "fields/unknown-field",
-                        "message": "Unknown 'gene_special_skin_color' in ethnicity 'drow_skin_blue'"
-                    },
-                    {
-                        "file": "common/ethnicities/dark_elf_ethnicities.txt",
-                        "line": 194,
-                        "column": 4,
-                        "code": "fields/unknown-field",
-                        "message": "Unknown 'gene_special_hair_color' in ethnicity 'drow_skin_blue'"
                     },
                     {
                         "file": "common/game_concepts/elf_race_game_concepts.txt",
@@ -1182,8 +1134,8 @@
                 },
                 "scope": {
                     "keyword_uses": 23524,
-                    "keyword_uses_known_scope": 7615,
-                    "keyword_uses_judged": 3975,
+                    "keyword_uses_known_scope": 7751,
+                    "keyword_uses_judged": 4002,
                     "findings": 0,
                     "unjudged_by_reason": [
                         {
@@ -1191,12 +1143,12 @@
                             "uses": 6463
                         },
                         {
-                            "reason": "no-root-scope",
-                            "uses": 3532
+                            "reason": "no-requirement",
+                            "uses": 3635
                         },
                         {
-                            "reason": "no-requirement",
-                            "uses": 3526
+                            "reason": "root-rule",
+                            "uses": 2849
                         },
                         {
                             "reason": "link-output",
@@ -1211,12 +1163,12 @@
                             "uses": 721
                         },
                         {
-                            "reason": "scope-switch",
-                            "uses": 412
+                            "reason": "no-root-scope",
+                            "uses": 683
                         },
                         {
-                            "reason": "not-a-scope-type",
-                            "uses": 150
+                            "reason": "scope-switch",
+                            "uses": 412
                         },
                         {
                             "reason": "no-scope-data",
@@ -1239,15 +1191,23 @@
                             "uses": 21
                         },
                         {
+                            "reason": "not-a-scope-type",
+                            "uses": 12
+                        },
+                        {
                             "reason": "previous-scope",
                             "uses": 8
                         },
                         {
                             "reason": "parameters",
                             "uses": 5
+                        },
+                        {
+                            "reason": "field-outside-root",
+                            "uses": 2
                         }
                     ],
-                    "link_steps_judged": 548,
+                    "link_steps_judged": 572,
                     "link_findings": 0
                 },
                 "baseline_2_3_0": {
@@ -1264,11 +1224,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1045,
-                    "check": 2592,
-                    "total": 3637
+                    "load_base": 2873,
+                    "check": 5325,
+                    "total": 8198
                 },
-                "peak_rss_kib": 1053524
+                "peak_rss_kib": 1204844
             },
             {
                 "slug": "rice",
@@ -1277,8 +1237,8 @@
                 "by_severity": {
                     "error": 841,
                     "warning": 3143,
-                    "information": 857,
-                    "hint": 338560
+                    "information": 669,
+                    "hint": 338722
                 },
                 "by_code": [
                     {
@@ -1337,11 +1297,6 @@
                         "count": 639
                     },
                     {
-                        "code": "scope/undefined-event-target",
-                        "severity": "information",
-                        "count": 189
-                    },
-                    {
                         "code": "localization/missing-key",
                         "severity": "information",
                         "count": 19
@@ -1362,6 +1317,11 @@
                         "count": 2
                     },
                     {
+                        "code": "scope/undefined-event-target",
+                        "severity": "information",
+                        "count": 1
+                    },
+                    {
                         "code": "structure/story-effect-group-chance-above-100",
                         "severity": "information",
                         "count": 1
@@ -1374,7 +1334,7 @@
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 65874
+                        "count": 65915
                     },
                     {
                         "code": "style/spacing",
@@ -1384,17 +1344,17 @@
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 34275
+                        "count": 34298
                     },
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 31591
+                        "count": 31666
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 9565
+                        "count": 9582
                     },
                     {
                         "code": "style/comment-spacing",
@@ -1414,7 +1374,7 @@
                     {
                         "code": "style/deep-nesting",
                         "severity": "hint",
-                        "count": 801
+                        "count": 807
                     },
                     {
                         "code": "style/line-endings",
@@ -16875,7 +16835,7 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 26,
-                    "dropped": 21202,
+                    "dropped": 21040,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
@@ -16885,12 +16845,12 @@
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 708
+                            "count": 691
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 2100
+                            "count": 2025
                         },
                         {
                             "code": "style/comment-spacing",
@@ -16900,7 +16860,7 @@
                         {
                             "code": "style/deep-nesting",
                             "severity": "hint",
-                            "count": 93
+                            "count": 87
                         },
                         {
                             "code": "style/empty-block",
@@ -16910,7 +16870,7 @@
                         {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 5225
+                            "count": 5184
                         },
                         {
                             "code": "style/localization-key-characters",
@@ -16925,19 +16885,19 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 7464
+                            "count": 7441
                         }
                     ]
                 },
                 "scope": {
                     "keyword_uses": 74642,
-                    "keyword_uses_known_scope": 46566,
-                    "keyword_uses_judged": 26002,
+                    "keyword_uses_known_scope": 46654,
+                    "keyword_uses_judged": 26003,
                     "findings": 27,
                     "unjudged_by_reason": [
                         {
                             "reason": "no-requirement",
-                            "uses": 19553
+                            "uses": 19640
                         },
                         {
                             "reason": "called",
@@ -16977,7 +16937,7 @@
                         },
                         {
                             "reason": "not-a-scope-type",
-                            "uses": 297
+                            "uses": 209
                         },
                         {
                             "reason": "parameters",
@@ -17009,11 +16969,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 1255,
-                    "check": 19673,
-                    "total": 20928
+                    "load_base": 2134,
+                    "check": 41369,
+                    "total": 43503
                 },
-                "peak_rss_kib": 1828952
+                "peak_rss_kib": 1713676
             },
             {
                 "slug": "viet-events",
@@ -17022,8 +16982,8 @@
                 "by_severity": {
                     "error": 1,
                     "warning": 214,
-                    "information": 58,
-                    "hint": 36719
+                    "information": 13,
+                    "hint": 36745
                 },
                 "by_code": [
                     {
@@ -17040,11 +17000,6 @@
                         "code": "localization/unbalanced-brackets",
                         "severity": "warning",
                         "count": 3
-                    },
-                    {
-                        "code": "scope/undefined-event-target",
-                        "severity": "information",
-                        "count": 45
                     },
                     {
                         "code": "fields/usually-present",
@@ -17064,7 +17019,7 @@
                     {
                         "code": "style/trailing-whitespace",
                         "severity": "hint",
-                        "count": 6833
+                        "count": 6851
                     },
                     {
                         "code": "style/indentation",
@@ -17074,12 +17029,12 @@
                     {
                         "code": "style/block-layout",
                         "severity": "hint",
-                        "count": 2658
+                        "count": 2664
                     },
                     {
                         "code": "style/blank-lines",
                         "severity": "hint",
-                        "count": 1507
+                        "count": 1509
                     },
                     {
                         "code": "style/comment-spacing",
@@ -17162,7 +17117,7 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 14,
-                    "dropped": 9106,
+                    "dropped": 9080,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
@@ -17172,12 +17127,12 @@
                         {
                             "code": "style/blank-lines",
                             "severity": "hint",
-                            "count": 987
+                            "count": 985
                         },
                         {
                             "code": "style/block-layout",
                             "severity": "hint",
-                            "count": 906
+                            "count": 900
                         },
                         {
                             "code": "style/comment-spacing",
@@ -17212,7 +17167,7 @@
                         {
                             "code": "style/trailing-whitespace",
                             "severity": "hint",
-                            "count": 2555
+                            "count": 2537
                         },
                         {
                             "code": "style/unusual-field-order",
@@ -17297,11 +17252,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1330,
-                    "check": 3995,
-                    "total": 5325
+                    "load_base": 2212,
+                    "check": 11415,
+                    "total": 13627
                 },
-                "peak_rss_kib": 906552
+                "peak_rss_kib": 1004380
             }
         ]
     }

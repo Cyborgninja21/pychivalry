@@ -26,3 +26,12 @@ age_presets = {
 	fixture_preset = {
 	}
 }
+# Format 9 (on_replace): a gene the mod replaces; its templates go with it.
+morph_genes = {
+	fixture_gene_replaced = {
+		fixture_template_dropped = {
+		}
+		fixture_template_kept = {
+		}
+	}
+}
