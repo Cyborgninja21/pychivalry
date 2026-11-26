@@ -41,7 +41,7 @@ export const BEST_PRACTICE_KINDS: Readonly<Record<BestPracticeCode, CheckKind>> 
     'style/empty-block': style(
         'hint',
         2,
-        "A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314. An empty iterator that is a condition asks for at least one item, and the message says so; of an empty logical operator, scope switch or trigger block (a `limit`) the message says the spec package leaves its meaning open; of an empty entry of a random list or case of a case list (a `switch` case, its `fallback` among them) the message says what taking it away would change.",
+        "A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314. An empty iterator that is a condition asks for at least one item, and the message says so; of an empty logical operator, scope switch or trigger block (a `limit`) the message says the spec package leaves its meaning open; of an empty entry of a random list or case of a case list (a `switch` case, its `fallback` among them) the message says what taking it away would change; of an empty option of an event, that taking it away takes a choice away from the player or the AI.",
         "The block '%s' is empty%s.",
     ),
     'style/deep-nesting': style(

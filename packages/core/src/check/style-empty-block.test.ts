@@ -29,6 +29,7 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
             [CODE, 'hint', 'OR', 'no', 'logical-operator'],
             [CODE, 'hint', '10', 'no', 'random-entry'],
             [CODE, 'hint', 'brave', 'no', 'case'],
+            [CODE, 'hint', 'option', 'no', 'event-option'],
         ],
     );
 });
@@ -505,7 +506,8 @@ test(`${CODE}: an empty entry of a random list is never offered for removal`, ()
 test(`${CODE}: an empty random list entry where the reader judges no key is read by the container's name`, () => {
     // Inside the body of an effect the package gives no rule for (a `duel`'s outcome), which the
     // reader reads as record fields: the table's name decides, as for a `limit` there. The
-    // `duel`'s own empty outcome is no case of a container the package describes: as before.
+    // `duel`'s own empty outcome is no case of a container the package describes: as before,
+    // until the table `containers` has a row for `duel` (decision 176, its second point).
     assert.deepEqual(
         meanings(
             [
@@ -668,5 +670,118 @@ test('the random lists come from the package: the containers whose cases take pa
     assert.deepEqual(
         containers.filter(([, r]) => r.cases && r.caseParams.size > 0).map(([name]) => name),
         ['random_list'],
+    );
+});
+
+/** The message's second slot for an event's empty option (decision 176). */
+const TAKES_A_CHOICE =
+    ': a choice of its event; taking it away takes that choice away from the player or the AI';
+
+test(`${CODE}: an empty option of an event is never offered for removal`, () => {
+    // Part D4's event row with the role `event_option`, "a choice of an event that the player or
+    // the AI picks": taking an empty one away takes that choice away (decision 176). In a shown
+    // event, and in a hidden one, where an empty option is how the base game picks nothing when
+    // the other option's conditions fail; one holding only a comment too.
+    const found = checkText(
+        'events/x.txt',
+        [
+            'namespace = x',
+            'x.1 = {',
+            '\ttype = character_event',
+            '\ttitle = x.1.t',
+            '\tdesc = x.1.desc',
+            '\toption = {}',
+            '\toption = {',
+            '\t\t# Nothing happens.',
+            '\t}',
+            '\toption = { name = x.1.c }',
+            '}',
+            'x.2 = {',
+            '\thidden = yes',
+            '\toption = {}',
+            '\toption = { trigger = { is_adult = yes } add_gold = 1 }',
+            '}',
+            '',
+        ].join('\n'),
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        found.map((f) => [f.args[0], f.data['means'], f.data['comments'], f.args[1]]),
+        [
+            ['option', 'event-option', 'no', TAKES_A_CHOICE],
+            ['option', 'event-option', 'yes', TAKES_A_CHOICE],
+            ['option', 'event-option', 'no', TAKES_A_CHOICE],
+        ],
+    );
+    const mod = writeMod({
+        'descriptor.mod': 'name="x"\n',
+        'events/x.txt':
+            '﻿namespace = x\r\n\r\nx.1 = {\r\n\ttype = character_event\r\n\thidden = yes\r\n\toption = {}\r\n\toption = { add_gold = 1 }\r\n}\r\n',
+    });
+    assert.deepEqual(
+        checkFixtureMod(mod)
+            .findings.filter((f) => f.code === CODE)
+            .map((f) => [f.data['block'], f.data['means'], f.fix?.basis ?? null, f.message]),
+        [
+            [
+                'option',
+                'event-option',
+                null,
+                "The block 'option' is empty: a choice of its event; taking it away takes that choice away from the player or the AI.",
+            ],
+        ],
+    );
+});
+
+test(`${CODE}: a key written like an event's option elsewhere is read as before`, () => {
+    // Only a key of an event's own body is an option: not one in another folder, in a record of
+    // the events folder that is no event (its key holds no '.'), deeper in an event, or written
+    // in other letters (matched as the file writes it, as `style/option-without-ai-weight` does).
+    const elsewhere = (file: string, text: string): unknown[] =>
+        checkText(file, text, {}, {}, { style: true })
+            .filter((f) => f.code === CODE)
+            .map((f) => [f.args[0], f.data['means'], f.args[1]]);
+    assert.deepEqual(
+        elsewhere(
+            'common/scripted_effects/x.txt',
+            'my_effect = {\n\tadd_gold = 1\n\toption = {}\n}\n',
+        ),
+        [['option', undefined, '']],
+    );
+    assert.deepEqual(
+        elsewhere(
+            'events/x.txt',
+            [
+                'namespace = x',
+                'x_record = {',
+                '\ttype = character_event',
+                '\toption = {}',
+                '}',
+                'x.1 = {',
+                '\ttype = character_event',
+                '\ttitle = x.1.t',
+                '\tdesc = x.1.desc',
+                '\timmediate = { add_gold = 1 option = {} }',
+                '\tOption = {}',
+                '\toption = { name = x.1.a }',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [
+            ['option', undefined, ''],
+            ['option', undefined, ''],
+            ['Option', undefined, ''],
+        ],
+    );
+});
+
+test('the event option comes from the package: part D4 gives `option` the role `event_option`, confirmed', () => {
+    const rows = keywordRolesOf(committedSpec()).withRoles('event_option');
+    assert.deepEqual(
+        rows.map((r) => [r.keyword, r.directories, r.parents, r.row.role_status['event_option']]),
+        [['option', ['events'], [], 'confirmed']],
     );
 });

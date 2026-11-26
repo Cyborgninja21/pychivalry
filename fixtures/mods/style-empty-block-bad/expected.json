@@ -103,6 +103,19 @@
                 "comments": "no",
                 "means": "case"
             }
+        },
+        {
+            "file": "events/fixture_events.txt",
+            "line": 8,
+            "column": 2,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'option' is empty: a choice of its event; taking it away takes that choice away from the player or the AI.",
+            "data": {
+                "block": "option",
+                "comments": "no",
+                "means": "event-option"
+            }
         }
     ]
 }

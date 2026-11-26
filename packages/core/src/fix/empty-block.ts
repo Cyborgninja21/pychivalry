@@ -23,6 +23,9 @@
  *   the same day, row 174, `check/empty-case.ts`): nothing. Taking an empty entry of a random list
  *   away changes the odds of the others (it may be a deliberate chance of nothing), and taking an
  *   empty case away lets the fallback run for its value.
+ * - **An option of an event** (`event-option`; the owner's decision of the same day, row 176,
+ *   `check/empty-option.ts`): nothing. Taking it away takes a choice away from the player or the
+ *   AI.
  */
 
 import {
