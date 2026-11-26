@@ -635,6 +635,30 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   Its code and grade are unchanged; its fixture pair gained an `any_false`. Neither the base game
   nor the five mods writes an `any_false`: no count moved (the base game's 9,350 judged blocks and
   1 finding, the five mods none).
+- `style/empty-block` never offers to take away an empty block that means something (decision
+  167). An empty iterator that is a condition (part D8's `any_`, read in a trigger block) asks for
+  at least one item: its message says so and names the test written out with the parameter D8
+  points to and the game documents with a number, `count >= 1`, and its fix, a suggestion (the
+  package states no default for that parameter), writes it in (`basis: iterator-kinds`; finding
+  data `means` and `written_out`). An iterator the package does not say how to read where it is
+  written (of the other kind than its block, in a script value or a keyword's parameters) gets no
+  fix (`means: not-known`). A trigger or an effect of the package's buckets written with an empty
+  block (`faction_start_war = { }`, `trigger_else = { }`) is not offered for removal either, which
+  would take it away (`means: trigger` or `effect`). An effect iterator in an effect block runs no
+  effect and is taken away as before, like every other empty block. The code, its grade and its
+  counts are unchanged; of the base game's 21,658 listed empty blocks, 239 are such conditions
+  (114 were offered for removal before, 125 nothing), 23 iterators not placed (13 were offered for
+  removal) and 83 triggers or effects (43 were): 170 removals withdrawn, 20,020 left. In the five
+  mods 9 are withdrawn (elf-destiny 8, rice 1), elf-destiny's one condition now offered its test
+  written out. The fixture pair gained an `any_child` and an `every_child`. The agent server's
+  tool schema version stays 5 (a new value of a string, no new shape).
+- The three skills write every tool by Claude Code's full name, `mcp__pychivalry__<tool>`, in
+  every step and rule, not only in their list at the top (decision 168), and say how VS Code's
+  names are made (`pychivalry-` before the tool's own name in its Copilot harness,
+  `mcp_pychivalry_` in its own); `skill-files.test.ts` holds it. The skills' hashes change, so the
+  release run is not compared with the second expert run without saying so.
+- The game-file suites are re-run with these changes: every count of the base game and the five
+  mods is the same, but their times.
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as
@@ -995,6 +1019,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   often than they follow it are questions for the owner (docs/decisions.md); three points go back
   to the spec work (row 154): the variables the game's code sets, whether the engine keeps a
   variable's namespaces and kinds apart, and the position of the "Unterminated" messages.
+- Four points of `style/empty-block` go back to the spec work (decision 169): the default of an
+  `any_` iterator's `count`, what an iterator body with no condition asks of an item, how an
+  iterator is read where the package's rules do not place it, and what an empty logical
+  operator, plain trigger block or scope switch evaluates to; whether the rule should also stop
+  offering to take those last away is a question for the owner (docs/decisions.md).
 - The seventeen requests of 2026-11-25 are answered by format 9 (docs/decisions.md, row 150),
   what the package still leaves open with them; one new request goes back to the spec work
   (row 151): the trait groups and the game concepts' aliases, which part D6 names as databases and
