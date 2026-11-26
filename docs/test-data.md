@@ -224,11 +224,13 @@ configuration folders, on copies of committed test data written into a temporary
 - `smoke`: the packaged `.vsix`, installed by VS Code's own installer, on a copy of the
   planted-defect mod in a folder whose name holds a space, with `pychivalry.gamePath` naming its
   game stub. Its same-answers test compares the editor's, the command line's (typed into a
-  terminal of that VS Code) and the agent server's findings: 38 in its 16 checked files, 26
-  errors, 10 warnings and 2 hints. The mod being in pychivalry's format, the copy writes one
-  file, `events/harvest_faith_events.txt`, with `\n` line breaks, so that the same-formatting
-  test still proves Format Document turns a document's `\n` into `\r\n`; that file adds the
-  formatter's warning and hint to the planted defects' 36.
+  terminal of that VS Code) and the agent server's findings: 41 in its 17 checked files, 26
+  errors, 12 warnings, 1 information and 2 hints (since build step 10). The mod being in
+  pychivalry's format, the copy writes one file, `events/harvest_faith_events.txt`, with `\n`
+  line breaks, so that the same-formatting test still proves Format Document turns a document's
+  `\n` into `\r\n`; that file adds the formatter's warning and hint to the planted defects' 38
+  findings (37 defects, the clash at both of its definitions), and the GUI file the copy writes,
+  `gui/harvest_gui_window.gui`, its one GUI finding.
 - `update-1`, `update-2`: two versions of the extension written by test code as installable
   files, on the same fixture mod copy.
 

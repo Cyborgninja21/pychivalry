@@ -665,7 +665,7 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   index, and a mod's GUI file no longer counts its comments' words. The base game's index: 17,880
   files (581 GUI files more), 3,374,650 definitions, 9,497,915 uses; 277 names with no winner
   known (233 before: 44 GUI names in sub-folders of `gui/`, which no row says are read). The game-file
-  records are made again: the base game's errors (13) and warnings (17,188) unchanged, its information 167 (149 before: the 18 GUI findings); in the five mods no error or warning changed; elf-destiny's one GUI finding; `localization/unused-key` 9 more in divine-intervention and 11 in elf-destiny, each a key a GUI file writes only in a comment; `variables/read-without-set` one fewer in elf-destiny (`disable_toast_notifications`, which a GUI file of the mod reads).
+  records are made again (after merging #171): the base game's errors (13) and warnings (17,207, #171's 19 `graphics/missing-file` among them) unchanged by the GUI files, its information 167 (149 before: the 18 GUI findings); in the five mods no error or warning changed by them (rice's 3 `graphics/missing-file` are #171's); elf-destiny's one GUI finding; `localization/unused-key` 9 more in divine-intervention and 11 in elf-destiny, each a key a GUI file writes only in a comment; `variables/read-without-set` one fewer in elf-destiny (`disable_toast_notifications`, which a GUI file of the mod reads).
 - The game-file suites are re-run with the format 9 checks. The base game: errors (13) and
   warnings (17,188) unchanged; new `style/option-without-ai-weight` 4,165 (the per-file limit
   drops the rest), `variables/read-without-set` 31, `style/redundant-condition` 1. The five mods:

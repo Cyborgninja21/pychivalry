@@ -2013,7 +2013,7 @@ macro values and parent-folder paths. Its call graph had five kinds of link.
 
   *Built (#172):* `tools/src/gui-suite.ts`, in `task game:parse` (`results.gui`): every `.gui` file
   of the install, 583 (441 in `game/gui/`, the plan's figure, 1 in `game/tweakergui_assets/`, 91 in
-  `jomini/gui/`, 1 in `jomini/jomini/`, 49 in `clausewitz/gui/`), 583 trees in 245 ms; 18
+  `jomini/gui/`, 1 in `jomini/jomini/`, 49 in `clausewitz/gui/`), 583 trees in 216 ms; 18
   findings in 9 files, every one classified a defect of the game's own files in
   `tools/data/gui-parse-classifications.json` with its reason: in `game/`, `size { ... }` twice and
   `margin { ... }` once without their `=` (the base game writes `size = {` 11,677 times), `align
