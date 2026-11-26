@@ -17,7 +17,10 @@
  * breaking it does not retire it. A style row `follows` when the base game breaks it at most
  * as often as it follows it (at most half the units it applies to), and is `broken` otherwise:
  * such a rule ships only on the owner's word. Each style row gives its counts by folder, and
- * lists its findings only when there are few.
+ * lists its findings only when there are few. It also counts its findings by the fix each is
+ * offered (the fix's basis, or `none`), and by what their data says the place means
+ * (`data.means`, where a finding says), so that a change to what a rule offers is measured on
+ * the base game by this command, not by a script of its own.
  */
 
 import { readFileSync } from 'node:fs';
@@ -29,6 +32,7 @@ import {
     currentPlatform,
     decidingRules,
     definedNamesOf,
+    fixFileFindings,
     folderTableFromSpec,
     indexFiles,
     installFolders,
@@ -41,6 +45,7 @@ import {
     runBestPractice,
     BEST_PRACTICE_CHECKS,
     type CheckFinding,
+    type FixFileInput,
     type Platform,
     type Spec,
 } from '@pychivalry/core';
@@ -70,6 +75,15 @@ export interface FolderCount {
     readonly fires: number;
 }
 
+/** How many of a style row's findings share a name: a fix's basis, or what they mean. */
+export interface NamedCount {
+    readonly name: string;
+    readonly fires: number;
+}
+
+/** The name under which a style row counts its findings that are offered no fix. */
+export const NO_FIX = 'none';
+
 /** One advice row, or one best-practice rule, on the base game. */
 export interface ProofRow {
     readonly code: string;
@@ -82,6 +96,27 @@ export interface ProofRow {
     readonly findings: readonly ProofFinding[];
     /** A style row's counts by folder, in code-point order; empty for an advice row. */
     readonly byFolder: readonly FolderCount[];
+    /**
+     * A style row's findings by the fix each is offered: the fix's basis, or `none`, in
+     * code-point order; empty for an advice row.
+     */
+    readonly byFix: readonly NamedCount[];
+    /**
+     * A style row's findings by what their data says the place means (`data.means`), in
+     * code-point order, those that say nothing left out; empty for an advice row.
+     */
+    readonly byMeaning: readonly NamedCount[];
+}
+
+/** A map of counts as rows, in code-point order of their names. */
+function namedCounts(counts: ReadonlyMap<string, number>): NamedCount[] {
+    return [...counts]
+        .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+        .map(([name, fires]) => ({ name, fires }));
+}
+
+function bump(counts: Map<string, number>, name: string): void {
+    counts.set(name, (counts.get(name) ?? 0) + 1);
 }
 
 export interface Proof {
@@ -129,11 +164,20 @@ export function adviceProof(
             fires: number;
             findings: ProofFinding[];
             byFolder: Map<string, FolderCount>;
+            byFix: Map<string, number>;
+            byMeaning: Map<string, number>;
         }
     >(
         [...BEST_PRACTICE_CHECKS.map((c) => c.code), LOCALIZATION_KEY_CODE].map((code) => [
             code,
-            { applies: 0, fires: 0, findings: [], byFolder: new Map() },
+            {
+                applies: 0,
+                fires: 0,
+                findings: [],
+                byFolder: new Map(),
+                byFix: new Map(),
+                byMeaning: new Map(),
+            },
         ]),
     );
     const countStyle = (
@@ -141,10 +185,21 @@ export function adviceProof(
         file: string,
         judged: number,
         found: readonly CheckFinding[],
+        source: Pick<FixFileInput, 'source' | 'invalid'>,
     ): void => {
         const count = styles.get(code);
         if (count === undefined) {
             return;
+        }
+        // The fix each finding is offered, as the core makes it (no safe fix checked by applying
+        // it: only its basis is counted).
+        const fixes = fixFileFindings(found, { spec, folders, file, names, ...source }, undefined);
+        for (const [i, f] of found.entries()) {
+            bump(count.byFix, fixes[i]?.basis ?? NO_FIX);
+            const means = f.data['means'];
+            if (typeof means === 'string') {
+                bump(count.byMeaning, means);
+            }
         }
         // A localization file is counted by its language's folder (`localization/english`).
         const folder = file.endsWith('.yml')
@@ -177,7 +232,8 @@ export function adviceProof(
             // A localization file: whether it is UTF-8, and the characters of its keys.
             const loc = readLocalization(readFileSync(file.disk));
             const keys = localizationKeyFindings(loc, { lines: loc.lines, catalogue });
-            countStyle(LOCALIZATION_KEY_CODE, file.path, keys.judged, keys.findings);
+            const source = { source: { localization: loc } };
+            countStyle(LOCALIZATION_KEY_CODE, file.path, keys.judged, keys.findings, source);
             const found = checkLocalizationFile({
                 spec,
                 folders,
@@ -187,7 +243,7 @@ export function adviceProof(
                 catalogue,
                 unusedKeys: false,
             }).filter((f) => f.code === 'style/not-utf8');
-            countStyle('style/not-utf8', file.path, 1, found);
+            countStyle('style/not-utf8', file.path, 1, found, source);
             continue;
         }
         if (!file.path.endsWith('.txt')) {
@@ -223,7 +279,10 @@ export function adviceProof(
             invalid: parsed.invalid,
             encoding: parsed.encoding,
         })) {
-            countStyle(code, file.path, result.judged, result.findings);
+            countStyle(code, file.path, result.judged, result.findings, {
+                source: { script: parsed },
+                invalid: parsed.invalid,
+            });
         }
     }
     const rows: ProofRow[] = [...counts].map(([code, c]) => ({
@@ -234,6 +293,8 @@ export function adviceProof(
         verdict: verdictOf(c.applies, c.findings.length),
         findings: c.findings,
         byFolder: [],
+        byFix: [],
+        byMeaning: [],
     }));
     for (const [code, c] of styles) {
         rows.push({
@@ -246,6 +307,8 @@ export function adviceProof(
             byFolder: [...c.byFolder.values()]
                 .filter((f) => f.applies > 0)
                 .sort((a, b) => (a.folder < b.folder ? -1 : a.folder > b.folder ? 1 : 0)),
+            byFix: namedCounts(c.byFix),
+            byMeaning: namedCounts(c.byMeaning),
         });
     }
     return { files, rows };
@@ -256,7 +319,15 @@ function percent(part: number, whole: number): string {
     return whole === 0 ? '0.00%' : `${((100 * part) / whole).toFixed(2)}%`;
 }
 
-/** The proof as text: one line per row, then each finding of a row that fires. */
+/** Named counts on one line: `parser 20, none 3`. */
+function countsLine(counts: readonly NamedCount[]): string {
+    return counts.map((c) => `${c.name} ${String(c.fires)}`).join(', ');
+}
+
+/**
+ * The proof as text: one line per row; a style row's findings by the fix offered and by what
+ * they mean, and its counts by folder; then each finding of a row that fires.
+ */
 export function proofText(proof: Proof): string {
     const lines = [`advice proof: ${String(proof.files)} script files read`];
     for (const row of proof.rows) {
@@ -264,6 +335,12 @@ export function proofText(proof: Proof): string {
         lines.push(
             `${row.code}: applies to ${String(row.applies)}, fires on ${String(row.fires)}${rate}: ${row.verdict}`,
         );
+        if (row.byFix.length > 0) {
+            lines.push(`  fixes offered: ${countsLine(row.byFix)}`);
+        }
+        if (row.byMeaning.length > 0) {
+            lines.push(`  what they mean: ${countsLine(row.byMeaning)}`);
+        }
         for (const f of row.byFolder) {
             if (f.fires > 0 || row.code === 'style/unusual-field-order') {
                 lines.push(

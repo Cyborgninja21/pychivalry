@@ -15,6 +15,10 @@
  * - **An iterator the package does not say how to read where it is written** (`not-known`),
  *   and **a trigger or an effect** written with an empty block (`trigger`, `effect`), which
  *   taking the block away would take away: nothing.
+ * - **A logical operator, a scope switch or a trigger block** (`logical-operator`,
+ *   `scope-switch`, `trigger-block`; a `limit`), whose meaning when empty the spec package
+ *   leaves open (the owner's decision of 2026-11-26, `check/empty-open.ts`): nothing, until the
+ *   spec work says what each evaluates to.
  */
 
 import {

@@ -72,7 +72,16 @@ test('every advice check has a row, with what it judged and what it found', (t) 
     assert.deepEqual(empty2.byFolder, [
         { folder: 'common/scripted_effects', applies: 2, fires: 2 },
     ]);
+    // By the fix each finding is offered, and by what its data says the place means: an effect
+    // written with an empty block is never offered for removal (decision 167).
+    assert.deepEqual(empty2.byFix, [{ name: 'none', fires: 2 }]);
+    assert.deepEqual(empty2.byMeaning, [{ name: 'effect', fires: 2 }]);
+    const deep = proof.rows.find((r) => r.code === 'style/deep-nesting');
+    assert.deepEqual([deep?.byFix, deep?.byMeaning], [[], []]);
+    assert.deepEqual([twice.byFix, twice.byMeaning], [[], []]);
     const text = proofText(proof);
+    assert.match(text, /^ {2}fixes offered: none 2$/m);
+    assert.match(text, /^ {2}what they mean: effect 2$/m);
     assert.match(text, /^structure\/event-empty: applies to 13, fires on 1: fires$/m);
     assert.match(text, /^style\/empty-block: applies to 2, fires on 2 \(100\.00%\): broken$/m);
     assert.match(text, /^ {2}common\/scripted_effects: applies to 2, fires on 2 \(100\.00%\)$/m);

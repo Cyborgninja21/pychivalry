@@ -154,7 +154,11 @@ still. Since decision 167 the pair `style-empty-block` also holds two empty iter
 a suggestion that writes `count >= 1` in it (never one that takes it away), and an `every_child`
 among the effects, which runs no effect and is taken away as before; the good half writes the
 first out and gives the second an effect. Both halves stay in the format, and the bad half's
-fixes leave it there; 71 check pairs still.
+fixes leave it there; 71 check pairs still. Since decision 172 the pair's empty `limit` is a trigger
+block whose meaning when empty the package leaves open, reported saying so and offered no fix, and
+the bad half also holds a `liege` (a scope switch) and an `OR` beside a condition in a `limit` (a
+logical operator), each reported the same way; the good half gives the `liege` an effect and the
+`OR` a condition; 71 check pairs still.
 
 ## The planted-defect mod
 
