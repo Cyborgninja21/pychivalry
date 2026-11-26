@@ -2,12 +2,12 @@
     "record_format": 1,
     "suite": "game:check",
     "command": "task game:check",
-    "made_at": "2026-11-25T23:56:12.322Z",
+    "made_at": "2026-11-26T01:15:57.906Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "165cf89d54156485f97ddbd9875d66a30db14f5f",
-        "dirty": false
+        "commit": "dff427f3f66e4fefd415d79a99c54f9fd6ccaf4d",
+        "dirty": true
     },
     "machine": {
         "os": "linux",
@@ -34,7 +34,7 @@
         "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
         "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
         "The style/ family (docs/formatting.md) rests on pychivalry's own formatting rules, not on the game: its warning (style/not-formatted, one a file not in the format) and its hints are counted in by_code and by_severity, never listed or classified; warnings and warning_list are the other warnings. The base game is not written in the format, so nearly every file has a style warning.",
-        "The load average over one minute was 2.63 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 1.70 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
@@ -61,8 +61,8 @@
         "by_severity": {
             "error": 13,
             "warning": 17188,
-            "information": 118,
-            "hint": 854236
+            "information": 149,
+            "hint": 858206
         },
         "by_code": [
             {
@@ -111,6 +111,11 @@
                 "count": 88
             },
             {
+                "code": "variables/read-without-set",
+                "severity": "information",
+                "count": 31
+            },
+            {
                 "code": "scope/undefined-event-target",
                 "severity": "information",
                 "count": 26
@@ -123,27 +128,27 @@
             {
                 "code": "style/block-layout",
                 "severity": "hint",
-                "count": 344077
+                "count": 344034
             },
             {
                 "code": "style/spacing",
                 "severity": "hint",
-                "count": 215657
+                "count": 215652
             },
             {
                 "code": "style/indentation",
                 "severity": "hint",
-                "count": 121483
+                "count": 121401
             },
             {
                 "code": "style/trailing-whitespace",
                 "severity": "hint",
-                "count": 66741
+                "count": 66692
             },
             {
                 "code": "style/blank-lines",
                 "severity": "hint",
-                "count": 26982
+                "count": 26979
             },
             {
                 "code": "style/empty-block",
@@ -153,7 +158,7 @@
             {
                 "code": "style/comment-spacing",
                 "severity": "hint",
-                "count": 17673
+                "count": 17665
             },
             {
                 "code": "style/localization-key-characters",
@@ -168,17 +173,27 @@
             {
                 "code": "style/deep-nesting",
                 "severity": "hint",
-                "count": 8248
+                "count": 8244
+            },
+            {
+                "code": "style/option-without-ai-weight",
+                "severity": "hint",
+                "count": 4165
             },
             {
                 "code": "style/unusual-field-order",
                 "severity": "hint",
-                "count": 2047
+                "count": 2045
             },
             {
                 "code": "style/byte-order-mark",
                 "severity": "hint",
                 "count": 645
+            },
+            {
+                "code": "style/redundant-condition",
+                "severity": "hint",
+                "count": 1
             }
         ],
         "errors": 13,
@@ -1875,28 +1890,28 @@
         },
         "capped": {
             "max_per_file": 1000,
-            "files": 213,
-            "dropped": 1207615,
+            "files": 214,
+            "dropped": 1207951,
             "dropped_by_code": [
                 {
                     "code": "style/blank-lines",
                     "severity": "hint",
-                    "count": 2183
+                    "count": 2186
                 },
                 {
                     "code": "style/block-layout",
                     "severity": "hint",
-                    "count": 99144
+                    "count": 99187
                 },
                 {
                     "code": "style/comment-spacing",
                     "severity": "hint",
-                    "count": 2550
+                    "count": 2558
                 },
                 {
                     "code": "style/deep-nesting",
                     "severity": "hint",
-                    "count": 313
+                    "count": 317
                 },
                 {
                     "code": "style/empty-block",
@@ -1906,7 +1921,7 @@
                 {
                     "code": "style/indentation",
                     "severity": "hint",
-                    "count": 79504
+                    "count": 79586
                 },
                 {
                     "code": "style/line-endings",
@@ -1919,19 +1934,24 @@
                     "count": 21
                 },
                 {
+                    "code": "style/option-without-ai-weight",
+                    "severity": "hint",
+                    "count": 140
+                },
+                {
                     "code": "style/spacing",
                     "severity": "hint",
-                    "count": 1002776
+                    "count": 1002781
                 },
                 {
                     "code": "style/trailing-whitespace",
                     "severity": "hint",
-                    "count": 18447
+                    "count": 18496
                 },
                 {
                     "code": "style/unusual-field-order",
                     "severity": "hint",
-                    "count": 49
+                    "count": 51
                 }
             ]
         },
@@ -2026,11 +2046,11 @@
             "keyword_uses_judged": 101162
         },
         "time_ms": {
-            "list": 499,
-            "build": 27427,
-            "check": 149756,
-            "total": 177682
+            "list": 439,
+            "build": 26645,
+            "check": 104126,
+            "total": 131210
         },
-        "peak_rss_kib": 3899932
+        "peak_rss_kib": 3887284
     }
 }
