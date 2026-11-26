@@ -2,7 +2,7 @@
     "name": "pychivalry",
     "displayName": "pychivalry",
     "publisher": "cyborgninja21",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "preview": true,
     "private": true,
     "description": "Crusader Kings 3 modding: pychivalry's checks and lookups for VS Code's own AI and for Claude Code. Preview.",

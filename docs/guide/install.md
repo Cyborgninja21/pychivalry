@@ -11,8 +11,8 @@ updated by hand. Its file, `pychivalry-0.2.0.vsix`, is attached to the pre-relea
 on the repository's GitHub releases page, published on 2026-11-23. The first preview, 0.1.0,
 is [still there](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.1.0); 0.2.0
 updates it in place. The skills of build step 9 ([Commands](commands.md#the-skills)) are not in
-0.2.0: they come with the third preview, or a build from source with `task vscode:package`
-(below).
+0.2.0: they come with the third preview, 0.3.0, which is not published yet, or a build from source
+with `task vscode:package` (below), which since 2026-11-26 has that preview's version, 0.3.0.
 
 The old version, release 2.3.0, is still published as the `ck3-language-support` extension and
 still works. It is no longer developed. pychivalry is a new extension named `pychivalry`
@@ -86,6 +86,7 @@ task ci
 
 `task ci` installs, builds, lints, checks formatting and runs every test. It needs no game
 files, no display, no model and no key. `task vscode:package` then writes the installable
-file, `packages/vscode/dist/pychivalry-0.1.0.vsix`. See [Commands](commands.md) for the rest,
+file, `packages/vscode/dist/pychivalry-<version>.vsix` (today `pychivalry-0.3.0.vsix`). See
+[Commands](commands.md) for the rest,
 and [Checking a preview by hand](by-hand-check.md) for the check made before a preview goes
 out.

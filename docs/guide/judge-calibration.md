@@ -30,12 +30,15 @@ checker reports, every expectation met. Some are right and some are wrong in a w
 what the script does shows: an effect given to the wrong character, a condition tested in the
 wrong scope, an amount or a time that is not the one asked for. It is the sheet that asks most of
 the judge, and the largest. You chose to grade all three before the release run (decision 135),
-this one last.
+this one last; on 2026-11-26 you had the release run made first (decision 178), so the three are
+graded after it. Its judge said yes to all 800 of its questions, so until the sheets are graded
+nothing shows whether that judge would say no where it should.
 
 The real results are **trial 1 of each request**, taken by number before any of them was read, so
 none was picked for being good or bad. Each is the trial's mod as its session left it, with the
 skills folder the run gave the session taken out. Grade them **before** you look at the judge's
-answers in `records/scored/authoring.json`.
+answers in their run's record, `records/scored/authoring-run-2.json` (committed as `authoring.json`
+until the release run replaced it).
 
 ## Grading a sheet
 
