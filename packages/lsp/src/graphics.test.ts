@@ -17,6 +17,13 @@ const DECISIONS = path.join('common', 'decisions', 'fixture_graphics_decisions.t
 
 const graphics = (d: readonly Diagnostic[]): Diagnostic[] => d.filter((x) => x.code === CODE);
 
+/**
+ * The decisions file's missing textures, as the server's platform reads letter case (part D1's
+ * `path-case` row): on Windows the picture that matches the base game's only in other case is
+ * found, so one fewer.
+ */
+const MISSING = process.platform === 'win32' ? 3 : 4;
+
 const messageOf = (d: Diagnostic): string =>
     typeof d.message === 'string' ? d.message : d.message.value;
 
@@ -27,7 +34,7 @@ test('the missing textures of the bad fixture, and a texture the mod adds on dis
     await client.settled();
     const uri = uriOf(path.join(dir, DECISIONS));
     const before = graphics(await client.diagnosticsOf(uri));
-    assert.equal(before.length, 4);
+    assert.equal(before.length, MISSING);
     assert.ok(
         before.every((d) => d.severity === 2),
         'warnings',
@@ -51,15 +58,17 @@ test('the missing textures of the bad fixture, and a texture the mod adds on dis
     const done = client.done.length;
     await client.filesChanged([{ uri: uriOf(texture), type: 1 }]);
     await client.settled(done);
-    const after = graphics(await client.diagnosticsOf(uri, (d) => graphics(d).length === 3));
+    const after = graphics(
+        await client.diagnosticsOf(uri, (d) => graphics(d).length === MISSING - 1),
+    );
     assert.ok(!after.some((d) => messageOf(d).includes('fixture_missing_picture.dds')));
     rmSync(texture);
     const again = client.done.length;
     await client.filesChanged([{ uri: uriOf(texture), type: 3 }]);
     await client.settled(again);
     assert.equal(
-        graphics(await client.diagnosticsOf(uri, (d) => graphics(d).length === 4)).length,
-        4,
+        graphics(await client.diagnosticsOf(uri, (d) => graphics(d).length === MISSING)).length,
+        MISSING,
     );
 });
 
