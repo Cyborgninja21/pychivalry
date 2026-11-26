@@ -196,6 +196,9 @@ const EVERYTHING: WorkspaceNames = {
     isRecordName: () => true,
     isVariableSet: () => true,
     textScopeReads: () => [],
+    unreadFilesAt: (path) => [{ layer: 'game', path }],
+    unreadLayers: ['game'],
+    pathCase: 'exact',
 };
 
 const place = (f: WorkspaceFinding): string =>

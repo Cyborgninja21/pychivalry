@@ -73,9 +73,20 @@ export function exampleResult(t: TestContext, request: ContentRequest): string {
     return mod;
 }
 
-/** A game stub in a temporary folder: a launcher's settings and an almost empty `game`. */
+/**
+ * A game stub in a temporary folder: a launcher's settings and an almost empty `game`, with the one
+ * texture the content requests' decisions show (`picture`), a file of the real base game too, so
+ * that `graphics/missing-file` finds it as it does over the installed game.
+ */
 export function emptyGame(t: TestContext): string {
-    return fixtureGame(tempDir(t));
+    const root = tempDir(t);
+    const game = fixtureGame(root);
+    writeTree(root, {
+        'game/gfx/interface/illustrations/decisions/decision_misc.dds': new Uint8Array([
+            0, 1, 2, 3,
+        ]),
+    });
+    return game;
 }
 
 /** The checker on a mod over an empty base game, as grade one runs it (with its defaults). */

@@ -19,8 +19,10 @@ import type { FolderTable } from './folders.js';
 import {
     indexFiles,
     installFolders,
+    installLayersOf,
     listInstall,
     readGameBuild,
+    setUnreadFilesOf,
     sourceManifestSha256,
     type SourceListing,
 } from './read-game.js';
@@ -91,7 +93,9 @@ export function openGameIndex(options: GameIndexOptions): GameIndex {
     const rules =
         options.platform === undefined ? [] : decidingRules(options.rules, options.platform);
     let t = performance.now();
-    const listing = listInstall(installFolders(options.gameDir), options.folders, rules);
+    const install = installFolders(options.gameDir);
+    const listing = listInstall(install, options.folders, rules);
+    const layers = installLayersOf(install, listing);
     const key = gameCacheKey(options, listing);
     const ms = { list: performance.now() - t, build: 0, save: 0, load: 0 };
     const cacheFile =
@@ -102,6 +106,7 @@ export function openGameIndex(options: GameIndexOptions): GameIndex {
         const loaded = loadIndex(cacheFile, key, indexOptions);
         ms.load = performance.now() - t;
         if ('index' in loaded) {
+            setUnreadFilesOf(loaded.index, listing, layers);
             return {
                 index: loaded.index,
                 listing,
@@ -118,6 +123,7 @@ export function openGameIndex(options: GameIndexOptions): GameIndex {
     }
     t = performance.now();
     const index = indexFiles(listing.files, indexOptions);
+    setUnreadFilesOf(index, listing, layers);
     ms.build = performance.now() - t;
     let cacheBytes: number | null = null;
     if (cacheFile !== null) {

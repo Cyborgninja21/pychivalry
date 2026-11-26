@@ -46,6 +46,7 @@ export type CheckCode =
     | 'localization/missing-key'
     | 'localization/unbalanced-brackets'
     | 'localization/unused-key'
+    | 'graphics/missing-file'
     | AdviceCode
     | StyleCode
     | BestPracticeCode;
@@ -315,6 +316,13 @@ export const CHECK_KINDS: Readonly<Record<CheckCode, CheckKind>> = {
         slots: ['value'],
         description: 'A key the mod defines that nothing in the mod or the base game uses.',
         text: "The localization key '%s' is used nowhere in the mod or the base game.",
+    },
+    'graphics/missing-file': {
+        severity: 'warning',
+        catalogue: 'failed_to_load_texture_X_file_not_found',
+        slots: ['value'],
+        description:
+            'A texture path, in a field the spec package documents as a file path, that names no file of the mod, the base game or a DLC pack.',
     },
     ...ADVICE_KINDS,
     ...STYLE_KINDS,

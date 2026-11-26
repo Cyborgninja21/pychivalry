@@ -148,7 +148,7 @@ test("the language server answers the agent server's calls with the agent server
     // The planted defects, the `style/` family's among them: a file not in pychivalry's
     // format (a warning and its rule's hint) and a file not UTF-8 (a warning).
     const totals = answer.structuredContent.totals;
-    assert.deepEqual(totals.by_severity, { error: 26, warning: 10, information: 0, hint: 1 });
+    assert.deepEqual(totals.by_severity, { error: 26, warning: 11, information: 0, hint: 1 });
     const status = await sharing(client);
     assert.equal(status.answered['mcp'], 1);
     assert.equal(status.sessions, 1);

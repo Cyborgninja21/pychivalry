@@ -1,0 +1,23 @@
+﻿@fixture_constant_picture = "gfx/interface/illustrations/decisions/fixture_constant_missing.dds"
+
+fixture_graphics_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/fixture_missing_picture.dds" }
+	extra_picture = "gfx/interface/illustrations/decisions/fixture_missing_extra.png"
+	ai_check_interval = 0
+	effect = { add_gold = 1 }
+	ai_will_do = { base = 0 }
+}
+
+fixture_graphics_constant_decision = {
+	picture = { reference = @fixture_constant_picture }
+	ai_check_interval = 0
+	effect = { add_gold = 1 }
+	ai_will_do = { base = 0 }
+}
+
+fixture_graphics_case_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/Fixture_Base_Picture.dds" }
+	ai_check_interval = 0
+	effect = { add_gold = 1 }
+	ai_will_do = { base = 0 }
+}

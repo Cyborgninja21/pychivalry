@@ -9,7 +9,12 @@ import path from 'node:path';
 import { cacheKeysEqual } from '../index/cache.js';
 import type { FolderTable } from '../index/folders.js';
 import { gameCacheKey, type GameIndex } from '../index/game-index.js';
-import { installFolders, listInstallSteps } from '../index/read-game.js';
+import {
+    installFolders,
+    installLayersOf,
+    listInstallSteps,
+    setUnreadFilesOf,
+} from '../index/read-game.js';
 import { decidingRules, type Platform, type RulesTable } from '../index/rules.js';
 import type { Steps } from '../steps.js';
 import type { FallbackEncoding } from '../syntax/decode.js';
@@ -87,7 +92,8 @@ export function* forkBaseSteps(
     }
     const started = performance.now();
     const deciding = wanted.platform === undefined ? [] : decidingRules(rules, wanted.platform);
-    const listing = yield* listInstallSteps(installFolders(wanted.gameDir), folders, deciding);
+    const install = installFolders(wanted.gameDir);
+    const listing = yield* listInstallSteps(install, folders, deciding);
     const key = gameCacheKey(
         {
             gameDir: wanted.gameDir,
@@ -103,8 +109,11 @@ export function* forkBaseSteps(
     if (!cacheKeysEqual(key, base.game.key)) {
         throw new BaseRefused("the game's files changed since the base game was read");
     }
+    const index = base.game.index.fork();
+    // The base's own may predate a texture added since: the listing just made is the one in force.
+    setUnreadFilesOf(index, listing, installLayersOf(install, listing));
     return {
-        index: base.game.index.fork(),
+        index,
         listing,
         key,
         cacheFile: base.game.cacheFile,

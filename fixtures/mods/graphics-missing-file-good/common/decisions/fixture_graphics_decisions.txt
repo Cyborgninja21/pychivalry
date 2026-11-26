@@ -1,0 +1,25 @@
+﻿@fixture_constant_picture = "gfx/interface/illustrations/decisions/fixture_dlc_picture.dds"
+
+fixture_graphics_decision = {
+	picture = { reference = "gfx/interface/illustrations/decisions/fixture_mod_picture.dds" }
+	extra_picture = "gfx/interface/illustrations/decisions/fixture_base_picture.dds"
+	ai_check_interval = 0
+	effect = { add_gold = 1 }
+	ai_will_do = { base = 0 }
+}
+
+fixture_graphics_constant_decision = {
+	picture = { reference = @fixture_constant_picture }
+	ai_check_interval = 0
+	effect = { add_gold = 1 }
+	ai_will_do = { base = 0 }
+}
+
+fixture_graphics_case_decision = {
+	picture = { reference = "gfx/interface/icons/fixture_jomini_icon.tga" }
+	picture = { reference = "fixture_bare_name.dds" }
+	picture = { reference = "gfx/interface/../interface/fixture_parent_folder.dds" }
+	ai_check_interval = 0
+	effect = { add_gold = 1 }
+	ai_will_do = { base = 0 }
+}

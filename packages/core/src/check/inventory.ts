@@ -78,6 +78,7 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'localization/missing-key': ['key'],
     'localization/unbalanced-brackets': ['key', 'column', 'file'],
     'localization/unused-key': ['key'],
+    'graphics/missing-file': ['file'],
     'names/modifier-outside-use-area': ['modifier name', 'kind of block', 'use areas'],
     'names/unknown-effect': ['effect'],
     'names/unknown-link': ['link', 'file:line'],

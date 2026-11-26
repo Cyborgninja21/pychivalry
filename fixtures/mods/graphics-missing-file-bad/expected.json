@@ -1,0 +1,68 @@
+{
+    "findings": [
+        {
+            "file": "common/decisions/fixture_graphics_decisions.txt",
+            "line": 4,
+            "column": 26,
+            "code": "graphics/missing-file",
+            "severity": "warning",
+            "message": "Failed to load texture gfx/interface/illustrations/decisions/fixture_missing_picture.dds - file not found",
+            "data": {
+                "path": "gfx/interface/illustrations/decisions/fixture_missing_picture.dds",
+                "field": "picture/reference"
+            }
+        },
+        {
+            "file": "common/decisions/fixture_graphics_decisions.txt",
+            "line": 5,
+            "column": 18,
+            "code": "graphics/missing-file",
+            "severity": "warning",
+            "message": "Failed to load texture gfx/interface/illustrations/decisions/fixture_missing_extra.png - file not found",
+            "data": {
+                "path": "gfx/interface/illustrations/decisions/fixture_missing_extra.png",
+                "field": "extra_picture"
+            }
+        },
+        {
+            "file": "common/decisions/fixture_graphics_decisions.txt",
+            "line": 12,
+            "column": 26,
+            "code": "graphics/missing-file",
+            "severity": "warning",
+            "message": "Failed to load texture gfx/interface/illustrations/decisions/fixture_constant_missing.dds - file not found",
+            "data": {
+                "path": "gfx/interface/illustrations/decisions/fixture_constant_missing.dds",
+                "field": "picture/reference",
+                "constant": "@fixture_constant_picture"
+            }
+        },
+        {
+            "file": "common/decisions/fixture_graphics_decisions.txt",
+            "line": 19,
+            "column": 26,
+            "code": "graphics/missing-file",
+            "severity": "warning",
+            "message": "Failed to load texture gfx/interface/illustrations/decisions/Fixture_Base_Picture.dds - file not found",
+            "data": {
+                "path": "gfx/interface/illustrations/decisions/Fixture_Base_Picture.dds",
+                "field": "picture/reference",
+                "other_case": [
+                    "gfx/interface/illustrations/decisions/fixture_base_picture.dds"
+                ]
+            }
+        },
+        {
+            "file": "common/event_backgrounds/fixture_graphics_backgrounds.txt",
+            "line": 2,
+            "column": 29,
+            "code": "graphics/missing-file",
+            "severity": "warning",
+            "message": "Failed to load texture gfx/interface/illustrations/event_scenes/fixture_missing_scene.dds - file not found",
+            "data": {
+                "path": "gfx/interface/illustrations/event_scenes/fixture_missing_scene.dds",
+                "field": "background/reference"
+            }
+        }
+    ]
+}
