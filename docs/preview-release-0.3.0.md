@@ -1,36 +1,45 @@
-# The third preview: the pre-release, drafted
+# The third preview: the pre-release, published
 
-Item 9.9 of [PLAN.md](PLAN.md): the third preview build, attached to a GitHub pre-release.
-**This page is a draft. Nothing here is published: there is no tag `v0.3.0` and no release.** A
-release is public the moment it is made, so it is made only on the owner's word, and the owner
-decides when; until then this page holds what it would be. It is made the way the first two were
-([preview-release.md](preview-release.md#how-a-preview-is-made)): the pull request that drafts this
-page merged, public CI green on Linux and Windows for that commit, `task ci` and
-`task vscode:package` on a clean checkout of it, the by-hand check on Linux and Windows with that
-file ([guide/by-hand-check.md](guide/by-hand-check.md)), then the GitHub pre-release.
+Item 9.9 of [PLAN.md](PLAN.md): the third preview build, attached to a GitHub pre-release. A
+release is public the moment it is made, so it was made only on the owner's word: on
+2026-11-26 the owner published it, at once and as drafted, before his hand calibration of the
+judge and his hand checklist on VS Code's built-in AI ([decisions.md](decisions.md), decision
+180). This page is the record of what was published; it was the draft the owner approved, and its
+notes went out as drafted.
 
-**What the plan put before it, and where that stands.** The plan has the third preview wait for
-the owner's hand calibration of the judge, on his three sheets, and his hand checklist on VS Code's
-built-in AI (decisions 129, 132 and 135). On 2026-11-26 the owner had the release run made first,
-before both (decision 178); neither has been done yet. Whether the preview is published before them
-is the owner's to decide ([decisions.md](decisions.md#asked-awaiting-the-owner)). If either is
-done first, the notes' sentences on it are changed before they go out.
-
-## What it would be
+## What was published
 
 | | |
 | --- | --- |
 | Tag | `v0.3.0` |
 | Title | pychivalry 0.3.0 (preview) |
-| Marked | Pre-release |
-| Commit | The merge into `main` of the pull request that files the release run and drafts this page (not yet made) |
-| Attached | `pychivalry-0.3.0.vsix`, its size and SHA-256 written here when it is built from that commit |
+| Marked | Pre-release (not latest) |
+| Commit | `81f7dec7404f8bb601663f6813a8e0363465f56b` (`main`, the merge of pull request #169, which filed the release run and drafted this page) |
+| Attached | `pychivalry-0.3.0.vsix`, 4,277,332 bytes, SHA-256 `8259b159a1ac8ba1932aa96ec8ffb417ff982c7c1b09ff25e7e13820c28b26b5` |
+| Page | [github.com/Cyborgninja21/pychivalry/releases/tag/v0.3.0](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.3.0) |
 
-The extension's version is `0.3.0` and its manifest still says `"preview": true`. The pull request's
-branch packages to `pychivalry-0.3.0.vsix` (`task vscode:package`: 4,277,332 bytes, 53 entries, the
-three skills among them; 0.2.0's was 4,050,490 bytes), and the editor tests pass on it, the smoke
-test of the installed file among them; that file is a proof that 0.3.0 builds, not the one to
-attach, which is built from the merge.
+The extension's version is `0.3.0` and its manifest says `"preview": true`. Its file holds the
+three skills (0.2.0's was 4,050,490 bytes).
+
+**Published before the owner's hand work, and without the by-hand check.** The plan had the third
+preview wait for the owner's hand calibration of the judge, on his three sheets, and his hand
+checklist on VS Code's built-in AI (decisions 129, 132 and 135). On 2026-11-26 the owner had the
+release run made before both (decision 178), and then, the same day, the preview published before
+both (decision 180). What 0.3.0 was checked by before it was published: public CI green on Linux
+and Windows for that commit (`task ci`, and the editor tests in a real VS Code, the smoke test of
+the packaged file among them), then `task ci` and `task vscode:package`, both passing, on a clean
+checkout of it. What was **not** done before it was published:
+
+1. The by-hand check on Linux and Windows ([guide/by-hand-check.md](guide/by-hand-check.md)),
+   the third step of the way a preview is made
+   ([preview-release.md](preview-release.md#how-a-preview-is-made)).
+2. The owner's hand calibration of the judge on the three sheets, so whether the judge that said
+   yes to all 800 questions of the release run says no where it should is not yet measured.
+3. The hand checklist on VS Code's built-in AI ([guide/ai-checklist.md](guide/ai-checklist.md)),
+   so how well VS Code's own AI follows the skills is not yet checked.
+
+The notes say the second and the third plainly. Both stay the owner's own (decisions 129 and 135),
+now after the publication.
 
 ## What is new since 0.2.0
 
@@ -73,7 +82,9 @@ From build step 9 and what was built beside it ([CHANGELOG.md](../CHANGELOG.md))
   **The judge is not yet calibrated against hand grading**: its ability to say no is unmeasured
   until the owner's three sheets are graded (decision 178).
 
-## The notes, drafted
+## The notes, as published
+
+The release's notes, as drafted here and published unchanged:
 
 > **pychivalry 0.3.0 is the third preview** of the rebuilt pychivalry, a VS Code extension for
 > Crusader Kings III modding: it tells you, and the AI you use, what the game itself would say

@@ -621,6 +621,14 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   on every measure, every target met with and without the expert requests, its sessions given the
   committed tool schema version and judged with the committed judge's prompt
   (`authoring-targets.test.ts`).
+- The third preview, 0.3.0, released on 2026-11-26, published on the owner's word (decision 180)
+  before his hand calibration of the judge and his hand checklist on VS Code's built-in AI: the
+  GitHub pre-release `v0.3.0`, "pychivalry 0.3.0 (preview)", on commit `81f7dec` (the merge of
+  #169), with `pychivalry-0.3.0.vsix` attached (4,277,332 bytes, SHA-256
+  `8259b159a1ac8ba1932aa96ec8ffb417ff982c7c1b09ff25e7e13820c28b26b5`) and the notes as drafted;
+  `docs/preview-release-0.3.0.md` is now the record of what was published, and says that the
+  by-hand check, the calibration and the checklist were not done before it. The install guide
+  describes 0.3.0.
 
 ### Changed
 
@@ -1074,12 +1082,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.
 - Build step 9: the judge's calibration (item 9.6), on its three sheets, and the hand checklist on
-  VS Code's AI (item 9.7), on an extension file built from `main`, are the owner's to run. The
-  third preview's release run was made on his word of 2026-11-26, before both (decision 178), and
-  met every target (decision 179); its judge said yes to all 800 of its questions, and only the
-  calibration can show that it says no where it should. The third preview, 0.3.0, is drafted in
-  `docs/preview-release-0.3.0.md` and not published; whether it is published before the
-  calibration and the checklist is asked of the owner.
+  VS Code's AI (item 9.7), on the third preview's file or one built from `main`, are the owner's to
+  run. The third preview's release run was made on his word of 2026-11-26, before both (decision
+  178), and met every target (decision 179); its judge said yes to all 800 of its questions, and
+  only the calibration can show that it says no where it should. The third preview, 0.3.0, was
+  published the same day, also before both (decision 180).
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
 - The game-concept half of `references/unknown-name` stays blocked: without a concept's aliases
