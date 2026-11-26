@@ -1986,9 +1986,10 @@ already write every tool by its listed name and say to call it again by that nam
 sessions did at their next message. The record is filed as `authoring.json` and the second run's
 kept as `authoring-run-2.json`; the test that lists every committed authoring record with the
 judge's version it was judged with (`judge.test.ts`) names both, and `authoring-targets.test.ts`
-reads the release run's targets from the committed record. The extension's version is 0.3.0 and
-the third preview's release text is drafted, not published
-([docs/preview-release-0.3.0.md](../../docs/preview-release-0.3.0.md)).
+reads the release run's targets from the committed record. The extension's version is 0.3.0, and
+the third preview was published the same day on the owner's word, also before his calibration
+and his checklist (decision 180;
+[docs/preview-release-0.3.0.md](../../docs/preview-release-0.3.0.md)).
 
 ## Re-judging kept results
 

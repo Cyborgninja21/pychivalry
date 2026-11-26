@@ -21,13 +21,16 @@ the formatting rules the owner decided ([docs/formatting.md](docs/formatting.md)
 surface, the `style/` findings, fixes carried by findings and quick fixes, and the presentation
 data. The second preview, **0.2.0**, is published as a
 [GitHub pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0) (build step
-8, 2026-11-23). Build step 9 has started: the skills that tell your AI how to explain an error,
+8, 2026-11-23). Build step 9 is built: the skills that tell your AI how to explain an error,
 fix one and write new content ([skills/](skills/README.md)), which VS Code's own AI gets from the
 extension and Claude Code from "Set up for Claude Code". The scored authoring test's release run,
 every content request 10 times, met every target on 2026-11-26
 ([tools/scored-run/README.md](tools/scored-run/README.md#the-third-previews-release-run-decision-132)),
-its judge not yet calibrated against grading by hand; the third preview, 0.3.0, is drafted and not
-yet published.
+its judge not yet calibrated against grading by hand. The third preview, **0.3.0**, with the
+skills, is published as a
+[GitHub pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.3.0) (build step
+9, 2026-11-26), before the hand calibration of the judge and the hand checklist on VS Code's own
+AI, which are still to be done.
 
 - What is being built, and why: [docs/MVP.md](docs/MVP.md).
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
@@ -36,8 +39,8 @@ yet published.
   pinned test mods, the 2.3.0 speed and result baselines, and the documents every later step
   fills. The parser (step 2), the workspace index (step 3), the checks and lookup (step 4), the
   command line (step 5), the agent server (step 6) and the language server and extension (step
-  7) are built, and so are the formatter and fixes of step 8 and its preview; step 9's skills
-  are built.
+  7) are built, and so are the formatter and fixes of step 8 and its preview, and step 9's skills
+  and its preview.
 - Every document, and which step writes it: [docs/README.md](docs/README.md). The sources
   pychivalry draws on: [docs/references/](docs/references/README.md). What the tests run on:
   [docs/test-data.md](docs/test-data.md). The user guide so far:

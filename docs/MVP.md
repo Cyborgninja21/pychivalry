@@ -24,7 +24,7 @@ agent servers and the command line were made to share one copy of the base game'
 formatting rules the owner decided, the `style/` findings, findings that carry their fixes with
 quick fixes in the editor and `check --fix` on the command line, and the presentation data
 (outline, snippets, field order, inline hints); the second preview, 0.2.0, is published as a
-GitHub pre-release (2026-11-23). Build step 9 has started: the three skills, in the form both AI
+GitHub pre-release (2026-11-23). Build step 9 is built: the three skills, in the form both AI
 harnesses load, given to VS Code's AI by the extension and installed for Claude Code by its
 set-up, and the hand checklist for VS Code's AI; and the scored authoring run, with its content
 requests, its judge and the judge's calibration. Two scored authoring runs are on record
@@ -37,8 +37,9 @@ version 5). The development run of the expert requests on it was made on 2026-11
 target (decision 166). The same day, on the owner's word given before his hand calibration and his
 hand checklist (decision 178), the third preview's release run was made: every request 10 times,
 480 test sessions, every target met, the judge yes to all 800 of its questions, so that its ability
-to say no is not yet calibrated (decision 179). The calibration's hand grading and the hand
-checklist are the owner's; the third preview, version 0.3.0, is drafted and not published. What
+to say no is not yet calibrated (decision 179). On his word of the same day, also given before
+both, the third preview, version 0.3.0, is published as a GitHub pre-release (2026-11-26, decision
+180). The calibration's hand grading and the hand checklist are still the owner's. What
 waits on the owner or on the spec
 work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
