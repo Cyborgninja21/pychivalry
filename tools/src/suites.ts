@@ -4,7 +4,8 @@
  * mods, `CK3_CORPUS` (and `CK3_CORPUS_SLUGS`), and writes its record to
  * `records/game/<suite>.json`.
  *
- * `game:parse` is the base-game parse suite of build step 2 (parse-suite.ts); `game:index` the
+ * `game:parse` is the base-game parse suite of build step 2 (parse-suite.ts), with the GUI parse
+ * suite of build step 10 (gui-suite.ts), which also parses the corpus mods' GUI files; `game:index` the
  * index suite of build step 3 (index-suite.ts); `game:check` and `game:mods` the check suites
  * of item 4.10 (check-suite.ts). `game:bench` is still the stub of build step 1: it
  * establishes the run's context (game build and manifest, the committed spec, the pinned
@@ -32,6 +33,7 @@ import {
 } from '@pychivalry/core';
 import { runCheckSuite, runModsSuite } from './check-suite.js';
 import { gameInfo, requireGameDir } from './game.js';
+import { readGuiClassifications, runGuiSuite, type GuiSuiteFolder } from './gui-suite.js';
 import { runIndexSuite } from './index-suite.js';
 import {
     notScriptOf,
@@ -56,7 +58,7 @@ export type GameSuite = (typeof GAME_SUITES)[number];
 
 /** Which suites read the mod corpus. */
 const READS_CORPUS: Record<GameSuite, boolean> = {
-    parse: false,
+    parse: true,
     index: true,
     check: false,
     mods: true,
@@ -110,6 +112,11 @@ export function parseClassificationsFile(root: string): string {
     return path.join(root, 'tools', 'data', 'parse-classifications.json');
 }
 
+/** Where the classifications of the GUI parser's findings on the install's GUI files live. */
+export function guiParseClassificationsFile(root: string): string {
+    return path.join(root, 'tools', 'data', 'gui-parse-classifications.json');
+}
+
 /** Where the classifications of the base game's check errors and warnings live. */
 export function checkClassificationsFile(root: string): string {
     return path.join(root, 'tools', 'data', 'check-classifications.json');
@@ -124,7 +131,9 @@ export function modsClassificationsFile(root: string): string {
 export interface SuiteOptions {
     readonly manifestFile?: string;
     readonly parseFolders?: readonly SuiteFolder[];
+    readonly guiFolders?: readonly GuiSuiteFolder[];
     readonly classificationsFile?: string;
+    readonly guiClassificationsFile?: string;
 }
 
 const CHECK_NOTES = [
@@ -162,6 +171,7 @@ const PARSE_NOTES = [
     'Files are decoded as UTF-8, the default: no fallback encoding is named. A file that is not valid UTF-8 is read in full and counted (not_utf8 in results.folders); the parse gives no finding for it (its information note, encoding/not-utf8, was retired on 2026-11-23: the warning style/not-utf8 of the check suite reports such a file).',
     'Every error is classified in tools/data/parse-classifications.json, matched by file, finding and line. parse_ms is the time to decode and parse, on this machine, in one process.',
     'results.encoding measures every text file of the game folder, whether the suite parses it or not: the figures of docs/encoding.md.',
+    "results.gui is the GUI parse suite (docs/PLAN.md item 10.3; docs/gui-syntax.md): every .gui file of the install's game/, jomini/ and clausewitz/ folders, in the folders of results.gui.folders, each with the files expected and the evidence for it, parsed by the GUI parser; every finding (each is information: no catalogue message is the GUI reader's) listed and classified in tools/data/gui-parse-classifications.json, matched by layer, file, finding and line; forms counts every form of GUI syntax the files write, each with the files that write it and its first place, the files read in path order; mods lists, for each corpus mod read, its .gui files, the trees and every finding, unclassified: a mod's GUI file is not the base game's. parse_ms is the time to decode and parse, on this machine, in one process.",
     "results.round_trip is the formatter's round trip (docs/PLAN.md item 8.3) over every file parsed, with the rules every surface uses (docs/formatting.md): each is formatted, its output parsed and compared with the input without offsets (the same items in order and nesting, of the same kinds, with the same texts, scalar types, operators, names before keys, closings and chain segments, and comments but for their trailing spaces and tabs), its tokens compared, its comments counted and each checked to keep the tokens around it and its own line or not, and formatted a second time to the same bytes. A file with a parse error is left as it is (results.round_trip.left). by_rule counts the places, files and lines each style/ hint names; width the lines over 120 columns (a tab to the next multiple of four, every code point one column) before formatting, formatted without the 120-column rule and with it, and the files that rule changes on its own. format_ms is formatting alone, in one process. results.round_trip_localization is the same over the game's localization/ .yml files, their reading by the index's localization reader compared.",
 ];
 
@@ -205,7 +215,22 @@ export function gameSuiteRecord(
             ),
             ...(options.parseFolders === undefined ? {} : { folders: options.parseFolders }),
         });
-        return { ...context, notes: PARSE_NOTES, results: { ...results } };
+        const gui = runGuiSuite(gameDir, {
+            classifications: readGuiClassifications(
+                options.guiClassificationsFile ?? guiParseClassificationsFile(root),
+            ),
+            mods: (pinned?.ref.slugs ?? []).map((slug) => ({
+                slug,
+                dir: path.join(pinned?.dir ?? '', slug),
+            })),
+            ...(options.guiFolders === undefined ? {} : { folders: options.guiFolders }),
+        });
+        const failures = [...results.failures, ...gui.failures.map((f) => `gui: ${f}`)];
+        return {
+            ...context,
+            notes: PARSE_NOTES,
+            results: { ...results, passed: failures.length === 0, failures, gui },
+        };
     }
     if (suite === 'check') {
         const loadBefore = loadavg()[0] ?? 0;

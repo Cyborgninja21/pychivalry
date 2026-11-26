@@ -117,7 +117,10 @@ export const BASE_GAME_FOLDERS: readonly SuiteFolder[] = [
 
 /** Text files the suite does not parse, and why. Recorded so a reader sees the whole game. */
 export const NOT_READ: readonly { readonly what: string; readonly why: string }[] = [
-    { what: 'gui/**/*.gui', why: 'GUI syntax: its own parser and suite, build step 10.' },
+    {
+        what: 'gui/**/*.gui, and every other .gui file of the install',
+        why: 'Not script: GUI syntax, read by the GUI parser in results.gui (build step 10, docs/gui-syntax.md).',
+    },
     { what: 'localization/**/*.yml', why: 'Localization files: read by the index, build step 3.' },
     { what: '**/*.asset', why: '.asset files come after the MVP (docs/MVP.md, "Not in the MVP").' },
     {

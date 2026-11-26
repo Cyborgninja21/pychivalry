@@ -1,0 +1,149 @@
+{
+    "about": "Every finding task game:parse's GUI suite finds in the install's GUI files, classified: a defect of the game's own files (game-defect) or a fault of pychivalry's GUI parser to fix (pychivalry-fault). Matched by layer (game, jomini or clausewitz), file, finding id and line; a finding without an entry, or an entry without a finding, fails the suite (tools/src/gui-suite.ts). Every GUI finding is information (docs/checks.md, The GUI syntax findings); each is classified all the same, so that a GUI file parses when it gives none. Game 1.21.0.3.",
+    "classifications": [
+        {
+            "layer": "game",
+            "file": "gui/debug/window_drag_drop_test.gui",
+            "id": "syntax/gui-missing-equals",
+            "line": 32,
+            "classification": "game-defect",
+            "reason": "'margin { 50 0 }' in a debug test window, written without its '='. The base game's GUI files write 'margin = { ... }' 3,364 times and 'margin { ... }' only here; no evidence shows the GUI reader reads it as 'margin = { 50 0 }'."
+        },
+        {
+            "layer": "game",
+            "file": "gui/window_dynasty_house.gui",
+            "id": "syntax/gui-missing-equals",
+            "line": 1828,
+            "classification": "game-defect",
+            "reason": "'align right|top' written without its '=' among a text_single's properties. The base game's GUI files write 'align = ...' 3,034 times and a key followed by its value with no '=' only here."
+        },
+        {
+            "layer": "game",
+            "file": "gui/window_dynasty_house.gui",
+            "id": "syntax/gui-missing-equals",
+            "line": 2894,
+            "classification": "game-defect",
+            "reason": "'size { 5 0 }' in a spacer, written without its '='. The base game's GUI files write 'size = { ... }' 11,677 times and 'size { ... }' twice, here and in gui/window_legends.gui."
+        },
+        {
+            "layer": "game",
+            "file": "gui/window_legends.gui",
+            "id": "syntax/gui-missing-equals",
+            "line": 1002,
+            "classification": "game-defect",
+            "reason": "'size { ... }' written without its '='. The base game's GUI files write 'size = { ... }' 11,677 times and 'size { ... }' twice, here and in gui/window_dynasty_house.gui."
+        },
+        {
+            "layer": "game",
+            "file": "gui/window_character.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 5452,
+            "classification": "game-defect",
+            "reason": "'tooltipwidget = struggle_tooltip;': the ';' makes the value the word 'struggle_tooltip;', which nothing defines. The base game writes 'tooltipwidget = struggle_tooltip' twice elsewhere (gui/hud.gui:5645) and defines the template struggle_tooltip in gui/shared/cooltip.gui; no other value of the base game's GUI files ends with ';' but 'expanding;' in gui/window_dlc_info.gui."
+        },
+        {
+            "layer": "game",
+            "file": "gui/window_dlc_info.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 213,
+            "classification": "game-defect",
+            "reason": "'layoutpolicy_horizontal = expanding;': the ';' makes the value the word 'expanding;'. The base game's GUI files write 'layoutpolicy_horizontal = expanding' 9,795 times and 'expanding;' only here."
+        },
+        {
+            "layer": "jomini",
+            "file": "gui/social/add_friend_window_base.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 76,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties. Two of the file's 79 properties end with ';' (lines 76 and 78), the other 77 with none; no file of the base game's own game/gui folder writes a ';' after a statement but the two words of gui/window_character.gui and gui/window_dlc_info.gui."
+        },
+        {
+            "layer": "jomini",
+            "file": "gui/social/add_friend_window_base.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 78,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties. Two of the file's 79 properties end with ';' (lines 76 and 78), the other 77 with none; no file of the base game's own game/gui folder writes a ';' after a statement but the two words of gui/window_character.gui and gui/window_dlc_info.gui."
+        },
+        {
+            "layer": "jomini",
+            "file": "gui/social/chat_window_base.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 263,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties. One of the file's 155 properties ends with ';', the other 154 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 245,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 257,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 337,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 344,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 364,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 365,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 372,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/texture_importer.gui",
+            "id": "syntax/gui-trailing-semicolon",
+            "line": 373,
+            "classification": "game-defect",
+            "reason": "A ';' after a quoted data binding, apart from it: read as a value of its own among the widget's properties, in the engine's texture importer tool window. Eight of the file's 261 properties end with ';' (lines 245, 257, 337, 344, 364, 365, 372 and 373), the other 253 with none."
+        },
+        {
+            "layer": "clausewitz",
+            "file": "gui/applicationutils/tools_gui_dialogs.gui",
+            "id": "syntax/gui-unexpected-closing-brace",
+            "line": 217,
+            "classification": "game-defect",
+            "reason": "The file's last line is a '}' that closes no block: counted outside comments and quoted text the file has 46 '{' and 47 '}', and its depth is last zero on line 216, where its types block ends. A tool window of the engine's own folder."
+        }
+    ]
+}
