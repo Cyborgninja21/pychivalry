@@ -12,11 +12,18 @@
  *   `combines_conditions` row. D4's own `not_settled` names these plain trigger blocks: the
  *   game's documentation tells when such a block is evaluated, not how it combines its
  *   conditions, so what an empty one evaluates to is not known.
+ * - **A scope switch**: a key that is a chain (`scope:target`, `root.liege`) or a name of the
+ *   links bucket (`liege`, and `root`, which the table `structural` also lists), whose block
+ *   the reader reads in the scope it switches to, like the block around it. Part D4 has no row
+ *   for one; in a trigger block an empty one may fail where its scope does not exist, and what
+ *   it evaluates to is not stated.
  *
- * In a trigger or effect block the context reader's judgement of the key decides. Where the
- * reader judges no key, in a block it reads as record fields or as a script value, the key's
- * name decides by the same data: a structural keyword whose block the table reads as triggers
- * (a `limit` in a script value's `if`). A key the reader does not judge in a trigger or effect
+ * A scope switch is read first: its block is read like the block around it, which in a trigger
+ * block is triggers too. In a trigger or effect block the context reader's judgement of the key
+ * decides. Where the reader judges no key, in a block it reads as record fields or as a script
+ * value, the key's name decides by the same data: the reader's own rule that a chain or a link
+ * there is a scope switch, and a structural keyword whose block the table reads as triggers (a
+ * `limit` in a script value's `if`). A key the reader does not judge in a trigger or effect
  * block is a case of the block around it (a `random_list` entry, a `switch` case), and a key of
  * a modifier block or of a block the reader does not read is none of these: both are read as
  * before.
@@ -24,6 +31,7 @@
 
 import type { Spec } from '../spec/reader.js';
 import { tablesOf } from '../spec/tables.js';
+import { vocabularyOf } from '../spec/vocabulary.js';
 import type { Pair } from '../syntax/tree.js';
 import type { BlockKind, JudgedKey } from './context.js';
 import { holdsIn, keywordRolesOf } from './keyword-roles.js';
@@ -31,11 +39,14 @@ import { holdsIn, keywordRolesOf } from './keyword-roles.js';
 /** An empty block whose meaning the package leaves open: what kind of block it is. */
 export type OpenEmptyBlock =
     /** Conditions that filter or gate something: a `limit`, a `random_list` entry's `trigger`. */
-    'trigger-block';
+    | 'trigger-block'
+    /** A block run in another scope: `scope:target`, `liege`. */
+    | 'scope-switch';
 
 /** The words a message names each kind by. */
 export const OPEN_EMPTY_WORDS: Readonly<Record<OpenEmptyBlock, string>> = {
     'trigger-block': 'trigger block',
+    'scope-switch': 'scope switch',
 };
 
 /** Part D4's role of a block of conditions that holds or fails by which of its children hold. */
@@ -66,6 +77,7 @@ function combinesConditions(spec: Spec, name: string, directory: string | null):
  */
 export function openEmptyBlock(spec: Spec, pair: Pair, place: EmptyPlace): OpenEmptyBlock | null {
     const tables = tablesOf(spec);
+    const links = (name: string): boolean => vocabularyOf(spec).has('links', name);
     const { key, directory } = place;
     if (key === undefined) {
         if (place.parent !== 'none' && place.parent !== 'script-value') {
@@ -73,6 +85,9 @@ export function openEmptyBlock(spec: Spec, pair: Pair, place: EmptyPlace): OpenE
             return null;
         }
         const name = pair.key.text;
+        if (pair.key.type === 'chain' || links(name)) {
+            return 'scope-switch';
+        }
         return tables.structural.get(name) === 'trigger' &&
             !combinesConditions(spec, name, directory)
             ? 'trigger-block'
@@ -81,7 +96,15 @@ export function openEmptyBlock(spec: Spec, pair: Pair, place: EmptyPlace): OpenE
     const name = key.folded ?? pair.key.text;
     const kind = key.reading.kind;
     if (
-        (kind === 'structural' || kind === 'block-param') &&
+        kind === 'chain' ||
+        kind === 'link' ||
+        ((kind === 'structural' || kind === 'keyword') && links(name))
+    ) {
+        return 'scope-switch';
+    }
+    if (
+        (kind === 'block-param' ||
+            (kind === 'structural' && tables.structural.get(name) === 'trigger')) &&
         place.block === 'trigger' &&
         !combinesConditions(spec, name, directory)
     ) {

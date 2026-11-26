@@ -51,6 +51,19 @@
                 "block": "every_child",
                 "comments": "no"
             }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 19,
+            "column": 2,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'liege' is empty: the spec package leaves open what an empty scope switch means.",
+            "data": {
+                "block": "liege",
+                "comments": "no",
+                "means": "scope-switch"
+            }
         }
     ]
 }

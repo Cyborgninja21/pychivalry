@@ -16,4 +16,5 @@ fixture_empty_effect = {
 		add_prestige = 1
 	}
 	every_child = {}
+	liege = {}
 }

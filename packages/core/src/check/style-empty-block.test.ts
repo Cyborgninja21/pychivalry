@@ -24,6 +24,7 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
             [CODE, 'hint', 'else', 'yes', 'effect'],
             [CODE, 'hint', 'any_child', 'no', 'at-least-one'],
             [CODE, 'hint', 'every_child', 'no', undefined],
+            [CODE, 'hint', 'liege', 'no', 'scope-switch'],
         ],
     );
 });
@@ -181,6 +182,62 @@ test(`${CODE}: an empty trigger block's meaning is left open by the package`, ()
     );
 });
 
+test(`${CODE}: an empty scope switch's meaning is left open by the package`, () => {
+    // A chain or a name of the links bucket, its block read in the scope it switches to, in an
+    // effect block and in a trigger block (decision 172); `root` is a link the table
+    // `structural` also lists.
+    assert.deepEqual(
+        meanings(
+            [
+                'my_effect = {',
+                '\tadd_gold = 1',
+                '\tscope:target = {}',
+                '\tliege = {}',
+                '\troot = {}',
+                '\tif = { limit = { is_adult = yes father = {} } add_gold = 2 }',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [
+            ['scope:target', 'scope-switch'],
+            ['liege', 'scope-switch'],
+            ['root', 'scope-switch'],
+            ['father', 'scope-switch'],
+        ],
+    );
+    // Where the reader judges no key, by its own rule that a chain or a link there is a scope
+    // switch: in a script value.
+    const value = checkText(
+        'common/script_values/x.txt',
+        'my_value = {\n\tvalue = 1\n\tscope:owner = {}\n}\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        value.map((f) => [f.args[0], f.data['means']]),
+        [['scope:owner', 'scope-switch']],
+    );
+    // A case of a `switch` is no scope switch, though its key is a chain: read as before.
+    assert.deepEqual(
+        meanings(
+            [
+                'my_effect = {',
+                '\tadd_gold = 1',
+                '\tswitch = {',
+                '\t\ttrigger = var:x',
+                '\t\tflag:a = {}',
+                '\t\tflag:b = { add_gold = 1 }',
+                '\t}',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [['flag:a', undefined]],
+    );
+});
+
 test(`${CODE}: the message of a block whose empty meaning is left open says so`, () => {
     const [found] = checkText(
         'common/scripted_effects/x.txt',
@@ -192,6 +249,17 @@ test(`${CODE}: the message of a block whose empty meaning is left open says so`,
     assert.deepEqual(found?.args, [
         'limit',
         ': the spec package leaves open what an empty trigger block means',
+    ]);
+    const [scope] = checkText(
+        'common/scripted_effects/x.txt',
+        'my_effect = { add_gold = 1 liege = {} }\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(scope?.args, [
+        'liege',
+        ': the spec package leaves open what an empty scope switch means',
     ]);
 });
 
