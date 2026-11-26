@@ -19,6 +19,9 @@
  *   `scope-switch`, `trigger-block`; a `limit`), whose meaning when empty the spec package
  *   leaves open (the owner's decision of 2026-11-26, `check/empty-open.ts`): nothing, until the
  *   spec work says what each evaluates to.
+ * - **An entry of a random list** (`random-entry`; the owner's decision of the same day, row
+ *   174, `check/empty-case.ts`): nothing. Taking an empty entry away changes the odds of the
+ *   others, and it may be a deliberate chance of nothing.
  */
 
 import {

@@ -19,17 +19,21 @@
  * the kind of its block; the owner kept it, row 171). Since the owner's decision of the same day
  * (row 172) an empty logical operator, scope switch or trigger block (a `limit`), whose meaning
  * when empty the package leaves open (`empty-open.ts`), is never offered for removal either, and
- * its message says the package leaves that open (`data.means`, the kind). Every other empty block
- * is reported as before.
+ * its message says the package leaves that open (`data.means`, the kind). Since the owner's
+ * decision of the same day (row 174) an empty entry of a random list (`empty-case.ts`, from the
+ * package's tables) is never offered for removal either: taking it away changes the odds of the
+ * others, which the message says (`data.means`, the kind). Every other empty block is reported
+ * as before.
  */
 
 import { significantItems } from '../syntax/tree.js';
 import type { AdviceResult } from './advice.js';
 import { readContext, type FileReading, type JudgedKey } from './context.js';
+import { emptyCase, type EmptyCase } from './empty-case.js';
 import { emptyIterator } from './empty-iterator.js';
 import { openEmptyBlock, OPEN_EMPTY_WORDS, type OpenEmptyBlock } from './empty-open.js';
 import type { CheckFinding, FindingData } from './finding.js';
-import type { Pair } from '../syntax/tree.js';
+import type { Block, Pair } from '../syntax/tree.js';
 import { finding } from './report.js';
 import { blockName, innerBlocks, type InnerBlock } from './style-blocks.js';
 import type { BestPracticeCheck, BestPracticeInput } from './best-practice.js';
@@ -45,6 +49,11 @@ function meaning(written: string | null): string {
 /** What the message says after "is empty", for a block whose empty meaning is left open. */
 function leftOpen(kind: OpenEmptyBlock): string {
     return `: the spec package leaves open what an empty ${OPEN_EMPTY_WORDS[kind]} means`;
+}
+
+/** What the message says after "is empty", for a case: what taking it away would change. */
+function changed(found: EmptyCase): string {
+    return `: an entry of '${found.container}', a chance of nothing; taking it away changes the odds of the others`;
 }
 
 function run(input: BestPracticeInput): AdviceResult {
@@ -80,23 +89,47 @@ function run(input: BestPracticeInput): AdviceResult {
             parent: reading.blocks.get(inner.parent),
         });
     };
+    // The pair whose value each block is, to find the container a case is written in.
+    const pairOf = new Map<Block, Pair>();
+    const caseOf = (pair: Pair, inner: InnerBlock): EmptyCase | null => {
+        const around = pairOf.get(inner.parent);
+        const { reading } = readingOf();
+        return emptyCase(input.spec, pair, {
+            directory: reading.directory,
+            container: around === undefined ? undefined : keyOf(around),
+            parent: reading.blocks.get(inner.parent),
+        });
+    };
     innerBlocks(input.tree, (inner) => {
         judged++;
+        if (inner.pair !== null) {
+            pairOf.set(inner.block, inner.pair);
+        }
         if (significantItems(inner.block).length > 0) {
             return;
         }
         const span = inner.pair ?? inner.block;
         const key = inner.pair === null ? undefined : keyOf(inner.pair);
+        // A case is a label of its container, never a key read for itself: it is read first.
+        const kase = inner.pair === null || key !== undefined ? null : caseOf(inner.pair, inner);
         const iterator =
-            inner.pair === null ? null : emptyIterator(input.spec, input.names, inner.pair, key);
+            inner.pair === null || kase !== null
+                ? null
+                : emptyIterator(input.spec, input.names, inner.pair, key);
         let data: FindingData = {
             block: blockName(inner),
             comments: inner.block.items.length > 0 ? 'yes' : 'no',
         };
         let said = '';
         const open =
-            inner.pair === null || iterator !== null ? null : openOf(inner.pair, inner, key);
-        if (iterator !== null) {
+            inner.pair === null || kase !== null || iterator !== null
+                ? null
+                : openOf(inner.pair, inner, key);
+        if (kase !== null) {
+            // Taking it away changes what the script does: it is never offered.
+            data = { ...data, means: kase.kind };
+            said = changed(kase);
+        } else if (iterator !== null) {
             data = { ...data, means: iterator.means };
             if (iterator.means === 'at-least-one') {
                 said = meaning(iterator.writtenOut);

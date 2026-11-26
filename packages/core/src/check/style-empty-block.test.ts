@@ -448,3 +448,61 @@ test(`${CODE}'s fix: never the removal of a condition; its test written out inst
         ['common/scripted_triggers/x.txt', 'any_spouse', null, null, null],
     ]);
 });
+
+test(`${CODE}: an empty entry of a random list is never offered for removal`, () => {
+    // A case of a container whose cases take parameters of their own (the table `containers`,
+    // its `case_params` naming `random_list_entry`): taking an empty entry away changes the odds
+    // of the others, and it may be a deliberate chance of nothing (decision 174).
+    assert.deepEqual(
+        meanings(
+            [
+                'my_effect = {',
+                '\tadd_gold = 1',
+                '\trandom_list = {',
+                '\t\t10 = {}',
+                '\t\t20 = { add_gold = 2 }',
+                '\t\t30 = {',
+                '\t\t\t# Nothing happens.',
+                '\t\t}',
+                '\t\t40 = { trigger = {} }',
+                '\t\t50 = { modifier = { add = 10 } random_list = { 1 = {} 2 = { add_gold = 1 } } }',
+                '\t}',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [
+            ['10', 'random-entry'],
+            ['30', 'random-entry'],
+            // An entry's own `trigger` is a trigger block (decision 172), not an entry.
+            ['trigger', 'trigger-block'],
+            ['1', 'random-entry'],
+        ],
+    );
+    const mod = writeMod({
+        'descriptor.mod': 'name="x"\n',
+        'common/scripted_effects/x.txt':
+            '﻿my_effect = {\r\n\tadd_gold = 1\r\n\trandom_list = {\r\n\t\t10 = {}\r\n\t\t90 = { add_gold = 1 }\r\n\t}\r\n}\r\n',
+    });
+    assert.deepEqual(
+        checkFixtureMod(mod)
+            .findings.filter((f) => f.code === CODE)
+            .map((f) => [f.data['block'], f.data['means'], f.fix?.basis ?? null, f.message]),
+        [
+            [
+                '10',
+                'random-entry',
+                null,
+                "The block '10' is empty: an entry of 'random_list', a chance of nothing; taking it away changes the odds of the others.",
+            ],
+        ],
+    );
+});
+
+test('the random lists come from the package: the containers whose cases take parameters of their own', () => {
+    const containers = [...tablesOf(committedSpec()).containers];
+    assert.deepEqual(
+        containers.filter(([, r]) => r.cases && r.caseParams.size > 0).map(([name]) => name),
+        ['random_list'],
+    );
+});
