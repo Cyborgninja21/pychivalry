@@ -57,6 +57,9 @@ export const MAX_FIX_ALTERNATIVES = 5;
  * - `keyword-roles`: part D4's roles of the spec package: a condition that always holds changes
  *   nothing in a block whose `child_always_true` is `neutral` while another child remains, and
  *   one that always fails nothing in a block whose `child_always_false` is.
+ * - `iterator-kinds`: part D8 of the spec package and the table `iterator_params`: an iterator
+ *   whose kind is a condition asks, with its body empty, for at least one item, which its own
+ *   parameter for how many must match writes out (`style/empty-block`).
  */
 export type FixBasis =
     | 'retired'
@@ -72,7 +75,8 @@ export type FixBasis =
     | 'formatting'
     | 'windows-1252'
     | 'field-order'
-    | 'keyword-roles';
+    | 'keyword-roles'
+    | 'iterator-kinds';
 
 /** One edit: a span of a file replaced with new text. */
 export interface FixEdit {

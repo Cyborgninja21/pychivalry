@@ -131,7 +131,7 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'style/block-layout': ['layout'],
     'style/line-endings': ['line breaks'],
     'style/deep-nesting': ['block', 'depth', 'deepest allowed', 'places'],
-    'style/empty-block': ['block'],
+    'style/empty-block': ['block', 'what it asks for, when it means something'],
     'style/not-utf8': ['number', 'reading'],
     'style/unusual-field-order': ['field', 'field before it', 'folder'],
     'style/localization-key-characters': ['key', 'what it holds'],
