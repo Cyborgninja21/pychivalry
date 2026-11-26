@@ -20,10 +20,11 @@
  * (row 172) an empty logical operator, scope switch or trigger block (a `limit`), whose meaning
  * when empty the package leaves open (`empty-open.ts`), is never offered for removal either, and
  * its message says the package leaves that open (`data.means`, the kind). Since the owner's
- * decision of the same day (row 174) an empty entry of a random list (`empty-case.ts`, from the
- * package's tables) is never offered for removal either: taking it away changes the odds of the
- * others, which the message says (`data.means`, the kind). Every other empty block is reported
- * as before.
+ * decision of the same day (row 174) an empty case of a container, an entry of a random list or
+ * a case of a case list, its fallback among them (`empty-case.ts`, from the package's tables and
+ * part D4), is never offered for removal either: taking an entry away changes the odds of the
+ * others, taking a case away lets the fallback run for its value, and the message says which
+ * (`data.means`, the kind). Every other empty block is reported as before.
  */
 
 import { significantItems } from '../syntax/tree.js';
@@ -53,7 +54,17 @@ function leftOpen(kind: OpenEmptyBlock): string {
 
 /** What the message says after "is empty", for a case: what taking it away would change. */
 function changed(found: EmptyCase): string {
-    return `: an entry of '${found.container}', a chance of nothing; taking it away changes the odds of the others`;
+    const of = `'${found.container}'`;
+    switch (found.kind) {
+        case 'random-entry':
+            return `: an entry of ${of}, a chance of nothing; taking it away changes the odds of the others`;
+        case 'fallback-case':
+            return `: the fallback of ${of}; taking it away leaves every value no case names with no case`;
+        case 'case':
+            return found.fallback === null
+                ? `: a case of ${of}; taking it away leaves its value with no case`
+                : `: a case of ${of}; taking it away lets '${found.fallback}' run for its value`;
+    }
 }
 
 function run(input: BestPracticeInput): AdviceResult {

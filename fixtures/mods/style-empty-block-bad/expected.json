@@ -77,6 +77,32 @@
                 "comments": "no",
                 "means": "logical-operator"
             }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 28,
+            "column": 3,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block '10' is empty: an entry of 'random_list', a chance of nothing; taking it away changes the odds of the others.",
+            "data": {
+                "block": "10",
+                "comments": "no",
+                "means": "random-entry"
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 33,
+            "column": 3,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'brave' is empty: a case of 'switch'; taking it away lets 'fallback' run for its value.",
+            "data": {
+                "block": "brave",
+                "comments": "no",
+                "means": "case"
+            }
         }
     ]
 }

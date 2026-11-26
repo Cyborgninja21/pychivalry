@@ -4,6 +4,7 @@ import { checkFixtureMod, writeMod } from '../fix/testing.js';
 import { committedSpec } from '../spec/testing.js';
 import { tablesOf } from '../spec/tables.js';
 import { prefixReadings } from './empty-iterator.js';
+import { keywordRolesOf } from './keyword-roles.js';
 import { CHECK_KINDS } from './finding.js';
 import { CODE } from './style-empty-block.js';
 import { checkText, expectedFindings, styleFixture } from './testing.js';
@@ -26,6 +27,8 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
             [CODE, 'hint', 'every_child', 'no', undefined],
             [CODE, 'hint', 'liege', 'no', 'scope-switch'],
             [CODE, 'hint', 'OR', 'no', 'logical-operator'],
+            [CODE, 'hint', '10', 'no', 'random-entry'],
+            [CODE, 'hint', 'brave', 'no', 'case'],
         ],
     );
 });
@@ -220,7 +223,7 @@ test(`${CODE}: an empty scope switch's meaning is left open by the package`, () 
         value.map((f) => [f.args[0], f.data['means']]),
         [['scope:owner', 'scope-switch']],
     );
-    // A case of a `switch` is no scope switch, though its key is a chain: read as before.
+    // A case of a `switch` is no scope switch, though its key is a chain: a case (decision 174).
     assert.deepEqual(
         meanings(
             [
@@ -235,7 +238,7 @@ test(`${CODE}: an empty scope switch's meaning is left open by the package`, () 
                 '',
             ].join('\n'),
         ),
-        [['flag:a', undefined]],
+        [['flag:a', 'case']],
     );
 });
 
@@ -529,6 +532,135 @@ test(`${CODE}: an empty random list entry where the reader judges no key is read
             ['60', undefined],
         ],
     );
+});
+
+test(`${CODE}: an empty case of a case list is never offered for removal, its fallback neither`, () => {
+    // A case of a container part D4 gives the role `case_list`: taking an empty case away lets
+    // the fallback run for its value; the fallback is the key of D4's `fallback_case` row whose
+    // parents name the container (decision 174). In an effect block and in a trigger block.
+    assert.deepEqual(
+        meanings(
+            [
+                'my_effect = {',
+                '\tadd_gold = 1',
+                '\tswitch = {',
+                '\t\ttrigger = var:x',
+                '\t\tflag:a = {}',
+                '\t\t1 = { add_gold = 1 }',
+                '\t\tfallback = {}',
+                '\t}',
+                '}',
+                '',
+            ].join('\n'),
+        ),
+        [
+            ['flag:a', 'case'],
+            ['fallback', 'fallback-case'],
+        ],
+    );
+    const trigger = checkText(
+        'common/scripted_triggers/x.txt',
+        'my_trigger = {\n\tis_adult = yes\n\tswitch = {\n\t\ttrigger = has_trait\n\t\tbrave = {}\n\t\tfallback = { is_female = yes }\n\t}\n}\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        trigger.map((f) => [f.args[0], f.data['means'], f.args[1]]),
+        [
+            [
+                'brave',
+                'case',
+                ": a case of 'switch'; taking it away lets 'fallback' run for its value",
+            ],
+        ],
+    );
+    // The message says what taking it away would change: with no fallback written, its value is
+    // left with no case.
+    const messages = checkText(
+        'common/scripted_effects/x.txt',
+        [
+            'my_effect = {',
+            '\tadd_gold = 1',
+            '\tswitch = {',
+            '\t\ttrigger = var:x',
+            '\t\tflag:a = {}',
+            '\t\tflag:b = { add_gold = 1 }',
+            '\t}',
+            '\tswitch = {',
+            '\t\ttrigger = var:y',
+            '\t\tflag:a = { add_gold = 1 }',
+            '\t\tfallback = {}',
+            '\t}',
+            '}',
+            '',
+        ].join('\n'),
+        {},
+        {},
+        { style: true },
+    )
+        .filter((f) => f.code === CODE)
+        .map((f) => f.args[1]);
+    assert.deepEqual(messages, [
+        ": a case of 'switch'; taking it away leaves its value with no case",
+        ": the fallback of 'switch'; taking it away leaves every value no case names with no case",
+    ]);
+    const mod = writeMod({
+        'descriptor.mod': 'name="x"\n',
+        'common/scripted_effects/x.txt':
+            '\uFEFFmy_effect = {\r\n\tadd_gold = 1\r\n\tswitch = {\r\n\t\ttrigger = var:x\r\n\t\tflag:a = {}\r\n\t\tflag:b = { add_gold = 1 }\r\n\t\tfallback = {}\r\n\t}\r\n}\r\n',
+    });
+    assert.deepEqual(
+        checkFixtureMod(mod)
+            .findings.filter((f) => f.code === CODE)
+            .map((f) => [f.data['block'], f.data['means'], f.fix?.basis ?? null]),
+        [
+            ['flag:a', 'case', null],
+            ['fallback', 'fallback-case', null],
+        ],
+    );
+});
+
+test(`${CODE}: a case of a case list where the reader judges no key is read by the container's name`, () => {
+    // A `switch` of a dynamic description, which the reader reads as record fields: part D4's
+    // `case_list` row holds anywhere, so its empty case is a case, not a scope switch.
+    const found = checkText(
+        'events/x.txt',
+        [
+            'namespace = x',
+            'x.1 = {',
+            '\ttype = character_event',
+            '\ttitle = x.1.t',
+            '\tdesc = {',
+            '\t\tswitch = {',
+            '\t\t\ttrigger = scope:x',
+            '\t\t\tflag:a = {}',
+            '\t\t\tflag:b = { desc = x.1.b }',
+            '\t\t}',
+            '\t}',
+            '\toption = { name = x.1.a }',
+            '}',
+            '',
+        ].join('\n'),
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        found.map((f) => [f.args[0], f.data['means']]),
+        [['flag:a', 'case']],
+    );
+});
+
+test('the case lists come from the package: part D4 gives `switch` the role `case_list`, `fallback` its fallback', () => {
+    const roles = keywordRolesOf(committedSpec());
+    assert.deepEqual([...new Set(roles.withRoles('case_list').map((r) => r.keyword))], ['switch']);
+    assert.deepEqual(
+        roles.withRoles('fallback_case').map((r) => [r.keyword, r.parents]),
+        [['fallback', ['switch']]],
+    );
+    // Every case list is a container of the tables whose rule has cases.
+    assert.equal(tablesOf(committedSpec()).containers.get('switch')?.cases, true);
 });
 
 test('the random lists come from the package: the containers whose cases take parameters of their own', () => {
