@@ -5,6 +5,13 @@
  * (decision 169, its fourth point). Everything is read from the package; no keyword is written
  * here.
  *
+ * - **A logical operator**: a key part D4 gives the role `combines_conditions`, "a block of
+ *   conditions that holds or fails by which of its direct children hold" (`AND`, `OR`, `NOT`,
+ *   `NOR`, `NAND`, `all_false`, `any_false`, `calc_true_if`, `weighted_calc_true_if`), whose row
+ *   holds in the file's folder, by the name the reader reads the key as. D4's own `not_settled`
+ *   says the game's documentation of these does not say what an empty one evaluates to. The
+ *   reader reads `and` and `or` as the game's own triggers, of which the part says nothing: they
+ *   are triggers written with an empty block (decision 167), as before.
  * - **A trigger block** (the owner's "an empty `limit`"): a structural keyword or a parameter
  *   of the block around it whose block the package reads as triggers, by the tables
  *   `structural`, `iterator_params`, `random_list_entry` and `block_params` (a `limit`, an
@@ -18,15 +25,16 @@
  *   for one; in a trigger block an empty one may fail where its scope does not exist, and what
  *   it evaluates to is not stated.
  *
- * A scope switch is read first: its block is read like the block around it, which in a trigger
- * block is triggers too. In a trigger or effect block the context reader's judgement of the key
- * decides. Where the reader judges no key, in a block it reads as record fields or as a script
- * value, the key's name decides by the same data: the reader's own rule that a chain or a link
- * there is a scope switch, and a structural keyword whose block the table reads as triggers (a
- * `limit` in a script value's `if`). A key the reader does not judge in a trigger or effect
- * block is a case of the block around it (a `random_list` entry, a `switch` case), and a key of
- * a modifier block or of a block the reader does not read is none of these: both are read as
- * before.
+ * A logical operator is read first, then a scope switch (whose block is read like the block
+ * around it, which in a trigger block is triggers too), then a trigger block. In a trigger or
+ * effect block the context reader's judgement of the key decides. Where the reader judges no
+ * key, in a block it reads as record fields or as a script value, the key's name decides by the
+ * same data: part D4's rows (an `OR` in an AI weight's `modifier`, which the reader reads as a
+ * script value), the reader's own rule that a chain or a link there is a scope switch, and a
+ * structural keyword whose block the table reads as triggers (a `limit` in a script value's
+ * `if`). A key the reader does not judge in a trigger or effect block is a case of the block
+ * around it (a `random_list` entry, a `switch` case), and a key of a modifier block or of a
+ * block the reader does not read is none of these: both are read as before.
  */
 
 import type { Spec } from '../spec/reader.js';
@@ -38,6 +46,8 @@ import { holdsIn, keywordRolesOf } from './keyword-roles.js';
 
 /** An empty block whose meaning the package leaves open: what kind of block it is. */
 export type OpenEmptyBlock =
+    /** A block that combines its conditions: `AND`, `OR`, `NOT`, `all_false`. */
+    | 'logical-operator'
     /** Conditions that filter or gate something: a `limit`, a `random_list` entry's `trigger`. */
     | 'trigger-block'
     /** A block run in another scope: `scope:target`, `liege`. */
@@ -45,6 +55,7 @@ export type OpenEmptyBlock =
 
 /** The words a message names each kind by. */
 export const OPEN_EMPTY_WORDS: Readonly<Record<OpenEmptyBlock, string>> = {
+    'logical-operator': 'logical operator',
     'trigger-block': 'trigger block',
     'scope-switch': 'scope switch',
 };
@@ -85,15 +96,18 @@ export function openEmptyBlock(spec: Spec, pair: Pair, place: EmptyPlace): OpenE
             return null;
         }
         const name = pair.key.text;
+        if (combinesConditions(spec, name, directory)) {
+            return 'logical-operator';
+        }
         if (pair.key.type === 'chain' || links(name)) {
             return 'scope-switch';
         }
-        return tables.structural.get(name) === 'trigger' &&
-            !combinesConditions(spec, name, directory)
-            ? 'trigger-block'
-            : null;
+        return tables.structural.get(name) === 'trigger' ? 'trigger-block' : null;
     }
     const name = key.folded ?? pair.key.text;
+    if (combinesConditions(spec, name, directory)) {
+        return 'logical-operator';
+    }
     const kind = key.reading.kind;
     if (
         kind === 'chain' ||
@@ -105,8 +119,7 @@ export function openEmptyBlock(spec: Spec, pair: Pair, place: EmptyPlace): OpenE
     if (
         (kind === 'block-param' ||
             (kind === 'structural' && tables.structural.get(name) === 'trigger')) &&
-        place.block === 'trigger' &&
-        !combinesConditions(spec, name, directory)
+        place.block === 'trigger'
     ) {
         return 'trigger-block';
     }

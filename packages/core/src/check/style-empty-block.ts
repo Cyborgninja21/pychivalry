@@ -16,10 +16,11 @@
  * makes instead; an iterator the package does not say how to read where it is written gets no
  * fix at all (`data.means`, `not-known`). A trigger or an effect of the package's buckets written
  * with an empty block is never offered for removal either, which would take it away (`data.means`,
- * the kind of its block). Since the owner's decision of the same day (row 172) an empty trigger
- * block whose meaning the package leaves open (`empty-open.ts`: a `limit`, a `random_list`
- * entry's `trigger`) is never offered for removal either, and its message says the package
- * leaves that open (`data.means`, the kind). Every other empty block is reported as before.
+ * the kind of its block; the owner kept it, row 171). Since the owner's decision of the same day
+ * (row 172) an empty logical operator, scope switch or trigger block (a `limit`), whose meaning
+ * when empty the package leaves open (`empty-open.ts`), is never offered for removal either, and
+ * its message says the package leaves that open (`data.means`, the kind). Every other empty block
+ * is reported as before.
  */
 
 import { significantItems } from '../syntax/tree.js';

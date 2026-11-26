@@ -25,6 +25,7 @@ test(`${CODE} fires on its bad fixture, as expected.json lists`, () => {
             [CODE, 'hint', 'any_child', 'no', 'at-least-one'],
             [CODE, 'hint', 'every_child', 'no', undefined],
             [CODE, 'hint', 'liege', 'no', 'scope-switch'],
+            [CODE, 'hint', 'OR', 'no', 'logical-operator'],
         ],
     );
 });
@@ -238,6 +239,68 @@ test(`${CODE}: an empty scope switch's meaning is left open by the package`, () 
     );
 });
 
+test(`${CODE}: an empty logical operator's meaning is left open by the package`, () => {
+    // Every key part D4 gives the role `combines_conditions`, whatever the reader calls it: a
+    // structural keyword (`OR`, `NOT`) or a trigger of the triggers bucket (`all_false`), which
+    // was a trigger written with an empty block before (decision 172).
+    const trigger = checkText(
+        'common/scripted_triggers/x.txt',
+        'my_trigger = {\n\tis_adult = yes\n\tOR = {}\n\tNOT = {}\n\tall_false = {}\n\tand = {}\n}\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        trigger.map((f) => [f.args[0], f.data['means']]),
+        [
+            ['OR', 'logical-operator'],
+            ['NOT', 'logical-operator'],
+            ['all_false', 'logical-operator'],
+            // The reader reads `and` as the game's own trigger, of which part D4 says nothing.
+            ['and', 'trigger'],
+        ],
+    );
+    // In a limit of an effect block, and where the reader judges no key: an AI weight's
+    // `modifier`, read as a script value.
+    assert.deepEqual(
+        meanings(
+            'my_effect = { add_gold = 1 if = { limit = { is_adult = yes OR = {} } add_gold = 2 } }\n',
+        ),
+        [['OR', 'logical-operator']],
+    );
+    const value = checkText(
+        'common/script_values/x.txt',
+        'my_value = {\n\tvalue = 10\n\tmodifier = {\n\t\tfactor = 0\n\t\tOR = {}\n\t}\n}\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(
+        value.map((f) => [f.args[0], f.data['means']]),
+        [['OR', 'logical-operator']],
+    );
+});
+
+test(`${CODE}: no fix for a block whose empty meaning is left open`, () => {
+    const mod = writeMod({
+        'descriptor.mod': 'name="x"\n',
+        'common/scripted_effects/x.txt':
+            '\uFEFFmy_effect = {\r\n\tadd_gold = 1\r\n\tif = {\r\n\t\tlimit = {\r\n\t\t\tis_adult = yes\r\n\t\t\tOR = {}\r\n\t\t}\r\n\t\tadd_gold = 2\r\n\t}\r\n\tif = {\r\n\t\tlimit = {}\r\n\t\tadd_gold = 3\r\n\t}\r\n\tliege = {}\r\n\tevery_child = {}\r\n}\r\n',
+    });
+    assert.deepEqual(
+        checkFixtureMod(mod)
+            .findings.filter((f) => f.code === CODE)
+            .map((f) => [f.data['block'], f.data['means'], f.fix?.basis ?? null]),
+        [
+            ['OR', 'logical-operator', null],
+            ['limit', 'trigger-block', null],
+            ['liege', 'scope-switch', null],
+            // Every other empty block is taken away as before.
+            ['every_child', undefined, 'parser'],
+        ],
+    );
+});
+
 test(`${CODE}: the message of a block whose empty meaning is left open says so`, () => {
     const [found] = checkText(
         'common/scripted_effects/x.txt',
@@ -260,6 +323,17 @@ test(`${CODE}: the message of a block whose empty meaning is left open says so`,
     assert.deepEqual(scope?.args, [
         'liege',
         ': the spec package leaves open what an empty scope switch means',
+    ]);
+    const [operator] = checkText(
+        'common/scripted_triggers/x.txt',
+        'my_trigger = { is_adult = yes OR = {} }\n',
+        {},
+        {},
+        { style: true },
+    ).filter((f) => f.code === CODE);
+    assert.deepEqual(operator?.args, [
+        'OR',
+        ': the spec package leaves open what an empty logical operator means',
     ]);
 });
 

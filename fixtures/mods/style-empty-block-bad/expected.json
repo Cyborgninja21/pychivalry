@@ -64,6 +64,19 @@
                 "comments": "no",
                 "means": "scope-switch"
             }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 23,
+            "column": 4,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'OR' is empty: the spec package leaves open what an empty logical operator means.",
+            "data": {
+                "block": "OR",
+                "comments": "no",
+                "means": "logical-operator"
+            }
         }
     ]
 }

@@ -17,4 +17,11 @@ fixture_empty_effect = {
 	}
 	every_child = {}
 	liege = {}
+	if = {
+		limit = {
+			is_adult = yes
+			OR = {}
+		}
+		add_gold = 1
+	}
 }
