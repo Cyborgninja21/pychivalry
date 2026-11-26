@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-26T21:39:47.306Z",
+    "made_at": "2026-11-26T22:16:55.675Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "736e828e9b94ca53b5ee564814bfec96dbeddbfa",
+        "commit": "66b4382add0175fe5d06be39ef1a67aee7173d00",
         "dirty": false
     },
     "machine": {
@@ -43,14 +43,14 @@
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 3.67 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 3.30 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 35630,
-            "peak_rss_kib": 1692424
+            "build_ms": 40837,
+            "peak_rss_kib": 1643148
         },
         "mods": [
             {
@@ -160,11 +160,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2332,
-                    "check": 235,
-                    "total": 2567
+                    "load_base": 3391,
+                    "check": 310,
+                    "total": 3701
                 },
-                "peak_rss_kib": 778856
+                "peak_rss_kib": 807088
             },
             {
                 "slug": "divine-intervention",
@@ -397,11 +397,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2474,
-                    "check": 33143,
-                    "total": 35617
+                    "load_base": 2776,
+                    "check": 39049,
+                    "total": 41824
                 },
-                "peak_rss_kib": 3266320
+                "peak_rss_kib": 3275388
             },
             {
                 "slug": "elf-destiny",
@@ -1275,11 +1275,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 3344,
-                    "check": 4768,
-                    "total": 8113
+                    "load_base": 3500,
+                    "check": 6775,
+                    "total": 10276
                 },
-                "peak_rss_kib": 1104560
+                "peak_rss_kib": 1063024
             },
             {
                 "slug": "rice",
@@ -1287,7 +1287,7 @@
                 "not_checked": [],
                 "by_severity": {
                     "error": 841,
-                    "warning": 3146,
+                    "warning": 3149,
                     "information": 753,
                     "hint": 339816
                 },
@@ -1341,6 +1341,11 @@
                         "code": "localization/unbalanced-brackets",
                         "severity": "warning",
                         "count": 10
+                    },
+                    {
+                        "code": "graphics/missing-file",
+                        "severity": "warning",
+                        "count": 3
                     },
                     {
                         "code": "fields/usually-present",
@@ -9030,7 +9035,7 @@
                         "reason": "history/titles calls 'destroy_landless_title_no_dlc_effect', which neither the mod nor game 1.21.0.3 defines (no file of the base game names it) and which is no effect of the game's documentation: the game reports \"Unknown effect '%s'\". Release 2.3.0 classified the same error a real defect (the 1.20.0.2 base game no longer defined it). The mod's descriptor declares supported_version \"1.19.*\"."
                     }
                 ],
-                "warnings": 1125,
+                "warnings": 1128,
                 "warning_list": [
                     {
                         "file": "common/activities/activity_types/RICE_khuzestan_tomb_of_daniel_pilgrimage.txt",
@@ -9822,6 +9827,27 @@
                         "column": 22,
                         "code": "references/unknown-key",
                         "message": "Failed to read key reference tenet_reincarnation from database common/religion/doctrine_types"
+                    },
+                    {
+                        "file": "common/decisions/RICE_mayo_decisions.txt",
+                        "line": 425,
+                        "column": 15,
+                        "code": "graphics/missing-file",
+                        "message": "Failed to load texture gfx/interface/illustrations/event_scenes/decision_erect_homer_monument.dds - file not found"
+                    },
+                    {
+                        "file": "common/decisions/RICE_mayo_decisions.txt",
+                        "line": 431,
+                        "column": 15,
+                        "code": "graphics/missing-file",
+                        "message": "Failed to load texture gfx/interface/illustrations/event_scenes/decision_visit_western_oasis_springs.dds - file not found"
+                    },
+                    {
+                        "file": "common/decisions/RICE_mayo_decisions.txt",
+                        "line": 437,
+                        "column": 15,
+                        "code": "graphics/missing-file",
+                        "message": "Failed to load texture gfx/interface/illustrations/event_scenes/decision_RICE_east_asian_garden.dds - file not found"
                     },
                     {
                         "file": "common/decisions/RICE_niger_delta_decisions.txt",
@@ -17056,11 +17082,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 2548,
-                    "check": 45648,
-                    "total": 48196
+                    "load_base": 2908,
+                    "check": 46906,
+                    "total": 49814
                 },
-                "peak_rss_kib": 1938988
+                "peak_rss_kib": 1852740
             },
             {
                 "slug": "viet-events",
@@ -17361,11 +17387,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 3192,
-                    "check": 9323,
-                    "total": 12514
+                    "load_base": 3886,
+                    "check": 6428,
+                    "total": 10314
                 },
-                "peak_rss_kib": 958768
+                "peak_rss_kib": 1052560
             }
         ]
     }

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:parse",
     "command": "task game:parse",
-    "made_at": "2026-11-26T21:31:04.247Z",
+    "made_at": "2026-11-26T22:08:04.204Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "736e828e9b94ca53b5ee564814bfec96dbeddbfa",
+        "commit": "66b4382add0175fe5d06be39ef1a67aee7173d00",
         "dirty": false
     },
     "machine": {
@@ -50,7 +50,7 @@
         "failures": [],
         "files": 4854,
         "trees": 4854,
-        "parse_ms": 6977,
+        "parse_ms": 7732,
         "folders": [
             {
                 "folder": "common",
@@ -61,7 +61,7 @@
                 "bom": 2663,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 2198,
+                "parse_ms": 2824,
                 "why": "Database records; release 2.3.0 read it; the spec lists 196 folders under it.",
                 "excluded": []
             },
@@ -74,7 +74,7 @@
                 "bom": 610,
                 "not_utf8": 0,
                 "errors": 1,
-                "parse_ms": 1568,
+                "parse_ms": 1368,
                 "why": "Events; release 2.3.0 read it; in the spec.",
                 "excluded": []
             },
@@ -87,7 +87,7 @@
                 "bom": 613,
                 "not_utf8": 25,
                 "errors": 1,
-                "parse_ms": 1411,
+                "parse_ms": 1733,
                 "why": "History; release 2.3.0 read it; the spec lists 10 folders under it.",
                 "excluded": []
             },
@@ -100,7 +100,7 @@
                 "bom": 237,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1768,
+                "parse_ms": 1781,
                 "why": "The spec lists 30 folders under it (coats of arms, court scenes, map styles, portraits and more); paths.settings points into it.",
                 "excluded": [
                     {
@@ -118,7 +118,7 @@
                 "bom": 4,
                 "not_utf8": 1,
                 "errors": 0,
-                "parse_ms": 25,
+                "parse_ms": 24,
                 "why": "In the spec (map_data/geographical_regions) and in the game's checksum manifest.",
                 "excluded": []
             },
@@ -131,7 +131,7 @@
                 "bom": 3,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 4,
+                "parse_ms": 0,
                 "why": "In the spec; paths.settings names music/music_player_categories.",
                 "excluded": []
             },
@@ -144,7 +144,7 @@
                 "bom": 0,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 1,
+                "parse_ms": 0,
                 "why": "In the spec; paths.settings names sound/map/ambience.",
                 "excluded": [
                     {
@@ -175,7 +175,7 @@
                 "bom": 22,
                 "not_utf8": 0,
                 "errors": 0,
-                "parse_ms": 2,
+                "parse_ms": 1,
                 "why": "In the game's checksum manifest: data-binding macros, in script syntax.",
                 "excluded": []
             },
@@ -921,11 +921,11 @@
                 "lines_over_after": 9784,
                 "files_changed_by_width_alone": 990
             },
-            "format_ms": 29618,
+            "format_ms": 32820,
             "largest_file": {
                 "file": "gfx/map/map_object_data/generated/tree_leaf_high_generator_1.txt",
                 "bytes": 13167832,
-                "format_ms": 191
+                "format_ms": 165
             },
             "failures": []
         },
@@ -1016,11 +1016,11 @@
                 "lines_over_after": 620910,
                 "files_changed_by_width_alone": 0
             },
-            "format_ms": 5702,
+            "format_ms": 5998,
             "largest_file": {
                 "file": "localization/russian/custom_localization/ru_custom_loc_l_russian.yml",
                 "bytes": 1307118,
-                "format_ms": 9
+                "format_ms": 20
             },
             "failures": []
         },
@@ -1029,7 +1029,7 @@
             "failures": [],
             "files": 583,
             "trees": 583,
-            "parse_ms": 245,
+            "parse_ms": 216,
             "folders": [
                 {
                     "layer": "game",
@@ -1040,7 +1040,7 @@
                     "bom": 192,
                     "not_utf8": 0,
                     "findings": 6,
-                    "parse_ms": 225,
+                    "parse_ms": 192,
                     "why": "The game's GUI folder: the spec lists `gui` (content type gui, 441 .gui files), and the game's checksum_manifest.txt names it with its sub-directories."
                 },
                 {
@@ -1064,7 +1064,7 @@
                     "bom": 0,
                     "not_utf8": 0,
                     "findings": 3,
-                    "parse_ms": 12,
+                    "parse_ms": 17,
                     "why": "The install's jomini/ folder, mounted below game/ (part D1, search-path-order); game/gui holds 21 of its paths and replaces each whole (game-file-replaces-jomini-and-clausewitz)."
                 },
                 {
@@ -1853,14 +1853,14 @@
                     "slug": "divine-intervention",
                     "files": 88,
                     "trees": 88,
-                    "parse_ms": 127,
+                    "parse_ms": 110,
                     "findings": []
                 },
                 {
                     "slug": "elf-destiny",
                     "files": 52,
                     "trees": 52,
-                    "parse_ms": 32,
+                    "parse_ms": 75,
                     "findings": [
                         {
                             "file": "gui/window_character.gui",

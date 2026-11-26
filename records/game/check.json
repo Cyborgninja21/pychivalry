@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:check",
     "command": "task game:check",
-    "made_at": "2026-11-26T21:36:33.234Z",
+    "made_at": "2026-11-26T22:13:51.423Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "736e828e9b94ca53b5ee564814bfec96dbeddbfa",
+        "commit": "66b4382add0175fe5d06be39ef1a67aee7173d00",
         "dirty": false
     },
     "machine": {
@@ -34,7 +34,7 @@
         "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
         "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
         "The style/ family (docs/formatting.md) rests on pychivalry's own formatting rules, not on the game: its warning (style/not-formatted, one a file not in the format) and its hints are counted in by_code and by_severity, never listed or classified; warnings and warning_list are the other warnings. The base game is not written in the format, so nearly every file has a style warning.",
-        "The load average over one minute was 4.14 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 3.49 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
@@ -60,9 +60,9 @@
         ],
         "by_severity": {
             "error": 13,
-            "warning": 17188,
+            "warning": 17207,
             "information": 167,
-            "hint": 858207
+            "hint": 858192
         },
         "by_code": [
             {
@@ -99,6 +99,11 @@
                 "code": "style/not-utf8",
                 "severity": "warning",
                 "count": 25
+            },
+            {
+                "code": "graphics/missing-file",
+                "severity": "warning",
+                "count": 19
             },
             {
                 "code": "references/unknown-key",
@@ -143,12 +148,12 @@
             {
                 "code": "style/block-layout",
                 "severity": "hint",
-                "count": 344034
+                "count": 344028
             },
             {
                 "code": "style/spacing",
                 "severity": "hint",
-                "count": 215652
+                "count": 215651
             },
             {
                 "code": "style/indentation",
@@ -158,7 +163,7 @@
             {
                 "code": "style/trailing-whitespace",
                 "severity": "hint",
-                "count": 66692
+                "count": 66689
             },
             {
                 "code": "style/blank-lines",
@@ -188,7 +193,7 @@
             {
                 "code": "style/deep-nesting",
                 "severity": "hint",
-                "count": 8244
+                "count": 8239
             },
             {
                 "code": "style/option-without-ai-weight",
@@ -349,7 +354,7 @@
                 "reason": "A dated entry of a character's history is written '296.1.1 { add_spouse = ... }', without its '='; every other entry has one. The same defect that release 2.3.0 recorded in history/characters/japanese.txt on game 1.20, which 1.21.0.3 no longer has. (As classified for game:parse in tools/data/parse-classifications.json.)"
             }
         ],
-        "warnings": 155,
+        "warnings": 174,
         "warning_list": [
             {
                 "file": "common/council_tasks/00_spymaster_tasks.txt",
@@ -400,6 +405,176 @@
                 "message": "Unknown loc key determination_spymaster_task_disrupt_schemes_modifier",
                 "classification": "game-defect",
                 "reason": "No localization file of the install defines the key determination_spymaster_task_disrupt_schemes_modifier: a search of the keys of every .yml file under game/, jomini/, clausewitz/ and the DLC packs, every language, finds none, and the index (which reads them all) holds none. The field names it as a localization key (catalogue unknown_loc_key_X)."
+            },
+            {
+                "file": "common/decisions/00_holy_order_decisions.txt",
+                "layer": "game",
+                "line": 780,
+                "column": 15,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/illustrations/holding_types/tgp_decision_mandala.dds - file not found",
+                "classification": "game-defect",
+                "reason": "A decision picture names gfx/interface/illustrations/holding_types/tgp_decision_mandala.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has tgp_decision_mandala.dds in gfx/interface/illustrations/decisions/, which each of the base game's 10 other uses of the picture names (80_major_decisions.txt:1234, tgp_east_asia_decisions.txt:59 and others): the folder is wrong. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/decisions/dlc_decisions/fp3_decisions.txt",
+                "layer": "game",
+                "line": 998,
+                "column": 18,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/illustrations/struggle_decision_buttons/fp3_decision_assertion.dds - file not found",
+                "classification": "game-defect",
+                "reason": "The decision's extra_picture names gfx/interface/illustrations/struggle_decision_buttons/fp3_decision_assertion.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named fp3_decision_assertion with any extension. The line's own comment reads '# Does this need to be updated?'. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2602,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2634,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2666,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2700,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2734,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2768,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2803,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2838,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+                "layer": "game",
+                "line": 2873,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+                "layer": "game",
+                "line": 1074,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+                "layer": "game",
+                "line": 1112,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+                "layer": "game",
+                "line": 1150,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+                "layer": "game",
+                "line": 1188,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+                "layer": "game",
+                "line": 1226,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+                "layer": "game",
+                "line": 1264,
+                "column": 30,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
             },
             {
                 "file": "common/dynasties/00_dynasties.txt",
@@ -570,6 +745,26 @@
                 "message": "Unknown loc key because_you_are_a_schemer_tt",
                 "classification": "game-defect",
                 "reason": "No localization file of the install defines the key because_you_are_a_schemer_tt: a search of the keys of every .yml file under game/, jomini/, clausewitz/ and the DLC packs, every language, finds none, and the index (which reads them all) holds none. The field names it as a localization key (catalogue unknown_loc_key_X)."
+            },
+            {
+                "file": "common/event_backgrounds/01_event_backgrounds.txt",
+                "layer": "game",
+                "line": 13763,
+                "column": 15,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/illustrations/event_scenes/ep2_travel_settlement_hills.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Two entries of an event background name gfx/interface/illustrations/event_scenes/ep2_travel_settlement_hills.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named ep2_travel_settlement_hills with any extension (the name is the background's own key, ep2_travel_settlement_hills, line 13834). The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+            },
+            {
+                "file": "common/event_backgrounds/01_event_backgrounds.txt",
+                "layer": "game",
+                "line": 13796,
+                "column": 15,
+                "code": "graphics/missing-file",
+                "message": "Failed to load texture gfx/interface/illustrations/event_scenes/ep2_travel_settlement_hills.dds - file not found",
+                "classification": "game-defect",
+                "reason": "Two entries of an event background name gfx/interface/illustrations/event_scenes/ep2_travel_settlement_hills.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named ep2_travel_settlement_hills with any extension (the name is the background's own key, ep2_travel_settlement_hills, line 13834). The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
             },
             {
                 "file": "common/modifier_definition_formats/00_subject_definitions.txt",
@@ -1903,7 +2098,7 @@
             }
         ],
         "classified": {
-            "game-defect": 168,
+            "game-defect": 187,
             "spec-package-fault": 0,
             "pychivalry-fault": 0,
             "unclassified": 0
@@ -1911,7 +2106,7 @@
         "capped": {
             "max_per_file": 1000,
             "files": 214,
-            "dropped": 1207951,
+            "dropped": 1207966,
             "dropped_by_code": [
                 {
                     "code": "style/blank-lines",
@@ -1921,7 +2116,7 @@
                 {
                     "code": "style/block-layout",
                     "severity": "hint",
-                    "count": 99187
+                    "count": 99193
                 },
                 {
                     "code": "style/comment-spacing",
@@ -1931,7 +2126,7 @@
                 {
                     "code": "style/deep-nesting",
                     "severity": "hint",
-                    "count": 317
+                    "count": 322
                 },
                 {
                     "code": "style/empty-block",
@@ -1961,12 +2156,12 @@
                 {
                     "code": "style/spacing",
                     "severity": "hint",
-                    "count": 1002781
+                    "count": 1002782
                 },
                 {
                     "code": "style/trailing-whitespace",
                     "severity": "hint",
-                    "count": 18496
+                    "count": 18499
                 },
                 {
                     "code": "style/unusual-field-order",
@@ -2066,11 +2261,11 @@
             "keyword_uses_judged": 101162
         },
         "time_ms": {
-            "list": 534,
-            "build": 34953,
-            "check": 153919,
-            "total": 189406
+            "list": 550,
+            "build": 32934,
+            "check": 145157,
+            "total": 178641
         },
-        "peak_rss_kib": 3970892
+        "peak_rss_kib": 3942776
     }
 }
