@@ -1389,7 +1389,13 @@ export class LanguageServer {
         }
         const modDir = opened.modDir;
         const before = new Map((opened.mod?.files ?? []).map((f) => [f.path, f]));
+        const othersBefore = opened.mod?.others.get(MOD) ?? [];
         opened.mod = syncMod(opened.index, modDir, opened.mod);
+        // The files the index does not read (textures): what `graphics/missing-file` finds.
+        const othersAfter = opened.mod.others.get(MOD) ?? [];
+        const othersChanged =
+            othersBefore.length !== othersAfter.length ||
+            othersBefore.some((p, i) => p !== othersAfter[i]);
         opened.listed = new Set(opened.mod.files.map((f) => f.path));
         opened.disk = null;
         const after = new Map(opened.mod.files.map((f) => [f.path, f]));
@@ -1454,7 +1460,7 @@ export class LanguageServer {
         }
         this.generation++;
         this.cover();
-        if (external) {
+        if (external || othersChanged) {
             this.checkOpenFiles();
             this.enqueue(this.closedCovered());
             return;

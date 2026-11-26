@@ -47,9 +47,7 @@
             "data": {
                 "path": "gfx/interface/illustrations/decisions/Fixture_Base_Picture.dds",
                 "field": "picture/reference",
-                "other_case": [
-                    "gfx/interface/illustrations/decisions/fixture_base_picture.dds"
-                ]
+                "other_case": ["gfx/interface/illustrations/decisions/fixture_base_picture.dds"]
             }
         },
         {
