@@ -149,8 +149,13 @@ character or whether the texts tell the story asked for, is left to the judged d
 - every field an expectation names is a field the spec package gives that folder, and every
   dimension of the set is asked by some request;
 - each base mod and each example result is in pychivalry's format, and the checker reports
-  nothing on either (over an empty base game: the requests rely on no name of the base game's
-  own files). Over the installed game only the run can check a base: it refuses to start any
+  nothing on either, hints included (over an empty base game: the requests rely on no name of
+  the base game's own files). Since decision 160 every option of an example's events with
+  several options has an AI weight, `ai_chance = { base = 50 }` after its `name`, the same for
+  each option of an event: six examples gained one (`event-merchant-debt`,
+  `event-sleepless-night`, `event-letter-from-spouse`, `event-granary-inspection`,
+  `event-envoy-chain`, `event-county-unrest`), and no test leaves a code out any more. Over the
+  installed game only the run can check a base: it refuses to start any
   test session while the checker finds an error or a warning in a base it would use, as it would
   have for `feast` (a name of the base the game defines too);
 - **every request can be met**: its example result meets every one of its expectations;

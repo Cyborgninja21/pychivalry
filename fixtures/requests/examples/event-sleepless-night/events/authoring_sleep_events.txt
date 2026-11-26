@@ -14,16 +14,19 @@ authoring_sleep.0001 = {
 
 	option = {
 		name = authoring_sleep.0001.a
+		ai_chance = { base = 50 }
 		add_stress = -20
 		add_gold = -25
 	}
 	option = {
 		name = authoring_sleep.0001.b
+		ai_chance = { base = 50 }
 		add_piety = 25
 		add_stress = -10
 	}
 	option = {
 		name = authoring_sleep.0001.c
+		ai_chance = { base = 50 }
 		trigger = { prestige >= 100 }
 		add_stress = -30
 		add_prestige = -50
