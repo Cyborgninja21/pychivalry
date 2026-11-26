@@ -659,6 +659,20 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   release run is not compared with the second expert run without saying so.
 - The game-file suites are re-run with these changes: every count of the base game and the five
   mods is the same, but their times.
+- `style/empty-block` never offers to take away an empty logical operator, scope switch or trigger
+  block (a `limit`) either, until the spec work says what each evaluates to when empty (decisions
+  171 to 173): each is still a hint, its message saying the spec package leaves its empty meaning
+  open (`means: logical-operator`, `scope-switch` or `trigger-block`), with no fix. Read from the
+  package, no keyword in the code: a key part D4 gives the role `combines_conditions` (`OR`, `AND`,
+  `all_false`); a chain or a name of the links bucket; a structural keyword or a parameter whose
+  block the tables read as triggers (`limit`, a `random_list` entry's `trigger`). The extension of
+  decision 167, a trigger or an effect written with an empty block never offered for removal, is
+  kept (decision 171). On all of the base game's 24,274 empty blocks: 11 trigger blocks, 28 scope
+  switches and 2 logical operators, 20 removals withdrawn (7, 12 and 1), 22,452 left; in the five
+  mods 3,793, every one divine-intervention's (the `AND = { }` its patched buildings write in an
+  `OR`). The fixture pair gained a `liege` and an `OR`. `pychivalry-tools advice proof` counts
+  each best-practice rule's findings by the fix offered and by what they mean. The game-file
+  suites, re-run, give the same figures but their times; their records are not committed.
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as
@@ -1022,8 +1036,9 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 - Four points of `style/empty-block` go back to the spec work (decision 169): the default of an
   `any_` iterator's `count`, what an iterator body with no condition asks of an item, how an
   iterator is read where the package's rules do not place it, and what an empty logical
-  operator, plain trigger block or scope switch evaluates to; whether the rule should also stop
-  offering to take those last away is a question for the owner (docs/decisions.md).
+  operator, plain trigger block or scope switch evaluates to; until it says, the rule offers no
+  fix for those last (decision 172). Whether it should also stop offering to take away an empty
+  `random_list` entry or `switch` case is a question for the owner (docs/decisions.md).
 - The seventeen requests of 2026-11-25 are answered by format 9 (docs/decisions.md, row 150),
   what the package still leaves open with them; one new request goes back to the spec work
   (row 151): the trait groups and the game concepts' aliases, which part D6 names as databases and
