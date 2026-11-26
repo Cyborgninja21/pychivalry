@@ -21,7 +21,34 @@
             "message": "The block 'else' is empty.",
             "data": {
                 "block": "else",
-                "comments": "yes"
+                "comments": "yes",
+                "means": "effect"
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 14,
+            "column": 4,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'any_child' is empty: as a condition it asks for at least one; write 'count >= 1' in it to say so.",
+            "data": {
+                "block": "any_child",
+                "comments": "no",
+                "means": "at-least-one",
+                "written_out": "count >= 1"
+            }
+        },
+        {
+            "file": "common/scripted_effects/fixture_effects.txt",
+            "line": 18,
+            "column": 2,
+            "code": "style/empty-block",
+            "severity": "hint",
+            "message": "The block 'every_child' is empty.",
+            "data": {
+                "block": "every_child",
+                "comments": "no"
             }
         }
     ]

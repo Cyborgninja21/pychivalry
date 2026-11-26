@@ -9,4 +9,11 @@ fixture_empty_effect = {
 	else = {
 		# Nothing here yet.
 	}
+	if = {
+		limit = {
+			any_child = {}
+		}
+		add_prestige = 1
+	}
+	every_child = {}
 }

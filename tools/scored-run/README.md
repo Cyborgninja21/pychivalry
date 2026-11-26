@@ -1753,8 +1753,34 @@ are Claude Code's answer to a name it does not list, and never reached the agent
 skills and the server's instructions already give every tool's listed name and say to call it
 again by that name, which each session did at its next call. Whether the skills' steps should also write each tool by its
 Claude Code name, which would change what sessions are given (the skills' hashes) and so the
-comparison of the release run with this one, is asked of the owner (docs/decisions.md,
-[Asked, awaiting the owner](../../docs/decisions.md#asked-awaiting-the-owner)).
+comparison of the release run with this one, was asked of the owner; he answered yes on
+2026-11-26 (decision 168, [below](#the-skills-changed-again-every-tool-by-its-full-name-decision-168)).
+
+### The skills changed again: every tool by its full name (decision 168)
+
+On the owner's word of 2026-11-26 (decision 168), after the run above: the three skills write
+every tool by Claude Code's full name, `mcp__pychivalry__<tool>`, in every step and rule, not only
+in their list at the top, and say how another client's names are made (`pychivalry-` before the
+tool's own name in VS Code's Copilot harness, `mcp_pychivalry_` in VS Code's own). No short name
+is written alone; `skill-files.test.ts` holds it, skill by skill and tool by tool. What a session
+is given has changed again:
+
+- **The release run (decision 132) is not directly comparable with this second expert run.**
+  Every authoring record names the skills its sessions were given, each by the SHA-256 of its
+  folder (`results.task.skills`): `authoring-expert-run-2.json` names the skills before this
+  change, and a run made now names new hashes for all three. Its tool errors by a short name, nine
+  in five sessions here, are the figure this change was made for; any other difference is not to
+  be put down to it without saying so.
+- `SCORED_CONTINUE=true` refuses to continue a record made with other skills (they are compared
+  by hash), so no record holds sessions given both versions.
+- What a trial is graded by does not change: the authoring grade, the request's expectations and
+  the judge's prompt and questions are the same.
+
+The same pull request changed `style/empty-block` (decision 167): an empty `any_` iterator, such
+as the `any_prisoner = { }` that `decision-pardon-prisoners` 2 and 5 kept, is reported as a
+condition that asks for at least one, and its fix writes `count >= 1` in it rather than taking it
+away. A hint is counted by no target, so no grade moves; a session reading the hint now reads
+what the empty block means.
 
 ## Re-judging kept results
 

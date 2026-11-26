@@ -1,9 +1,20 @@
 /**
- * The fix of `style/empty-block`: a suggestion, the empty pair taken away. Whether the empty
- * block means something (an empty list that clears one, a placeholder for content to come) is
- * the author's to say, so it is never safe. Offered only for a block that is the value of a
- * pair, holds not even a comment, and is not the only thing in the block around it (which would
- * then be empty in turn); the pair goes with its line when it is alone on it.
+ * The fix of `style/empty-block`: a suggestion, never safe.
+ *
+ * - **An empty block that means nothing the package knows of:** the empty pair taken away.
+ *   Whether such a block means something (an empty list that clears one, a placeholder for
+ *   content to come) is the author's to say, so it is a suggestion. Offered only for a block that
+ *   is the value of a pair, holds not even a comment, and is not the only thing in the block
+ *   around it (which would then be empty in turn); the pair goes with its line when it is alone
+ *   on it.
+ * - **An iterator that is a condition** (`data.means` `at-least-one`, the owner's decision of
+ *   2026-11-26): never taken away, which would change the result of the block around it. The
+ *   test is written out instead, by the iterator's own parameter (`data.written_out`, from the
+ *   spec package: `check/empty-iterator.ts`), in a block that holds not even a comment. A
+ *   suggestion: the package does not state that the parameter's default asks for the same.
+ * - **An iterator the package does not say how to read where it is written** (`not-known`),
+ *   and **a trigger or an effect** written with an empty block (`trigger`, `effect`), which
+ *   taking the block away would take away: nothing.
  */
 
 import {
@@ -41,8 +52,35 @@ function innerBlock(item: Item): Block | undefined {
     return item.kind === 'pair' ? blockOf(item.value) : undefined;
 }
 
+/** The empty block of an iterator that is a condition, its test written out. */
+function writtenOutFix(finding: FixableFinding, file: FixFile): FindingFix | null {
+    const written = finding.data['written_out'];
+    const found = file.tree === null ? undefined : pairWithParent(file.tree, finding.start);
+    const block = found === undefined ? undefined : blockOf(found.pair.value);
+    if (typeof written !== 'string' || found === undefined || block === undefined) {
+        return null;
+    }
+    if (block.items.length > 0) {
+        // Its comments stay where the author wrote them: no edit is made among them.
+        return null;
+    }
+    return suggestion('iterator-kinds', [
+        {
+            title: `Write '${written}' in the empty '${found.pair.key.text}'`,
+            edits: [file.replace(block.start, block.end, `{ ${written} }`)],
+        },
+    ]);
+}
+
 /** The fix of an empty block. */
 export function emptyBlockFix(finding: FixableFinding, file: FixFile): FindingFix | null {
+    const means = finding.data['means'];
+    if (means === 'at-least-one') {
+        return writtenOutFix(finding, file);
+    }
+    if (means !== undefined) {
+        return null;
+    }
     const found = file.tree === null ? undefined : pairWithParent(file.tree, finding.start);
     const block = found === undefined ? undefined : blockOf(found.pair.value);
     if (

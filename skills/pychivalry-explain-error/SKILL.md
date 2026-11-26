@@ -10,54 +10,62 @@ you the finding, the game's evidence for it and the game's own documentation of 
 it. Explain from what the tools return, never from memory of CK3: what the tools do not say, you
 do not claim.
 
-**Call each tool by the name your client lists.** The tools are written here by their short names,
-such as `check`, but Claude Code, for one, lists them under longer names, and only a listed name
-can be called: a call of a short name reaches nothing, and Claude Code answers that there is no
-such tool. In Claude Code the names are `mcp__pychivalry__check`, `mcp__pychivalry__explain_code`,
-`mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`, `mcp__pychivalry__source`. Call
-each by the name your client lists, never by the short name alone; if a call finds no such tool, call the same tool again by
-its listed name. If no pychivalry tool is offered at all, say so and stop: in VS Code the
-extension registers the agent server by itself; for Claude Code, the person runs "pychivalry: Set
-up for Claude Code" in VS Code once for the mod's folder.
+**Call each tool by the name your client lists.** Every tool is written here by the name Claude
+Code lists it under, `mcp__pychivalry__` and the tool's own name: `mcp__pychivalry__check`,
+`mcp__pychivalry__explain_code`, `mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`,
+`mcp__pychivalry__find_references`, `mcp__pychivalry__source`. Only a listed name can be called:
+a call of a short name reaches nothing, and Claude Code answers that there is no such tool.
+Another client lists the same tools under its own prefix (VS Code's Copilot harness `pychivalry-`,
+VS Code's own `mcp_pychivalry_`, each before the tool's own name): there, call the tool whose name
+ends in the same tool's name. If a call finds no such tool, call the same tool again by its
+listed name. If no pychivalry tool is offered at all, say so and stop: in VS Code the extension
+registers the agent server by itself; for Claude Code, the person runs "pychivalry: Set up for
+Claude Code" in VS Code once for the mod's folder.
 
 ## Steps
 
 1. **Find the finding.** If the person gave a code, a message, or a file and line, start from
-   it. Otherwise run `check` with `path` the file (its path inside the mod, with forward
-   slashes) and `min_severity` set to `hint`, and take the finding the person means. Lines and
-   columns count from 1. A finding has a `code`, a `severity`, a `message`, its `data` (the
-   names and values it is about, and what is valid there) and its `fix`, when it has one.
-2. **Ask what the code means.** Run `explain_code` with `codes` holding the code. It gives the
-   code's severity, what it finds, and its evidence: the game's own message, a field the game
-   requires, the game's documentation, or pychivalry's own rules.
-3. **Look up every name in it.** Run `lookup` with `names` holding each name the finding's
-   message and data mention (at most 20 a call). Every name it answers is answered whole; one
-   listed in `not_answered` did not fit: look it up in another call. Each reading gives the
-   game's own description, the scopes the name is valid in and what it takes; for a name the mod
-   or the game defines, where it is defined and which definition is in force. A name nothing
-   knows comes back with the names close to it. Where the finding names a definition of the mod,
-   `find_definition` and `find_references` show where it is defined and used. To show how the
-   game itself writes a name, `source` gives the text around a place a result named; a place
-   whose `layer` is not `mod` is a file of the installed game, outside the mod: read it with
-   `source` only, never with your own file tools.
+   it. Otherwise run `mcp__pychivalry__check` with `path` the file (its path inside the mod,
+   with forward slashes) and `min_severity` set to `hint`, and take the finding the person
+   means. Lines and columns count from 1. A finding has a `code`, a `severity`, a `message`, its
+   `data` (the names and values it is about, and what is valid there) and its `fix`, when it has
+   one.
+2. **Ask what the code means.** Run `mcp__pychivalry__explain_code` with `codes` holding the
+   code. It gives the code's severity, what it finds, and its evidence: the game's own message,
+   a field the game requires, the game's documentation, or pychivalry's own rules.
+3. **Look up every name in it.** Run `mcp__pychivalry__lookup` with `names` holding each name the
+   finding's message and data mention (at most 20 a call). Every name it answers is answered
+   whole; one listed in `not_answered` did not fit: look it up in another call. Each reading
+   gives the game's own description, the scopes the name is valid in and what it takes; for a
+   name the mod or the game defines, where it is defined and which definition is in force. A
+   name nothing knows comes back with the names close to it. Where the finding names a
+   definition of the mod, `mcp__pychivalry__find_definition` and
+   `mcp__pychivalry__find_references` show where it is defined and used. To show how the game
+   itself writes a name, `mcp__pychivalry__source` gives the text around a place a result named;
+   a place whose `layer` is not `mod` is a file of the installed game, outside the mod: read it
+   with `mcp__pychivalry__source` only, never with your own file tools.
 4. **Explain.** In plain words, say:
-   - what the game does with this script, from the evidence `explain_code` gave;
-   - why it applies at this place, from the finding's data and what `lookup` said;
-   - what is valid there instead, from the data and `lookup`, and the finding's fix if it has
-     one (safe: it can be applied as it is; a suggestion: alternatives to choose from).
+   - what the game does with this script, from the evidence `mcp__pychivalry__explain_code`
+     gave;
+   - why it applies at this place, from the finding's data and what `mcp__pychivalry__lookup`
+     said;
+   - what is valid there instead, from the data and `mcp__pychivalry__lookup`, and the
+     finding's fix if it has one (safe: it can be applied as it is; a suggestion: alternatives to
+     choose from).
 5. **Say how sure it is.** An error or a warning rests on the game's own evidence. Information
    and hints are pychivalry's advice: usually right, not something the game enforces. The
    `style/` findings say where a file is not in pychivalry's format or breaks one of its
    best-practice rules; they rest on pychivalry's own rules, not on the game, which does not
-   care. Where `lookup` says a part is not documented, say that it is not documented.
+   care. Where `mcp__pychivalry__lookup` says a part is not documented, say that it is not
+   documented.
 6. **Show where a name's reading comes from, when it is asked.** If the person wants to know why
    a name is wrong, or how pychivalry knows what a name is (removed in this version of the game,
-   in another bucket, valid in other scopes), run `lookup` with that one name and `evidence` set
-   to true. Its answer then also holds `evidence`: the name's readings again, each with the
-   spec package's evidence behind each part (what the game's own documentation, output or files
-   say, and where it was read), to cite. It is given for one name a call; readings that do not
-   fit are counted in `left_out`, which says what to ask instead. Leave it out otherwise: the
-   plain answer already holds every fact.
+   in another bucket, valid in other scopes), run `mcp__pychivalry__lookup` with that one name
+   and `evidence` set to true. Its answer then also holds `evidence`: the name's readings again,
+   each with the spec package's evidence behind each part (what the game's own documentation,
+   output or files say, and where it was read), to cite. It is given for one name a call;
+   readings that do not fit are counted in `left_out`, which says what to ask instead. Leave it
+   out otherwise: the plain answer already holds every fact.
 
 Change no file. If the person then wants the finding fixed, the pychivalry-fix-error skill does
 that.

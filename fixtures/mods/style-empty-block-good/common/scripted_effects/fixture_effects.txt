@@ -7,4 +7,11 @@ fixture_empty_effect = {
 		add_piety = 5
 	}
 	else = { add_prestige = 1 }
+	if = {
+		limit = {
+			any_child = { count >= 1 }
+		}
+		add_prestige = 1
+	}
+	every_child = { add_gold = 1 }
 }

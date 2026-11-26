@@ -57,6 +57,19 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
 /** The prefix a client may list the tools under: Claude Code's, `mcp__<server>__`. */
 const PREFIXED = /^mcp__pychivalry__([a-z_]+)$/;
 
+/**
+ * The prefixes the skills name, each before a tool's own name: Claude Code's
+ * (`mcp__pychivalry__check`); VS Code's Copilot harness, `<server>-<tool>` (its harness,
+ * `@github/copilot` 1.0.73 inside VS Code 1.147's Copilot extension, looks its own tools up as
+ * `github-mcp-server-search_repositories`); and VS Code's own, `mcp_<server>_<tool>` (the
+ * workbench of 1.147 makes each server's prefix `mcp_` and its name, lowercased).
+ */
+const CLIENT_PREFIXES: ReadonlySet<string> = new Set([
+    'mcp__pychivalry__',
+    'pychivalry-',
+    'mcp_pychivalry_',
+]);
+
 const skills = readSkills(SKILLS);
 const textOf = (skill: Skill): string => {
     const file = skill.files.find((f) => f.path === SKILL_FILE);
@@ -260,6 +273,7 @@ function unbacked(spec: Spec): Map<string, string[]> {
                     found.push(`no tool ${span}`);
                 }
             } else if (
+                CLIENT_PREFIXES.has(span) ||
                 span === COMMAND_LINE ||
                 /^<[^<>]+>$/.test(span) ||
                 vocabulary.has(span) ||
@@ -290,7 +304,7 @@ test("each skill names only the agent server's tools and the command line's comm
     const tools = new Set(TOOLS.map((t) => t.name));
     for (const skill of skills) {
         const { values, body } = parse(skill.name, textOf(skill));
-        const named = new Set(spans(body).filter((s) => tools.has(s)));
+        const named = new Set(spans(body).map((s) => PREFIXED.exec(s)?.[1] ?? ''));
         const wanted = DRIVES[skill.name] ?? [];
         assert.ok(wanted.length > 0, skill.name);
         for (const tool of wanted) {
@@ -334,6 +348,33 @@ test("each skill gives Claude Code's name of every tool it drives, and what a ca
     }
 });
 
+test("every step names each tool by Claude Code's full name, never by its short name alone", () => {
+    // The owner's decision of 2026-11-26 (decision 168): the expert requests' second development
+    // run had nine calls in five sessions by a short name the steps wrote, each answered with no
+    // such tool. Every tool is now written as Claude Code lists it, in the steps and rules as in
+    // the list at the top; a client with other names (VS Code's) is told how they are made.
+    const tools = new Set(TOOLS.map((t) => t.name));
+    for (const skill of skills) {
+        const { body } = parse(skill.name, textOf(skill));
+        const bare = spans(body).filter((s) => tools.has(s));
+        assert.deepEqual(bare, [], `${skill.name} writes a tool by its short name`);
+        // Each tool it drives is named in its steps or rules, not only in the list at the top.
+        const steps = body.slice(body.indexOf('\n## '));
+        assert.ok(steps.length < body.length, `${skill.name} has steps`);
+        const named = new Set(spans(steps).map((s) => PREFIXED.exec(s)?.[1] ?? ''));
+        for (const tool of DRIVES[skill.name] ?? []) {
+            assert.ok(named.has(tool), `${skill.name}'s steps name mcp__pychivalry__${tool}`);
+        }
+        // How another client's names are made, before the tool's own name.
+        const prose = body.replace(/\s+/g, ' ');
+        assert.match(
+            prose,
+            /VS Code's Copilot harness `pychivalry-`, VS Code's own `mcp_pychivalry_`, each before the tool's own name/,
+            skill.name,
+        );
+    }
+});
+
 test('each skill says when to read the game itself with source, and never a game place with file tools', () => {
     // The expert requests' development run: one session read a place lookup had named in the
     // base game as if it were under its mod (a folder it guessed), the run's one trial that did
@@ -342,7 +383,7 @@ test('each skill says when to read the game itself with source, and never a game
     for (const skill of skills) {
         const { body } = parse(skill.name, textOf(skill));
         const prose = body.replace(/\s+/g, ' ');
-        assert.match(prose, /`source`/, skill.name);
+        assert.match(prose, /`mcp__pychivalry__source`/, skill.name);
         assert.match(
             prose,
             /whose `layer` is not `mod` is a file of the installed game/,
@@ -370,7 +411,10 @@ test("lookup's evidence is named only where it helps: the explain-error skill, f
         const prose = body.replace(/\s+/g, ' ');
         if (skill.name === 'pychivalry-explain-error') {
             assert.ok(named, `${skill.name} names evidence`);
-            assert.match(prose, /run `lookup` with that one name and `evidence` set to true/);
+            assert.match(
+                prose,
+                /run `mcp__pychivalry__lookup` with that one name and `evidence` set to true/,
+            );
             assert.match(prose, /It is given for one name a call/);
             assert.match(prose, /`left_out`/);
         } else {
@@ -422,13 +466,16 @@ test('the authoring skill states the rules of item 9.2, in order, for the four k
     );
     // Formatting is written by the agent server: an AI harness's own file tools may not write
     // Windows line breaks (the first scored authoring run, item 9.8).
-    assert.match(body, /Run `apply_format` on each file you wrote or\s+changed/);
+    assert.match(body, /Run `mcp__pychivalry__apply_format` on each\s+file you wrote or changed/);
     // Rule 8 names the role the weights have, not the keywords: `lookup` and the hint name them.
     const prose = body.replace(/\s+/g, ' ');
     assert.match(prose, /every option of an event with several options its AI weight/);
-    assert.match(prose, /whose keyword role in `lookup`'s answer is `ai_weight`/);
+    assert.match(prose, /whose keyword role in `mcp__pychivalry__lookup`'s answer is `ai_weight`/);
     assert.match(prose, /the hint `style\/option-without-ai-weight`/);
-    assert.match(prose, /`check` with `codes` set to that code and `min_severity` set to `hint`/);
+    assert.match(
+        prose,
+        /`mcp__pychivalry__check` with `codes` set to that code and `min_severity` set to `hint`/,
+    );
     assert.match(prose, /no option without an AI weight \(rule 8\)/);
     assert.match(prose, /a `style\/` warning or an option without an AI weight is left/);
     for (const kind of [

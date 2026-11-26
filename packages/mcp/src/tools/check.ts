@@ -133,7 +133,7 @@ const FIX: Schema = {
         basis: {
             type: 'string',
             description:
-                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names, formatting, windows-1252, field-order or keyword-roles',
+                'What the fix rests on: retired, nearest-name, scope-links, parser, required-field, localization-files, game-message, observed-values, range, declared-names, formatting, windows-1252, field-order, keyword-roles or iterator-kinds',
         },
         alternatives: {
             type: 'array',

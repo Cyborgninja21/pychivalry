@@ -40,9 +40,9 @@ function style(
 export const BEST_PRACTICE_KINDS: Readonly<Record<BestPracticeCode, CheckKind>> = {
     'style/empty-block': style(
         'hint',
-        1,
-        "A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314.",
-        "The block '%s' is empty.",
+        2,
+        "A block inside a record with nothing in it, or nothing but comments: release 2.3.0's CK3314. An empty iterator that is a condition asks for at least one item, and the message says so.",
+        "The block '%s' is empty%s.",
     ),
     'style/deep-nesting': style(
         'hint',

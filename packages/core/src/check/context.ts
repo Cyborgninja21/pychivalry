@@ -398,6 +398,30 @@ export function fieldOf(
     return placeholder === undefined ? undefined : { field: placeholder, placeholder: true };
 }
 
+/** True when `base` is a list: of the lists bucket, or defined in script (a scripted list). */
+function isListOf(model: Model, names: DefinedNames, base: string): boolean {
+    return (
+        model.vocabulary.has('lists', base) ||
+        model.callableAnywhere.some((dir) => names.isDefined(base, dir))
+    );
+}
+
+/**
+ * The iterator a name is, by the rule the reader judges a key in a trigger or effect block by: a
+ * prefix of `iterator_prefixes` and a list (of the lists bucket, or defined in script); undefined
+ * for any other name. For a check that asks it of a key the reader did not judge, one written in
+ * a block that is not read as triggers or effects.
+ */
+export function iteratorNamed(
+    spec: Spec,
+    names: DefinedNames,
+    name: string,
+): { readonly prefix: string; readonly base: string } | undefined {
+    const model = modelOf(spec);
+    const iterator = model.vocabulary.iteratorOf(name);
+    return iterator !== undefined && isListOf(model, names, iterator.base) ? iterator : undefined;
+}
+
 /** Keys that are not names: numbers, dates, quoted text, constants, `@[ ]`, `$PARAM$`. */
 function isOpaque(key: Scalar): boolean {
     return (key.type !== 'name' && key.type !== 'chain') || key.text.includes('$');
@@ -704,10 +728,7 @@ class Reader {
     }
 
     private isList(base: string): boolean {
-        return (
-            this.vocabulary.has('lists', base) ||
-            this.model.callableAnywhere.some((dir) => this.input.names.isDefined(base, dir))
-        );
+        return isListOf(this.model, this.input.names, base);
     }
 
     private definedIn(name: string, dirs: readonly string[]): string | undefined {
