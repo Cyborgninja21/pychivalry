@@ -688,6 +688,16 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   divine-intervention 1). The fixture pair gained an entry and a case. `pychivalry-tools advice
   proof` also counts each fix offered by the block it would change. The game-file suites, re-run,
   give the same figures but their times; their records are not committed.
+- `style/empty-block` never offers to take away an event's empty `option` either (decisions 176
+  and 177): it is still a hint, its message saying that taking it away takes that choice away
+  from the player or the AI (`: a choice of its event; taking it away takes that choice away from
+  the player or the AI`, `means: event-option`), with no fix, in a shown event or a hidden one.
+  Read from part D4, no keyword in the code: a key of an event's own body that is the word of the
+  event row with the role `event_option`. On all of the base game's 24,274 empty blocks: 5 options,
+  5 removals withdrawn, 22,268 left; none in the five mods. The fixture pair gained an event whose
+  one option is empty. A `duel`'s empty outcome is offered for removal as before until the spec
+  package gives the table `containers` a row for `duel` (decision 176). The game-file suites,
+  re-run, give the same figures but their times; their records are not committed.
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as
@@ -1052,10 +1062,10 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   `any_` iterator's `count`, what an iterator body with no condition asks of an item, how an
   iterator is read where the package's rules do not place it, and what an empty logical
   operator, plain trigger block or scope switch evaluates to; until it says, the rule offers no
-  fix for those last (decision 172). Whether it should also stop offering to take away an empty
-  event `option` (5 in the base game) or a `duel`'s empty outcome (1) is a question for the owner
-  (docs/decisions.md), and a row of the table `containers` for `duel`, whose body the game
-  documents as a `random_list`'s, goes back to the spec work (decision 175).
+  fix for those last (decision 172). A row of the table `containers` for `duel`, whose body the
+  game documents as a `random_list`'s, goes back to the spec work (decision 175); until the
+  package has it, a `duel`'s empty outcome (1 in the base game) is offered for removal as before,
+  and then it is read as an entry of a random list (decision 176).
 - The seventeen requests of 2026-11-25 are answered by format 9 (docs/decisions.md, row 150),
   what the package still leaves open with them; one new request goes back to the spec work
   (row 151): the trait groups and the game concepts' aliases, which part D6 names as databases and
