@@ -174,7 +174,7 @@ export function keyPlaces(spec: Spec, folders: FolderTable): KeyPlaces {
 }
 
 /** True for a `<...>` placeholder segment of a path. */
-function isPlaceholder(segment: string): boolean {
+export function isPlaceholder(segment: string): boolean {
     return segment.startsWith('<') && segment.endsWith('>');
 }
 
@@ -232,7 +232,7 @@ export function confirmedEnough(row: FieldReferenceRow): boolean {
 }
 
 /** The words a row accepts that are no key (`sentinels`, format 9). */
-function sentinelsOf(row: FieldReferenceRow): ReadonlySet<string> {
+export function sentinelsOf(row: FieldReferenceRow): ReadonlySet<string> {
     return new Set((row.sentinels ?? []).map((s) => s.value));
 }
 
@@ -254,7 +254,7 @@ function segmentMatches(segment: string, key: Scalar): boolean {
 }
 
 /** The pairs at a path below a block (`a.b`: the `b` pairs inside each `a` block). */
-function pairsAt(block: Block, path: readonly string[]): Pair[] {
+export function pairsAt(block: Block, path: readonly string[]): Pair[] {
     let level: Block[] = [block];
     let pairs: Pair[] = [];
     path.forEach((segment, i) => {
@@ -274,7 +274,7 @@ function pairsAt(block: Block, path: readonly string[]): Pair[] {
 }
 
 /** The values a pair gives, as its row's `value_form` says: one key, or a list of keys. */
-function valuesOf(pair: Pair, form: string | null): Scalar[] {
+export function valuesOf(pair: Pair, form: string | null): Scalar[] {
     const value = pair.value;
     if (value === null) {
         return [];
@@ -289,7 +289,7 @@ function valuesOf(pair: Pair, form: string | null): Scalar[] {
 }
 
 /** A value judged as a key: a plain name, no chain, no parameter, no link. */
-function isKeyValue(spec: Spec, scalar: Scalar): boolean {
+export function isKeyValue(spec: Spec, scalar: Scalar): boolean {
     return scalar.type === 'name' && !scalar.text.includes('$') && !isLink(spec, scalar.text);
 }
 

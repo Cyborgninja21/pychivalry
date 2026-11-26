@@ -1,0 +1,35 @@
+﻿namespace = fixture_calls
+
+fixture_calls.1 = {
+	type = character_event
+	title = fixture_calls.1.t
+	desc = fixture_calls.1.desc
+	theme = default
+	trigger = { fixture_call_trigger = yes }
+	option = {
+		name = fixture_calls.1.a
+		trigger_event = fixture_calls.2
+	}
+}
+
+fixture_calls.2 = {
+	type = character_event
+	hidden = yes
+	immediate = {
+		fixture_call_effect = yes
+		trigger_event = {
+			id = fixture_calls.3
+			days = 1
+		}
+		trigger_event = { on_action = fixture_on_action_b }
+	}
+}
+
+fixture_calls.3 = {
+	type = character_event
+	hidden = yes
+	immediate = {
+		add_gold = 1
+		trigger_event = fixture_calls.9
+	}
+}
