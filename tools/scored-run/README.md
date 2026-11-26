@@ -1539,7 +1539,7 @@ they answer did, where the package says more: `lookup` gives a modifier's locali
 names traits and trait groups (confirmed now), laws root at a character and `history/titles` at a
 landed title, scripted modifiers have no root, a saved value (`save_scope_value_as`) and the 409
 names the game saves from its own code are saved scopes, and `check` no longer reports what
-format 8's gaps made it report (docs/decisions.md, row 149). So:
+format 8's gaps made it report (docs/decisions.md, row 150). So:
 
 - **A record made on format 8 and one made on format 9 are not compared without saying so**,
   as with two tool schema versions. The next development run (below) is the first made on

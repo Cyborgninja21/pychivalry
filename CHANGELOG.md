@@ -626,7 +626,7 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   table.
 - The spec package is the 1.21.0.3 package in format 9 (the owner's word of 2026-11-25; 57.4 MB,
   3.32 MB gzipped), with `spec/schema.format9.json`, answering the seventeen items of the request
-  of 2026-11-25 (docs/decisions.md, rows 147 to 151). Format 9 is format 8 plus the parts D9
+  of 2026-11-25 (docs/decisions.md, rows 147 to 152). Format 9 is format 8 plus the parts D9
   (localization forms), O1 (names the game saves from its own code) and O2 (scope values that are
   no scope type), keys on the folders, the record schemas and the scope types, and keys inside
   C4, D1, D4, D5 and D6. The core's reader and `task spec:check` read format 9 only and refuse

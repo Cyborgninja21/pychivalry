@@ -78,7 +78,7 @@ committed package.
 ## Format 9: three parts, and keys on the folders, the schema and inside C4, D1, D4, D5 and D6
 
 Format 9 (`pdx-parser-re` merge `e3ced9c`, adopted 2026-11-25) answers the seventeen items
-pychivalry sent back on 2026-11-25 (docs/decisions.md, rows 147 to 150). It is format 8 plus
+pychivalry sent back on 2026-11-25 (docs/decisions.md, rows 149 to 151). It is format 8 plus
 additions; nothing is removed or reshaped. The top level of format 8, its directories, schema
 entries, fields, scope types and the rows of C4, D4, D5 and D6 are closed in
 `schema.format8.json`, so the number changes.
@@ -149,20 +149,20 @@ checks, measured where it says so on the 1.21.0.3 base game.
 
 | Question | What the package gives, and what reads it |
 | --- | --- |
-| Which definition is in force | D1, read by the index (docs/overrides.md says which row decides each rule). A settled or derived row of an applied kind decides; a partial or open row does not |
-| What a definition is | D2 (a top-level form that declares no name; a constant's scope) and D3 (nested and file-named definitions, and since format 8 the scope of each nested name), confirmed rows only, read by the folder table of the index |
+| Which definition is in force | D1, read by the index (docs/overrides.md says which row decides each rule). A settled or derived row of an applied kind decides; a partial or open row does not. Since format 9 the index also reads the rows' `key_identity` (a province id compared as an integer), `on_replace` (a replaced gene's templates go with it), `within`, `merge`, `path_match`, `compare_unit` and `pack` |
+| What a definition is | D2 (a top-level form that declares no name; a constant's scope) and D3 (nested and file-named definitions, and since format 8 the scope of each nested name), confirmed rows only, read by the folder table of the index. Since format 9, which files of a folder are script at all (`directories[].files`): `sound/GUIDs.txt`, `gfx/models/buildings/naming.txt` and a `.txt` file in `gui/` are not read |
 | Which blocks hold triggers or effects | A record body for 3 folders (`record_body`); otherwise each field's measured `kind`; the tables `opens_context`, `structural`, `containers`, `iterator_params`. D4 replaces none of it |
 | Which blocks hold modifiers | The 38 fields marked `holds: modifiers`, and the blocks a confirmed D7 row describes, with the keys D7 measures there as no modifier (`structural_keys`, `other_keys`) as their parameters |
 | Which use area a modifier block is | D7, confirmed rows: read by `names/modifier-outside-use-area` |
 | Which fields name an on-action | D6, confirmed rows whose database is the on-actions' (the one D6's vocabulary adds the on-actions bucket to): read by `names/unknown-on-action` |
 | Which iterator prefix belongs in a trigger block and which in an effect block | D8. Read by the scope checks of item 4.4 for the scope an iterator's block runs in. Not used to report an iterator of the wrong kind: no game message is tied to that case (a question for the owner, docs/decisions.md) |
-| Which scope a block runs in | The schema's `root_scope` (3,057 base-game uses rest on a root that is no scope type, `title` or `none`), an event's `scope` (the D4 role `sets_root_scope`), an on-action's documented scope (`scope_validity.on_actions`), each field's `scope`, `fields_outside_root` and `.info` scope note, and the scopes `scope_validity` gives each link and list: read by the scope checks of item 4.4, which judge 178,395 of the base game's 610,898 keyword uses |
+| Which scope a block runs in | The schema's `root_scope`, judged only where its folder's rule is `fixed` (format 9: laws root at a character, title history at a landed title, scripted modifiers at their caller; the 6 roots only the wiki-era seed gives are not judged), an event's `scope` (the D4 role `sets_root_scope`), an on-action's documented scope (`scope_validity.on_actions`), each field's `scope`, `fields_outside_root` and `.info` scope note, and the scopes `scope_validity` gives each link and list; a keyword whose scopes name a value of part O2 (`none`) is not judged. Read by the scope checks of item 4.4, which judge 179,669 of the base game's 610,886 keyword uses (178,395 on format 8, when 3,057 rested on a root that is no scope type) |
 | What a structural keyword does | D4, through one reader for items 4.5 and 4.7 (`check/keyword-roles.ts`); an error or warning reads only roles the part confirms |
-| What a name is, for lookup | Every part a name can be in: the buckets, D2, D4, D5, D6, D7, D8, `scope_types`, `noise_dropped`, the schema's fields, the C4 tables; the base game names 646 of the 778 modifiers' localization `MOD_<NAME>`, a rule the package does not carry (decision 73) |
+| What a name is, for lookup | Every part a name can be in: the buckets, D2, D4, D5, D6, D7, D8, `scope_types`, `noise_dropped`, the schema's fields, the C4 tables. Since format 9 a modifier's localization key is D5's `buckets.modifiers` (`MOD_<NAME>`, or the executable's literal): the base game defines it for 765 of the 778 modifiers (lookup found a key for 9 on format 8, decision 73) |
 | Whether the game's readers tell letter cases apart | D1's `path-case-engine-folds-nothing`: the engine folds no case; each platform's file system decides (`path-case-windows`, `path-case-linux`, both `derived`) |
 | Which names a mod may call | `vanilla_indexed_dirs` (7 folders) and the keyword templates' `keys` |
 | Where a scope chain is walked from, and what may end it | `scope_heads` and the links' own forms; a chain ending in a value is the A5 `takes` form `comparison` of a trigger |
-| Where a scope is saved, and which link reads it | The table `save_keys` (`save_scope_as`, `save_temporary_scope_as`), and the link its `.info` evidence names beside them, `scope`: read by the index, for `scope/undefined-event-target`. The table leaves out the effects that save a value under a name (`save_scope_value_as`), so a name any file writes is taken as possibly saved |
+| Where a scope is saved, and which link reads it | The table `save_keys`, each entry saying what it saves and where its name is written (format 9: `save_scope_value_as = { name = x }` is a save), and the link its `.info` evidence names beside them, `scope`; and part O1, the 409 names the game saves from its own code: read by the index, for `scope/undefined-event-target` (5,969 findings on the base game on format 8, 26 on format 9). A name passed to a scripted effect in a parameter is taken as possibly saved where any file writes it |
 | Which fields hold a localization key | B3 `loc_key` (372 fields), less those whose measured value type admits free text, whose `.info` type is no key, or whose key is a trigger and no effect: read by `localization/missing-key` (358 fields) |
 | Which keys a record has by its name | D5: a `required` row that is `confirmed` is a warning of `localization/missing-key` (8 rows), an `always-present-in-base-game` row advice (226); every row, its patterns set aside and its two-name patterns are uses for `localization/unused-key` |
 
@@ -182,11 +182,12 @@ so and does not guess.
    format 4 copy, a `.sha256` for each, and the schema.
 2. The files replace the ones in `spec/`, gzipped deterministically
    ([spec/README.md](../../spec/README.md#compression)). `task spec:check` verifies the
-   checksums of the uncompressed bytes, format 8, every companion the package lists, the JSON
+   checksums of the uncompressed bytes, format 9, every companion the package lists, the JSON
    Schema, the format 4 copy and the override rules.
 3. Every committed record made on the old package now fails `task records:check`, so the
-   suites that need game files and the 2.3.0 baselines are re-run and their records committed
-   with the package.
+   suites that need game files are re-run and their records committed with the package, and
+   the 2.3.0 baselines when the format 4 copy changes and release 2.3.0 can read it (on format
+   9 it cannot, and the copy was kept: docs/decisions.md, row 148).
 
 After 1.21 the spec is re-derived on the owner's word. Until then pychivalry reports a mismatch
 between the spec's game build and the installed one once, and keeps working.
