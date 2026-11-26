@@ -80,5 +80,10 @@ person runs "pychivalry: Set up for Claude Code" in VS Code once for the mod's f
    left, as rule 5 says.
 
 Information and hints are pychivalry's advice, not the game's: fix them only when the person
-asks. Unused localization keys can be thousands of hints; `check` with `unused_keys` false leaves
-them out.
+asks. When the person asks to clean up the `style/` findings, the hints among them are fixed as
+the warnings are: one with a `fix` as step 2 says, one without as step 3 says. Of those,
+`style/option-without-ai-weight` has no fix, since how much the AI wants an option is the
+author's to say: write in each option it names one of the keywords it names, looked up first,
+with the weight the person asks for, or the same weight for every option of the event when they
+name none, and say which you gave. Unused localization keys can be thousands of hints; `check`
+with `unused_keys` false leaves them out.

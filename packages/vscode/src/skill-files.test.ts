@@ -4,8 +4,10 @@
  * 2.1.220, as read from each and from their documentation: docs/references/editors-and-agents.md);
  * each names only the agent server's tools and the command line's commands and options that
  * exist, read from their own registries; and everything a skill writes as code is pychivalry's
- * own vocabulary or a name the spec package has, so a skill makes no claim about a CK3 keyword
- * the spec cannot back. The authoring skill states the rules of item 9.2.
+ * own vocabulary, a name the spec package has or a role of its part D4 (the words `lookup` reads a
+ * keyword's role in), so a skill makes no claim about a CK3 keyword the spec cannot back. The
+ * authoring skill states the rules of item 9.2, and the owner's rule that every option of an
+ * event with several options has an AI weight (decision 159).
  */
 
 import { COMMANDS, TOOL as COMMAND_LINE } from '@pychivalry/cli';
@@ -227,9 +229,16 @@ function commandLineProblem(span: string): string | null {
     return null;
 }
 
+/** The roles of part D4, as `lookup` names a keyword's role: the part's own vocabulary. */
+function rolesOf(spec: Spec): Set<string> {
+    const roles = spec.part('keyword_roles')?.vocabulary['roles'];
+    return new Set(typeof roles === 'object' && roles !== null ? Object.keys(roles) : []);
+}
+
 /** Each skill's spans, and the problem of each span that is no name pychivalry or the spec has. */
 function unbacked(spec: Spec): Map<string, string[]> {
     const tools = new Set(TOOLS.map((t) => t.name));
+    const roles = rolesOf(spec);
     const vocabulary = toolVocabulary();
     const codes: readonly string[] = inventoryRows().map((r) => r.code);
     const families = new Set(codes.map((c) => c.slice(0, c.indexOf('/'))));
@@ -254,6 +263,7 @@ function unbacked(spec: Spec): Map<string, string[]> {
                 span === COMMAND_LINE ||
                 /^<[^<>]+>$/.test(span) ||
                 vocabulary.has(span) ||
+                roles.has(span) ||
                 codes.includes(span) ||
                 (/^[a-z]+\/(\*)?$/.test(span) && families.has(span.slice(0, span.indexOf('/')))) ||
                 folders.has(span.replace(/\/$/, ''))
@@ -372,9 +382,13 @@ test("lookup's evidence is named only where it helps: the explain-error skill, f
 test("everything a skill writes as code is pychivalry's own or a name the spec package has", () => {
     const spec = openSpec(path.join(REPO, 'spec'));
     assert.deepEqual(Object.fromEntries(unbacked(spec)), {});
-    // The judge itself: a keyword the game does not have, or one outside code, is caught.
+    // The judge itself: a keyword the game does not have, or one outside code, is caught; a
+    // role is the part's word, never a keyword `lookup` answers.
     assert.ok(!lookup('add_gold', { spec, suggestions: false }).unknown);
     assert.ok(lookup('add_golden_crown', { spec, suggestions: false }).unknown);
+    assert.ok(rolesOf(spec).has('ai_weight'));
+    assert.ok(!rolesOf(spec).has('ai_weights'));
+    assert.ok(lookup('ai_weight', { spec, suggestions: false }).unknown);
 });
 
 test('the authoring skill states the rules of item 9.2, in order, for the four kinds of content', () => {
@@ -390,6 +404,9 @@ test('the authoring skill states the rules of item 9.2, in order, for the four k
         'Never claim success with errors left.',
         // The owner's principle: best practice and cleanliness over what an author wrote.
         'Format what you write.',
+        // The owner's word of 2026-11-25 (decision 159): the AI chooses among an event's options
+        // by their weights, and the game documents none for an option without one.
+        'Give every option an AI weight.',
     ];
     let at = body.indexOf('## The rules');
     assert.ok(at >= 0);
@@ -406,6 +423,14 @@ test('the authoring skill states the rules of item 9.2, in order, for the four k
     // Formatting is written by the agent server: an AI harness's own file tools may not write
     // Windows line breaks (the first scored authoring run, item 9.8).
     assert.match(body, /Run `apply_format` on each file you wrote or\s+changed/);
+    // Rule 8 names the role the weights have, not the keywords: `lookup` and the hint name them.
+    const prose = body.replace(/\s+/g, ' ');
+    assert.match(prose, /every option of an event with several options its AI weight/);
+    assert.match(prose, /whose keyword role in `lookup`'s answer is `ai_weight`/);
+    assert.match(prose, /the hint `style\/option-without-ai-weight`/);
+    assert.match(prose, /`check` with `codes` set to that code and `min_severity` set to `hint`/);
+    assert.match(prose, /no option without an AI weight \(rule 8\)/);
+    assert.match(prose, /a `style\/` warning or an option without an AI weight is left/);
     for (const kind of [
         'An event, with its localization',
         'A decision',
@@ -414,4 +439,22 @@ test('the authoring skill states the rules of item 9.2, in order, for the four k
     ]) {
         assert.ok(body.includes(`| ${kind} |`), kind);
     }
+});
+
+test('the fix-error skill fixes style/option-without-ai-weight as the other style findings, when asked', () => {
+    // The owner's word of 2026-11-25 (decision 159): a hint is the person's to ask for, and when
+    // the style findings are asked for, this one is fixed with them, though it has no fix.
+    const skill = skills.find((s) => s.name === 'pychivalry-fix-error');
+    assert.ok(skill !== undefined);
+    const prose = parse(skill.name, textOf(skill)).body.replace(/\s+/g, ' ');
+    assert.match(
+        prose,
+        /Information and hints are pychivalry's advice, not the game's: fix them only when the person asks/,
+    );
+    assert.match(
+        prose,
+        /When the person asks to clean up the `style\/` findings, the hints among them are fixed as the warnings are/,
+    );
+    assert.match(prose, /`style\/option-without-ai-weight` has no fix/);
+    assert.match(prose, /the same weight for every option of the event when they name none/);
 });

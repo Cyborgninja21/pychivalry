@@ -47,11 +47,12 @@ These hold for every request, whatever else it asks.
    its data say, and from `lookup` and `explain_code`: the pychivalry-fix-error skill says how.
    Then check again.
 5. **Stop at zero errors, or after 5 rounds.** A round is one `check` and the repairs made from
-   it. Stop when the files you wrote show zero errors and no `style/` warning (rule 7), or when
-   the fifth round's `check` is done, whichever comes first.
-6. **Never claim success with errors left.** If an error or a `style/` warning is left after the
-   fifth round, say that the content is not finished, and list what is left: code, file, line
-   and message.
+   it. Stop when the files you wrote show zero errors, no `style/` warning (rule 7) and no option
+   without an AI weight (rule 8), or when the fifth round's `check` is done, whichever comes
+   first.
+6. **Never claim success with errors left.** If an error, a `style/` warning or an option
+   without an AI weight is left after the fifth round, say that the content is not finished, and
+   list what is left: code, file, line and message.
 7. **Format what you write.** pychivalry writes every file with Windows line breaks and the
    UTF-8 byte-order mark, and lays it out one way. Run `apply_format` on each file you wrote or
    changed: it writes the file in the format (`written` true), or says it already is (`changed`
@@ -61,6 +62,14 @@ These hold for every request, whatever else it asks.
    and `style/not-utf8` are warnings, and count as errors here. Read a file again before editing
    it after `apply_format` wrote it. When `pychivalry` runs in a terminal you can use,
    `pychivalry format <file>` does the same.
+8. **Give every option an AI weight.** In an event with more than one option, write in every
+   option how much the AI wants it, with one of the keywords whose keyword role in `lookup`'s
+   answer is `ai_weight`: look each up with `folder` set to `events` before writing it (rule 1).
+   An option without one is the hint `style/option-without-ai-weight`. `check` counts it in its
+   `totals` whatever `min_severity` is, and `check` with `codes` set to that code and
+   `min_severity` set to `hint` lists each, naming the keywords that give the weight. How much
+   each option weighs is a choice: take it from what the request says of the options, give every
+   option the same weight when it says nothing, and say which choice you made.
 
 ## What you can write
 
@@ -94,9 +103,10 @@ same.
 4. **Name things so they clash with nothing.** Give everything you define a name of the mod's
    own, with a prefix the mod already uses if it has one. `find_definition` on each new name
    must find nothing: a definition of the same name replaces the base game's or another file's.
-5. **Draft,** looking up every name before you write it (rule 1), and writing the localization
-   with the script (rule 2).
-6. **Format, check and repair,** as rules 3 to 7 say, round by round: `apply_format` on each file
+5. **Draft,** looking up every name before you write it (rule 1), writing the localization
+   with the script (rule 2), and giving every option of an event with several options its AI
+   weight (rule 8).
+6. **Format, check and repair,** as rules 3 to 8 say, round by round: `apply_format` on each file
    you wrote or changed, then `check`.
 7. **Report.** The files you wrote and the names you defined; the last `check`'s totals for
    those files; the choices you made; and anything left, as rule 6 says. Say also what a clean
