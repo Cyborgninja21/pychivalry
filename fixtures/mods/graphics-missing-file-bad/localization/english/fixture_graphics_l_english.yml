@@ -1,0 +1,13 @@
+﻿l_english:
+ fixture_graphics_decision: "Fixture decision"
+ fixture_graphics_decision_desc: "Fixture decision."
+ fixture_graphics_decision_tooltip: "Fixture decision."
+ fixture_graphics_decision_confirm: "Fixture decision"
+ fixture_graphics_constant_decision: "Fixture decision"
+ fixture_graphics_constant_decision_desc: "Fixture decision."
+ fixture_graphics_constant_decision_tooltip: "Fixture decision."
+ fixture_graphics_constant_decision_confirm: "Fixture decision"
+ fixture_graphics_case_decision: "Fixture decision"
+ fixture_graphics_case_decision_desc: "Fixture decision."
+ fixture_graphics_case_decision_tooltip: "Fixture decision."
+ fixture_graphics_case_decision_confirm: "Fixture decision"

@@ -1,0 +1,9 @@
+﻿fixture_call_decision = {
+	is_shown = { fixture_call_trigger = yes }
+	effect = {
+		fixture_call_effect = yes
+		trigger_event = fixture_calls.1
+	}
+	ai_check_interval = 0
+	ai_will_do = { base = 0 }
+}

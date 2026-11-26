@@ -1,0 +1,6 @@
+﻿fixture_graphics_background = {
+	background = {
+		reference = "gfx/interface/illustrations/event_scenes/fixture_base_scene.png"
+		video_mask = "gfx/interface/illustrations/event_scenes/fixture_no_video.bk2"
+	}
+}

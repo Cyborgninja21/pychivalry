@@ -91,6 +91,13 @@ export interface SourceListing {
     /** Every other file, by its extension (`(none)` when it has none). */
     readonly notRead: Map<string, number>;
     /**
+     * Those other files themselves, by layer, each by its path inside the layer: the files of no
+     * kind the index reads (a texture, a sound bank, a model). What a check of a file that a
+     * script names looks a path up in (`graphics/missing-file`); the index keeps them beside the
+     * files it reads (`WorkspaceIndex.setUnreadFiles`).
+     */
+    readonly others: Map<string, string[]>;
+    /**
      * The script files of a listed folder that the spec says are no script (format 9): each with
      * its layer, path, folder, and the package's reason (`not-script`, with the entry's own
      * words, or `extension`).
@@ -209,6 +216,7 @@ export function* listInstallSteps(
         files: [],
         notDescribed: new Map(),
         notRead: new Map(),
+        others: new Map(),
         notScript: [],
         packs: [],
     };
@@ -242,6 +250,12 @@ function addSource(
 ): void {
     if (fileKindOf(rel) === undefined) {
         count(listing.notRead, extensionOf(rel) === '' ? '(none)' : extensionOf(rel));
+        const others = listing.others.get(layer);
+        if (others === undefined) {
+            listing.others.set(layer, [rel]);
+        } else {
+            others.push(rel);
+        }
         return;
     }
     if (folders.classify(rel) === undefined) {
@@ -276,6 +290,9 @@ function addSource(
  */
 export const REPLACE_PATH_KEY = 'replace_path';
 
+/** The layer of a mod's files in the index. */
+const MOD_LAYER = 'mod';
+
 /** A mod folder: its descriptor's `replace_path` values and the files to index. */
 export interface ModListing extends SourceListing {
     readonly replacePaths: readonly string[];
@@ -288,6 +305,7 @@ export function listMod(modDir: string, folders: FolderTable): ModListing {
         files: [],
         notDescribed: new Map(),
         notRead: new Map(),
+        others: new Map(),
         notScript: [],
         packs: [],
     };
@@ -300,7 +318,7 @@ export function listMod(modDir: string, folders: FolderTable): ModListing {
             replacePaths = descriptorValues(text, REPLACE_PATH_KEY);
             continue;
         }
-        addSource(listing, folders, 'mod', rel, diskPath(modDir, rel));
+        addSource(listing, folders, MOD_LAYER, rel, diskPath(modDir, rel));
     }
     return { ...listing, replacePaths, descriptor };
 }
@@ -368,6 +386,31 @@ export function* indexFilesSteps(
     return index;
 }
 
+/**
+ * Give an index the files of a listing it does not read (`SourceListing.others`), for every
+ * layer of `layers` (a layer of the listing with none gets none): what a check of a file a script
+ * names looks a path up in. True when any layer's files changed.
+ */
+export function setUnreadFilesOf(
+    index: WorkspaceIndex,
+    listing: SourceListing,
+    layers: readonly string[],
+): boolean {
+    let changed = false;
+    for (const layer of layers) {
+        changed = index.setUnreadFiles(layer, listing.others.get(layer) ?? []) || changed;
+    }
+    return changed;
+}
+
+/** The layers of a listing of the install: its folders' and its packs'. */
+export function installLayersOf(
+    install: readonly InstallFolder[],
+    listing: SourceListing,
+): string[] {
+    return [...install.map((f) => f.layer), ...listing.packs.map((p) => p.layer)];
+}
+
 /** Index a mod over an index of the base game: its files, and its `replace_path` values. */
 export function indexMod(index: WorkspaceIndex, modDir: string): ModListing {
     return drain(indexModSteps(index, modDir));
@@ -378,6 +421,7 @@ export function* indexModSteps(index: WorkspaceIndex, modDir: string): Steps<Mod
     const listing = listMod(modDir, index.folders);
     yield* indexFilesSteps(listing.files, index);
     index.setReplacePaths(listing.replacePaths);
+    setUnreadFilesOf(index, listing, [MOD_LAYER]);
     return listing;
 }
 
@@ -452,5 +496,10 @@ export function* syncModSteps(
     if (replaced) {
         index.setReplacePaths(listing.replacePaths);
     }
-    return { ...listing, listedAt, changed: replaced || removed > 0 || changed.length > 0 };
+    const others = setUnreadFilesOf(index, listing, [MOD_LAYER]);
+    return {
+        ...listing,
+        listedAt,
+        changed: replaced || others || removed > 0 || changed.length > 0,
+    };
 }

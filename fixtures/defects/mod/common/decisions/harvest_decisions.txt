@@ -1,6 +1,6 @@
 ﻿# Hold a harvest festival in the capital.
 harvest_festival_decision = {
-	picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }
+	picture = { reference = "gfx/interface/illustrations/decision/decision_misc.dds" }
 	decision_group_type = harvest_group
 	ai_check_inteval = 120
 

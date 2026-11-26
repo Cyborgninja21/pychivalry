@@ -18,6 +18,8 @@ export const VERSION = '0.0.0';
  * cursor), and every place saying its layer, a place outside the mod saying `read_with: "source"`
  * (the owner's decision of 2026-11-25); 5, `lookup`'s `evidence`: for one name a call, on
  * request, the spec package's evidence behind its readings, as the command line's `lookup --json`
- * gives it, its answer otherwise unchanged (the owner's second decision of 2026-11-25).
+ * gives it, its answer otherwise unchanged (the owner's second decision of 2026-11-25); 6,
+ * `call_graph` (build step 10): for each name, where it is defined, what calls it and what it calls,
+ * answered whole by name as `lookup` is, no other tool changed.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;

@@ -495,13 +495,15 @@ test("the third preview's release run, the committed record: every request 10 ti
     assert.ok(reading.without_expert !== null);
     assert.equal(reading.without_expert.requests, 12);
     assert.equal(reading.without_expert.met, true);
-    // Its sessions were given the committed agent server, and it was judged with the committed
-    // judge's prompt: the reading says both first.
-    assert.deepEqual(reading.server, { schema_version: SERVER_SCHEMA_VERSION, committed: true });
+    // Its sessions were given tool schema version 5, the agent server before `call_graph`
+    // (version 6, build step 10), and it was judged with the committed judge's prompt: the
+    // reading says both first, and that its measures are not those of a run on version 6.
+    assert.equal(SERVER_SCHEMA_VERSION, 6);
+    assert.deepEqual(reading.server, { schema_version: 5, committed: false });
     assert.equal(reading.judge?.version, JUDGE_PROMPT_VERSION.version);
     assert.equal(reading.judge.committed, true);
     assert.deepEqual(targetLines(reading).slice(0, 3), [
-        `its sessions were given the agent server's tool schema version ${String(SERVER_SCHEMA_VERSION)}, the committed one`,
+        `its sessions were given the agent server's tool schema version 5, not the committed version ${String(SERVER_SCHEMA_VERSION)}: they were given other tools and answers, so its measures are not comparable with those of a record of version ${String(SERVER_SCHEMA_VERSION)} without saying so`,
         `judged with version ${String(JUDGE_PROMPT_VERSION.version)} of the judge's prompt, the committed one`,
         "every trial's harness held (240)",
     ]);

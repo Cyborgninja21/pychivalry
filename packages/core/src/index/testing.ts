@@ -8,7 +8,14 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { openSpec } from '../spec/reader.js';
 import { folderTableFromSpec, type FolderTable } from './folders.js';
-import { indexFiles, indexMod, installFolders, listInstall } from './read-game.js';
+import {
+    indexFiles,
+    indexMod,
+    installFolders,
+    installLayersOf,
+    listInstall,
+    setUnreadFilesOf,
+} from './read-game.js';
 import { decidingRules, rulesFromSpec, type Platform, type RulesTable } from './rules.js';
 import type { WorkspaceIndex } from './workspace.js';
 
@@ -70,12 +77,15 @@ export function stubIndex(
     const table = options.rules ?? packageRules();
     const platform = 'platform' in options ? options.platform : 'linux';
     const gameDir = repoPath(`fixtures/game/${stub}/game`);
+    const install = installFolders(gameDir);
     const listing = listInstall(
-        installFolders(gameDir),
+        install,
         specFolders(),
         platform === undefined ? [] : decidingRules(table, platform),
     );
-    return indexFiles(listing.files, { folders: specFolders(), rules: table, platform });
+    const index = indexFiles(listing.files, { folders: specFolders(), rules: table, platform });
+    setUnreadFilesOf(index, listing, installLayersOf(install, listing));
+    return index;
 }
 
 /** A fixture mod indexed over a fixture stub. */

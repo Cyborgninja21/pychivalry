@@ -556,6 +556,8 @@ export class WorkspaceIndex {
     /** Every variable set whose name is a template, each once. Built when asked, dropped on a change. */
     private variableTemplates: string[] | null = null;
     private replacePaths: string[];
+    /** The files of each layer the index does not read, by folded path (`setUnreadFiles`). */
+    private readonly unread: Map<string, ReadonlyMap<string, readonly string[]>>;
     private statuses: FileStatus[] | null = null;
     /** Per database, what a pass over all its definitions found; dropped on every change. */
     private replays = new Map<string, AliasReplay>();
@@ -582,6 +584,7 @@ export class WorkspaceIndex {
         this.byRead = base === undefined ? new LayeredMap() : base.byRead.fork();
         this.byVarSet = base === undefined ? new LayeredMap() : base.byVarSet.fork();
         this.replacePaths = base === undefined ? [] : [...base.replacePaths];
+        this.unread = new Map(base?.unread);
         this.folders = options.folders;
         this.table = options.rules;
         this.platform = options.platform;
@@ -823,6 +826,62 @@ export class WorkspaceIndex {
 
     getReplacePaths(): readonly string[] {
         return this.replacePaths;
+    }
+
+    /**
+     * The files of a layer the index does not read, by their path inside it (the listing's
+     * `others`: textures, sound banks, models), in place of those given before for the layer:
+     * what a check of a file a script names looks a path up in (`graphics/missing-file`). Kept
+     * apart from the files the index reads, never cached (each listing gives them again), and
+     * shared with a fork as they are when it is made. True when the layer's files changed.
+     */
+    setUnreadFiles(layer: string, paths: readonly string[]): boolean {
+        this.refuseChange();
+        const byFolded = new Map<string, string[]>();
+        for (const p of paths) {
+            const key = foldCase(p);
+            const list = byFolded.get(key);
+            if (list === undefined) {
+                byFolded.set(key, [p]);
+            } else {
+                list.push(p);
+            }
+        }
+        const before = this.unread.get(layer);
+        const same =
+            before !== undefined &&
+            before.size === byFolded.size &&
+            [...byFolded].every(([key, list]) => {
+                const old = before.get(key);
+                return (
+                    old !== undefined &&
+                    old.length === list.length &&
+                    old.every((p, i) => p === list[i])
+                );
+            });
+        this.unread.set(layer, byFolded);
+        return !same;
+    }
+
+    /** The layers whose unread files were given (`setUnreadFiles`), in the order given. */
+    unreadFileLayers(): string[] {
+        return [...this.unread.keys()];
+    }
+
+    /**
+     * The unread files at a path, in every layer whose files were given, without regard to
+     * letter case: each with its layer and its path as written, so that a caller can tell an
+     * exact match from one that differs only in case.
+     */
+    unreadFilesAt(path: string): { readonly layer: string; readonly path: string }[] {
+        const key = foldCase(path);
+        const out: { layer: string; path: string }[] = [];
+        for (const [layer, files] of this.unread) {
+            for (const p of files.get(key) ?? []) {
+                out.push({ layer, path: p });
+            }
+        }
+        return out;
     }
 
     private store(file: Omit<FileEntry, 'id'>): number {

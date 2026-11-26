@@ -17,6 +17,7 @@ import {
     variableKeyParts,
 } from '../index/extract.js';
 import { layerKind } from '../index/order.js';
+import type { PathCaseRule } from '../index/rules.js';
 import type { WorkspaceIndex } from '../index/workspace.js';
 import type { DefinedNames } from './context.js';
 
@@ -63,6 +64,19 @@ export interface WorkspaceNames extends DefinedNames {
      * value (`WorkspaceIndex.textScopeReads`), each once, sorted.
      */
     textScopeReads(key: string): readonly string[];
+    /**
+     * The files of the mod and the base game the index does not read (textures and the like),
+     * for `graphics/missing-file`: those at a path, without regard to letter case, each with its
+     * layer and its path as written (`WorkspaceIndex.unreadFilesAt`).
+     */
+    unreadFilesAt(path: string): readonly { readonly layer: string; readonly path: string }[];
+    /** The layers whose unread files the index was given (`WorkspaceIndex.setUnreadFiles`). */
+    readonly unreadLayers: readonly string[];
+    /**
+     * How the platform the index reads for compares paths that differ only in letter case: the
+     * deciding `path-case` row of the rules table (part D1), or null when no row decides.
+     */
+    readonly pathCase: 'exact' | 'case-insensitive' | null;
 }
 
 /**
@@ -148,8 +162,12 @@ export function definedNamesOf(index: WorkspaceIndex, options: NamesOptions = {}
         }
         return answer;
     };
+    const pathCase = index.rules.find((r): r is PathCaseRule => r.kind === 'path-case');
     return {
         baseGame: index.allFiles().some((f) => layerKind(f.layer) !== 'mod'),
+        unreadFilesAt: (path) => index.unreadFilesAt(path),
+        unreadLayers: index.unreadFileLayers(),
+        pathCase: pathCase === undefined ? null : pathCase.compare,
         isDefined(name: string, database: string): boolean {
             const key = `${database}\u0000${name}`;
             let answer = known.get(key);

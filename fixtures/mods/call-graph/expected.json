@@ -1,0 +1,360 @@
+{
+    "links": [
+        {
+            "kind": "common/decisions -> common/scripted_triggers",
+            "from": {
+                "name": "fixture_call_decision",
+                "database": "common/decisions"
+            },
+            "to": {
+                "name": "fixture_call_trigger",
+                "database": "common/scripted_triggers",
+                "defined": true
+            },
+            "via": "fixture_call_trigger",
+            "basis": {
+                "kind": "callable"
+            },
+            "at": {
+                "file": "common/decisions/fixture_call_decisions.txt",
+                "line": 2,
+                "column": 15
+            }
+        },
+        {
+            "kind": "common/decisions -> common/scripted_effects",
+            "from": {
+                "name": "fixture_call_decision",
+                "database": "common/decisions"
+            },
+            "to": {
+                "name": "fixture_call_effect",
+                "database": "common/scripted_effects",
+                "defined": true
+            },
+            "via": "fixture_call_effect",
+            "basis": {
+                "kind": "callable"
+            },
+            "at": {
+                "file": "common/decisions/fixture_call_decisions.txt",
+                "line": 4,
+                "column": 3
+            }
+        },
+        {
+            "kind": "common/decisions -> events",
+            "from": {
+                "name": "fixture_call_decision",
+                "database": "common/decisions"
+            },
+            "to": {
+                "name": "fixture_calls.1",
+                "database": "events",
+                "defined": true
+            },
+            "via": "trigger_event",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event",
+                "status": "measured-only"
+            },
+            "at": {
+                "file": "common/decisions/fixture_call_decisions.txt",
+                "line": 5,
+                "column": 19
+            }
+        },
+        {
+            "kind": "common/on_action -> events",
+            "from": {
+                "name": "fixture_on_action_a",
+                "database": "common/on_action"
+            },
+            "to": {
+                "name": "fixture_calls.1",
+                "database": "events",
+                "defined": true
+            },
+            "via": "events",
+            "basis": {
+                "kind": "field-reference",
+                "row": "common/on_action::events",
+                "status": "confirmed"
+            },
+            "at": {
+                "file": "common/on_action/fixture_call_on_actions.txt",
+                "line": 2,
+                "column": 13
+            }
+        },
+        {
+            "kind": "common/on_action -> events",
+            "from": {
+                "name": "fixture_on_action_a",
+                "database": "common/on_action"
+            },
+            "to": {
+                "name": "fixture_calls.2",
+                "database": "events",
+                "defined": true
+            },
+            "via": "random_events.<number>",
+            "basis": {
+                "kind": "field-reference",
+                "row": "common/on_action::random_events.<number>",
+                "status": "confirmed"
+            },
+            "at": {
+                "file": "common/on_action/fixture_call_on_actions.txt",
+                "line": 3,
+                "column": 26
+            }
+        },
+        {
+            "kind": "common/on_action -> common/on_action",
+            "from": {
+                "name": "fixture_on_action_a",
+                "database": "common/on_action"
+            },
+            "to": {
+                "name": "fixture_on_action_b",
+                "database": "common/on_action",
+                "defined": true
+            },
+            "via": "on_actions",
+            "basis": {
+                "kind": "field-reference",
+                "row": "common/on_action::on_actions",
+                "status": "confirmed"
+            },
+            "at": {
+                "file": "common/on_action/fixture_call_on_actions.txt",
+                "line": 4,
+                "column": 17
+            }
+        },
+        {
+            "kind": "common/on_action -> events",
+            "from": {
+                "name": "fixture_on_action_b",
+                "database": "common/on_action"
+            },
+            "to": {
+                "name": "fixture_calls.3",
+                "database": "events",
+                "defined": true
+            },
+            "via": "trigger_event",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event",
+                "status": "measured-only"
+            },
+            "at": {
+                "file": "common/on_action/fixture_call_on_actions.txt",
+                "line": 8,
+                "column": 29
+            }
+        },
+        {
+            "kind": "common/scripted_effects -> common/scripted_effects",
+            "from": {
+                "name": "fixture_call_effect",
+                "database": "common/scripted_effects"
+            },
+            "to": {
+                "name": "fixture_call_inner_effect",
+                "database": "common/scripted_effects",
+                "defined": true
+            },
+            "via": "fixture_call_inner_effect",
+            "basis": {
+                "kind": "callable"
+            },
+            "at": {
+                "file": "common/scripted_effects/fixture_call_effects.txt",
+                "line": 2,
+                "column": 2
+            }
+        },
+        {
+            "kind": "common/scripted_effects -> events",
+            "from": {
+                "name": "fixture_call_effect",
+                "database": "common/scripted_effects"
+            },
+            "to": {
+                "name": "fixture_calls.3",
+                "database": "events",
+                "defined": true
+            },
+            "via": "trigger_event",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event",
+                "status": "measured-only"
+            },
+            "at": {
+                "file": "common/scripted_effects/fixture_call_effects.txt",
+                "line": 3,
+                "column": 18
+            }
+        },
+        {
+            "kind": "common/scripted_triggers -> common/scripted_triggers",
+            "from": {
+                "name": "fixture_call_outer_trigger",
+                "database": "common/scripted_triggers"
+            },
+            "to": {
+                "name": "fixture_call_trigger",
+                "database": "common/scripted_triggers",
+                "defined": true
+            },
+            "via": "fixture_call_trigger",
+            "basis": {
+                "kind": "callable"
+            },
+            "at": {
+                "file": "common/scripted_triggers/fixture_call_triggers.txt",
+                "line": 3,
+                "column": 32
+            }
+        },
+        {
+            "kind": "events -> common/scripted_triggers",
+            "from": {
+                "name": "fixture_calls.1",
+                "database": "events"
+            },
+            "to": {
+                "name": "fixture_call_trigger",
+                "database": "common/scripted_triggers",
+                "defined": true
+            },
+            "via": "fixture_call_trigger",
+            "basis": {
+                "kind": "callable"
+            },
+            "at": {
+                "file": "events/fixture_call_events.txt",
+                "line": 8,
+                "column": 14
+            }
+        },
+        {
+            "kind": "events -> events",
+            "from": {
+                "name": "fixture_calls.1",
+                "database": "events"
+            },
+            "to": {
+                "name": "fixture_calls.2",
+                "database": "events",
+                "defined": true
+            },
+            "via": "trigger_event",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event",
+                "status": "measured-only"
+            },
+            "at": {
+                "file": "events/fixture_call_events.txt",
+                "line": 11,
+                "column": 19
+            }
+        },
+        {
+            "kind": "events -> common/scripted_effects",
+            "from": {
+                "name": "fixture_calls.2",
+                "database": "events"
+            },
+            "to": {
+                "name": "fixture_call_effect",
+                "database": "common/scripted_effects",
+                "defined": true
+            },
+            "via": "fixture_call_effect",
+            "basis": {
+                "kind": "callable"
+            },
+            "at": {
+                "file": "events/fixture_call_events.txt",
+                "line": 19,
+                "column": 3
+            }
+        },
+        {
+            "kind": "events -> events",
+            "from": {
+                "name": "fixture_calls.2",
+                "database": "events"
+            },
+            "to": {
+                "name": "fixture_calls.3",
+                "database": "events",
+                "defined": true
+            },
+            "via": "trigger_event.id",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event.id",
+                "status": "confirmed"
+            },
+            "at": {
+                "file": "events/fixture_call_events.txt",
+                "line": 21,
+                "column": 9
+            }
+        },
+        {
+            "kind": "events -> common/on_action",
+            "from": {
+                "name": "fixture_calls.2",
+                "database": "events"
+            },
+            "to": {
+                "name": "fixture_on_action_b",
+                "database": "common/on_action",
+                "defined": true
+            },
+            "via": "trigger_event.on_action",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event.on_action",
+                "status": "confirmed"
+            },
+            "at": {
+                "file": "events/fixture_call_events.txt",
+                "line": 24,
+                "column": 33
+            }
+        },
+        {
+            "kind": "events -> events",
+            "from": {
+                "name": "fixture_calls.3",
+                "database": "events"
+            },
+            "to": {
+                "name": "fixture_calls.9",
+                "database": "events",
+                "defined": false
+            },
+            "via": "trigger_event",
+            "basis": {
+                "kind": "field-reference",
+                "row": "effects::trigger_event",
+                "status": "measured-only"
+            },
+            "at": {
+                "file": "events/fixture_call_events.txt",
+                "line": 33,
+                "column": 19
+            }
+        }
+    ]
+}

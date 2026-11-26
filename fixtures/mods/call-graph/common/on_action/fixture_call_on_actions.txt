@@ -1,0 +1,9 @@
+﻿fixture_on_action_a = {
+	events = { fixture_calls.1 }
+	random_events = { 100 = fixture_calls.2 }
+	on_actions = { fixture_on_action_b }
+}
+
+fixture_on_action_b = {
+	effect = { trigger_event = fixture_calls.3 }
+}

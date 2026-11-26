@@ -23,6 +23,7 @@ const TOOL_NAMES = [
     'find_references',
     'list_definitions',
     'source',
+    'call_graph',
     'explain_code',
     'format',
     'apply_format',
@@ -71,7 +72,7 @@ test('the server names itself, its version and its schema version, and says how 
     assert.ok(instructions.includes(dir), 'it names the mod folder it works on');
 });
 
-test('the nine tools, each read-only but apply_format, declaring what it takes and what it returns', async (t) => {
+test('the ten tools, each read-only but apply_format, declaring what it takes and what it returns', async (t) => {
     const dir = scratch(t);
     const { client } = await connect(t, ['--mod', dir, '--no-vanilla'], path.join(dir, 'cache'));
     const { tools } = (await client.listTools()) as { tools: ListedTool[] };
@@ -97,7 +98,8 @@ test('the nine tools, each read-only but apply_format, declaring what it takes a
             openWorldHint: false,
         });
     }
-    for (const later of ['call_graph', 'analyze_log']) {
+    // `call_graph` came with build step 10 (schema version 6); `analyze_log` waits for step 11.
+    for (const later of ['analyze_log']) {
         assert.ok(!tools.some((tool) => tool.name === later), `${later} waits for its step`);
     }
 });
