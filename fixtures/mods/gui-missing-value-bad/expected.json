@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-missing-value",
+                    "severity": "information",
+                    "line": 3,
+                    "column": 7,
+                    "message": "'name' has no value after its '='."
+                }
+            ],
+            "tree": "window = { size = { 400 300 } name = <none> }"
+        }
+    }
+}

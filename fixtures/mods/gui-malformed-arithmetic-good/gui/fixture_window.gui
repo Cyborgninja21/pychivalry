@@ -1,0 +1,6 @@
+﻿@fixture_width = 40
+
+window = {
+	name = "fixture_window"
+	size = { @[fixture_width + 2] 30 }
+}

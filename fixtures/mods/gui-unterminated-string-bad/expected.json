@@ -1,0 +1,23 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-missing-closing-brace",
+                    "severity": "information",
+                    "line": 1,
+                    "column": 10,
+                    "message": "A block is still open at the end of the file: its '}' is missing."
+                },
+                {
+                    "id": "syntax/gui-unterminated-string",
+                    "severity": "information",
+                    "line": 2,
+                    "column": 9,
+                    "message": "Unterminated string starting at 'gui/fixture_window.gui:2'"
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\r\n\tsize = { 400 300 }\r\n}\r\n"
+        }
+    }
+}

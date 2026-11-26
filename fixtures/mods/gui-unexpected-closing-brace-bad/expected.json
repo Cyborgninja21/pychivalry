@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-unexpected-closing-brace",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 1,
+                    "message": "A '}' at the top level of the file, where no block is open."
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\" size = { 400 300 } }"
+        }
+    }
+}

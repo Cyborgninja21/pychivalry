@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-operator-without-key",
+                    "severity": "information",
+                    "line": 4,
+                    "column": 3,
+                    "message": "The operator '=' has no key in front of it."
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\" vbox = { 5 layoutpolicy_horizontal = expanding } }"
+        }
+    }
+}

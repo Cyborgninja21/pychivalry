@@ -39,14 +39,15 @@ items 4.7, 4.9 and 4.10 before any check ships.
 3. [The inventory](#the-inventory)
 4. [The inventory in numbers](#the-inventory-in-numbers)
 5. [The step 2 findings](#the-step-2-findings)
-6. [Where the executable keeps each message](#where-the-executable-keeps-each-message)
-7. [Release 2.3.0's codes, one by one](#release-230s-codes-one-by-one)
-8. [The pre-2.0 rules, one by one](#the-pre-20-rules-one-by-one)
-9. [The base game's own errors in release 2.3.0](#the-base-games-own-errors-in-release-230)
-10. [ck3-tiger and the CWTools rule files](#ck3-tiger-and-the-cwtools-rule-files)
-11. [What the inventory needs from the 1.21 spec](#what-the-inventory-needs-from-the-121-spec)
-12. [How the counts were made](#how-the-counts-were-made)
-13. [What the owner signs off](#what-the-owner-signs-off)
+6. [The GUI syntax findings](#the-gui-syntax-findings)
+7. [Where the executable keeps each message](#where-the-executable-keeps-each-message)
+8. [Release 2.3.0's codes, one by one](#release-230s-codes-one-by-one)
+9. [The pre-2.0 rules, one by one](#the-pre-20-rules-one-by-one)
+10. [The base game's own errors in release 2.3.0](#the-base-games-own-errors-in-release-230)
+11. [ck3-tiger and the CWTools rule files](#ck3-tiger-and-the-cwtools-rule-files)
+12. [What the inventory needs from the 1.21 spec](#what-the-inventory-needs-from-the-121-spec)
+13. [How the counts were made](#how-the-counts-were-made)
+14. [What the owner signs off](#what-the-owner-signs-off)
 
 ## How to read a row
 
@@ -599,6 +600,31 @@ check built on the table is a new row with a new code,
 | `structure/event-redundant-override-background` | information | An untriggered `override_background` equal to the background its theme shows first | Advice | `CK3433` | `structure-event-redundant-override-background` | 4.7 | keyword roles | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 3,511, fires on 206 (decision 46: an advice row ships only when it fires on none) |
 | `encoding/not-utf8` | information | A file that is not valid UTF-8 | Advice ([why](#the-step-2-findings)) | new | `encoding-windows-1252` | 2 | none | 2026-11-23, on the owner's word (decision 113): a file not valid UTF-8 shows one finding, the warning `style/not-utf8`, whose message and data now say what this note said, how the file was read |
 
+### Step 10: GUI syntax
+
+Built in `packages/core/src/gui/parser.ts` (item 10.2); the identifier is the code, in the family
+`syntax`, each named `syntax/gui-<what>` so that it never meets a code of the script parser's. A
+GUI file (`.gui`) gets these findings and no other: no engine check and no `style/` finding reads
+it ([gui-syntax.md](gui-syntax.md)). Every one is advice at information: no catalogue message is
+shown to be the GUI reader's ([why](#the-gui-syntax-findings)). Each is tested by its pair,
+`fixtures/mods/gui-<what>-bad` and `-good`.
+
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `syntax/gui-missing-closing-brace` | information | A block of a GUI file still open at the end of the file | Advice ([why](#the-gui-syntax-findings)) | new (2.3.0 read GUI files with its script parser) | `gui-missing-closing-brace` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-unexpected-closing-brace` | information | A `}` at the top level of a GUI file, where no block is open | Advice ([why](#the-gui-syntax-findings)) | new | `gui-unexpected-closing-brace` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-operator-without-key` | information | An operator with no key before it | Advice ([why](#the-gui-syntax-findings)) | new | `gui-operator-without-key` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-operator-not-equals` | information | An operator other than `=`: every statement of a GUI file is `key = value` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-operator-not-equals` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-missing-value` | information | `key =` with nothing after it | Advice ([why](#the-gui-syntax-findings)) | new | `gui-missing-value` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-missing-equals` | information | `key { ... }` or `key value` among statements, without its `=` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-missing-equals` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-value-without-key` | information | A value standing among statements with no key | Advice ([why](#the-gui-syntax-findings)) | new | `gui-value-without-key` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-block-without-key` | information | A block with no key among statements | Advice ([why](#the-gui-syntax-findings)) | new | `gui-block-without-key` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-missing-block-name` | information | A named-block keyword (`types`, `template`, `block`, `blockoverride`...) followed by its block with no name | Advice ([why](#the-gui-syntax-findings)) | new | `gui-missing-block-name` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-malformed-type` | information | A type definition not written `type <name> = <base> { ... }` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-malformed-type` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-trailing-semicolon` | information | A `;` after a statement, which GUI syntax does not use | Advice ([why](#the-gui-syntax-findings)) | new | `gui-trailing-semicolon` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-unterminated-string` | information | Quoted text without its closing quote | Advice ([why](#the-gui-syntax-findings)) | new | `gui-unterminated-string` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-malformed-arithmetic` | information | `@[ ... ]` that is not well formed, or has no `]` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-malformed-arithmetic` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+
 ### Step 10: graphics
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
@@ -680,6 +706,33 @@ three at information**:
 | `syntax/unterminated-string` | `unterminat`, `quot`, `end of file`, `eof`, `unclosed`, `unmatched`, `string` | Catalogue: nothing about script text. Executable: `UnterminatedString`, a token name beside the `pdx_ast` parser's own grammar messages; "Unreadable String" beside the script reader (`pdx_persistent_reader.cpp`), not in the catalogue and with no condition in its words | Keep information. Neither text says the game reports quoted text left open in a script file |
 | `syntax/malformed-arithmetic` | `@[`, `inline`, `math`, `arithmetic`, `formula`, `parse`, the `Expected: <...>` family | Catalogue: `failed_to_parse_advanced_statement_arithmetic_expression` ("Failed to parse advanced statement arithmetic expression") and `invalid_character_X_in_advanced_statement`. The executable keeps both inside the script reader, between the messages for `@` variables ("Unknown variable '{}'", "Invalid variable name ..."). The `Expected: <@[>`, `Expected: <]>`, `Expected: <math-scalar>` family belongs to the separate `pdx_ast` parser | Keep information until "advanced statement" is shown to mean `@[ ... ]`: by the cleaned catalogue marking the message script-facing, or by the planted-defect capture of item 11.1. Then raise it to an error with `failed_to_parse_advanced_statement_arithmetic_expression` as its evidence. The alternative, raising it now on the text alone, is question 5 |
 | `encoding/not-utf8` (retired 2026-11-23, decision 113) | `utf`, `unicode`, `ansi`, `encod`, `bom`, `byte`, `invalid char` | Catalogue: only "Failed to read culture history / title history, not a valid date at: {} (check encoding, should be ansi)", about history dates. Executable: "File '%s' should be in utf8-bom encoding (will try to use it anyways)" beside the script lexer, "Missing UTF8 BOM in '%s'", "Failed conversion of utf8 string: %s"; none in the catalogue, and none says what happens to an invalid byte | Keep information. The game ships and loads 27 files that are not valid UTF-8 ([encoding.md](encoding.md)), so it does not refuse them |
+
+## The GUI syntax findings
+
+Build step 10 (item 10.2) looked for the message the game prints for each defect of GUI syntax,
+in the committed catalogue (2,671 entries, 57 with the subject `gui`) and in the 1.21.0.3 Linux
+executable (725,545 strings of six characters or more, read with `strings -n 6`), and found none
+it can tie to the GUI reader, so all thirteen codes are **advice at information**:
+
+- The executable keeps the GUI loader's words beside its source files `pdx_gui_file.cpp` and
+  `pdx_gui_factory.cpp` (`types `, `using = `, `template `, `block "`, `blockoverride "`), and
+  the messages kept there are about what a statement names, not how it is written: "failed
+  reading property, at line %d in file %s", "'%s' is not a valid widget/type/property"
+  (`X_is_not_a_valid_widget_type_property`), "Could not find template '%s'",
+  `type_X_already_registered_at_X_X` and `template_X_already_registered_at_X_X`. Those are the
+  GUI vocabulary's, after the MVP (docs/MVP.md).
+- The script reader's parse messages, which the step 2 codes cite, sit beside
+  `pdx_persistent_reader.cpp` and `pdx_reader_actions.cpp`; whether the GUI loader reads its
+  files through that reader is not shown by the strings.
+- A third parser, `pdx_ast_parser.cpp`, keeps the `Expected: <...>` family (`expected_7`,
+  "Expected: <{>", `expected_rhs`, "Expected: <rhs>", ...) and node names that match GUI syntax
+  (`named_list`, `variable_definition`, `math_expr`); its other users in the executable are tool
+  states (the map editor's nudger, the log viewer), and nothing ties it to `.gui` files.
+
+Which reader reads a `.gui` file, and which message it prints for each defect, is a request to
+the spec work ([decisions.md](decisions.md)); with that evidence a code can be raised to an
+error, as a changed severity, never a new code. Until then a GUI file that does not parse is
+still read as far as the parser can, and every finding says what it found.
 
 ## Where the executable keeps each message
 

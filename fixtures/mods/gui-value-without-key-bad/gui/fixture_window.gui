@@ -1,0 +1,5 @@
+﻿window = {
+	name = "fixture_window"
+	expanding
+	size = { 400 300 }
+}

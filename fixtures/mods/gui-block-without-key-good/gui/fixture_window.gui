@@ -1,0 +1,7 @@
+﻿window = {
+	name = "fixture_window"
+	size = { 400 300 }
+	text_single = {
+		text = "FIXTURE_TITLE"
+	}
+}

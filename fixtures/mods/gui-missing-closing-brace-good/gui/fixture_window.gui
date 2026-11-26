@@ -1,0 +1,10 @@
+﻿window = {
+	name = "fixture_window"
+	size = { 400 300 }
+
+	vbox = {
+		text_single = {
+			text = "FIXTURE_TITLE"
+		}
+	}
+}

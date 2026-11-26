@@ -26,6 +26,8 @@ export {
     type Finding,
     type FindingId,
     type FindingKind,
+    type GuiFindingId,
+    type ScriptFindingId,
     type MessageCatalogue,
     type MessageContext,
     type Severity,

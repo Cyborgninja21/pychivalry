@@ -1,0 +1,23 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-trailing-semicolon",
+                    "severity": "information",
+                    "line": 3,
+                    "column": 37,
+                    "message": "A ';' after 'expanding', which GUI syntax does not use: it is read as part of the word, 'expanding;'."
+                },
+                {
+                    "id": "syntax/gui-trailing-semicolon",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 22,
+                    "message": "A ';' after '\"[Close]\"', which GUI syntax does not use: it is read as a value of its own."
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\" layoutpolicy_horizontal = expanding; button = { onclick = \"[Close]\" ; } }"
+        }
+    }
+}

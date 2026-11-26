@@ -64,8 +64,11 @@ for (const mod of mods) {
     });
 }
 
-test('every kind of parse finding has a broken-input fixture', () => {
-    const kinds = Object.keys(FINDING_KINDS) as FindingId[];
+test("every kind of the script parser's findings has a broken-input fixture", () => {
+    // The GUI parser's kinds have their fixture pairs, `gui-*` (gui/fixtures.test.ts).
+    const kinds = (Object.keys(FINDING_KINDS) as FindingId[]).filter(
+        (id) => FINDING_KINDS[id].reader === 'script',
+    );
     assert.deepEqual(
         kinds.filter((id) => !seen.has(id)),
         [],
