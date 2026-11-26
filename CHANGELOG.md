@@ -582,6 +582,15 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   the on-disk cache's format is 5, so an older cache is rebuilt. The language server rechecks the
   files that read a variable whose sets change, and those that name a localization key whose text
   reads other saved scopes.
+- `style/redundant-false-condition`, a best-practice hint (decision 158): an `always = no` that
+  changes nothing, directly in an `OR`, a `NOR` or an `all_false` beside other conditions (part
+  D4's `child_always_false: neutral`), with a safe fix that takes it away; never a block left
+  empty. The base game breaks it in 1 of its 39,426 such blocks; the five mods: none in any of the five.
+  Its fixture pair, tests and docs/checks.md row.
+- The write-content skill's eighth rule (decision 159): every option of an event with several
+  options gets an AI weight, written with the keywords `lookup` reads with the role `ai_weight`;
+  its stop rule and report count an option without one as left. The fix-error skill fixes
+  `style/option-without-ai-weight` with the other `style/` findings when the person asks.
 
 ### Changed
 
@@ -597,6 +606,19 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (a question for the owner). The game stub `event-targets-and-localization` sets a variable.
 - A fix may rest on part D4's roles (`basis: keyword-roles`); the agent server describes it, and
   its tool schema version stays 5.
+- The requests' frozen results weight every option (decision 160): twelve results gained
+  `ai_chance = { base = 50 }` in each option of their events with several options, six example
+  results and six hand-made results of the expert calibration sheet (its README names them, to be
+  graded again if graded already); the two tests that hold them to "the checker reports
+  nothing" leave no code out any more (`LATER_CODES` removed).
+- `style/redundant-condition` runs through the reader it now shares with
+  `style/redundant-false-condition`, judging exactly what it judged before.
+- The game-file suites are re-run with `style/redundant-false-condition`: the base game's errors
+  (13) and warnings unchanged, the new hint 1; the five mods' errors unchanged.
+- `spec/README.md` says which checks read part D9, the table `variables` and D4's new keys
+  (decision 161); nothing else under `spec/` changed.
+- MVP.md's definition of done 2 stays open until the spec work answers decisions 151 and 154
+  (decision 157); its state, 13 base-game errors, each a defect of the game's files, beside it.
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as
