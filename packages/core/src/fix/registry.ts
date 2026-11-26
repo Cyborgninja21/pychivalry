@@ -176,6 +176,10 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         what: 'The values the base game writes in the field that are near the one written.',
         fixer: unusualValueFix,
     },
+    'graphics/missing-file': {
+        offer: 'none',
+        what: "None: which file was meant is the author's choice; a path that matches a file only in other letter case names that file's spelling in its data.",
+    },
     'references/unknown-key': {
         offer: 'safe-or-suggestion',
         what: 'The keys of the database near the one written; safe when there is only one.',

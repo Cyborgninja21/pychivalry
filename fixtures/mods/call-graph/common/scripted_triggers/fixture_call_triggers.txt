@@ -1,0 +1,3 @@
+﻿fixture_call_trigger = { always = yes }
+
+fixture_call_outer_trigger = { fixture_call_trigger = yes }

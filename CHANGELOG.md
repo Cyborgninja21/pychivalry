@@ -652,8 +652,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (the fixture mod `gui-index` over the stub `gui-index`; the language server's round trip; the
   command line against the agent server; the editor tests on a GUI file of their planted copy).
 
+- Build step 10, items 10.5 to 10.7: the graphics-file check `graphics/missing-file` (warning), on the 13 fields the spec package documents as file paths, a `.dds`, `.png` or `.tga` path from the top of the game's folders looked up in the mod, the install's three folders and every DLC pack, by part D1's letter-case row, silent with no game folder ([docs/graphics-check.md](docs/graphics-check.md)); the index keeps the files of each layer it does not read. The call graph in the core (`packages/core/src/calls/`): keys called by name (`vanilla_indexed_dirs`) and values naming an event or an on-action (part D6), each link with its caller, callee, place, statement and basis ([docs/call-graph.md](docs/call-graph.md)). The agent server's `call_graph` (tool schema version 6), the language server's call hierarchy, and the command line's `pychivalry calls`.
+
 ### Changed
 
+- The planted-defect mod plants `graphics/missing-file` (37 defects, 30 look-alikes); its game stub holds the texture the decisions show. The language server checks the mod again when a texture is added or removed.
 - GUI files are read since build step 10: a GUI file's findings are the GUI parser's alone (no
   engine check, no `style/` rule, no fix), and the formatter leaves GUI files as they are, which
   Format Document, `pychivalry format` (a folder's counted in one line) and the agent server's
@@ -1114,8 +1117,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   advice), whether `gui/` is read with its sub-folders (224 of `game/gui/`'s 441 files "read: not
   known"), which of two types of one name in two files is in force, templates registered twice,
   one database for two registries, files outside `gui/`, local types and templates, and the
-  keywords' letter case. Questions for the owner are in `docs/decisions.md`. Items 10.5 to 10.7,
-  the graphics check and the call graph, are built in another pull request.
+  keywords' letter case. Questions for the owner are in `docs/decisions.md`.
+- Build step 10's graphics check goes back to the spec work in three points (decision 187): the
+  `.info` type `file_path` as data on the 48 fields of 25 folders measured as paths, the folder a
+  file name is read in for a field that names one inside a define's folder, and how the game reads
+  a path with no folder, a `..` segment, a leading `/` or a backslash.
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.

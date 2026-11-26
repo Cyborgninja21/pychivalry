@@ -26,5 +26,6 @@ A stub is never a copy of game files. The real base game is read only by the loc
 | [override-rules](override-rules/README.md) | An install with the three folders and a DLC pack, holding the game's side of every rule in docs/overrides.md | Step 3 |
 | [event-targets-and-localization](event-targets-and-localization/README.md) | A base game that saves a scope and defines two localization keys, for the checks that stay silent without one | Item 4.6 |
 | [lookup](lookup/README.md) | A base game with a definition of each kind lookup answers for, the mod `lookup-definitions-and-uses` read over it | Item 4.8 |
-| [planted-defects](planted-defects/README.md) | The base game of the planted-defect mod, `fixtures/defects`: a tradition and a scripted effect the mod uses | Item 6.7 |
+| [planted-defects](planted-defects/README.md) | The base game of the planted-defect mod, `fixtures/defects`: a tradition and a scripted effect the mod uses, and the texture its decisions show (since item 10.5) | Item 6.7 |
 | [gui-index](gui-index/README.md) | A base game with GUI files in `game/gui/`, one below a sub-folder, and one in `jomini/gui/` that `game/` replaces: the types and templates the mod `gui-index` is read over | Item 10.4 |
+| [graphics](graphics/README.md) | An install with a texture in `game/`, in a DLC pack and in `jomini/`, for `graphics/missing-file` | Item 10.5 |

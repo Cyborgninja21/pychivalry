@@ -22,6 +22,7 @@ import { missingRequiredFields } from './fields-missing-required-field.js';
 import { unknownFields } from './fields-unknown-field.js';
 import { wrongKindsOfValue } from './fields-wrong-kind-of-value.js';
 import { unknownKeys } from './references-unknown-key.js';
+import { missingFiles } from './graphics-missing-file.js';
 import { nonCharacterShownEvents } from './structure-event-non-character-shown.js';
 import { undeclaredNamespaces } from './structure-event-undeclared-namespace.js';
 import { rangesMinAboveMax } from './structure-range-min-above-max.js';
@@ -62,6 +63,17 @@ export {
 } from './context.js';
 export { useAreasOf } from './names-modifier-outside-use-area.js';
 export { onActionPlaces } from './names-unknown-on-action.js';
+export {
+    isTextureName,
+    pathFields,
+    TEXTURE_EXTENSIONS,
+    texturePathOf,
+    texturePlaces,
+    type NotDecided,
+    type PathField,
+    type PathReading,
+    type TexturePlace,
+} from './graphics-missing-file.js';
 export {
     CHECK_KINDS,
     checkMessage,
@@ -243,6 +255,7 @@ export function checkFile(input: CheckInput): CheckFinding[] {
         ...linksOnWrongScope(reading, scopes, context, input.spec),
         ...undefinedEventTargets(input.folders, input.parsed.file, input.names, context),
         ...missingKeys({ ...records, names: input.names }, context),
+        ...missingFiles(context, { ...records, names: input.names }),
         ...adviceFindings({
             spec: input.spec,
             folders: input.folders,

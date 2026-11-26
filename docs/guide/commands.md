@@ -52,6 +52,10 @@ localization or GUI file, or a folder holding a `descriptor.mod`. They are the l
   file (`.gui`, since build step 10) on its types and templates, a type found in any letter case,
   the outline its `types` blocks and templates ([GUI syntax](../gui-syntax.md)); a GUI file's
   findings are its syntax's alone, and it is not formatted;
+- Show Call Hierarchy (Shift+Alt+H, or the context menu) on an event, an on-action, a scripted
+  effect or trigger, a decision or any definition: what calls it and what it calls, in the mod
+  and the base game, each call opening the place it is written ([The call graph](../call-graph.md));
+  a callee nothing defines has no file to open and is not shown;
 - quick fixes on a finding that has a mechanical fix (the light bulb, or Ctrl+.): each of its
   alternatives, a safe one preferred, and "fix every safe ... in the file" where a file has
   more than one safe fix of a code; Source Action > Fix All applies every safe fix of the file.
@@ -78,6 +82,7 @@ libraries, or reads it from `--vanilla <game folder>`.
 | `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
 | `pychivalry lookup <name>...` | What a name is: every reading the spec package has of it (its description, the scopes it supports, what it takes, the version it came in or went out), where the base game and a mod define and use it and which definition is in force, and, for a name nothing knows, the names close to it |
 | `pychivalry source <layer> <file> <line>` | The text around a place a result named, at most 40 lines, each with its number: the base game's own script, localization or GUI files (to see how the game itself writes a name), or the mod's. The same lines the agent server's `source` gives for the same place ([below](#options-of-source)) |
+| `pychivalry calls <name>...` | The call graph of each name: where the mod and the base game define it as script, what calls it and what it calls, each link with its kind (the caller's folder and the callee's: `events -> events`, `common/on_action -> events`), the statement that writes it and its place ([below](#options-of-calls)). The same links as the agent server's `call_graph` and the editor's call hierarchy |
 | `pychivalry format <file\|folder>...` | Formats the mod's script and localization files by pychivalry's rules ([Formatting](formatting.md)), in place; a file with a parse error, or not valid UTF-8, is left as it is and named; GUI files are not formatted, and a folder's are counted in one line |
 | `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it, its message with each value a named slot (`Unknown trigger '<trigger>'`). A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
@@ -128,6 +133,27 @@ reading's facts without their evidence, the first 3 uses, its own `source` tool 
 text around a place. Asked with `evidence` for one name, it also gives that name's readings as
 `lookup --json` prints them, with their evidence, as many as fit one result and the rest counted
 ([The agent server](agent-server.md)).
+
+### Options of `calls`
+
+`pychivalry calls <name>...` takes names of definitions: events (`my_events.1`), on-actions,
+scripted effects and triggers, decisions, any definition of script. `--vanilla`, `--no-vanilla`,
+`--spec` and `--json` as for `check`, and:
+
+| Option | What it does |
+| --- | --- |
+| `--mod <mod>` | A mod folder, read over the base game, so that its calls are read too |
+| `--callers` | Only what calls each name |
+| `--callees` | Only what each name calls |
+
+A link is a call the spec package marks as one ([The call graph](../call-graph.md)): an event
+triggering an event, a scripted effect or trigger called by name, an on-action firing an event or
+another on-action, a decision firing an event, and every other value that names an event or an
+on-action. The text output writes each link as its other end, its kind, the statement, its place
+(`<layer> <file>:<line>:<column>`) and what in the package makes it a call; a callee nothing
+defines says so. With `--json`, one object per name: its definitions, its callers and its callees
+whole, every place with its layer. `calls` exits `1` when a name is neither defined nor called
+anywhere, and `2` when there is nothing to read (`--no-vanilla` and no `--mod`).
 
 ### Options of `source`
 

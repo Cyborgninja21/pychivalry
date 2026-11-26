@@ -631,7 +631,7 @@ shown to be the GUI reader's ([why](#the-gui-syntax-findings)). Each is tested b
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `graphics/missing-file` | warning | A `.dds`, `.png` or `.tga` path that exists in neither the mod, the base game nor a DLC pack. Silent when no game folder is set | Catalogue `failed_to_load_texture_X_file_not_found` ("Failed to load texture %s - file not found") | `GFX001` | `graphics-missing-file` | 10.5 | value types (which fields hold a texture path; 2.3.0 read nine names from its own code) | Not built: step 10 | Not built |
+| `graphics/missing-file` | warning | A `.dds`, `.png` or `.tga` path, in a field the spec package documents as a file path, that exists in neither the mod, the base game nor a DLC pack. Silent when no game folder is set | Catalogue `failed_to_load_texture_X_file_not_found` ("Failed to load texture %s - file not found"); proposed beside it, the file layer's `failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun` ("Failed to open file %.*s. File does not exist in any of the mounted locations.") | `GFX001` | `graphics-missing-file` | 10.5 | value types, met in part: the fields whose `.info` type is `file_path` (part C1) and whose measured value type has the group `path` (part B1), 13 fields of 8 folders ([graphics-check.md](graphics-check.md)); the 48 fields of 25 folders measured as paths with no `.info` type wait on the spec work (decision 187) | Built in part (10.5): those 13 fields; on the base game 19 warnings in 6 files, every one a defect of the game's files | None: which file was meant is the author's choice; a path that matches a file only in other letter case names that file's spelling in its data |
 
 ### Step 11: the game's error log
 
@@ -652,9 +652,9 @@ format 9 unblocked (2026-11-25):
 | State | Rows | Which |
 | --- | ---: | --- |
 | Built | 60 | Step 2's 10 (its eleventh retired); 4.2's 4 others; 4.4's 3; 4.5's 10 others (`structure/triggered-desc-other-field` since format 9); 4.6's all 4 (the opener left open of `localization/unbalanced-brackets` since format 9); 4.7's 28 others (`scope/title-text-reads-scope-saved-late` since format 9); and `variables/read-without-set`, new with format 9 |
-| Built in part | 4 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `references/unknown-name` (the game-concept half waits for the package to define a concept's aliases, docs/decisions.md row 151) |
+| Built in part | 5 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `references/unknown-name` (the game-concept half waits for the package to define a concept's aliases, docs/decisions.md row 151), `graphics/missing-file` (13 fields of 8 folders; the rest wait on the spec work, decision 187) |
 | Retired | 12 | The provisional advice rows item 4.7's re-proof found firing on the base game, and `encoding/not-utf8` (decision 113) ([Retired codes](#retired-codes)) |
-| Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
+| Not built yet | 2 | `log/game-message` and `log/unmatched-line` (step 11) |
 | Built, step 10 | 13 | The GUI parser's codes, `syntax/gui-*`, all advice at information ([Step 10: GUI syntax](#step-10-gui-syntax)) |
 | Built, step 8 | 17 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; eight on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and seven hints, `style/redundant-condition` built and `style/option-without-ai-weight` added since format 9 gave part D4 the roles they read, and `style/redundant-false-condition` added on the owner's word of 2026-11-25 (decision 158) |
 
@@ -764,7 +764,7 @@ and the duplicated event id; `jomini_scriptvalue.cpp` for the range; `event.cpp`
 non-character event; `casus_belli.cpp`, `character_interaction_category.cpp` and `databases.cpp`
 for the three required fields; `characterhistory.cpp` for the duplicate character id;
 `modifier_instance.cpp` for the unknown modifier; `pdx_data_localize.cpp` for the localization
-brackets; `mapgraphics.cpp` for the missing texture. `unexpected_token_expected_key` has no
+brackets; `mapgraphics.cpp` for the missing texture (the file layer's message for a file in no mounted location sits beside `pdx_core`; the GUI's intersection mask reads its texture in `pdx_gui_intersection_mask.cpp`). `unexpected_token_expected_key` has no
 source path near it.
 
 ## Release 2.3.0's codes, one by one
@@ -1168,7 +1168,7 @@ Beyond what the format 5 plan already holds, this inventory needs:
    "Unterminated `'` ..." and "Unterminated '$' ..." messages.
 4. **Value types that name a database or a file**: which database a field's value is a key of
    (`references/unknown-key`), which definition kind it names (`references/unknown-name`), which
-   fields hold a texture path (`graphics/missing-file`).
+   fields hold a texture path (`graphics/missing-file`): met for 13 fields by the `.info` type `file_path`, the rest requested (decision 187).
 5. **A clash row's message in the rules table**, for every folder the spec work finds the game
    reports a duplicate in (`definitions/clash`).
 

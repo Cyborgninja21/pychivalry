@@ -407,7 +407,7 @@ test('a session not confined stops the run after its trial, and the record says 
     assert.deepEqual(trial.harness_problems, [
         'tools outside the confinement were offered: Bash',
         `the pychivalry skills were not offered: ${SKILL_NAME}`,
-        "the agent server's tools were not offered: apply_format, check, explain_code, find_definition, find_references, format, list_definitions, lookup, source",
+        "the agent server's tools were not offered: apply_format, call_graph, check, explain_code, find_definition, find_references, format, list_definitions, lookup, source",
         'the session named files outside its mod (2 calls of Write, Read)',
     ]);
     // No judge was asked: only the authoring session started.

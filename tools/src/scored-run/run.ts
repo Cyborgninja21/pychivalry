@@ -111,6 +111,7 @@ export const TASK = 'agent-use';
  */
 export const SERVER_TOOLS: readonly string[] = [
     'apply_format',
+    'call_graph',
     'check',
     'explain_code',
     'find_definition',
@@ -127,13 +128,14 @@ export const SERVER_TOOLS: readonly string[] = [
  * record a run makes (`server.schema_version`): what its sessions were given. Version 4 added
  * `source`, `lookup` answering each name whole and game places that say they are read with
  * `source` (the owner's decision of 2026-11-25); version 5, `lookup`'s `evidence`, one name's
- * spec package evidence on request (his second decision of that day). A record made before
+ * spec package evidence on request (his second decision of that day); version 6, `call_graph`,
+ * the call graph of a name (build step 10), every other tool unchanged. A record made before
  * version 4 names no version, and was given version 3 or earlier; no record was made on version
- * 4. Records of different versions are never read as one: a run continuing a record refuses
+ * 4, and none yet on version 6: the committed records were made on version 5. Records of different versions are never read as one: a run continuing a record refuses
  * another (the server is compared), and `task scored:targets` says which version a record's
  * sessions were given.
  */
-export const SERVER_SCHEMA_VERSION = 5;
+export const SERVER_SCHEMA_VERSION = 6;
 /** The built-in tools a trial may use. */
 export const BUILT_IN_TOOLS: readonly string[] = ['Read', 'Edit'];
 

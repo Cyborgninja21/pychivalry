@@ -17,8 +17,8 @@ import assert from 'node:assert/strict';
 import { cpSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
-import { fixtureGame, tempDir } from '../testing.js';
-import { committedDrafts, DRAFTS_DIR, exampleDir, root } from './authoring-testing.js';
+import { tempDir } from '../testing.js';
+import { committedDrafts, DRAFTS_DIR, emptyGame, exampleDir, root } from './authoring-testing.js';
 import { filesIn } from './graders.js';
 import { baseDir, committedRequests } from './requests.js';
 import { mcpConfig, scoredOptions, SERVER_NAME } from './run.js';
@@ -73,7 +73,8 @@ test(
             cpSync(draftDir, mod, { recursive: true });
             const cacheDir = path.join(dir, 'cache');
             mkdirSync(cacheDir);
-            const gameDir = fixtureGame(path.join(dir, 'install'));
+            // The empty game the request tests read, with the texture the decisions show.
+            const gameDir = emptyGame(t);
             const config = mcpConfig(options, mod, gameDir, cacheDir) as {
                 mcpServers: Record<string, ServerEntry>;
             };

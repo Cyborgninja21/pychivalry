@@ -1,0 +1,3 @@
+﻿fixture_graphics_background = {
+	background = { reference = "gfx/interface/illustrations/event_scenes/fixture_missing_scene.dds" }
+}

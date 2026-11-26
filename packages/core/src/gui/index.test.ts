@@ -9,6 +9,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { CallGraph } from '../calls/graph.js';
 import { lookup } from '../lookup/lookup.js';
 import { fixtureIndex, repoPath } from '../index/testing.js';
 import type { Definition } from '../index/workspace.js';
@@ -178,4 +179,11 @@ test('a type defined outside a types block, or a template inside a block, is no 
     assert.deepEqual(names, ['real']);
     // A file in no folder the spec lists defines nothing.
     assert.deepEqual(extractGui(parsed.file, { strings, defines: false }).defs, []);
+});
+
+test('a GUI type or template is no definition of the call graph: it calls nothing', () => {
+    const graph = new CallGraph({ spec: committedSpec(), index, files: () => undefined });
+    assert.deepEqual(graph.definitionsOf('fixture_button'), []);
+    assert.deepEqual(graph.definitionsOf('Fixture_Window_Background'), []);
+    assert.equal(index.definitions('fixture_button').length, 2);
 });

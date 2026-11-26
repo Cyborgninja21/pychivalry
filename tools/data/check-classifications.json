@@ -812,6 +812,41 @@
             "lines": [91],
             "classification": "game-defect",
             "reason": "No localization file of the install defines the key DEBUG_NOT_THEY_HAVE_MORE_ACUMEN_TRIGGER: a search of the keys of every .yml file under game/, jomini/, clausewitz/ and the DLC packs, every language, finds none, and the index (which reads them all) holds none. The field names it as a localization key (catalogue unknown_loc_key_X)."
+        },
+        {
+            "file": "common/decisions/00_holy_order_decisions.txt",
+            "code": "graphics/missing-file",
+            "lines": [780],
+            "classification": "game-defect",
+            "reason": "A decision picture names gfx/interface/illustrations/holding_types/tgp_decision_mandala.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has tgp_decision_mandala.dds in gfx/interface/illustrations/decisions/, which each of the base game's 10 other uses of the picture names (80_major_decisions.txt:1234, tgp_east_asia_decisions.txt:59 and others): the folder is wrong. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+        },
+        {
+            "file": "common/decisions/dlc_decisions/fp3_decisions.txt",
+            "code": "graphics/missing-file",
+            "lines": [998],
+            "classification": "game-defect",
+            "reason": "The decision's extra_picture names gfx/interface/illustrations/struggle_decision_buttons/fp3_decision_assertion.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named fp3_decision_assertion with any extension. The line's own comment reads '# Does this need to be updated?'. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+        },
+        {
+            "file": "common/domiciles/buildings/00_merchant_company_buildings.txt",
+            "code": "graphics/missing-file",
+            "lines": [2602, 2634, 2666, 2700, 2734, 2768, 2803, 2838, 2873],
+            "classification": "game-defect",
+            "reason": "Nine domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/estate_building_villa_byzantine_mask.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name). The install has the mask as estate_building_villa_byzantine_mask.png, which 148 other lines of the folder name (00_chinese_estate_buildings.txt:351 and on, in 00_estate_buildings.txt and 10_japanese_manor_buildings.txt too): the extension is wrong. The executable reads this field in its GUI intersection-mask code (pdx_gui_intersection_mask.cpp, 'Missing file path property for intersectionmask_texture'); its one message that tries other formats ('... with any of the following formats (png,bmp,tga)') belongs to the map editor's materials (jomini map_editor materials.cpp), not to it. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+        },
+        {
+            "file": "common/domiciles/buildings/10_japanese_manor_buildings.txt",
+            "code": "graphics/missing-file",
+            "lines": [1074, 1112, 1150, 1188, 1226, 1264],
+            "classification": "game-defect",
+            "reason": "Six domicile buildings' intersectionmask_texture names gfx/interface/window_domiciles/tgp_ui_domicile_building_japanese_main_building.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named tgp_ui_domicile_building_japanese_main_building with any extension. Every other intersection mask of the file names an existing *_mask.png. The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
+        },
+        {
+            "file": "common/event_backgrounds/01_event_backgrounds.txt",
+            "code": "graphics/missing-file",
+            "lines": [13763, 13796],
+            "classification": "game-defect",
+            "reason": "Two entries of an event background name gfx/interface/illustrations/event_scenes/ep2_travel_settlement_hills.dds: no file of that path is in the install's game/, jomini/ or clausewitz/ folder or in a DLC pack, in any letter case (a search of every file of the install by its name); no file of the install is named ep2_travel_settlement_hills with any extension (the name is the background's own key, ep2_travel_settlement_hills, line 13834). The field is one the spec package documents as a file path (part C1, the .info type file_path); the game logs a texture it cannot find (catalogue failed_to_load_texture_X_file_not_found), and its file layer a file in no mounted location (failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun)."
         }
     ]
 }

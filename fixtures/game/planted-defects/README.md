@@ -11,5 +11,6 @@ It holds only what the mod uses and does not define itself, each a look-alike of
   which the mod's scripted trigger tests for;
 - `game/common/scripted_effects/00_feast_effects.txt` defines the scripted effect
   `ruler_feast_gift_effect`, which one of the mod's events calls.
+- `game/gfx/interface/illustrations/decisions/decision_misc.dds`, a placeholder of the texture both of the mod's decisions show (the festival decision's misspelled folder is a planted defect).
 
 `launcher/launcher-settings.json` states the build, `1.21.0.3`.

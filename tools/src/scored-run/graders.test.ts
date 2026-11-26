@@ -63,9 +63,9 @@ test('on the untouched mod/, the checker graders fail and the others pass', () =
     const { grades } = gradeMod({ root, spec, manifest, original, result: original });
     assert.deepEqual(failing(original), ['zero-errors', 'defects-gone']);
     const gone = grades.find((g) => g.name === 'defects-gone');
-    // 37 findings of planted codes, shown up to the cap and counted past it.
+    // 38 findings of planted codes, shown up to the cap and counted past it.
     assert.equal(gone?.problems.length, MAX_PROBLEMS + 1);
-    assert.equal(gone.problems[MAX_PROBLEMS], 'and 17 more');
+    assert.equal(gone.problems[MAX_PROBLEMS], 'and 18 more');
 });
 
 test('a fix that deletes the offending block fails nothing-deleted, its block left out of the format', (t) => {

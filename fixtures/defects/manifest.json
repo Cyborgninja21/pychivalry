@@ -501,6 +501,25 @@
                     "lines": [8, 8]
                 }
             ]
+        },
+        {
+            "code": "graphics/missing-file",
+            "file": "common/decisions/harvest_decisions.txt",
+            "line": 3,
+            "text": "\tpicture = { reference = \"gfx/interface/illustrations/decision/decision_misc.dds\" }",
+            "what": "The festival decision's picture names a folder decision/ that does not exist: the picture is gfx/interface/illustrations/decisions/decision_misc.dds, in the base game, as the granaries decision names it.",
+            "reported": [
+                {
+                    "file": "common/decisions/harvest_decisions.txt",
+                    "line": 3
+                }
+            ],
+            "fix": [
+                {
+                    "file": "common/decisions/harvest_decisions.txt",
+                    "lines": [3, 3]
+                }
+            ]
         }
     ],
     "look_alikes": [
@@ -677,6 +696,12 @@
             "line": 5,
             "text": " harvest.0001.b:0 \"Give #P 10#! gold to the poor.\"",
             "why": "#P and #! format the text; they are not brackets."
+        },
+        {
+            "file": "common/decisions/harvest_decisions.txt",
+            "line": 36,
+            "text": "\tpicture = { reference = \"gfx/interface/illustrations/decisions/decision_misc.dds\" }",
+            "why": "The picture is a texture of the base game, at that path."
         }
     ]
 }

@@ -8,7 +8,7 @@ it finds and the game's evidence for it, with the game's own message as the spec
 catalogue for game 1.21.0.3 gives it. `pychivalry explain <code>` prints the same for one
 code ([Commands](commands.md)).
 
-94 codes: 21 errors, 9 warnings, 47 information and 17 hints. 29 rest on the game's own evidence; 48 are advice; 9 rest on pychivalry's own formatting rules; 8 on its own best-practice rules.
+95 codes: 21 errors, 10 warnings, 47 information and 17 hints. 30 rest on the game's own evidence; 48 are advice; 9 rest on pychivalry's own formatting rules; 8 on its own best-practice rules.
 
 - An **error** or a **warning** is something the game itself rejects or complains about, and
   rests on the game's own evidence: a message of the game, the game's own output, or a
@@ -54,6 +54,12 @@ check each replaces and how each was proved on the base game, is the
 | `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. | Advice: pychivalry's own, with no game message | None: the field's value is a choice. |
 | `fields/wrong-kind-of-value` | information | A value of another kind than the field takes. | Advice: pychivalry's own, with no game message | Suggestion: The values the base game writes in the field, where they are a small set. |
 | `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set. | Advice: pychivalry's own, with no game message | Suggestion: The values the base game writes in the field that are near the one written. |
+
+## graphics
+
+| Code | Severity | What it finds | Evidence | Fix |
+| --- | --- | --- | --- | --- |
+| `graphics/missing-file` | warning | A texture path, in a field the spec package documents as a file path, that names no file of the mod, the base game or a DLC pack. | The game's message `failed_to_load_texture_X_file_not_found`: "Failed to load texture &lt;file&gt; - file not found" | None: which file was meant is the author's choice; a path that matches a file only in other letter case names that file's spelling in its data. |
 
 ## localization
 

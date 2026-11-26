@@ -57,6 +57,10 @@ type and template (in force, or winner not known), each name written at a place 
 the definitions it goes to, and the uses of a type in any letter case. The editor tests write a
 GUI file into their copy of the planted-defect mod, never into the mod itself, so that the
 same-answers test covers a GUI file's findings, its formatting left alone and its definitions.
+For its graphics check and its call graph, step 10 also added `graphics-missing-file-bad` and
+`-good`, over the game stub `graphics` (a texture in `game/`, one in a DLC pack, one in
+`jomini/`): `graphics/missing-file`; and `call-graph`: a mod with a known call graph, every kind
+of link, its `expected.json` the graph.
 
 Build step 3 added the index's fixtures. The first game stub,
 [`fixtures/game/override-rules`](../fixtures/game/README.md), is an install with the three folders
@@ -179,23 +183,24 @@ check pairs still.
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
 to 6.9) and made harder after the first test sessions (decision 83): a "Harvest Festival" mod,
-`mod/`, of 17 files and 563 lines, in pychivalry's format but for its defects, with 36 planted
-defects, every check code of this build that is an error or a warning at least once (21 errors
-and 9 warnings, the `style/` family's two among them, `structure/triggered-desc-other-field` since
-format 9; four codes twice; and the hint of the planted formatting defect), and 29
+`mod/`, of 17 files and 563 lines, in pychivalry's format but for its defects, with 37 planted
+defects (since step 10, a picture in a folder that does not exist, `graphics/missing-file`), every check code of this build that is an error or a warning at least once (21 errors
+and 10 warnings, the `style/` family's two among them, `structure/triggered-desc-other-field` since
+format 9; four codes twice; and the hint of the planted formatting defect), and 30
 lines that look wrong and are not; `manifest.json`, which gives each defect's code, the line the
 checker reports it at, the text of that line and the lines a fix may change, and each
 look-alike with why it is right; and `reference/`, the same mod with every defect fixed. Some
 defects need a lookup to fix, some interact (the obvious fix of one makes another), and some
 are fixed away from the line the finding points at. It is checked over its own game stub,
 [`fixtures/game/planted-defects`](../fixtures/game/README.md), which defines the tradition and
-the scripted effect the mod uses and does not define itself, so CI needs no game.
+the scripted effect the mod uses and does not define itself, and holds `decision_misc.dds`, the
+texture its decisions show, so CI needs no game.
 
 On `mod/` the checker reports exactly the planted defects (26 errors, the clash at both of its
-definitions, 10 warnings and 1 hint); on `reference/`, nothing
+definitions, 11 warnings and 1 hint); on `reference/`, nothing
 (`tools/src/scored-run/defects.test.ts`). Since format 9 every option of its shown events with
 several options gives the AI a weight (`ai_chance`), in both copies, so that the best-practice
-hint `style/option-without-ai-weight` finds nothing. The built agent server gives the same 37 findings
+hint `style/option-without-ai-weight` finds nothing. The built agent server gives the same 38 findings
 (`tools/src/scored-run/server.test.ts`). It is what the scored agent-use test is graded on: in
 each test session of the developer's own Claude Code an agent is asked to fix a fresh copy, and
 the trial passes when the checker reports no errors, every planted defect is gone, nothing else

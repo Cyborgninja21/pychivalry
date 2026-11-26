@@ -1,0 +1,6 @@
+﻿fixture_call_effect = {
+	fixture_call_inner_effect = yes
+	trigger_event = fixture_calls.3
+}
+
+fixture_call_inner_effect = { add_gold = 1 }
