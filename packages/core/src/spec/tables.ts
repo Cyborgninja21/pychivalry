@@ -251,8 +251,8 @@ export class Tables {
                 }
             }
         }
-        // Format 9's table of the keywords of variables: read as written, for the checks that
-        // will need it; no check reads it yet (docs/checks.md, the five `variables/*` rows).
+        // Format 9's table of the keywords of variables: read as written, for the index's record
+        // of every variable set and the check `variables/read-without-set` (docs/checks.md).
         for (const [name, entry, , acceptOnly] of this.read('variables')) {
             if (!acceptOnly) {
                 this.variables.set(name, variableOf(entry));

@@ -1,0 +1,14 @@
+﻿fixture_can_host_trigger = {
+	OR = {
+		is_adult = yes
+		is_ruler = yes
+	}
+	NOR = {
+		is_ai = yes
+		has_trait = shy
+	}
+	all_false = {
+		is_imprisoned = yes
+		is_incapable = yes
+	}
+}

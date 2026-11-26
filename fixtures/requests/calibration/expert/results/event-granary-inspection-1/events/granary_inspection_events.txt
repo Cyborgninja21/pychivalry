@@ -8,6 +8,7 @@ granary.0002 = {
 
 	option = {
 		name = granary.0002.a
+		ai_chance = { base = 50 }
 		every_vassal = {
 			if = {
 				limit = { is_adult = yes }
@@ -18,6 +19,7 @@ granary.0002 = {
 
 	option = {
 		name = granary.0002.b
+		ai_chance = { base = 50 }
 		add_stress = -15
 	}
 }

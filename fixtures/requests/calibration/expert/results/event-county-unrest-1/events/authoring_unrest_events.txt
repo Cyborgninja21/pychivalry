@@ -17,12 +17,14 @@ authoring_unrest.0001 = {
 
 	option = {
 		name = authoring_unrest.0001.a
+		ai_chance = { base = 50 }
 		scope:unrest_county = { change_county_control = 20 }
 		add_gold = -50
 	}
 
 	option = {
 		name = authoring_unrest.0001.b
+		ai_chance = { base = 50 }
 		scope:unrest_county = { add_popular_opinion = 10 }
 		add_prestige = -25
 	}

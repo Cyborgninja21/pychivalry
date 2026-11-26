@@ -1551,6 +1551,29 @@ format 8's gaps made it report (docs/decisions.md, row 150). So:
 - `task scored:targets` reads a record as before; its figures are those of the package the
   record names.
 
+### The skills changed: an AI weight for every option (decision 159)
+
+On the owner's word of 2026-11-25 the write-content skill has an eighth rule: every option of an
+event with several options is given an AI weight, written with the keywords whose keyword role
+`lookup` reads as `ai_weight` (the skill names none itself; the hint
+`style/option-without-ai-weight` names them), and its stop rule and its report count an option
+without one as left. The fix-error skill fixes that hint, which has no fix, as it fixes the other
+`style/` findings when the person asks for them. What a session is given has therefore changed
+again, beside the package of format 9:
+
+- **The next development run is not compared with earlier records without saying so.** Every
+  authoring record already names the skills its sessions were given, each by the SHA-256 of its
+  folder (`results.task.skills`, beside `skills_in`; confirmed on the committed records): they
+  name the write-content skill `97d7dab5...` and the fix-error skill `330cac49...`, and a run
+  made now names the new hashes.
+- `SCORED_CONTINUE=true` refuses to continue a record made with other skills (they are compared
+  by hash, above), so a record never holds sessions given two versions of the skills.
+- What a trial is graded by does not change: the authoring grade counts errors and warnings, and
+  the hint is neither; the judge's prompt and questions are unchanged. The requests' example
+  results and the expert sheet's hand-made results now weight every option too (decision 160;
+  [fixtures/requests/calibration/expert/README.md](../../fixtures/requests/calibration/expert/README.md)
+  says which results changed).
+
 ### The next development run (decisions 141 and 145)
 
 Before the release run, a development run of the twelve expert requests measures what a session

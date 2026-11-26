@@ -136,6 +136,7 @@ export const SLOT_NAMES: Readonly<Partial<Record<Code, readonly string[]>>> = {
     'style/unusual-field-order': ['field', 'field before it', 'folder'],
     'style/localization-key-characters': ['key', 'what it holds'],
     'style/redundant-condition': ['condition', 'block'],
+    'style/redundant-false-condition': ['condition', 'block'],
     'style/option-without-ai-weight': ['option number', 'event id', 'keywords'],
 };
 

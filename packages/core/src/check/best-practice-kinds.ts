@@ -17,6 +17,7 @@ export type BestPracticeCode =
     | 'style/unusual-field-order'
     | 'style/localization-key-characters'
     | 'style/redundant-condition'
+    | 'style/redundant-false-condition'
     | 'style/option-without-ai-weight';
 
 function style(
@@ -71,6 +72,12 @@ export const BEST_PRACTICE_KINDS: Readonly<Record<BestPracticeCode, CheckKind>> 
         'hint',
         2,
         "A condition that always holds, written in a block where it changes nothing while another condition remains: release 2.3.0's CK3872.",
+        "'%s' changes nothing in '%s', which holds another condition: take it away.",
+    ),
+    'style/redundant-false-condition': style(
+        'hint',
+        2,
+        'A condition that always fails, written in a block where it changes nothing while another condition remains.',
         "'%s' changes nothing in '%s', which holds another condition: take it away.",
     ),
     'style/option-without-ai-weight': style(

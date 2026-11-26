@@ -8,7 +8,7 @@ pychivalry's agent server and command line, and hold no CK3 knowledge of their o
 | --- | --- |
 | [pychivalry-explain-error](pychivalry-explain-error/SKILL.md) | Explain a finding: what its code means, the game's evidence, what is valid instead. Changes no file |
 | [pychivalry-fix-error](pychivalry-fix-error/SKILL.md) | Fix the errors and warnings of a mod: check, look up, edit, check again, at most 5 rounds, then format |
-| [pychivalry-write-content](pychivalry-write-content/SKILL.md) | Write events with their localization, decisions, scripted effects and scripted triggers by the rules of item 9.2 |
+| [pychivalry-write-content](pychivalry-write-content/SKILL.md) | Write events with their localization, decisions, scripted effects and scripted triggers by the rules of item 9.2, every option of an event with several options given an AI weight (decision 159) |
 
 ## The one form both harnesses load
 
@@ -38,10 +38,16 @@ field one of them does not know is left out
   exist, read from their own registries (`TOOLS` of `@pychivalry/mcp`, `COMMANDS` of
   `@pychivalry/cli`), and names the tools it drives;
 - everything a skill writes as code is pychivalry's own vocabulary (a tool, an argument or
-  field of a tool, a check code, a command line) or a name the spec package has, and no such
-  name is written outside code: a skill makes no claim about a CK3 keyword the spec cannot back.
+  field of a tool, a check code, a command line), a name the spec package has, or a role of its
+  part D4 (the word `lookup` reads a keyword's role in, such as the AI weight of an event's
+  option), and no such name is written outside code: a skill makes no claim about a CK3 keyword
+  the spec cannot back.
   The skills hold no script example for that reason; the AI learns each name from `lookup`;
-- the authoring skill states the rules of item 9.2 in order, for the four kinds of content;
+- the authoring skill states the rules of item 9.2 in order, for the four kinds of content, and
+  an eighth (decision 159): every option of an event with several options gets an AI weight,
+  written with the keywords `lookup` gives that role, never named by the skill itself; the
+  fix-error skill fixes `style/option-without-ai-weight`, which has no fix, as it fixes the other
+  `style/` findings when the person asks for them;
 - each says when to read the game's own text with the agent server's `source`, that a place
   outside the mod is never read with the harness's own file tools, and that `lookup` names the
   names it did not answer (tool schema version 4, decision 140);

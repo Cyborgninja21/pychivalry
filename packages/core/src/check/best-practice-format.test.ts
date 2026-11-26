@@ -22,6 +22,7 @@ for (const [pair, code] of [
     ['style-unusual-field-order-bad', 'style/unusual-field-order'],
     ['style-not-utf8-bad', 'style/not-utf8'],
     ['style-redundant-condition-bad', 'style/redundant-condition'],
+    ['style-redundant-false-condition-bad', 'style/redundant-false-condition'],
 ] as const) {
     test(`${pair}: after the fixes of ${code} the formatter finds nothing`, () => {
         const copy = copyMod(path.join(MODS, pair));

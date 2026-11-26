@@ -83,15 +83,6 @@ export function checkOver(t: TestContext, mod: string): WorkspaceCheck {
     return checkWorkspace({ spec, gameDir: emptyGame(t), cacheDir: null, modDir: mod });
 }
 
-/**
- * Codes the checker gained after the requests' example results and the calibration sheets'
- * hand-made results were committed, which are not edited for them: a request, its results and a
- * sheet the owner graded stay as they were (docs/decisions.md, "Asked, awaiting the owner",
- * format 9 checks). The tests that hold such a result to "the checker reports nothing" leave these
- * out, and only these, until the owner says whether the results are brought into the rule.
- */
-export const LATER_CODES: ReadonlySet<string> = new Set(['style/option-without-ai-weight']);
-
 /** The name the stand-in skills folder's one skill gives itself. */
 export const SKILL_NAME = 'pychivalry-write-content';
 

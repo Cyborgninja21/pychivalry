@@ -703,6 +703,10 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    errors, every one a defect of the game's own files (3 parse errors, 8 unknown triggers, 2
    unknown effects), none a spec-package or pychivalry fault (met for script files); the scope
    check judges 179,669 of 610,886 uses (29.4%) with no finding (met).
+   *2026-11-25, on the owner's word (decision 157):* the line **stays open** until the spec
+   work answers decisions 151 and 154, each of which can let a check judge names it cannot
+   judge now. Its state today: 13 base-game errors, every one a defect of the game's own files
+   (not yet met).
 3. **Real mods.** On the five-mod corpus, the error list equals the list of real defects: no
    false errors, none missed. 2.3.0 reached this on all 108 of its errors.
    *2026-11-23:* met for build step 4's checks: 844 errors, each classified a real defect with

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-26T01:36:48.682Z",
+    "made_at": "2026-11-26T03:48:30.688Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "ce8723785447f85b0d57f67d7754565fb5b06303",
+        "commit": "4af432f9c9a0b535a4f88d22ed109db9ec31a05c",
         "dirty": false
     },
     "machine": {
@@ -43,14 +43,14 @@
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 5.71 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 1.82 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 33842,
-            "peak_rss_kib": 1853960
+            "build_ms": 49099,
+            "peak_rss_kib": 1732332
         },
         "mods": [
             {
@@ -160,11 +160,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 3653,
-                    "check": 468,
-                    "total": 4121
+                    "load_base": 3856,
+                    "check": 453,
+                    "total": 4309
                 },
-                "peak_rss_kib": 775504
+                "peak_rss_kib": 785572
             },
             {
                 "slug": "divine-intervention",
@@ -397,11 +397,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 4566,
-                    "check": 41851,
-                    "total": 46418
+                    "load_base": 2890,
+                    "check": 49255,
+                    "total": 52145
                 },
-                "peak_rss_kib": 3170804
+                "peak_rss_kib": 3167672
             },
             {
                 "slug": "elf-destiny",
@@ -1270,11 +1270,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 3547,
-                    "check": 5067,
-                    "total": 8614
+                    "load_base": 3405,
+                    "check": 7226,
+                    "total": 10631
                 },
-                "peak_rss_kib": 1097728
+                "peak_rss_kib": 1029604
             },
             {
                 "slug": "rice",
@@ -17051,11 +17051,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 2099,
-                    "check": 37324,
-                    "total": 39423
+                    "load_base": 4162,
+                    "check": 52220,
+                    "total": 56382
                 },
-                "peak_rss_kib": 1958792
+                "peak_rss_kib": 1915304
             },
             {
                 "slug": "viet-events",
@@ -17356,11 +17356,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2498,
-                    "check": 6402,
-                    "total": 8900
+                    "load_base": 3660,
+                    "check": 11682,
+                    "total": 15342
                 },
-                "peak_rss_kib": 970380
+                "peak_rss_kib": 991448
             }
         ]
     }

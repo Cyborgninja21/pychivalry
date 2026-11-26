@@ -55,7 +55,8 @@ export const MAX_FIX_ALTERNATIVES = 5;
  * - `field-order`: the usual order of a folder's record fields, from the core's field-order data, in
  *   a folder whose record fields the game reads by name.
  * - `keyword-roles`: part D4's roles of the spec package: a condition that always holds changes
- *   nothing in a block whose `child_always_true` is `neutral` while another child remains.
+ *   nothing in a block whose `child_always_true` is `neutral` while another child remains, and
+ *   one that always fails nothing in a block whose `child_always_false` is.
  */
 export type FixBasis =
     | 'retired'

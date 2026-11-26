@@ -22,6 +22,24 @@ these files, so grade from them alone, the way the judge must.
 [grades.json](grades.json) is the sheet, in the format `task scored:calibrate` reads: replace each
 `?` with `yes`, `no` or `cannot-tell`.
 
+## Six results changed on 2026-11-25: an AI weight for every option
+
+On the owner's word (docs/decisions.md, decision 160) every option of a shown event with several
+options was given an AI weight, so that the hint `style/option-without-ai-weight` finds nothing
+here, as the checker's other findings do not. **Six results changed**, those of the three event
+requests: `results/event-granary-inspection-1` and `-2` (the two options of `granary.0002`),
+`results/event-envoy-chain-1` and `-2` (the two options of `authoring_envoy.0002`), and
+`results/event-county-unrest-1` and `-2` (the two options of `authoring_unrest.0001`). Each of
+those twelve options gained one line, `ai_chance = { base = 50 }`, after its `name`: the same
+weight for each option of an event, so that the AI favours neither. Nothing else in them changed,
+no effect, condition, scope or text, and the other eighteen results are as they were (they have
+no event with more than one option).
+
+**If you graded any of these six already,** in a copy of [grades.json](grades.json) of your own,
+grade their rows again: the files the judge is shown changed. The committed sheet is not changed:
+its answers are all still `?`, and `task scored:calibrate` names the sheet by its hash only, not
+the results, so no hash had to change.
+
 ## The results and their questions
 
 ### `results/event-granary-inspection-1`

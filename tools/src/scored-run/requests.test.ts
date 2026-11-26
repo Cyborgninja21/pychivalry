@@ -21,7 +21,6 @@ import {
     committedDrafts,
     DRAFTS_DIR,
     exampleResult,
-    LATER_CODES,
     root,
     spec,
 } from './authoring-testing.js';
@@ -281,11 +280,10 @@ test('each base mod is in the format, and the checker reports nothing on it', (t
 test('every request can be met: its example result meets every expectation, and the checker reports nothing on it', (t) => {
     for (const request of list.requests) {
         const mod = exampleResult(t, request);
+        // Hints included: every option has its AI weight since decision 160.
         const check = checkOver(t, mod);
         assert.deepEqual(
-            check.findings
-                .filter((f) => !LATER_CODES.has(f.code))
-                .map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
+            check.findings.map((f) => `${f.file}:${String(f.range.start.line + 1)} ${f.code}`),
             [],
             request.id,
         );

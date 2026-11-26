@@ -29,11 +29,13 @@ authoring_envoy.0002 = {
 
 	option = {
 		name = authoring_envoy.0002.a
+		ai_chance = { base = 50 }
 		scope:envoy = { authoring_envoy_gift_effect = yes }
 	}
 
 	option = {
 		name = authoring_envoy.0002.b
+		ai_chance = { base = 50 }
 		add_piety = 20
 	}
 }
