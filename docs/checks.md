@@ -4,14 +4,17 @@
 > scheme, the twelve families and the code names on this page are permanent from that date: a
 > code is never renamed and never reused. A check that is dropped or changed is retired. This
 > page is build item 4.1 of [PLAN.md](PLAN.md#step-4-engine-checks-and-lookup). Built so far:
-> every row of step 4 but two that are blocked, and the eleven provisional advice rows item
-> 4.7's re-proof retired: 62 rows are built (five of them in part), 11 retired, 2 blocked, and
-> 3 belong to steps 10 and 11. On the owner's word of 2026-11-23 (decisions 101 and 103) step 8
-> added a thirteenth family, `style`, whose nine formatting rows are built and rest on
-> pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)); six more rows
-> of it rest on pychivalry's own best-practice rules (decisions 105 to 107, 109 and 112,
-> [Best practice](#best-practice-the-style-familys-best-practice-rules)), five built and one
-> blocked, and `localization/unused-key` is on by default (decision 108). Since decision 113 a
+> every row of step 4, and the eleven provisional advice rows item 4.7's re-proof retired: since
+> the checks the spec package's format 9 unblocked (2026-11-25), 64 rows are built (four of them
+> in part), 12 retired, and 3 belong to steps 10 and 11; one of the 64 is new with format 9,
+> `variables/read-without-set`, on the package's table of the keywords of variables. On the
+> owner's word of 2026-11-23 (decisions 101 and 103) step 8 added a thirteenth family, `style`,
+> whose nine formatting rows are built and rest on pychivalry's own formatting rules
+> ([Formatting](#formatting-the-style-family)); seven more rows of it rest on pychivalry's own
+> best-practice rules (decisions 105 to 107, 109 and 112,
+> [Best practice](#best-practice-the-style-familys-best-practice-rules)), all built, one of them
+> (`style/option-without-ai-weight`, release 2.3.0's CK3613) new with format 9, and
+> `localization/unused-key` is on by default (decision 108). Since decision 113 a
 > file not valid UTF-8 shows one finding, `style/not-utf8`: the parse note `encoding/not-utf8`
 > is retired ([Retired codes](#retired-codes)). The last column of each table, **State**, says which, and why
 > where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
@@ -323,16 +326,17 @@ the keyword or link takes (`links_from_scope`), from the spec package's link doc
 | `structure/event-undeclared-namespace` | warning | An event whose namespace its file does not declare, including every event of a file that declares none. The base game has none: 0 of 10,836 events | Catalogue `namespace_X_used_in_event_X_file_X_is_not_defined_in_this_fi` | `EVENT-016`; `EVENT-010` | `structure-event-undeclared-namespace` | 4.5 | keyword roles (`namespace` as a declaration, asked in step 3) | Built (4.5) | Suggestion: The id written with a declared namespace near it, where that id is free; or the namespace declared at the top of the file. |
 | `structure/range-min-above-max` | error | A range whose minimum is above its maximum | Catalogue `min_value_in_range_directive_is_larger_than_the_max_value_un` | `VALUE-002` | `structure-range-min-above-max` | 4.5 | value types (where a range is written) | Built (4.5) | Safe: The two bounds written low first. |
 | `structure/event-non-character-shown` | error | An event whose `scope` is not a character and that is neither hidden nor major. The base game has none: 0 of its 121 events with another scope | Catalogue `error_in_event_X_non_character_events_must_be_hidden_or_be_n` ("Error in event '{}'. Non-character events must be hidden, or be narrative events"); `events/_events.info`: "Non-character scoped events generally need to be hidden or major". That "narrative" means `major` is read from the `.info` file, not shown | new | `structure-event-non-character-shown` | 4.5 | keyword roles; .info | Built (4.5) | Suggestion: Each keyword the game's message names written as '= yes' (hidden, major). |
-| `structure/triggered-desc-other-field` | warning | A `triggered_desc` block holding anything but `desc` and `trigger`. The base game has none: 0 of 22,387 | Executable: "The body of triggered_desc can only take desc and/or trigger. %s", kept beside the 1.21 dynamic-description reader; not in the 1.20 catalogue | new | `structure-triggered-desc-other-field` | 4.5 | clean catalogue (the message); keyword roles | Unblocked by format 9, to build: its message is in the committed catalogue since format 9 (`the_body_of_triggered_desc_can_only_take_desc_and_or_trigger`); it was blocked on the catalogue (decision 74) | Not built |
+| `structure/triggered-desc-other-field` | warning | A `triggered_desc` block holding a key other than `desc` and `trigger`, at that key. The base game has none: 0 of its 22,398 | Catalogue `the_body_of_triggered_desc_can_only_take_desc_and_or_trigger` ("The body of triggered_desc can only take desc and/or trigger. %s"), kept beside the 1.21 dynamic-description reader; in the committed catalogue since format 9 (until then an "Executable" row, blocked on the catalogue by decision 74) | new | `structure-triggered-desc-other-field` | 4.5 | keyword roles: part D4's `closed_body` row whose evidence quotes the message, and its `allows_only` | Built (format 9, 2026-11-25): the block and the keys its body takes are part D4's (`triggered_desc`, `allows_only: desc, trigger`); a key that differs from an allowed one only in letter case, and a bare value, are not judged | None: whether the key belongs in the block's 'desc', in its 'trigger' or elsewhere is a choice. |
 | `definitions/clash` | error | Definitions the rules table says the game calls an error: two events with one id and the same `id_override_priority`, two history characters with one id and the same `history_override_priority` | Catalogue, named by the rules row: `duplicated_event_id_X_with_the_same_override_priority_X_foun`, `duplicate_character_id_X_found_in_history`. The base game has 3, all character ids (`records/game/index.json`); item 4.9 classifies them | new | `definitions-clash` (the step 3 mod `override-rules` already holds 2 clashes) | 4.5 | rules (a clash row carries its message) | Built (4.5) | None: which definition gets another name is a choice. |
 | `definitions/not-read` | information | A definition in a file the rules table says the game does not read (replaced by another layer's file, hidden by `replace_path`, a folder in the wrong letter case) | Advice: the rules row has game evidence, but the game prints nothing for a file it skips | new | `definitions-not-read` | 4.5 | rules (most such rows are open today) | Built (4.5) | None: the file is replaced or hidden on purpose, or moved: a choice. |
 
-**Built** (item 4.5): ten rows, each with its fixture pair, `fields/wrong-kind-of-value` for 7 of
-the 9 value groups. **Unblocked by format 9, to build:** `structure/triggered-desc-other-field`:
-its message was not in the committed catalogue, and an "Executable" row ships only once it is
-(part D4 quotes the string as rank-1 evidence); the owner's answer (decision 74) was that it waits
-for the catalogue. Since format 9 (2026-11-25) the catalogue holds it
-(`the_body_of_triggered_desc_can_only_take_desc_and_or_trigger`). The base game raises none of these errors or
+**Built** (item 4.5, and since format 9 the eleventh): every row, each with its fixture pair,
+`fields/wrong-kind-of-value` for 7 of the 9 value groups. `structure/triggered-desc-other-field`
+waited for its message to be in the committed catalogue (an "Executable" row ships only once it
+is; part D4 quotes the string as rank-1 evidence; decision 74); since format 9 (2026-11-25) the
+catalogue holds it (`the_body_of_triggered_desc_can_only_take_desc_and_or_trigger`), and the check
+reads the block and the keys its body takes from part D4 (`closed_body`, `allows_only`), no list
+of its own. The base game raises none of these errors or
 warnings; `definitions/not-read` gives 88 information findings, all in `jomini/` files the game's
 own copies replace. Since format 9 `references/unknown-key` reads part D6's own account of what
 the base game writes at a place (`miss_values`, `sentinels`) instead of measuring it again, and
@@ -346,17 +350,17 @@ elf-destiny's 6 false warnings on its own genes are gone.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `scope/undefined-event-target` | information | `scope:name` with no effect saving `name` in the file, the mod or the base game | Catalogue `undefined_event_target_X`. Information by the MVP's decision: the base game alone has 10,523 (2.3.0's record on 1.20) | same id | `scope-undefined-event-target` | 4.6 | tables (the effects that save a scope) | Built (4.6); since format 9 a save of a value is a save and the names the game saves from its own code (part O1) are defined; a name passed to a scripted effect in a parameter is reported only when no file writes it but as `scope:name` | None: the name may be saved where the index cannot see, and which save is meant is a choice. |
 | `localization/missing-key` | warning | A localization key, in a field that holds one, defined in no localization file of the mod, the base game or a DLC. Literal text with spaces in such a field is this finding too: the game reads it as a key | Catalogue `unknown_loc_key_X` ("Unknown loc key %s"); for `title`, `desc` and option `name`, the 1.21 executable's "Unrecognized loc key %s. Near %s" beside the dynamic-description reader; `events/_events.info`: "Missing localization keys are logged as errors" | `CK4100`, `CK4101`, `CK4102` | `localization-missing-key` | 4.6 | loc fields; implicit keys (not in the plan); clean catalogue | Built (4.6) | Suggestion: A stub entry for the key in the mod's localization file of each language it has (one is made when it has none). |
-| `localization/unbalanced-brackets` | warning | Localization text with an extra or unclosed `[`, `]`, `(`, `'` or `$`. The base game's English has no unbalanced `[ ]`: 0 of 340,445 entries | Catalogue `loc_key_X_unexpected_extra_at_position_X_file_X` and `_2`; the 1.21 executable's "Unterminated '[' ...", "Unterminated '(' ...", "Unterminated `'` ..." and "Unterminated '$' ..." messages beside the localization reader | `LOC-005`; the `$` part of `LOC-007` | `localization-unbalanced-brackets` | 4.6 | clean catalogue (the 1.21 messages) | Built in part (4.6): an extra `[` or `]`. An opener left open is unblocked by format 9, to build: the localization reader's four `Loc key \`{}\`: Unterminated ...` messages and `Unterminated '[' when reading property '%.*s'` are in the committed catalogue since format 9 | Suggestion: The statement left open closed after its command, or the extra bracket taken away; offered only where the entry is then balanced. |
+| `localization/unbalanced-brackets` | warning | Localization text with an extra or unclosed `[`, `]`, `(`, `'` or `$`. The base game has none: 0 of the 3,100,662 entries of its eleven languages | Catalogue `loc_key_X_unexpected_extra_at_position_X_file_X` and `_2` (an extra `[` or `]`); since format 9 the localization reader's four "Unterminated" messages: `loc_key_X_unterminated_at_position_X_in_data_statement_file` (a `[`), `loc_key_X_unterminated_at_position_X_in_data_parenthesis_sta` (a `(` in a statement), `loc_key_X_unterminated_at_position_X_in_data_single_quotes_f` (a `'` in a statement), `loc_key_X_unterminated_at_position_X_in_localization_replace` (a `$`) | `LOC-005`; the `$` part of `LOC-007` | `localization-unbalanced-brackets` | 4.6 | clean catalogue (the 1.21 messages) | Built (4.6; the opener left open since format 9, 2026-11-25): one finding an entry, an extra bracket first, else the innermost opener its text leaves open; not decided, so not reported: a `]` written while a parenthesis is open, and a `$` inside a statement. The position given is the opener's; whether it is the game's is for step 11's logs. `Unterminated '[' when reading property '%.*s'` (a reader of another kind, marked script-facing unknown) is not cited | Suggestion: The statement left open closed after its command, or the extra bracket taken away; for a '[' or a '$' left open, it closed after its command or name, or taken away; offered only where the entry is then balanced. |
 | `localization/unused-key` | hint | A key the mod defines that nothing in the mod or the base game uses | Advice | new | `localization-unused-key` | 4.6 | loc fields; implicit keys (not in the plan) | Built (4.6); on by default since 2026-11-23 (decision 108, replacing decision 76), turned off by `check --no-unused-keys`, the agent server's `unused_keys: false` or the editor's `pychivalry.localization.unusedKeys` | None: removing a key deletes text that may be wanted. |
 
 **Built** (item 4.6): all four rows, each with its fixture pair; `localization/unbalanced-brackets`
-reports an extra `[` or `]` only, as the 1.21 "Unterminated ..." messages were not in the committed
-catalogue until format 9 (2026-11-25); the opener left open is unblocked, to build. On the base game: 5,969 `scope/undefined-event-target` (76 names; `duel_value` alone
+reported an extra `[` or `]` only until the 1.21 "Unterminated ..." messages reached the committed
+catalogue with format 9 (2026-11-25), and reports an opener left open since. On the base game: 5,969 `scope/undefined-event-target` (76 names; `duel_value` alone
 4,716) on format 8, 26 (15 names) on format 9, which saves a value under a name
 (`save_scope_value_as`) in `save_keys` and lists the 409 names the game saves from its own code
 (part O1, `duel_value` among them); 151 `localization/missing-key` warnings on 104 keys no localization file of the install
 defines (each a defect of the game's files, `tools/data/check-classifications.json`), no
-unbalanced brackets, no unused key. `localization/unused-key` was off by default from decision 76
+unbalanced brackets (neither an extra one nor an opener left open), no unused key. `localization/unused-key` was off by default from decision 76
 (on rice it gives 141,090 hints, about one for every key the mod defines); since decision 108 it
 is on by default again and can be turned off, the per-file limit bounding a file full of them.
 
@@ -373,7 +377,7 @@ each one on the base game before it ships.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `fields/usually-present` | information | A record without a field that every base-game record of its kind sets. Seventeen pre-2.0 required-field flags return through this row ([below](#the-38-required-field-flags)) | Advice (the base game's frequency, rank 4) | new | `fields-usually-present` | 4.7 | frequency | Built (4.7); re-proof: applies to 436,310, fires on 0 | None: the field's value is a choice. |
 | `fields/unusual-value` | hint | A value no base-game record writes in a field whose values form a small set | Advice (observed values) | new | `fields-unusual-value` | 4.7 | observed values | Built (4.7); re-proof: applies to 48,974, fires on 0 | Suggestion: The values the base game writes in the field that are near the one written. |
-| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known: a portrait animation, a game concept in `[concept\|E]`. The base game: 4 of 16,776 portrait animations name none of its 330 | Advice | `CK3422`; `LOC-006` | `references-unknown-name` | 4.7 | value types (which definition a field names) | Built in part (4.7): portrait animations (re-proof: applies to 16,899, fires on 4, the base game's own, as the row states; they are its [known exceptions](#known-exceptions), decision 75); the game-concept half is unblocked by format 9, to build: part D9 gives the game concept form `[key\|E]` as data (`game_concept`, confirmed, with `Concept` and `ConceptByKey`) and what a concept's key is (`vocabulary.reads.game_concept`: a key of `common/game_concepts` or one of the aliases its `alias` field lists; the index holds no alias as a name, docs/decisions.md row 150) | Suggestion: The names of the folder near the one written (advice: never safe). |
+| `references/unknown-name` | information | A value naming a definition the index does not hold, where no game message is known: a portrait animation, a game concept in `[concept\|E]`. The base game: 4 of 16,776 portrait animations name none of its 330 | Advice | `CK3422`; `LOC-006` | `references-unknown-name` | 4.7 | value types (which definition a field names) | Built in part (4.7): portrait animations (re-proof: applies to 16,899, fires on 4, the base game's own, as the row states; they are its [known exceptions](#known-exceptions), decision 75). The game-concept half stays blocked: part D9 gives the form `[key\|E]` as data (`game_concept`, confirmed, with `Concept` and `ConceptByKey`), but a concept's key is a key of `common/game_concepts` or one of the aliases its `alias` field lists (`vocabulary.reads.game_concept`), and part D3 defines no alias, so the index holds none (docs/decisions.md, row 151). Without them the check would decide wrongly: of the 65,007 concept names the base game's English text writes, 20,715 (1,353 names: `vassals`, `counties`, `rulers`) are no key the index holds, aliases among them; it waits for the package | Suggestion: The names of the folder near the one written (advice: never safe). |
 | `structure/namespace-outside-events` | information | A file outside `events/` that declares a `namespace`. Every script file of `common/` and `history/`; 0 | Advice | `PYCH-S003` (warning) | `structure-namespace-outside-events` | 4.7 | keyword roles | Built (4.7); re-proof: applies to 4,215, fires on 0 | None: the right change is a choice of content the data does not make. |
 | `structure/event-unknown-type` | information | An event `type` that `events/_events.info` does not list (character, letter, court, activity). 10,836 events; 0 | Advice (.info, rank 3) | `EVENT-001` | `structure-event-unknown-type` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 9,727, fires on 0 | Suggestion: The documented event types near the one written. |
 | `structure/event-letter-without-sender` | information | A letter event without `sender`. 705; 0 | Advice (.info: "required for letter events"; question 8) | `EVENT-002` | `structure-event-letter-without-sender` | 4.7 | .info; keyword roles | Built (4.7); re-proof: applies to 705, fires on 0; stays advice until the catalogue carries the executable's message part D4 quotes (decision 74) | None: the right change is a choice of content the data does not make. |
@@ -409,13 +413,14 @@ retired before it ships. Whether they belong in the MVP at all is question 9.
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `scope/saved-late-read-in-desc` | information | A scope read in `desc` that the event saves only in an option or in `after` | Advice | `CK3551` | `scope-saved-late-read-in-desc` | 4.7 | tables (saving effects); keyword roles | Built (4.7); re-proof: applies to 595, fires on 0 | None: moving the save is a change of what the event does. |
-| `scope/title-text-reads-scope-saved-late` | information | The same for the `title` text | Advice | `CK3561` | `scope-title-text-reads-scope-saved-late` | 4.7 | tables (saving effects); keyword roles; loc fields | Unblocked by format 9, to build: part D9 gives the forms that read a saved scope by name, the head of a chain (`saved_scope_head`, confirmed) and `TopScope.sC` (measured only; advice may read it), with `name_arg`; the saves are `save_keys`' entries with their `name_in` (a one-off count: applies to 574) | Not built |
+| `scope/title-text-reads-scope-saved-late` | information | The same for the `title` text: the localization text of an event's `title` (its key, or each `desc` of its dynamic description) reads a scope the event saves only in an option or in `after` | Advice | `CK3561` | `scope-title-text-reads-scope-saved-late` | 4.7 | tables (saving effects); keyword roles; loc fields; part D9 (the forms that read a saved scope by name) | Built (format 9, 2026-11-25); re-proof: applies to 757, fires on 0. The text's reads are the index's, by part D9's forms: the head of a chain (`saved_scope_head`, confirmed) and the functions whose argument is a saved name (`TopScope.sC`, `sTitle`, `GetValue`, measured only: read because the row is advice; a form of status `unknown` is not read); a first word that is a global of the data types is no saved name; every language of the key is read | None: moving the save, or the text, is a change of what the event shows. |
 
 **Built** (item 4.7): every row of "advice that holds" (the game-concept half of
-`references/unknown-name` blocked until format 9, now to build) and, of the provisional rows, `scope/saved-late-read-in-desc`;
-`scope/title-text-reads-scope-saved-late` was blocked and is unblocked by format 9, to build; the eleven others fired on the base game and
-are [retired](#retired-codes). The re-proof is `pychivalry-tools advice proof` (committed and
-tested), run on the 1.21.0.3 base game; its counts are in each row's State.
+`references/unknown-name` still blocked: the package defines no concept alias) and, of the
+provisional rows, `scope/saved-late-read-in-desc` and, since format 9 gave the forms of
+localization text as data (part D9), `scope/title-text-reads-scope-saved-late`; the eleven others
+fired on the base game and are [retired](#retired-codes). The re-proof is `pychivalry-tools advice
+proof` (committed and tested), run on the 1.21.0.3 base game; its counts are in each row's State.
 
 Part D4 carries the 1.21 executable's own messages for a letter event without `sender`, an event
 without `desc` and an event without `option`, as rank-1 evidence, but the spec's error catalogue
@@ -435,6 +440,44 @@ are its 4 findings on the 1.21.0.3 base game, each an `animation` of a portrait 
 | `events/dlc/gdp/gdp_republic_unrest_events.txt` | 1846 | `standing` |
 | `events/secret_events/secrets_events.txt` | 5614 | `scheming` |
 | `events/secret_events/secrets_events.txt` | 5664 | `scheming` |
+
+### Variables on the table `variables`
+
+Since the spec package's format 9 (2026-11-25) its table `variables` (part C4, 75 confirmed
+entries) says which keywords set, change, test, read and iterate variables, each with its
+namespace (`scope`, `local`, `global`, `dead_character`), the kind of variable (`value`, `list`,
+`map`) and where the name is written; the table's own `consumer` text says a name is defined by
+the entries that set a value or add to a list or a map, of the same namespace and kind. The five
+`variables/*` rows of item 4.7 stood in for it with a name heuristic and stay
+[retired](#retired-codes); a check on the table is a row of its own, with a new code.
+
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `variables/read-without-set` | information | A variable read or tested (`has_variable = x`, `var:x`, `change_global_variable = { name = x }`, an iterator over a variable list) in a namespace and as a kind that no keyword of that namespace and kind sets under its name in the mod or the base game, by the table `variables` | Advice: the table says what each keyword does; that a read of a variable nothing sets finds nothing is pychivalry's reading of it, and no game message is known | new (the table-based successor of the retired `variables/read-never-set`, release 2.3.0's `CK3701`) | `variables-read-without-set` | 4.7 | tables (the table `variables`) | Built (format 9, 2026-11-25). A variable may be set by a keyword of the same namespace and kind that names it, by one that sets a name built with a `$PARAM$` that can become it, or by one whose name is only a `$PARAM$` (`name = $VAR$`) when some file writes the name other than in a variable statement (a value passed to that parameter); a name holding a `$PARAM$` is not judged; without the base game nothing is. Re-proof: applies to 42,001 reads of the base game, fires on 31, its [known exceptions](#known-exceptions-of-the-variables-row): a question for the owner (docs/decisions.md) | None: the variable may be set where the index cannot see, and which set is meant is a choice. |
+
+#### Known exceptions of the variables row
+
+The 31 findings of `variables/read-without-set` on the 1.21.0.3 base game. 13 are names the
+game's own code sets: the table's notes say, in words only, that a dynasty perk's `traits` block
+saves the trait chosen as `var:<perk_key>_<trait_key>` on the dynasty, and the package gives
+those names as no data, so the check cannot know them (a request to the spec work,
+docs/decisions.md). The other 18 read a name in another namespace or as another kind than every
+statement that sets it, or a name nothing sets: by the table's own words these are told apart,
+so each reads nothing the script set, unless the engine does not keep them apart.
+
+| Files | Reads | What is read, and what sets the name |
+| --- | ---: | --- |
+| `common/on_action/child_birth_on_actions.txt` | 8 | `var:blood_legacy_4_<trait>` on a dynasty: a dynasty perk's trait, set by the game's code |
+| `events/education_and_childhood/coming_of_age_events.txt` | 5 | `var:ce1_legitimacy_legacy_5_education_<skill>_5`: a dynasty perk's trait, set by the game's code |
+| `common/story_cycles/story_cycle_mongol_invasion.txt` | 7 | `clear_variable_list` of seven names the cycle sets with `set_variable` (values, not lists) |
+| `common/decisions/10_religious_decisions.txt` | 3 | `var:body_has_been_disposed`, set with `set_dead_character_variable` (a dead character's variable) |
+| `common/scripted_triggers/00_war_and_peace_triggers.txt` | 2 | `var:gg_ended_in_guelph_victory_no_hre_wars_on_theocratic_vassals` and `var:gg_hre_no_cb_northern_italy`, set with `set_global_variable` |
+| `common/scripted_triggers/pam_saint_triggers.txt` | 1 | `has_dead_character_variable = no_corpse_left`, set with `set_variable` (a living scope's) |
+| `common/scripted_effects/tgp_mandala_scripted_effects.txt` | 1 | `has_variable = plundered_contributors`, set with `add_to_variable_list` (a list) |
+| `events/dlc/ep3/ep3_laamp_flavour_ewan_events.txt` | 1 | `has_variable = laamp_recently_visited_kingdoms`, set with `add_to_variable_list` |
+| `events/dlc/ep3/ep3_laamp_decision_events.txt` | 1 | `remove_variable ?= list_of_options`, set with `add_to_variable_list` |
+| `common/scripted_triggers/10_tgp_natural_disaster_triggers.txt` | 1 | `is_target_in_variable_list = { name = impact_events }`: no statement sets the name |
+| `common/on_action/tutorial.txt` | 1 | `global_var:game_tutorial_index`: no statement sets the name |
 
 ### Formatting: the `style/` family
 
@@ -477,20 +520,49 @@ follows ships only on the owner's word, as `style/unusual-field-order` does in t
 `pychivalry-tools advice proof`, which counts them beside the advice rows. Release 2.3.0's other
 style hints are the formatter's (above), and three of its other hints were measured and are not
 restored ([below](#the-plug-in-catalogue-85)); two of its information-level content rules came
-back on the owner's word (decision 112), LOC-001 built and CK3872 blocked. They go through the one runner; a fix of theirs
+back on the owner's word (decision 112), LOC-001 and CK3872 (built since format 9 gave part D4 the
+roles it needs), and its hint CK3613 came back as a new row since format 9 gave D4 the role of the
+keywords it tests (decision 105 had held it for that role). They go through the one runner; a fix of theirs
 that is safe is checked by checking the file again, and after it the formatter finds nothing new
 (a test applies each fix to its bad fixture, which is in the format). The game-file suites count
-them by code and never classify them. `style/empty-block` and `style/deep-nesting` judge every
-folder, with none left out (decision 109).
+them by code and never classify them. `style/empty-block`, `style/deep-nesting`,
+`style/redundant-condition` and `style/option-without-ai-weight` judge every folder, with none
+left out (decision 109).
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `style/empty-block` | hint | A block inside a record with nothing in it, or nothing but comments; a record's own body is not judged | Best practice: pychivalry's own best-practice rules. The base game follows it: 24,274 of the 2,321,663 blocks inside its records are empty (1.05%) | `CK3314` | `style-empty-block` | 8.2 | none | Built (step 8) | Suggestion: The empty pair taken away, where the block around it keeps something; whether an empty block means something is the author's to say. |
-| `style/deep-nesting` | hint | A record with a block nested more than six blocks deep, its body the first; one finding a record, at the first such block, with how many places | Best practice: pychivalry's own best-practice rules. The base game follows it: 8,561 of its 223,429 records go past the limit (3.83%) | `CK3317` | `style-deep-nesting` | 8.2 | none | Built (step 8) | None: how to restructure deep script is a choice. |
-| `style/not-utf8` | warning | A file, script or localization, that is not valid UTF-8, and how it was read (as UTF-8 with replacement characters, or with the Windows-1252 fallback): the one finding about such a file (decision 113) | Best practice: pychivalry's own best-practice rules. The base game follows it: 25 of the 17,282 script and localization files it reads are not UTF-8 (0.14%), all in `history/titles`, each fix safe | new | `style-not-utf8` | 8.2 | none | Built (step 8) | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
+| `style/deep-nesting` | hint | A record with a block nested more than six blocks deep, its body the first; one finding a record, at the first such block, with how many places | Best practice: pychivalry's own best-practice rules. The base game follows it: 8,561 of its 222,652 records go past the limit (3.85%; 223,429 and 3.83% before format 9 left out the files that are no script) | `CK3317` | `style-deep-nesting` | 8.2 | none | Built (step 8) | None: how to restructure deep script is a choice. |
+| `style/not-utf8` | warning | A file, script or localization, that is not valid UTF-8, and how it was read (as UTF-8 with replacement characters, or with the Windows-1252 fallback): the one finding about such a file (decision 113) | Best practice: pychivalry's own best-practice rules. The base game follows it: 25 of the 17,279 script and localization files it reads are not UTF-8 (0.14%; 17,282 before format 9), all in `history/titles`, each fix safe | new | `style-not-utf8` | 8.2 | none | Built (step 8) | Safe or a suggestion: The file written as UTF-8 with a byte-order mark, its other bytes read as Windows-1252; safe when each such byte reads as a printable character and the file then reads to the same tree. |
 | `style/unusual-field-order` | hint | A record whose fields are written in another order than its folder's usual one (the core's field-order data), in a folder whose record fields the game reads by name: eight folders, `common/decisions` and `common/character_interactions` with the order of their `.info` files (decision 109) | Best practice: pychivalry's own best-practice rules. The base game follows it: 2,096 of the 12,528 records it judges are in another order (16.73%): events 1,047 of 10,378, `common/on_action` 48 of 497, `common/casus_belli_types` 52 of 138, `common/court_positions/types` 11 of 87, `common/schemes/scheme_types` 46 of 136, `common/story_cycles` 2 of 55; and, judged on the owner's word though the base game breaks their order more often than it follows it, `common/decisions` 398 of 587 and `common/character_interactions` 492 of 650 | new | `style-unusual-field-order` | 8.2 | none | Built (step 8) | Safe: The record's fields written in the usual order, comments with their field; none where a comment's field is not clear. |
 | `style/localization-key-characters` | hint | A localization key that starts with a digit (or `.`) or holds a character other than a letter, a digit, `_` or `.`; one finding a key | Best practice: pychivalry's own best-practice rules. The base game follows it: 15,406 of the 3,100,662 keys of its localization files are such keys (0.50%); 1,675 of its 340,445 English keys (0.49%), mostly a dash (`innovation_men-at-arms`) | `LOC-001` | `style-localization-key-characters` | 8.2 | none | Built (step 8) | None: a key's name is the author's, and renaming it means renaming every use of it. |
-| `style/redundant-condition` | hint | A condition that always holds where it changes nothing: release 2.3.0's `always = yes` in a block whose conditions must all hold | Best practice: pychivalry's own best-practice rules (the base game: 375 `trigger = { always = yes }`, a one-off count of item 4.1) | `CK3872` | `style-redundant-condition` | 8.2 | keyword roles: a part D4 role for a condition that always holds (`always`, with the value that makes it hold), and roles saying which logical operators need all their conditions to hold (`AND`, `NOT`, `NOR`, `NAND` and `OR` have none today) | Unblocked by format 9, to build: part D4 gives `always` the role `constant_condition` (`holds_with: yes`, `fails_with: no`) and `AND`, `OR`, `NOT`, `NOR`, `NAND`, `all_false`, `any_false`, `calc_true_if` and `weighted_calc_true_if` the role `combines_conditions` with `combination` and, where logic gives one, `child_always_true` (`neutral`: an `always = yes` there changes nothing while another child remains); what an empty block evaluates to stays open in the package. It was blocked for want of those roles (decisions 54 and 112) | Not built |
+| `style/redundant-condition` | hint | A condition that always holds where it changes nothing: release 2.3.0's `always = yes` in a block whose conditions must all hold. Since format 9: a condition of part D4's role `constant_condition` written with its `holds_with` value (`always = yes`), directly in a block of a `combines_conditions` keyword whose `child_always_true` is `neutral` (`AND`, `NAND`, `any_false`), while the block keeps another item | Best practice: pychivalry's own best-practice rules. The base game follows it: 1 of the 9,350 `AND` and `NAND` blocks in its trigger blocks holds an `always = yes` that changes nothing (0.01%) | `CK3872` | `style-redundant-condition` | 8.2 | keyword roles: part D4's `constant_condition` (`always`, `holds_with: yes`) and `combines_conditions` with `child_always_true` | Built (format 9, 2026-11-25). It never makes a block empty, whose value the package leaves open: a condition alone in its block is not reported, and of a block holding nothing but such conditions every one but the first. A plain trigger block (`trigger`, `limit`) has no `combines_conditions` row (D4's own `not_settled`), so release 2.3.0's 375 `trigger = { always = yes }` are not judged; nor is an `OR` (which the condition makes hold) or a `NOT` (of which the part says nothing). It was blocked for want of those roles (decisions 54 and 112) | Safe: The condition taken away, the block keeping its other conditions; a suggestion where that leaves the file out of the format. |
+| `style/option-without-ai-weight` | hint | An option of a shown event with several options that has neither of the keywords that weigh it for the AI: part D4's rows of the role `ai_weight` below the option (`ai_chance`, `ai_will_select`). An event is shown when its `hides_from_player` keyword does not hold; an event with one option is not judged | Best practice: pychivalry's own best-practice rules: the AI chooses among an event's options by their weights, and D4 says the game documents no default for an option without one (its `not_settled`). The base game follows it: 4,305 of the 21,581 options of its shown events with several options have neither (19.95%), all in `events`; by the folder an event file is in below it, 15 of 94 break it more often than they follow it ([below](#the-options-without-an-ai-weight-by-folder)) | `CK3613` | `style-option-without-ai-weight` | 8.2 | keyword roles: part D4's `ai_weight` (`ai_chance`, `ai_will_select`; confirmed since format 9), `event_option` and `hides_from_player` | Built (format 9, 2026-11-25); judges every folder, none left out (decision 109) | None: how much the AI should want the option is the author's to say. |
+
+#### The options without an AI weight, by folder
+
+`style/option-without-ai-weight` judges one folder of the spec's list, `events`, and the base game
+follows it there (4,305 of 21,581, 19.95%). Counted by the folder an event file is in below
+`events/` (94 folders, a one-off count beside the re-proof), 15 break it more often than they
+follow it; the rule judges them too, none left out (decision 109):
+
+| Folder | Options without a weight, of those judged |
+| --- | ---: |
+| `events/activities` | 7 of 11 |
+| `events/activities/petition_liege_activity` | 47 of 79 |
+| `events/courtier_guest_management_events` | 2 of 2 |
+| `events/death_events` | 68 of 75 |
+| `events/lifestyles/intrigue_lifestyle` | 140 of 274 |
+| `events/passive_rite_learning_events` | 5 of 5 |
+| `events/religion_events` | 140 of 277 |
+| `events/scheme_events/elope_scheme` | 5 of 9 |
+| `events/scheme_events/fabricate_hook_scheme` | 9 of 16 |
+| `events/scheme_events/murder_scheme` | 127 of 147 |
+| `events/scheme_events/sway_scheme` | 20 of 34 |
+| `events/story_cycles/murders_at_court` | 48 of 55 |
+| `events/test_events` | 97 of 97 |
+| `events/trait_specific_events` | 57 of 100 |
+| `events/uprising_events` | 5 of 7 |
 
 ### Retired codes
 
@@ -504,8 +576,9 @@ was retired on the owner's word (decision 113), its family `encoding` with it.
 Since format 9 (2026-11-25) the spec package has the table `variables`, 75 keywords that set,
 change, test, read or iterate variables, each with its namespace and where the name is written,
 which the five `variables/*` rows below had to stand in for with a name heuristic; and its
-`save_keys` lists the effects that save a value under a name. Retired codes stay retired: a check
-built on the table would be a new row with a new code (docs/decisions.md).
+`save_keys` lists the effects that save a value under a name. Retired codes stay retired: the
+check built on the table is a new row with a new code,
+[`variables/read-without-set`](#variables-on-the-table-variables).
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | Retired |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -540,18 +613,17 @@ check with the same catalogue entry, is decided in items 11.2 and 11.3 from capt
 
 ## The inventory in numbers
 
-78 rows: 11 built in step 2, and 67 proposed. By state, after items 4.2 to 4.11
-(2026-11-23):
+78 rows: 11 built in step 2, and 67 proposed; 79 with the row format 9 added,
+`variables/read-without-set`. By state, after items 4.2 to 4.11 (2026-11-23) and the checks
+format 9 unblocked (2026-11-25):
 
 | State | Rows | Which |
 | --- | ---: | --- |
-| Built | 56 | Step 2's 10 (its eleventh retired); 4.2's 4 others; 4.4's 3; 4.5's 9 others; 4.6's 3 others; 4.7's 27 others |
-| Built in part | 5 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `localization/unbalanced-brackets` (an opener left open: unblocked by format 9, to build), `references/unknown-name` (the game-concept half: unblocked by format 9, to build) |
-| Unblocked by format 9, to build | 2 | `structure/triggered-desc-other-field` (its message is in the catalogue since format 9), `scope/title-text-reads-scope-saved-late` (part D9 gives the saved-scope forms of localization text); both were blocked until 2026-11-25 |
+| Built | 60 | Step 2's 10 (its eleventh retired); 4.2's 4 others; 4.4's 3; 4.5's 10 others (`structure/triggered-desc-other-field` since format 9); 4.6's all 4 (the opener left open of `localization/unbalanced-brackets` since format 9); 4.7's 28 others (`scope/title-text-reads-scope-saved-late` since format 9); and `variables/read-without-set`, new with format 9 |
+| Built in part | 4 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `references/unknown-name` (the game-concept half waits for the package to define a concept's aliases, docs/decisions.md row 151) |
 | Retired | 12 | The provisional advice rows item 4.7's re-proof found firing on the base game, and `encoding/not-utf8` (decision 113) ([Retired codes](#retired-codes)) |
 | Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
-| Built, step 8 | 14 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; five on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and four hints |
-| Unblocked by format 9, to build (step 8) | 1 | `style/redundant-condition` (release 2.3.0's CK3872): part D4 gives `always` and the logical operators their roles since format 9; it was blocked for want of them (decision 112) |
+| Built, step 8 | 16 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; seven on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and six hints, `style/redundant-condition` built and `style/option-without-ai-weight` added since format 9 gave part D4 the roles they read |
 
 The tables below are the inventory as item 4.1 proposed it.
 
@@ -681,7 +753,7 @@ for required fields, and its six package-local ids.
 | `CK3553` | information | `variables/local-read-in-trigger-set-in-immediate` | information | Provisional |
 | `CK3554` | information | `scope/temporary-scope-passed-to-event` | information | Provisional |
 | `CK3560` | information | `scope/desc-text-reads-scope-saved-late` | information | Provisional |
-| `CK3561` | information | `scope/title-text-reads-scope-saved-late` | information | Provisional |
+| `CK3561` | information | `scope/title-text-reads-scope-saved-late` | information | Provisional; built since format 9 (part D9), re-proof: applies to 757, fires on 0 |
 | `CK3563` | information | `scope/random-save-without-trigger-guard` | information | Provisional |
 | `CK3301` | hint | not carried over | — | Style belongs to the formatter of step 8. The base game mixes tabs and spaces on 95,860 lines |
 | `CK3303` | hint | not carried over | — | Style; 158,788 base-game lines have spaces in their indentation |
@@ -721,7 +793,7 @@ for required fields, and its six package-local ids.
 | `CK3610` | information | not carried over | — | 10 base-game `ai_chance` blocks have a negative base |
 | `CK3611` | information | not carried over | — | 1,024 base-game `ai_chance` blocks total zero whatever applies |
 | `CK3612` | information | not carried over | — | 222 of the 9,658 base-game `ai_chance` blocks that can be totalled can go negative |
-| `CK3613` | hint | not carried over | — | 4,305 base-game options of several-option events have neither `ai_chance` nor `ai_will_select`. Measured again for decision 105 (4,305 of 21,581 options, 19.95%): a best practice the base game follows, but not restored: part D4 had no role for those two keys, and a check may not name them (decision 54). Since format 9 (2026-11-25) D4 gives both the role `ai_weight` (confirmed; `ai_will_select` also `takes_precedence`), so a row could read them; whether it comes back as a new row is the owner's (docs/decisions.md) |
+| `CK3613` | hint | `style/option-without-ai-weight` (since format 9) | hint | 4,305 base-game options of several-option events have neither `ai_chance` nor `ai_will_select`. Measured again for decision 105 (4,305 of 21,581 options, 19.95%): a best practice the base game follows, held for want of a part D4 role for those two keys, which a check may not name (decision 54). Since format 9 (2026-11-25) D4 gives both the role `ai_weight` (confirmed), and the rule is back as a new best-practice row, re-measured: 4,305 of 21,581 (19.95%) |
 | `CK3614` | information | not carried over | — | 110 base-game `ai_chance` modifiers have no trigger |
 | `CK3656` | information | not carried over | — | The base game writes an inline `opinion` in 8,524 of its 10,724 `add_opinion` blocks |
 | `CK3762` | information | not carried over | — | 12 of the base game's 1,274 hidden events have options |
@@ -732,12 +804,12 @@ for required fields, and its six package-local ids.
 | `CK3767` | information | `structure/event-empty` | information | Holds: 0 |
 | `CK3768` | information | `structure/event-several-immediate` | information | Holds: 0 |
 | `CK3769` | information | not carried over | — | 980 shown base-game events have no portrait |
-| `CK3872` | information | `style/redundant-condition` (unblocked by format 9, to build) | **hint** | The base game writes `trigger = { always = yes }` 375 times. Since 2026-11-23 (decision 112) to return as `style/redundant-condition`, hint, a best-practice rule; it was blocked for want of D4 roles for `always` and the logical operators, which format 9 gives (2026-11-25) |
+| `CK3872` | information | `style/redundant-condition` | **hint** | The base game writes `trigger = { always = yes }` 375 times. Since 2026-11-23 (decision 112) `style/redundant-condition`, hint, a best-practice rule; blocked for want of D4 roles for `always` and the logical operators, built since format 9 gave them (2026-11-25). It judges the blocks whose `child_always_true` is `neutral` (`AND`, `NAND`, `any_false`); a plain trigger block has no such row, so the 375 are not judged; the base game breaks it in 1 of 9,350 such blocks |
 | `CK3873` | hint | not carried over | — | The base game writes `trigger = { always = no }` 222 times, on purpose. Measured again for decision 105 (223 of 84,772 trigger blocks) and not restored: it is the deliberate way to switch content off, which release 2.3.0's own text says |
 | `CK3875` | information | not carried over | — | 1,717 of the base game's 10,128 `random_` iterators have no `limit` |
 | `CK3977` | information | not carried over | — | 3,425 of its 10,369 `every_` iterators have no `limit` |
 | `CK5137` | information | not carried over | — | 3,441 of the base game's 3,517 `is_alive` checks have no `exists` beside them |
-| `CK3701` | information | `variables/read-never-set` | information | Provisional |
+| `CK3701` | information | `variables/read-never-set` | information | Provisional; retired. Since format 9 the table-based `variables/read-without-set`, a new row |
 | `CK3702` | hint | `variables/set-never-read` | hint | Provisional |
 | `CK3703` | information | `variables/read-in-other-namespace` | information | Provisional |
 | `CK3705` | information | `variables/list-and-value` | information | Provisional |
@@ -887,7 +959,7 @@ The severity is the one the seed file states, or "—" where it states none.
 | 50 | CK3870 | generic_rules | No effect in a trigger block (error) | — | — | Covered: `names/unknown-trigger` |
 | 51 | CK3871 | generic_rules | No effect in `limit` (error) | — | — | Covered: `names/unknown-trigger` |
 | 52 | CK3872 | generic_rules | No trigger in an effect block (warning; switched off in the file) | — | — | Covered: `names/unknown-effect` |
-| 53 | CK3872 | generic_rules | `trigger = { always = yes }` is redundant (warning) | — | 375 | Dropped; since 2026-11-23 the blocked row `style/redundant-condition` (decision 112) |
+| 53 | CK3872 | generic_rules | `trigger = { always = yes }` is redundant (warning) | — | 375 | Dropped; since 2026-11-23 the row `style/redundant-condition` (decision 112), built with format 9, which judges an `always = yes` in an `AND` or a `NAND`, not in a plain trigger block |
 | 54 | CK3873 | generic_rules | `trigger = { always = no }` means the code never runs (error) | — | 222 | Dropped: the base game switches content off this way on purpose |
 | 55 | CK3875 | generic_rules | A `random_` iterator needs `limit` (warning) | 10,128 | 1,717 | Dropped |
 | 56 | CK3976 | generic_rules | No effect in an `any_` iterator (warning) | — | — | Covered: `names/unknown-trigger` |

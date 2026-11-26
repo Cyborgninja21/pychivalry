@@ -562,8 +562,41 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   over the planted-defect mod and the lookup fixture with its localization.
 - The explain-error skill names `lookup`'s `evidence`, for when a person asks why a name is wrong
   or where its reading comes from; a test holds the other two skills to not naming it.
+- The checks the spec package's format 9 unblocked (docs/decisions.md, row 153), each with its
+  fixture pair, tests and docs/checks.md row, the same on every surface (one runner):
+  `structure/triggered-desc-other-field`, a warning on the catalogue's message, at each key a
+  `triggered_desc` holds beside `desc` and `trigger` (its block and keys from part D4's
+  `closed_body` and `allows_only`); `scope/title-text-reads-scope-saved-late`, advice, an event's
+  title text reading a scope saved only in an option or `after`, by part D9's forms (re-proof: 757
+  events, no finding); `style/redundant-condition`, a best-practice hint (release 2.3.0's CK3872),
+  an `always = yes` that changes nothing in an `AND`, a `NAND` or an `any_false`, with a safe fix
+  that takes it away; `style/option-without-ai-weight`, a new best-practice hint (release 2.3.0's
+  CK3613), an option of a shown event with several options and neither `ai_chance` nor
+  `ai_will_select` (the base game: 19.95% of its 21,581); and `variables/read-without-set`, new
+  advice on the table `variables`, a variable read in a namespace and as a kind nothing sets (the
+  base game: 31 of 42,001 reads, its known exceptions). `localization/unbalanced-brackets` also
+  reports an opener left open (`[`, `(`, `'`, `$`) on the catalogue's four "Unterminated"
+  messages, with a fix that closes or removes it.
+- The index records, per file, the variables a script sets and the names of its variable
+  statements, and the names each localization entry's text reads as a saved scope (D9's forms);
+  the on-disk cache's format is 5, so an older cache is rebuilt. The language server rechecks the
+  files that read a variable whose sets change, and those that name a localization key whose text
+  reads other saved scopes.
 
 ### Changed
+
+- The game-file suites are re-run with the format 9 checks. The base game: errors (13) and
+  warnings (17,188) unchanged; new `style/option-without-ai-weight` 4,165 (the per-file limit
+  drops the rest), `variables/read-without-set` 31, `style/redundant-condition` 1. The five mods:
+  no error changed; seven openers left open (elf-destiny 3, rice 3, viet-events 1), each a defect
+  of the mod's text; `variables/read-without-set` 97 (rice 84, elf-destiny 12, viet-events 1).
+- The planted-defect mod plants `structure/triggered-desc-other-field` (36 defects) and gives
+  every option of its shown events with several options an AI weight, in `mod/` and
+  `reference/`; its manifest's lines moved with them. The requests' frozen results are held to
+  "the checker reports nothing" but for `style/option-without-ai-weight`, which came after them
+  (a question for the owner). The game stub `event-targets-and-localization` sets a variable.
+- A fix may rest on part D4's roles (`basis: keyword-roles`); the agent server describes it, and
+  its tool schema version stays 5.
 
 - The formatting rules of `docs/formatting.md`, signed off (decisions 90 to 100), then decided
   again under the owner's new principle (decisions 101 to 102): the document is now the rules as
@@ -647,7 +680,8 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   index compares a province id as an integer (`003` is `3`), drops a replaced gene's templates,
   and reads `within`, `merge`, `path_match`, `compare_unit` and `pack` of the override rules. The
   table of the keywords of variables, D9's forms, D4's new roles and the catalogue's new messages
-  are read and exposed for the checks that wait on them; none of those checks is built.
+  are read and exposed for the checks that wait on them; none of those checks is built (they are
+  since row 153, above).
 - The game-file suites are re-run on format 9. The base game's errors: 806 to 13, every one a
   defect of the game's own files (the 791 parse errors of the two files that are not script and
   the 2 false `selection_count` errors are gone); its warnings 17,185 to 17,188 (4
@@ -911,18 +945,18 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   (decision 141); it is not started until he says (decision 145). The third preview's release
   run, 10 trials of each of the 24 requests, 480 test sessions, is made once on his word after it
   (decision 132).
-- `style/redundant-condition` (release 2.3.0's CK3872) was blocked until part D4 of the spec
-  package gave `always` and the logical operators roles (decision 112); format 9 gives them, and
-  the row is to build.
 - Whether a check row should judge a static modifier applied by an effect of another use area
   is a question for the owner (`docs/decisions.md`); no built row covers it.
-- Two rows of the check inventory were blocked and are unblocked by format 9, to build:
-  `structure/triggered-desc-other-field` (its message is in the catalogue now) and
-  `scope/title-text-reads-scope-saved-late` (part D9 gives the saved-scope forms of localization
-  text); so are the open brackets of `localization/unbalanced-brackets` and the game-concept half
-  of `references/unknown-name`. Parts of two more wait on the owner: the iterator sub-cases of
-  `names/unknown-trigger` and `-effect`, the block and word types of
-  `fields/wrong-kind-of-value`.
+- The game-concept half of `references/unknown-name` stays blocked: without a concept's aliases
+  (row 151) it would report 20,715 of the 65,007 concept names of the base game's English. Parts
+  of two more rows wait on the owner: the iterator sub-cases of `names/unknown-trigger` and
+  `-effect`, the block and word types of `fields/wrong-kind-of-value`.
+- `variables/read-without-set` fires on 31 base-game reads; whether it ships with them as known
+  exceptions, a condition that always fails where it changes nothing, the requests' frozen
+  results and the 15 folders below `events/` that break `style/option-without-ai-weight` more
+  often than they follow it are questions for the owner (docs/decisions.md); three points go back
+  to the spec work (row 154): the variables the game's code sets, whether the engine keeps a
+  variable's namespaces and kinds apart, and the position of the "Unterminated" messages.
 - The seventeen requests of 2026-11-25 are answered by format 9 (docs/decisions.md, row 150),
   what the package still leaves open with them; one new request goes back to the spec work
   (row 151): the trait groups and the game concepts' aliases, which part D6 names as databases and

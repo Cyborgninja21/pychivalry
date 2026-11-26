@@ -8,7 +8,8 @@ among its parts. Build step 1, the repository skeleton, is complete, with that p
 2.3.0 baselines recorded on its format 4 copy; build step 2, the parser, is built; build step 3,
 the workspace index, is built, with the override rules as data, read from the package. Build
 step 4 is built: the check inventory ([checks.md](checks.md), signed off), the typed spec reader,
-62 of its 78 checks (two blocked, eleven retired by their re-proof, three for steps 10 and 11),
+64 of its 79 checks (the two rows once blocked built since the spec package's format 9, and one
+row new with it; eleven retired by their re-proof and one by decision 113; three for steps 10 and 11),
 lookup, the base-game and real-mod suites and their classifications, and the limits; build step
 5, the command line, is built; build step 6, the agent server, is built: the server, the
 planted-defect mod (made harder after the first test sessions), its graders and the
@@ -594,7 +595,7 @@ rate, because a model's output is not repeatable.
 - **Agent use.** A test mod with planted defects, every error and warning code at least once,
   plus lines that look wrong and are not; hard enough that the pass rate tells a better agent
   server from a worse one: defects whose fix needs a lookup, defects that interact, defects
-  fixed in another file than the finding (built: 35 defects and 29 look-alikes in 17 files, in
+  fixed in another file than the finding (built: 36 defects and 29 look-alikes in 17 files, in
   `fixtures/defects/`, the `style/` family's warnings among them since decision 110). A trial passes when the checker reports zero errors, every planted
   defect is gone, nothing outside the planted lines changed, the look-alikes are untouched and
   nothing was deleted. The graders judge by the checker and the manifest's fix ranges, so any

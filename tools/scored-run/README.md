@@ -56,7 +56,7 @@ sessions ran on the owner's word of 2026-11-23 (decision 81); what they showed i
 
 ## The agent-use task
 
-The agent gets a copy of the planted-defect mod, `fixtures/defects/mod/`: 35 defects, every
+The agent gets a copy of the planted-defect mod, `fixtures/defects/mod/`: 36 defects, every
 check code that is an error or a warning at least once (the `style/` family's two warnings among
 them since decision 110: a file not in pychivalry's format and a file not UTF-8, which the graders
 count like the others), and 29 lines that look wrong and are not, in 17 files in pychivalry's
