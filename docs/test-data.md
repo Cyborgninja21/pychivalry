@@ -299,12 +299,15 @@ like any other (decision 110).
 - **Results of a test session graded by hand.** Real results exist since the second scored
   authoring run (2026-11-24), which kept its trials: twelve of them, one of each request, are
   committed with a sheet (`fixtures/requests/calibration/run-2/`), beside the ten hand-made ones;
-  neither sheet is graded yet ([guide/judge-calibration.md](guide/judge-calibration.md)).
+  no sheet is graded yet, the expert sheet neither, and since decision 178 they are graded after
+  the release run ([guide/judge-calibration.md](guide/judge-calibration.md)).
 - **A committed result of a test session on the expert requests.** Their development run
   (decision 134) finished on 2026-11-25: 61 trials, kept outside the repository by the run, and
   its record is committed (`records/scored/authoring-expert-run-1.json`); their second, on tool
   schema version 5 (decision 165), finished on 2026-11-26: 60 trials, kept the same way, its record
-  committed too (`records/scored/authoring-expert-run-2.json`). None of their results is
-  committed: the drafts, the third calibration sheet and the judge's labelled case are hand-made
-  (the case holds the logic the first run's five `trigger-loyal-realm` results wrote, written by
-  hand).
+  committed too (`records/scored/authoring-expert-run-2.json`). The third preview's release run
+  (decision 178) finished on 2026-11-26: 240 trials of all 24 requests, kept the same way, its
+  record committed as `records/scored/authoring.json` (the second run's kept as
+  `authoring-run-2.json`). None of their results is committed: the drafts, the third calibration
+  sheet and the judge's labelled case are hand-made (the case holds the logic the first run's five
+  `trigger-loyal-realm` results wrote, written by hand).

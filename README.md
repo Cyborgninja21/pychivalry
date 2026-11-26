@@ -23,8 +23,11 @@ data. The second preview, **0.2.0**, is published as a
 [GitHub pre-release](https://github.com/Cyborgninja21/pychivalry/releases/tag/v0.2.0) (build step
 8, 2026-11-23). Build step 9 has started: the skills that tell your AI how to explain an error,
 fix one and write new content ([skills/](skills/README.md)), which VS Code's own AI gets from the
-extension and Claude Code from "Set up for Claude Code"; the scored authoring run is being
-built.
+extension and Claude Code from "Set up for Claude Code". The scored authoring test's release run,
+every content request 10 times, met every target on 2026-11-26
+([tools/scored-run/README.md](tools/scored-run/README.md#the-third-previews-release-run-decision-132)),
+its judge not yet calibrated against grading by hand; the third preview, 0.3.0, is drafted and not
+yet published.
 
 - What is being built, and why: [docs/MVP.md](docs/MVP.md).
 - How, step by step, and how far it has got: [docs/PLAN.md](docs/PLAN.md) (the Progress table).
