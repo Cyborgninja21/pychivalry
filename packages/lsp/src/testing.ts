@@ -10,7 +10,7 @@
  * package's surface.
  */
 
-import { openSpec, type Spec } from '@pychivalry/core';
+import { openSpec, type LogFolderSearch, type Spec } from '@pychivalry/core';
 import { spawn } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -413,6 +413,11 @@ export function serverInProcess(
         /** Lend the base game to programs whose cache folder is the same (docs/shared-index.md). */
         readonly lend?: boolean;
         readonly env?: Readonly<Record<string, string>>;
+        /**
+         * Where the game's log folders are looked for; by default a home folder of the test's
+         * own with no environment, so no test lists a real log folder.
+         */
+        readonly logSearch?: LogFolderSearch;
     } = {},
 ): { client: TestClient; server: LanguageServer } {
     const toServer = new PassThrough();
@@ -437,6 +442,12 @@ export function serverInProcess(
                   }
                 : undefined,
         lendClaimMs: 100,
+        logSearch: options.logSearch ?? {
+            env: {},
+            platform: process.platform,
+            home: path.join(cache, 'home'),
+            documents: () => null,
+        },
     });
     const connection = createProtocolConnection(
         new StreamMessageReader(toClient),

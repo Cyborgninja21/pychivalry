@@ -18,6 +18,9 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
         unusedKeys: true,
         fallbackEncoding: null,
         inlayHints: true,
+        logFile: '',
+        logLinePrefix: '',
+        logLocation: '',
     });
     assert.deepEqual(
         readSettings({
@@ -26,6 +29,7 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
             localization: { unusedKeys: false },
             encoding: { fallback: 'windows-1252' },
             inlayHints: { enabled: false },
+            log: { file: ' /logs/error.log ', linePrefix: '^x ', location: '(?<file>.+)' },
         }),
         {
             gamePath: '/games/ck3/game',
@@ -33,6 +37,9 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
             unusedKeys: false,
             fallbackEncoding: 'windows-1252',
             inlayHints: false,
+            logFile: '/logs/error.log',
+            logLinePrefix: '^x ',
+            logLocation: '(?<file>.+)',
         },
     );
     assert.deepEqual(
@@ -49,6 +56,7 @@ test('the settings are read nested or dotted, a value of the wrong type taking t
             background: { fileLimit: -1 },
             encoding: { fallback: 'latin-1' },
             inlayHints: { enabled: 'no' },
+            log: { file: 1, linePrefix: false },
         }),
         DEFAULT_SETTINGS,
     );

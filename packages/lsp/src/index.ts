@@ -17,6 +17,16 @@ export { defaultSpecDir, serverArguments, specFrom, USAGE, UsageError } from './
 export { CHECK_PAGE, checkPageOf, DIAGNOSTIC_SOURCE, toDiagnostic } from './diagnostics.js';
 export { chooseGame, gameNotices, type GameChoice, type Notice } from './game.js';
 export { Lender, SHARING_REQUEST, type SharingStatus } from './lend.js';
+export {
+    LOG_DIAGNOSTICS_LIMIT,
+    LOG_FOLDERS_REQUEST,
+    LOG_REQUEST,
+    logAnswer,
+    type LogAnswer,
+    type LogDiagnostic,
+    type LogFolderAnswer,
+    type LogParams,
+} from './log.js';
 export { DEFAULT_SETTINGS, readSettings, SETTINGS_SECTION, type Settings } from './settings.js';
 export {
     BACKGROUND_DONE,

@@ -46,6 +46,7 @@ function main(): void {
         cacheDir: defaultCacheDir(),
         findGame: (gameId) => findGameFolders(gameId, { env, platform, home })[0] ?? null,
         place: { env, platform, home },
+        logSearch: { env, platform, home },
     });
 }
 

@@ -36,7 +36,7 @@ function lineText(bytes: Uint8Array): { text: string; notUtf8: boolean } {
 export function logLines(input: Uint8Array | string): LogLine[] {
     const out: LogLine[] = [];
     if (typeof input === 'string') {
-        const text = input.startsWith('﻿') ? input.slice(1) : input;
+        const text = input.startsWith('\uFEFF') ? input.slice(1) : input;
         const lines = text.split('\n');
         if (lines.length > 0 && lines[lines.length - 1] === '') {
             lines.pop();

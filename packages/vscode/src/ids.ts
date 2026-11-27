@@ -16,6 +16,15 @@ export const SET_UP_CLAUDE_CODE = 'pychivalry.setUpClaudeCode';
 /** The command "pychivalry: Remove from Claude Code". */
 export const REMOVE_FROM_CLAUDE_CODE = 'pychivalry.removeFromClaudeCode';
 
+/** The command "pychivalry: Show the game's log against the mod" (build step 11). */
+export const SHOW_GAME_LOG = 'pychivalry.showGameLog';
+
+/** The command "pychivalry: Watch the game's log". */
+export const WATCH_GAME_LOG = 'pychivalry.watchGameLog';
+
+/** The command "pychivalry: Clear the game's log findings". */
+export const CLEAR_GAME_LOG = 'pychivalry.clearGameLog';
+
 /**
  * The languages of script files, of localization files and, since build step 10, of GUI files
  * (`contributes.languages`).
@@ -36,3 +45,7 @@ export const BACKGROUND_DONE = 'pychivalry/backgroundDone';
 
 /** The language server's request for what it lends (`@pychivalry/lsp`, `lend.ts`). */
 export const SHARING_REQUEST = 'pychivalry/sharing';
+
+/** The language server's requests for the game's log and its folders (`@pychivalry/lsp`, `log.ts`). */
+export const LOG_REQUEST = 'pychivalry/log';
+export const LOG_FOLDERS_REQUEST = 'pychivalry/logFolders';

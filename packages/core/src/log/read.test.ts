@@ -35,5 +35,5 @@ test('the byte-order mark is no text; a line not valid UTF-8 is read as Windows-
             ['é', false],
         ],
     );
-    assert.equal(logLines('﻿x')[0]?.text, 'x');
+    assert.equal(logLines('\uFEFFx')[0]?.text, 'x');
 });

@@ -23,6 +23,10 @@
  *   own shape (`fileFindings`), for the test that every surface gives the same answers.
  * - **Quick fixes** are the code actions of the findings' fix data (`code-actions.ts`); a fix
  *   that edits another file of the mod reads it as the editor holds it, or from disk.
+ * - **The game's log** (`log.ts`, build step 11): `pychivalry/logFolders` lists the game's log
+ *   folders on this system, `pychivalry/log` reads one log against the error catalogue over the
+ *   server's index and answers its places in the mod, for the editor to show apart from
+ *   pychivalry's own diagnostics.
  * - **Formatting** (`formatting.ts`): Format Document, Format Selection and on-type formatting
  *   (Enter, `}` and `=`) of any CK3 script or localization file open, from the core's formatter;
  *   a file it leaves as it is (a parse error) gets no edit, and the server says why once.
@@ -55,6 +59,7 @@ import {
     type NotUtf8Reading,
     type FolderTable,
     type GameIndex,
+    type LogFolderSearch,
     type MessageCatalogue,
     type Place,
     type SharedBase,
@@ -112,6 +117,15 @@ import { OpenDocument } from './documents.js';
 import { chooseGame, gameNotices, type GameChoice, type Notice } from './game.js';
 import { renderHover } from './hover.js';
 import { Lender, SHARING_REQUEST, type SharingStatus } from './lend.js';
+import {
+    LOG_FOLDERS_REQUEST,
+    LOG_REQUEST,
+    logAnswer,
+    logFolderAnswers,
+    type LogAnswer,
+    type LogFolderAnswer,
+    type LogParams,
+} from './log.js';
 import { PresentationFeatures, type PresentedFile } from './presentation-features.js';
 import { loadPresentation, type Presentation } from './presentation.js';
 import {
@@ -205,6 +219,11 @@ export interface ServerOptions {
     readonly lendClaimMs?: number | undefined;
     /** The presentation data (docs/PLAN.md item 8.8); by default the data pychivalry ships. */
     readonly presentation?: Presentation | undefined;
+    /**
+     * Where the game's log folders are looked for (the environment, the system and the home
+     * folder; build step 11); this process's own by default. Tests give their own.
+     */
+    readonly logSearch?: LogFolderSearch | undefined;
 }
 
 /** A file as it is on disk, read when it was opened and when it changed. */
@@ -407,6 +426,8 @@ export class LanguageServer {
             return { file, findings: file === null ? [] : this.fileFindings(file) };
         });
         c.onRequest(SHARING_REQUEST, (): SharingStatus => this.sharing());
+        c.onRequest(LOG_FOLDERS_REQUEST, (): LogFolderAnswer[] => this.logFolders());
+        c.onRequest(LOG_REQUEST, (params: LogParams): LogAnswer => this.log(params));
         c.onShutdown(() => {
             this.stop();
         });
@@ -1732,6 +1753,46 @@ export class LanguageServer {
      * The call hierarchy's view of the workspace (`calls.ts`): the call graph over the index with
      * every open file's text in it, made again when the index changed; null with no workspace.
      */
+    // ─── The game's log (build step 11) ─────────────────────────────────────
+
+    /** The game's log folders on this system, the game's Proton prefix among them. */
+    private logFolders(): LogFolderAnswer[] {
+        const game = this.opened?.game.dir ?? null;
+        return logFolderAnswers({
+            ...(this.options.logSearch ?? {}),
+            gameFolders: () => (game === null ? [] : [game]),
+        });
+    }
+
+    /**
+     * One log read against the catalogue, its places in the mod as diagnostics. What the request
+     * leaves out the settings give (`log.file`, `log.linePrefix`, `log.location`); with no log
+     * named anywhere, the error log of the first log folder of the game that holds one.
+     */
+    private log(params: LogParams): LogAnswer {
+        const opened = this.opened;
+        for (const doc of this.docs.values()) {
+            this.ensureFresh(doc);
+        }
+        const given = params.log ?? '';
+        const log =
+            given !== ''
+                ? given
+                : this.settings.logFile !== ''
+                  ? this.settings.logFile
+                  : (this.logFolders().find((f) => f.errorLog !== null)?.errorLog ?? '');
+        return logAnswer(
+            {
+                log,
+                prefix: params.prefix ?? this.settings.logLinePrefix,
+                location: params.location ?? this.settings.logLocation,
+            },
+            this.spec,
+            opened?.index ?? null,
+            (file) => (opened === null || opened.modDir === null ? null : this.uriOf(file)),
+        );
+    }
+
     private calls(): CallHierarchyContext | null {
         const opened = this.opened;
         if (opened === null) {

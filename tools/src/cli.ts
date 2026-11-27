@@ -34,6 +34,11 @@
  *                                  an authoring record's kept results: a judge's test session
  *                                  on each, no authoring session (task scored:rejudge; never in
  *                                  CI, only on the owner's word)
+ *   game capture-log               one capture of the game's logs on the analysis machine (task
+ *                                  game:capture-log; never in CI, refused without the owner's
+ *                                  word recorded for a launch, game-log/guard.ts)
+ *   scored in-game-load            one authoring result through the in-game load: two captures
+ *                                  and the grade (task scored:in-game-load; the same guard)
  */
 
 import { mkdtempSync, rmSync } from 'node:fs';
@@ -51,6 +56,8 @@ import { readRecordTargets, targetLines } from './scored-run/authoring-targets.j
 import { runCalibration } from './scored-run/calibration.js';
 import { runRejudge } from './scored-run/rejudge.js';
 import { runScored } from './scored-run/run.js';
+import { LaunchRefused } from './game-log/guard.js';
+import { captureFromEnv, inGameLoadFromEnv } from './game-log/launch-cli.js';
 import { checkSpecFolder, SCHEMA_FILE } from './spec.js';
 import { GAME_SUITES, runGameSuite, writeCorpusManifest, type GameSuite } from './suites.js';
 import { CommandError, EXIT, relativePosix, repoRoot } from './util.js';
@@ -65,7 +72,8 @@ const USAGE = `usage: pychivalry-tools <command>
   wiki check|build|publish
   advice proof
   docs checks
-  scored agent-use|authoring|calibrate|targets|rejudge`;
+  scored agent-use|authoring|calibrate|targets|rejudge|in-game-load
+  game capture-log`;
 
 function run(args: readonly string[]): number {
     const root = repoRoot();
@@ -234,13 +242,34 @@ function run(args: readonly string[]): number {
     return EXIT.usage;
 }
 
-try {
-    process.exitCode = run(process.argv.slice(2));
-} catch (err) {
+function failed(err: unknown): void {
     if (err instanceof CommandError) {
         process.stderr.write(`${err.message}\n`);
         process.exitCode = err.exitCode;
+    } else if (err instanceof LaunchRefused) {
+        process.stderr.write(`${err.message}\n`);
+        process.exitCode = EXIT.usage;
     } else {
         throw err;
+    }
+}
+
+const argv = process.argv.slice(2);
+// The two commands that launch the game are asynchronous, and guarded (game-log/guard.ts).
+const launch =
+    argv[0] === 'game' && argv[1] === 'capture-log'
+        ? captureFromEnv
+        : argv[0] === 'scored' && argv[1] === 'in-game-load'
+          ? inGameLoadFromEnv
+          : null;
+if (launch !== null) {
+    launch(repoRoot(), process.env).then((code) => {
+        process.exitCode = code;
+    }, failed);
+} else {
+    try {
+        process.exitCode = run(argv);
+    } catch (err) {
+        failed(err);
     }
 }
