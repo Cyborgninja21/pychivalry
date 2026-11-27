@@ -155,9 +155,16 @@ test('every message whole or named in not_answered, no cursor; one too large alo
         log: path.join(logDir, 'many.log'),
         messages: left,
     });
+    // The keys asked, in the order asked: those that fit answered whole, the others named again
+    // (one that does not fit is skipped, and the smaller ones after it are still tried).
     const nextKeys = (next['messages'] as { key: string }[]).map((m) => m.key);
-    assert.deepEqual(nextKeys, left.slice(0, nextKeys.length));
+    const nextLeft = (next['not_answered'] as { messages: string[] } | null)?.messages ?? [];
     assert.ok(nextKeys.length > 0);
+    assert.deepEqual(
+        nextKeys,
+        left.filter((k) => nextKeys.includes(k)),
+    );
+    assert.deepEqual([...nextKeys, ...nextLeft].sort(), [...left].sort());
     // The totals are of the whole log, whatever was asked.
     assert.deepEqual(next['totals'], out['totals']);
 
