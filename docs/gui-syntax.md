@@ -110,6 +110,13 @@ game shows use their types: `cloud_save_checkbutton` in the save window
 (`gui/window_save_game.gui:85`), `clickable_version_number` on the main menu
 (`gui/frontend_main.gui:1353`). The parser reads every keyword without regard to letter case.
 
+**Grammar, not vocabulary.** These six keywords and the two of a type definition below (`type`,
+`local_type`) are the structural words of GUI syntax, which the parser holds as grammar
+(`GUI_NAMED_KEYWORDS` and `GUI_TYPE_KEYWORDS` in `packages/core/src/gui/tree.ts`), on the owner's
+word: they are not game vocabulary (decision 191). A spec request asks the package to give them
+as data; once it does, the parser reads them from the package (a follow-up,
+[checks.md](checks.md#step-10-gui-syntax)).
+
 ## Type definitions
 
 `type name = base { ... }`: a widget type, named, made from another (a built-in widget such as

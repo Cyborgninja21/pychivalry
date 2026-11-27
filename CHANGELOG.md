@@ -1077,6 +1077,18 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   Claude Code" and the three skills.
 - The guide's calibration page and the second run's calibration sheet say where the second run's
   record is now, and that the three sheets are graded after the release run (decision 178).
+- The fix-error and write-content skills use the call graph (decision 193). The fix-error skill,
+  before it edits a scripted effect, a scripted trigger or an event, asks
+  `mcp__pychivalry__call_graph` for the definition's callers, and its report says what the change
+  affects; the write-content skill, after its draft and before the checker's rounds, reads back
+  every event chain or call it wrote with it, each call it meant there and each callee defined.
+  `skill-files.test.ts` holds both. The two skills' hashes change, so the next scored run is
+  measured on the new skills and tool schema version 6, not compared with the committed records
+  without saying so (`tools/scored-run/README.md`).
+- Build step 10 is done on the owner's word (decision 192): the graphics check's base-game
+  warnings, each a defect of the game's own files, count as raising nothing. The GUI parser's
+  structural words are GUI grammar, not game vocabulary (decision 191). Build step 11 started
+  without launching the game (decision 194).
 
 ### Fixed
 
@@ -1117,7 +1129,11 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   advice), whether `gui/` is read with its sub-folders (224 of `game/gui/`'s 441 files "read: not
   known"), which of two types of one name in two files is in force, templates registered twice,
   one database for two registries, files outside `gui/`, local types and templates, and the
-  keywords' letter case. Questions for the owner are in `docs/decisions.md`.
+  keywords' letter case; and a ninth (decision 191), the GUI grammar's structural words as data,
+  which the parser then reads from the package. Questions for the owner are in
+  `docs/decisions.md`.
+- Build step 11's captures on the analysis machine, and the items that rest on them (11.1, 11.2,
+  11.5 and 11.8), wait on the owner's word (decision 194).
 - Build step 10's graphics check goes back to the spec work in three points (decision 187): the
   `.info` type `file_path` as data on the 48 fields of 25 folders measured as paths, the folder a
   file name is read in for a field that names one inside a define's folder, and how the game reads

@@ -1,6 +1,6 @@
 ---
 name: pychivalry-fix-error
-description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, source, format, apply_format).
+description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, asking what calls a scripted effect, scripted trigger or event before changing it, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, call_graph, source, format, apply_format).
 ---
 
 # Fix what pychivalry finds
@@ -11,18 +11,18 @@ only reads, but for `mcp__pychivalry__apply_format`, which writes a file you nam
 pychivalry's format: you make every other edit with your own edit tool, and your harness shows
 the person the edits. Repair from what the tools return, never from memory of CK3.
 
-**Call each tool by the name your client lists.** Every tool is written here by the name Claude
-Code lists it under, `mcp__pychivalry__` and the tool's own name: `mcp__pychivalry__check`,
+**Call each tool by the name your client lists.** Every tool is written here by the name Claude Code
+lists it under, `mcp__pychivalry__` and the tool's own name: `mcp__pychivalry__check`,
 `mcp__pychivalry__explain_code`, `mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`,
 `mcp__pychivalry__find_references`, `mcp__pychivalry__list_definitions`,
-`mcp__pychivalry__source`, `mcp__pychivalry__format`, `mcp__pychivalry__apply_format`. Only a
-listed name can be called: a call of a short name reaches nothing, and Claude Code answers that
-there is no such tool. Another client lists the same tools under its own prefix (VS Code's
-Copilot harness `pychivalry-`, VS Code's own `mcp_pychivalry_`, each before the tool's own name):
-there, call the tool whose name ends in the same tool's name. If a call finds no such tool, call
-the same tool again by its listed name. If no pychivalry tool is offered at all, say so and stop:
-in VS Code the extension registers the agent server by itself; for Claude Code, the person runs
-"pychivalry: Set up for Claude Code" in VS Code once for the mod's folder.
+`mcp__pychivalry__call_graph`, `mcp__pychivalry__source`, `mcp__pychivalry__format`,
+`mcp__pychivalry__apply_format`. Only a listed name can be called: a call of a short name reaches
+nothing, and Claude Code answers that there is no such tool. Another client lists the same tools
+under its own prefix (VS Code's Copilot harness `pychivalry-`, VS Code's own `mcp_pychivalry_`, each
+before the tool's own name): there, call the tool whose name ends in the same tool's name. If a call
+finds no such tool, call the same tool again by its listed name. If no pychivalry tool is offered at
+all, say so and stop: in VS Code the extension registers the agent server by itself; for Claude
+Code, the person runs "pychivalry: Set up for Claude Code" in VS Code once for the mod's folder.
 
 ## The rules
 
@@ -38,6 +38,15 @@ in VS Code the extension registers the agent server by itself; for Claude Code, 
    round is one `mcp__pychivalry__check` and the edits made from it.
 5. **Never claim success while an error or a warning is left.** Say what is left, with its code,
    file, line and message, and why it was not fixed.
+6. **Ask what calls a definition before you change it.** Before you edit a scripted effect, a
+   scripted trigger or an event, a definition in `common/scripted_effects`,
+   `common/scripted_triggers` or `events`, run `mcp__pychivalry__call_graph` with `names` the
+   name it is defined under (an event by its id) and `direction` set to `callers`. It lists every
+   definition that calls it, in the mod and the base game, each with its `kind` and its place: a
+   change to the definition reaches each of them, and your report says which. Every name it
+   answers is answered whole; one listed in `not_answered` did not fit: ask about it in another
+   call. A name with more callers than one answer holds comes with `detail` set to `cut`: its
+   counts are whole, its callers listed in part.
 
 ## Steps
 
@@ -82,8 +91,10 @@ in VS Code the extension registers the agent server by itself; for Claude Code, 
    `pychivalry format <file>` does the same, and `pychivalry check --fix .` in the mod's folder
    applies every safe fix of the whole mod (run it only when the person wants every safe fix
    applied).
-6. **Report.** What you changed and why, file by file; the last `mcp__pychivalry__check`'s totals;
-   and anything left, as rule 5 says.
+6. **Report.** What you changed and why, file by file; for each scripted effect, scripted trigger
+   or event you changed, what calls it, as `mcp__pychivalry__call_graph` listed it (rule 6), and
+   so what the change affects; the last `mcp__pychivalry__check`'s totals; and anything left, as
+   rule 5 says.
 
 Information and hints are pychivalry's advice, not the game's: fix them only when the person
 asks. When the person asks to clean up the `style/` findings, the hints among them are fixed as

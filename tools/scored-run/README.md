@@ -1991,6 +1991,34 @@ the third preview was published the same day on the owner's word, also before hi
 and his checklist (decision 180;
 [docs/preview-release-0.3.0.md](../../docs/preview-release-0.3.0.md)).
 
+## What the next run is given: tool schema version 6 and new skills (decision 193)
+
+Since the release run, what a session is given changed twice, and the next scored run is the
+first made on both:
+
+1. **Tool schema version 6** (decision 188, #171): the agent server's tenth tool, `call_graph`,
+   which says for each name where it is defined, what calls it and what it calls, answered by
+   name as `lookup` is; every other tool is unchanged. A trial is offered the ten
+   `mcp__pychivalry__` tools of `SERVER_TOOLS` in `run.ts`, and every record a run makes states
+   `server.schema_version` 6 (`SERVER_SCHEMA_VERSION`). The committed records were made on
+   version 5 or earlier: `task scored:targets` says so first, and a run refuses to continue one.
+   This holds for both tests, the agent-use test (whose sessions are given no skill) and the
+   authoring test.
+2. **The skills changed** (decision 193, the owner's word of 2026-11-27): the fix-error skill
+   asks `call_graph` for the callers of a scripted effect, a scripted trigger or an event before
+   it edits it, and its report says what the change affects; the write-content skill, after its
+   draft and before the checker's rounds, reads back each event chain or call it wrote with
+   `call_graph`. Both folders hash differently, so an authoring run made now names new hashes for
+   them in `results.task.skills`; the explain-error skill's is unchanged. The release run's
+   record names the skills of decision 168.
+
+So **the next scored run is measured on the new skills and tool schema version 6**, and is not
+compared with `authoring.json`, or any committed record, without saying so: `SCORED_CONTINUE=true`
+refuses a record of another server version or of other skills, so no record holds sessions given
+both. What a trial is graded by does not change: the authoring grade, the requests' expectations
+and the judge's prompt and questions are the same. No run has been made on them; one starts only
+on the owner's word.
+
 ## Re-judging kept results
 
 A judge can be run again over the results a run kept, with no authoring session: when the judge

@@ -44,9 +44,15 @@ both, the third preview, version 0.3.0, is published as a GitHub pre-release (20
 the index of GUI types and templates, go to definition on them on every surface) and the
 graphics-file check and the call graph (#171: `graphics/missing-file`, the agent server's
 `call_graph`, its tenth tool, at tool schema version 6, the language server's call hierarchy and
-the command line's `calls`). What
-waits on the owner or on the spec
-work is in [decisions.md](decisions.md). Nothing else in this
+the command line's `calls`). On the owner's word of 2026-11-27 build step 10 is done (decision
+192): the graphics check's base-game warnings, each a defect of the game's own files, count as
+raising nothing. What stays open from it waits on the spec work: the 48 fields the package
+measures as paths with no `.info` type, and the GUI questions, among them the GUI grammar's
+structural words as data, which the parser holds as grammar until then (decision 191). The same
+day the fix-error and write-content skills began to use `call_graph` (decision 193), and build
+step 11 started without launching the game: agents build what the spec's catalogue and the
+documented log locations allow, and no capture is made until the owner says (decision 194). What
+waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
