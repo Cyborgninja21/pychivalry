@@ -9,7 +9,8 @@
  * authoring skill states the rules of item 9.2, and the owner's rule that every option of an
  * event with several options has an AI weight (decision 159). Since decision 193 the fix-error
  * skill asks `call_graph` what calls a definition before changing it, and the authoring skill
- * checks the chains it wrote with it.
+ * checks the chains it wrote with it; since decision 203 the fix-error skill reads the game's log
+ * with `analyze_log` when there is one, and only then.
  */
 
 import { COMMANDS, TOOL as COMMAND_LINE } from '@pychivalry/cli';
@@ -40,6 +41,7 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'find_references',
         'list_definitions',
         'call_graph',
+        'analyze_log',
         'source',
         'format',
         'apply_format',
@@ -570,4 +572,72 @@ test('the fix-error skill asks call_graph what calls a definition before changin
         fix,
         /comes with `detail` set to `cut`: its counts are whole, its callers listed in part/,
     );
+});
+
+test("the fix-error skill reads the game's log with analyze_log when there is one, and makes no call without one", () => {
+    // The owner's word of 2026-11-27 (decision 203): when the person gives a game log, or a log
+    // folder is known, the fix-error skill runs analyze_log and uses, for each file it fixes, the
+    // messages tied to that file; no log, no call. The other two skills are unchanged, and a
+    // scored session, whose server starts with --no-log-folders and whose task gives no log, is
+    // asked for no call.
+    const prose = (name: string): string => {
+        const skill = skills.find((s) => s.name === name);
+        assert.ok(skill !== undefined, name);
+        return parse(skill.name, textOf(skill)).body.replace(/\s+/g, ' ');
+    };
+    const fix = prose('pychivalry-fix-error');
+    const rule = fix.indexOf("7. **Read the game's log only when there is one.**");
+    assert.ok(rule > fix.indexOf('## The rules'), 'a rule of the fix-error skill');
+    assert.ok(rule < fix.indexOf('## Steps'), 'among its rules, so it holds in every step');
+    // The condition: a log the person gives, or a log folder known.
+    assert.match(
+        fix,
+        /When the person gives you a game log, a log file or a folder of the game's logs, or a log folder is known \(they name one, or say they have run the mod in the game, whose own log folder then holds its log\), run `mcp__pychivalry__analyze_log` on it once, at the start: with `log` set to the file or folder they gave, or with no `log` for the game's own log folder/,
+    );
+    assert.match(fix, /If it answers that it found no log, say so and go on without one/);
+    // What it uses: for each file it fixes, the messages tied to that file.
+    assert.match(
+        fix,
+        /For each file you fix, the messages tied to that file are the game's own report about it/,
+    );
+    assert.match(
+        fix,
+        /fix each as step 3 fixes a finding with no fix, with `mcp__pychivalry__explain_code` on the codes its `checks` lists/,
+    );
+    assert.match(
+        fix,
+        /listed in `not_answered` did not fit: ask for it in another call, with `messages` set to its key/,
+    );
+    // The log is the game's last run: read once, never read again to see a fix.
+    assert.match(
+        fix,
+        /never call `mcp__pychivalry__analyze_log` again to see whether a fix worked, and never say a message is gone/,
+    );
+    // Conditional: no log, no call; the first step and the report say so too.
+    assert.match(fix, /With no log, make no call\./);
+    assert.match(
+        fix,
+        /When there is a game log \(rule 7\), run `mcp__pychivalry__analyze_log` on it now/,
+    );
+    assert.match(
+        fix,
+        /when you read a game log \(rule 7\), each of its messages tied to a file you fixed, and whether you fixed it or why not/,
+    );
+    // Every call of the tool in the skill sits under that condition: rule 7, step 1's "When there
+    // is a game log" and nowhere else.
+    const calls = [...fix.matchAll(/run `mcp__pychivalry__analyze_log`/g)].map((m) => m.index);
+    assert.equal(calls.length, 2, 'two runs of analyze_log, both conditional');
+    for (const at of calls) {
+        const before = fix.slice(Math.max(0, at - 400), at);
+        assert.ok(
+            /When the person gives you a game log|When there is a game log \(rule 7\),/.test(
+                before,
+            ),
+            `a run of analyze_log under the condition: ${fix.slice(at - 120, at + 40)}`,
+        );
+    }
+    // The explain-error and write-content skills do not read the log (no in-game load is run).
+    for (const name of ['pychivalry-explain-error', 'pychivalry-write-content']) {
+        assert.doesNotMatch(prose(name), /analyze_log/, name);
+    }
 });

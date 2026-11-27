@@ -25,7 +25,10 @@ import { createHash } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { capture, type CaptureRecord, type Start } from './capture.js';
-import { ownersWord } from './guard.js';
+import { ownersWord, type LaunchCommand } from './guard.js';
+
+/** The command the in-game load is started by: its decision must name it (decision 205). */
+const IN_GAME_LOAD: LaunchCommand = 'scored:in-game-load';
 
 /** The files of a result the session added or changed against its base mod, with `/`. */
 export function contentFiles(baseDir: string, resultDir: string): string[] {
@@ -162,10 +165,12 @@ export async function inGameLoad(options: InGameLoadOptions): Promise<{
     readonly without: CaptureRecord;
     readonly with: CaptureRecord;
 }> {
-    // The guard first, before the two captures check it again.
-    ownersWord(options.ownersWord, options.decisionsFile);
+    // The guard first, before the two captures check it again: for this command, whose decision
+    // must name it (decision 205).
+    ownersWord(options.ownersWord, options.decisionsFile, IN_GAME_LOAD);
     const shared = {
         ownersWord: options.ownersWord,
+        command: IN_GAME_LOAD,
         decisionsFile: options.decisionsFile,
         installDir: options.installDir,
         start: options.start,

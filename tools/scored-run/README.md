@@ -1992,10 +1992,10 @@ the third preview was published the same day on the owner's word, also before hi
 and his checklist (decision 180;
 [docs/preview-release-0.3.0.md](../../docs/preview-release-0.3.0.md)).
 
-## What the next run is given: tool schema version 7 and new skills (decision 193)
+## What the next run is given: tool schema version 7 and new skills (decisions 193 and 203)
 
-Since the release run, what a session is given changed three times, and the next scored run is
-the first made on all three:
+Since the release run, what a session is given changed four times, and the next scored run is
+the first made on all four:
 
 1. **Tool schema version 6** (decision 188, #171): the agent server's tenth tool, `call_graph`,
    which says for each name where it is defined, what calls it and what it calls, answered by
@@ -2020,8 +2020,16 @@ the first made on all three:
    `call_graph`. Both folders hash differently, so an authoring run made now names new hashes for
    them in `results.task.skills`; the explain-error skill's is unchanged. The release run's
    record names the skills of decision 168.
+4. **The skills changed again** (decision 203, the owner's word of 2026-11-27): the fix-error
+   skill reads the game's log with `analyze_log` when the person gives one, a log file or a folder
+   of the game's logs, or a log folder is known, and uses for each file it fixes the messages tied
+   to that file; with no log it makes no call (its rule 7). The fix-error skill's folder hashes
+   differently again; the write-content and explain-error skills are unchanged by it. Scored
+   sessions still start the server with `--no-log-folders`, the trial's mod holds no log, and no
+   task gives one, so the skill's condition does not hold in a scored session and it asks for no
+   call there: what the authoring test measures does not change, but the skills it records do.
 
-So **the next scored run is measured on the new skills and tool schema version 7**, and is not
+So **the next scored run is measured on these skills and tool schema version 7**, and is not
 compared with `authoring.json`, or any committed record, without saying so: `SCORED_CONTINUE=true`
 refuses a record of another server version or of other skills, so no record holds sessions given
 both. What a trial is graded by does not change: the authoring grade, the requests' expectations

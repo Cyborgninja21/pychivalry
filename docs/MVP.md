@@ -56,8 +56,13 @@ so (decisions 195 to 199): the matcher on the catalogue's messages, which assume
 the ties to the mod's files, `log` in the command line, `analyze_log` in the agent server (its
 eleventh tool, tool schema version 7), the log shown against the mod in the editor, the log
 folders of Windows, Linux and Proton, and the capture procedure and the in-game load, prepared
-behind a guard and not run ([game-log.md](game-log.md)). The matcher has not seen a real log. What
-waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
+behind a guard and not run ([game-log.md](game-log.md)). On his word of the same day (decisions 200
+to 204) the eight captures of item 11.1 may be made on the analysis machine, run with Node there,
+and their logs committed as fixtures after a check of each file for names and paths; the in-game
+load is not covered and waits on a word of its own. The fix-error skill reads a game log with
+`analyze_log` when there is one, and the source file of each catalogue message is asked of the
+spec work. No capture is made yet: the matcher has not seen a real log. What waits on the owner or
+on the spec work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
 The build plan, step by step, is in [PLAN.md](PLAN.md).
@@ -585,7 +590,7 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | Localization | Fixture mod | Missing keys and unbalanced brackets are warnings; unused keys are advice; entries with and without a version number are read. |
 | GUI files | Base-game GUI files `G`; fixtures | Every base-game GUI file parses; types and templates are found; go to definition lands on them. *After build step 10's items 10.1 to 10.4 (#172): every `.gui` file of the install parses, 583 (`game/gui/`'s 441 among them), and each of its 18 GUI findings is classified a defect of the game's own files (`records/game/parse.json`); the five mods' 209 GUI files parse too. The fixture mod `gui-index` over its stub: every type and template found, with what is in force by the override rules, and go to definition landing on them in the editor, on the command line and in the agent server, the same on all three (`packages/core/src/gui/index.test.ts`, `packages/lsp/src/gui.test.ts`, `packages/vscode/src/gui-answers.test.ts`, the editor tests).* |
 | Graphics-file check | Fixture mod with present and absent files | Warns on each absent file and on none that exists in mod, base game or DLC. |
-| Game-log analysis | Real captured logs `T` kept as fixtures | Each message is tied to the right file and line; unmatched lines are listed. *Until a capture is made on the owner's word: hand-made logs from catalogue templates (`fixtures/logs/hand-made/`), every matched template found on a line made from it, and the same answers from the command line and the agent server.* |
+| Game-log analysis | Real captured logs `T` kept as fixtures | Each message is tied to the right file and line; unmatched lines are listed. *Until the captures the owner gave his word for (decision 200) are made: hand-made logs from catalogue templates (`fixtures/logs/hand-made/`), every matched template found on a line made from it, and the same answers from the command line and the agent server.* |
 | Call graph, call hierarchy | Fixture mod | Callers and callees equal the known graph, for all five kinds of link. *Built in step 10: the graph equals the fixture's `expected.json` for all five kinds.* |
 | Selection ranges, document symbols | Fixture positions | Ranges and symbols equal the expected ones. |
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
@@ -860,7 +865,8 @@ executable analysis needs the analysis machine; the parts that only read game fi
     mod with one planted defect per check, and each test mod. Then the matcher is built on
     them. Then the in-game load is added as the authoring run's third measure. *Since decision
     194 the matcher comes first, built on the catalogue without a launch; the captures, prepared,
-    wait on the owner's word, and the matcher is checked against them when they come.*
+    have the owner's word since decision 200 (the in-game load not covered), and the matcher is
+    checked against them when they come.*
 12. Editor views: the CK3 Explorer tree, call hierarchy and selection ranges.
 13. Benchmarks enforced, `legacy/` removed, release 1.0.0 of `pychivalry`.
 

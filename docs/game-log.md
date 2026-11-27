@@ -5,8 +5,9 @@ step 11 of [PLAN.md](PLAN.md)), what is known about the log without having captu
 only a real capture can settle.
 
 **No real log has been read.** Step 11 started on the owner's word without launching the game
-([decisions.md](decisions.md), decision 194): no capture has been made on the analysis machine,
-and none is made until he says. Everything below that is about the log itself rests on the
+([decisions.md](decisions.md), decision 194): no capture has been made on the analysis machine.
+His word for the eight captures of item 11.1 was given on 2026-11-27 (decision 200), and none is
+made yet. Everything below that is about the log itself rests on the
 evidence named beside it; what rests on none is in [What only a capture can settle](#what-only-a-capture-can-settle).
 **The matcher has not seen a real log.** It was built on the spec package's catalogue of the
 game's messages and tested on hand-made logs written from that catalogue
@@ -220,8 +221,12 @@ the language server's test holds the editor's diagnostics to the same report.
 
 ## The captures and the in-game load
 
-The captures of item 11.1 and the in-game load of item 11.8 are prepared and wait on the owner's
-word: the procedure, its guard and the grade are in [game-log-capture.md](game-log-capture.md).
+The captures of item 11.1 and the in-game load of item 11.8 are prepared: the procedure, its
+guard and the grade are in [game-log-capture.md](game-log-capture.md). The eight captures have the
+owner's word (decision 200) and are not made yet; the in-game load waits on a word of its own. The
+spec work is asked for the source file of the executable each catalogue message is written from
+(decision 204): with it the 17 ambiguous groups could be told apart by the file a line's prefix
+names, and the prefix read as data.
 When the first capture is read, this page is written again from it, the format questions above
 answered one by one, and the matcher's line prefix and place format, if the log shows them, set
 from it.
