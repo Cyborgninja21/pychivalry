@@ -1,0 +1,18 @@
+hand-made line 01 | Unknown trigger 'is_imprisonned'
+hand-made line 02 | Unknown effect 'add_piety_experiance'
+hand-made line 03 | Error: "Unknown effect 'harvest_give_alms_effect'" in file: "events/harvest_events.txt" near line: 39
+hand-made line 04 | Unknown modifier type 'monthly_prestige_gain_mult' at common/culture/traditions/harvest_traditions.txt
+hand-made line 05 | Unknown on action: harvest_festival_puls_late
+hand-made line 06 | Failed to read key reference harvest.0012 from database events
+hand-made line 07 | Namespace 'harvst' used in event 'harvst.0004' (file: events/harvest_events.txt) is not defined in this file - it might not load properly.
+hand-made line 08 | Error in event 'harvest.0010'. Non-character events must be hidden, or be narrative events
+hand-made line 09 | Wrong scope for effect: add_county_modifier, expected landed_title
+hand-made line 10 | Unknown loc key harvest.0013.desc
+hand-made line 11 | Loc key `harvest.0001.desc`: Unexpected extra `[` at position 1 - file `localization/english/harvest_l_english.yml`
+hand-made line 12 | Failed to load texture gfx/interface/illustrations/decision/decision_misc.dds - file not found
+hand-made line 13 | Trying to use holder link on an invalid scope character
+hand-made line 14 | Unexpected token 'limit' at line 4 and column 2 in common/scripted_effects/harvest_effects.txt
+hand-made line 15 | Duplicated event ID harvest.0002 with the same override priority 0 found:
+hand-made line 16 | Duplicate item 'tradition_agrarian' at common/culture/traditions/00_traditions.txt
+hand-made line 17 | Failed to pick default activity option for category 'harvest_feast' for scope:
+character

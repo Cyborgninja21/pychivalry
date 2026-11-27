@@ -37,3 +37,7 @@ fixtures/requests/**/*.yml -text
 # Windows line breaks and the byte-order mark as the other fixture files are.
 fixtures/mods/**/*.gui -text
 fixtures/game/**/*.gui -text
+
+# The hand-made game logs (fixtures/logs/): their line breaks are part of what they test, so their
+# bytes are exact on every platform.
+fixtures/logs/** -text
