@@ -11,13 +11,15 @@
  *   `error.log` of a log folder of the game the language server finds (Windows' Documents and
  *   OneDrive's, Linux's `~/.local/share`, the Proton prefix), asked when there is more than one;
  *   or one the user picks.
- * - **Only read.** The log is read, and watched for changes; nothing is written there.
+ * - **Only read.** The log is read, and its size and time looked at each second while it is
+ *   watched; nothing is written there.
  *
  * Every analysis is the language server's (`pychivalry/log`), over its own index: this file only
  * shows the answer. No CK3 logic lives here.
  */
 
 import type { LogAnswer, LogFolderAnswer } from '@pychivalry/lsp';
+import { unwatchFile, watchFile, type Stats } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import {
@@ -36,6 +38,9 @@ export const LOG_SOURCE = 'CK3 game log';
 /** How long after a change to a watched log it is read again, in milliseconds. */
 export const WATCH_DELAY_MS = 1_000;
 
+/** How often a watched log's size and time are looked at, in milliseconds. */
+export const WATCH_POLL_MS = 1_000;
+
 /** What a show answered, for the person and for the editor tests. */
 export interface ShownLog {
     readonly answer: LogAnswer;
@@ -47,7 +52,8 @@ export interface ShownLog {
 export class GameLog implements vscode.Disposable {
     private readonly collection =
         vscode.languages.createDiagnosticCollection('pychivalry-game-log');
-    private watcher: vscode.FileSystemWatcher | null = null;
+    /** The log watched, and what is called when it changes. */
+    private watched: { file: string; listener: (now: Stats, before: Stats) => void } | null = null;
     private timer: NodeJS.Timeout | null = null;
     /** Each show watched, for the editor tests: the answer of every read. */
     private readonly listeners: ((shown: ShownLog) => void)[] = [];
@@ -187,11 +193,15 @@ export class GameLog implements vscode.Disposable {
                 void this.show(file, true);
             }, WATCH_DELAY_MS);
         };
-        this.watcher = vscode.workspace.createFileSystemWatcher(
-            new vscode.RelativePattern(vscode.Uri.file(path.dirname(file)), path.basename(file)),
-        );
-        this.watcher.onDidChange(again);
-        this.watcher.onDidCreate(again);
+        // The file's size and time looked at every second: a file outside the workspace, which the
+        // game writes anew, is seen this way on every system. Only read.
+        const listener = (now: Stats, before: Stats): void => {
+            if (now.mtimeMs !== before.mtimeMs || now.size !== before.size) {
+                again();
+            }
+        };
+        watchFile(file, { interval: WATCH_POLL_MS, persistent: false }, listener);
+        this.watched = { file, listener };
         return this.show(file);
     }
 
@@ -202,8 +212,10 @@ export class GameLog implements vscode.Disposable {
     }
 
     private stopWatching(): void {
-        this.watcher?.dispose();
-        this.watcher = null;
+        if (this.watched !== null) {
+            unwatchFile(this.watched.file, this.watched.listener);
+            this.watched = null;
+        }
         if (this.timer !== null) {
             clearTimeout(this.timer);
             this.timer = null;
