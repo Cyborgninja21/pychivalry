@@ -654,6 +654,33 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 - Build step 10, items 10.5 to 10.7: the graphics-file check `graphics/missing-file` (warning), on the 13 fields the spec package documents as file paths, a `.dds`, `.png` or `.tga` path from the top of the game's folders looked up in the mod, the install's three folders and every DLC pack, by part D1's letter-case row, silent with no game folder ([docs/graphics-check.md](docs/graphics-check.md)); the index keeps the files of each layer it does not read. The call graph in the core (`packages/core/src/calls/`): keys called by name (`vanilla_indexed_dirs`) and values naming an event or an on-action (part D6), each link with its caller, callee, place, statement and basis ([docs/call-graph.md](docs/call-graph.md)). The agent server's `call_graph` (tool schema version 6), the language server's call hierarchy, and the command line's `pychivalry calls`.
 
+- Build step 11, without launching the game (decision 194; decisions 195 to 199): game-log
+  analysis built on the spec package's catalogue alone ([docs/game-log.md](docs/game-log.md)).
+  `packages/core/src/log/`: each of the catalogue's 2,671 messages a template (printf
+  placeholders and `{}`, a value's role read from the message's own words); a matcher that assumes
+  no line prefix and no place format (both may be given as patterns), names equally good matches
+  as ambiguous and picks none, marks lines that split two ways, matches a message inside a message
+  and the three that span lines, and lists every line it cannot match; on the whole catalogue
+  2,108 matched, each found on a line made from it, 17 ambiguous groups, none shadowed, 563 not
+  matched and listed (`task docs:game-log` writes the table per family into docs/game-log.md).
+  The ties: a file and line the message names, a file named inside a value (its line, for a place
+  written `at {}`, waits on a capture), a definition a value names, where the mod writes a name
+  nothing defines; each message with the pychivalry codes whose evidence it is. The game's log
+  folders: Windows' Documents (the registry's, OneDrive's), Linux's `~/.local/share`, the Proton
+  prefix by Steam's own app manifest. `pychivalry log [<log>]` (text or `--json`, `--mod`,
+  `--prefix`, `--location`, `--catalogue`); the agent server's `analyze_log`, its eleventh tool,
+  tool schema version 7, answered whole by message, reading a log only in the game's log folders,
+  a `--logs` folder or the mod's own (`--no-log-folders` for the scored runs, which now offer it
+  and record version 7); a same-answers test of the two. The editor: "Show the game's log against
+  the mod", "Watch the game's log", "Clear the game's log findings", a diagnostics collection of
+  their own (source `CK3 game log`), the settings `pychivalry.log.file`, `.linePrefix` and
+  `.location`. Test logs are hand-made from catalogue templates over the planted-defect mod and
+  say so (`fixtures/logs/`): the matcher has not seen a real log. The captures of item 11.1 and the
+  in-game load of item 11.8 are prepared, not run ([docs/game-log-capture.md](docs/game-log-capture.md)):
+  `task game:capture-log` and `task scored:in-game-load`, behind a guard that refuses unless a
+  decision records the owner's word for a launch, tested on a stand-in for the game; the logs it
+  keeps name no folder of the machine. A new reference page, `docs/references/game-logs.md`.
+
 ### Changed
 
 - The planted-defect mod plants `graphics/missing-file` (37 defects, 30 look-alikes); its game stub holds the texture the decisions show. The language server checks the mod again when a texture is added or removed.

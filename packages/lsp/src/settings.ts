@@ -29,6 +29,12 @@ export interface Settings {
     readonly fallbackEncoding: FallbackEncoding | null;
     /** Show the presentation data's inline hints. */
     readonly inlayHints: boolean;
+    /** The game's log read against the mod (build step 11), or `''` for the game's error log found. */
+    readonly logFile: string;
+    /** What the game writes before each message of its log, as a regular expression; `''` for none. */
+    readonly logLinePrefix: string;
+    /** How a message of the log writes a place, as a regular expression naming `file`; `''` for none. */
+    readonly logLocation: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -37,6 +43,9 @@ export const DEFAULT_SETTINGS: Settings = {
     unusedKeys: true,
     fallbackEncoding: null,
     inlayHints: true,
+    logFile: '',
+    logLinePrefix: '',
+    logLocation: '',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -67,6 +76,10 @@ export function readSettings(section: unknown): Settings {
     const unusedKeys = get('localization.unusedKeys');
     const fallback = get('encoding.fallback');
     const inlayHints = get('inlayHints.enabled');
+    const text = (value: unknown, fallback: string): string =>
+        typeof value === 'string' ? value.trim() : fallback;
+    const pattern = (value: unknown, fallback: string): string =>
+        typeof value === 'string' ? value : fallback;
     return {
         gamePath: typeof gamePath === 'string' ? gamePath.trim() : DEFAULT_SETTINGS.gamePath,
         fileLimit:
@@ -77,6 +90,10 @@ export function readSettings(section: unknown): Settings {
         fallbackEncoding:
             fallback === 'windows-1252' ? 'windows-1252' : DEFAULT_SETTINGS.fallbackEncoding,
         inlayHints: typeof inlayHints === 'boolean' ? inlayHints : DEFAULT_SETTINGS.inlayHints,
+        logFile: text(get('log.file'), DEFAULT_SETTINGS.logFile),
+        // A pattern's spaces are part of it: not trimmed.
+        logLinePrefix: pattern(get('log.linePrefix'), DEFAULT_SETTINGS.logLinePrefix),
+        logLocation: pattern(get('log.location'), DEFAULT_SETTINGS.logLocation),
     };
 }
 

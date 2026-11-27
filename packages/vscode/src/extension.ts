@@ -38,6 +38,7 @@ import {
 } from './ids.js';
 import { installServer, type InstallResult } from './install.js';
 import { startLanguageServer, type LanguageServer } from './language.js';
+import { GameLog } from './log.js';
 import {
     CLI_FILE,
     folderPath,
@@ -121,6 +122,8 @@ export interface PychivalryApi {
     readonly skillsRefreshed: Promise<readonly SkillsInstall[]>;
     /** The language server. */
     readonly language: LanguageServer;
+    /** The game's log shown against the mod, and its commands (build step 11). */
+    readonly gameLog: GameLog;
     /** The launcher of the command line, once written; its folder is on the terminal's path. */
     readonly commandLine: Promise<string>;
 }
@@ -323,6 +326,9 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         log,
     );
     running = language;
+    // The game's log against the mod (build step 11): its own diagnostics, three commands.
+    const gameLog = new GameLog(language);
+    context.subscriptions.push(gameLog, ...gameLog.register());
 
     const agentServer = Promise.resolve().then(() =>
         installServer(
@@ -588,6 +594,7 @@ export function activate(context: vscode.ExtensionContext): PychivalryApi {
         skills: { bundled: bundledSkills, claudeDir },
         skillsRefreshed,
         language,
+        gameLog,
         commandLine,
     };
 }

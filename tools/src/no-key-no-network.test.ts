@@ -147,6 +147,11 @@ const EXCEPTIONS: readonly {
     },
     {
         module: 'node:child_process',
+        files: ['packages/core/src/log/folders.ts'],
+        reason: "The search for the game's log folders on Windows asks the registry where the user's Documents folder is (it follows a move to OneDrive) by running the system's own `reg query`, a local program, and runs nothing else.",
+    },
+    {
+        module: 'node:child_process',
         files: ['packages/cli/src/testing.ts'],
         reason: 'A test helper, not shipped: it runs the built command line in a process of its own, as a user would.',
     },
@@ -155,6 +160,7 @@ const EXCEPTIONS: readonly {
         files: [
             'packages/vscode/src/extension.ts',
             'packages/vscode/src/language.ts',
+            'packages/vscode/src/log.ts',
             'packages/vscode/src/editor/corpus.ts',
             'packages/vscode/src/editor/main.ts',
             'packages/vscode/src/editor/same.ts',

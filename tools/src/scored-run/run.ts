@@ -110,6 +110,7 @@ export const TASK = 'agent-use';
  * `mcp__pychivalry__<name>`.
  */
 export const SERVER_TOOLS: readonly string[] = [
+    'analyze_log',
     'apply_format',
     'call_graph',
     'check',
@@ -129,13 +130,15 @@ export const SERVER_TOOLS: readonly string[] = [
  * `source`, `lookup` answering each name whole and game places that say they are read with
  * `source` (the owner's decision of 2026-11-25); version 5, `lookup`'s `evidence`, one name's
  * spec package evidence on request (his second decision of that day); version 6, `call_graph`,
- * the call graph of a name (build step 10), every other tool unchanged. A record made before
- * version 4 names no version, and was given version 3 or earlier; no record was made on version
- * 4, and none yet on version 6: the committed records were made on version 5. Records of different versions are never read as one: a run continuing a record refuses
+ * the call graph of a name (build step 10), every other tool unchanged; version 7, `analyze_log`,
+ * the game's log read against the error catalogue (build step 11), every other tool unchanged. A
+ * record made before version 4 names no version, and was given version 3 or earlier; no record
+ * was made on version 4, and none yet on version 6 or 7: the committed records were made on
+ * version 5, and the next scored run is made on version 7. Records of different versions are never read as one: a run continuing a record refuses
  * another (the server is compared), and `task scored:targets` says which version a record's
  * sessions were given.
  */
-export const SERVER_SCHEMA_VERSION = 6;
+export const SERVER_SCHEMA_VERSION = 7;
 /** The built-in tools a trial may use. */
 export const BUILT_IN_TOOLS: readonly string[] = ['Read', 'Edit'];
 
@@ -373,7 +376,9 @@ export function mcpConfig(
             [SERVER_NAME]: {
                 type: 'stdio',
                 command: process.execPath,
-                args: [options.server, ...args],
+                // No log folder of the game is looked for: a session reads no log of the
+                // developer's own (docs/game-log.md; the agent server's --no-log-folders).
+                args: [options.server, ...args, '--no-log-folders'],
                 env: { XDG_CACHE_HOME: cacheDir, LOCALAPPDATA: cacheDir },
             },
         },

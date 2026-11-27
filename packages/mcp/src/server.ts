@@ -11,9 +11,8 @@
  * saying its layer, on the owner's decision of 2026-11-25 (schema version 4); `lookup`'s
  * `evidence`, one name's spec package evidence on request, on his decision of the same day
  * (schema version 5); `call_graph`, the call graph of a name, with build step 10 (schema version
- * 6). The tool the plan fills in later is not registered until it does something: `analyze_log`
- * (step 11), added then as one more `Tool` in `TOOLS`, with its own shapes and tests; the schema
- * version moves with it.
+ * 6); `analyze_log`, the game's own log read against the error catalogue and tied to the mod,
+ * with build step 11 (schema version 7).
  */
 
 import { fromJsonSchema, McpServer } from '@modelcontextprotocol/server';
@@ -32,7 +31,7 @@ export function instructions(session: Session): string {
     return [
         `pychivalry checks a Crusader Kings 3 mod the way the game itself reads it, and answers questions about CK3 script. This server works on one mod, the folder ${session.modDir}, for game ${session.spec.version}. ${game}`,
         "Start with check: it returns the totals by severity and by code, then the errors (ask for warnings and advice with min_severity), a page at a time. An error or a warning rests on the game's own evidence; information and hints are advice.",
-        "explain_code says what a code means and its evidence; lookup says what a name is, where it is valid and where it is defined, every name asked answered whole (names that do not fit one result are listed in not_answered: look them up in another call; lookup has no cursor); find_definition, find_references and list_definitions find definitions and uses in the mod and the base game; call_graph says what calls a name and what it calls (events, on-actions, scripted effects and triggers, decisions), answered whole by name as lookup is; source shows the text around a place a result named, to see how the game itself writes a name; format gives a file formatted by pychivalry's rules, as a proposal, and apply_format writes it so.",
+        "explain_code says what a code means and its evidence; lookup says what a name is, where it is valid and where it is defined, every name asked answered whole (names that do not fit one result are listed in not_answered: look them up in another call; lookup has no cursor); find_definition, find_references and list_definitions find definitions and uses in the mod and the base game; call_graph says what calls a name and what it calls (events, on-actions, scripted effects and triggers, decisions), answered whole by name as lookup is; analyze_log reads the game's own error.log and says which of its messages are about the mod's files, and where; source shows the text around a place a result named, to see how the game itself writes a name; format gives a file formatted by pychivalry's rules, as a proposal, and apply_format writes it so.",
         `Every place a result names has a layer. A place of the layer mod is a file of the mod, its path inside the mod's folder, which your own file tools can read. A place of any other layer (game, jomini, clausewitz, dlc:<pack>) is a file of the installed base game, outside the mod, and says read_with: source: your own file tools cannot reach it and must not try, whatever folder you might guess; call source with its layer, file and line to see its text.`,
         "The style/ findings say where a file is not in pychivalry's format; they rest on pychivalry's own formatting rules, not on the game. Their fixes, like format's text, change only whitespace, line breaks and the byte-order mark.",
         `The tool names here are the short ones, which a client may list under longer names of its own: Claude Code lists check as mcp__${SERVER_NAME}__check, lookup as mcp__${SERVER_NAME}__lookup, source as mcp__${SERVER_NAME}__source, and so every tool, and a call of the short name reaches nothing there. Call each tool by the name your client lists, never by the short name alone.`,

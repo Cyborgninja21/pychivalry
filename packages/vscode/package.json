@@ -74,6 +74,21 @@
                 "command": "pychivalry.removeFromClaudeCode",
                 "title": "Remove from Claude Code",
                 "category": "pychivalry"
+            },
+            {
+                "command": "pychivalry.showGameLog",
+                "title": "Show the game's log against the mod",
+                "category": "pychivalry"
+            },
+            {
+                "command": "pychivalry.watchGameLog",
+                "title": "Watch the game's log",
+                "category": "pychivalry"
+            },
+            {
+                "command": "pychivalry.clearGameLog",
+                "title": "Clear the game's log findings",
+                "category": "pychivalry"
             }
         ],
         "chatSkills": [
@@ -130,6 +145,22 @@
                     "type": "boolean",
                     "default": true,
                     "markdownDescription": "Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies."
+                },
+                "pychivalry.log.file": {
+                    "type": "string",
+                    "default": "",
+                    "scope": "machine-overridable",
+                    "markdownDescription": "The game's log that **Show the game's log against the mod** and **Watch the game's log** read: a log file, or a folder whose `error.log` is read, as an absolute path. Leave it empty and pychivalry offers the `error.log` of the game's log folders it finds (Windows' `Documents/Paradox Interactive/Crusader Kings III/logs`, OneDrive's, Linux's `~/.local/share/Paradox Interactive/Crusader Kings III/logs`, the Proton prefix), or lets you choose one. The log is only read, never written."
+                },
+                "pychivalry.log.linePrefix": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "What the game writes before each message on a line of its log, as a regular expression matched at the line's start, taken off before the message is read. Empty by default: no real log has been read yet, so no prefix is assumed, and the matcher finds each message wherever it starts on its line."
+                },
+                "pychivalry.log.location": {
+                    "type": "string",
+                    "default": "",
+                    "markdownDescription": "How a message of the game's log writes a place in a script file (the `at ...` of many messages), as a regular expression naming the group `(?<file>...)` and optionally `(?<line>...)` and `(?<column>...)`. Empty by default: how the game writes a place is not yet known, so a message's file is found by its path and its line only where the message itself says `line`."
                 }
             }
         },

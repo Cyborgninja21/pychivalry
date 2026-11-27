@@ -6,16 +6,19 @@
  * hover and completion answer; the agent server's definition is given to VS Code's AI with the
  * game folder; the command line runs from the terminal's path; the editor, the command line
  * and the agent server give the same findings, and go to the same definitions of a GUI file's
- * names (item 10.4); and VS Code lists the three skills it holds (item 9.1).
+ * names (item 10.4); VS Code lists the three skills it holds (item 9.1); and the game's log is
+ * shown against the mod, apart from pychivalry's own findings, and read again when it changes
+ * (item 11.7, on a hand-made log: no real log has been read).
  */
 
 import { openSpec } from '@pychivalry/core';
 import assert from 'node:assert/strict';
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import * as vscode from 'vscode';
 import type { PychivalryApi } from '../extension.js';
-import { EXTENSION_ID } from '../ids.js';
+import { CLEAR_GAME_LOG, EXTENSION_ID, SHOW_GAME_LOG, WATCH_GAME_LOG } from '../ids.js';
+import { LOG_SOURCE, type ShownLog } from '../log.js';
 import { CLI_FILE, LSP_FILE, LSP_FOLDER, SERVER_FILE, SPEC_FOLDER } from '../launch.js';
 import { SKILL_FILE, SKILLS_FOLDER } from '../skills.js';
 import { BIN_FOLDER } from '../terminal.js';
@@ -244,6 +247,73 @@ export function smokeCases(): readonly EditorCase[] {
                 // file written with `\n` breaks (run.ts) is the other file each surface changes.
                 assert.ok(report.changed >= 2, 'files the formatter changes');
                 assert.ok(report.left > 0, 'files with a parse error, left as they are');
+            },
+        },
+        {
+            name: "11.7: the game's log against the mod: its findings apart from pychivalry's own, read again when it changes",
+            run: async () => {
+                const logs = path.join(work, 'game logs');
+                mkdirSync(logs, { recursive: true });
+                const log = path.join(logs, 'error.log');
+                const original = readFileSync(given('PYCHIVALRY_TEST_LOG'));
+                writeFileSync(log, original);
+                const fromLog = (): { uri: vscode.Uri; d: vscode.Diagnostic }[] =>
+                    vscode.languages
+                        .getDiagnostics()
+                        .filter(([uri]) => isInside(uri.fsPath, mod))
+                        .flatMap(([uri, ds]) =>
+                            ds.filter((d) => d.source === LOG_SOURCE).map((d) => ({ uri, d })),
+                        );
+                const shown = await vscode.commands.executeCommand<ShownLog | undefined>(
+                    SHOW_GAME_LOG,
+                    vscode.Uri.file(log),
+                );
+                assert.ok(shown !== undefined, 'the command answered');
+                assert.equal(shown.answer.error, null);
+                assert.ok(shown.shown > 0);
+                assert.equal(fromLog().length, shown.shown);
+                const trigger = fromLog().find((x) => x.d.code === 'unknown_trigger_X');
+                assert.ok(trigger !== undefined, 'the unknown trigger is shown');
+                assert.ok(
+                    sameFile(trigger.uri.fsPath, path.join(mod, 'events', 'harvest_events.txt')),
+                );
+                assert.equal(trigger.d.range.start.line, 10);
+                assert.match(
+                    trigger.d.message,
+                    /^error\.log line 1: Unknown trigger 'is_imprisonned'/,
+                );
+                // pychivalry's own findings are still there, apart.
+                assert.ok(
+                    vscode.languages
+                        .getDiagnostics()
+                        .some(
+                            ([uri, ds]) =>
+                                isInside(uri.fsPath, mod) &&
+                                ds.some((d) => d.source === 'pychivalry'),
+                        ),
+                );
+                // Watched: a line the game would add is read again, with nothing written by pychivalry.
+                const api = theExt().exports;
+                const more = new Promise<ShownLog>((resolve, reject) => {
+                    const timer = setTimeout(() => {
+                        reject(new Error('the watched log was not read again'));
+                    }, 60_000);
+                    const listening = api.gameLog.onShown((s) => {
+                        if (s.shown > shown.shown) {
+                            clearTimeout(timer);
+                            listening.dispose();
+                            resolve(s);
+                        }
+                    });
+                });
+                await vscode.commands.executeCommand(WATCH_GAME_LOG, vscode.Uri.file(log));
+                const added = "Unknown effect 'add_piety_experiance'\r\n";
+                appendFileSync(log, added);
+                const again = await more;
+                assert.equal(again.shown, shown.shown + 1);
+                assert.deepEqual(readFileSync(log), Buffer.concat([original, Buffer.from(added)]));
+                await vscode.commands.executeCommand(CLEAR_GAME_LOG);
+                assert.equal(fromLog().length, 0);
             },
         },
         {

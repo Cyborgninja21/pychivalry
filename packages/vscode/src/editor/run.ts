@@ -425,6 +425,14 @@ async function tests(how: Starter, root: string): Promise<void> {
             PYCHIVALRY_TEST_WORK: path.join(root, 'smoke-work'),
             PYCHIVALRY_TEST_EXTENSIONS: smoke.extensions,
             PYCHIVALRY_TEST_VERSION: extensionVersion(),
+            // Build step 11: a hand-made log over the planted-defect mod (fixtures/logs/).
+            PYCHIVALRY_TEST_LOG: path.join(
+                REPO,
+                'fixtures',
+                'logs',
+                'hand-made',
+                'planted-defects.log',
+            ),
         });
     });
 

@@ -216,6 +216,20 @@ tasks:
     cmds:
       - node tools/dist/cli.js scored targets
 
+  # ─── Game launches (build step 11; docs/game-log-capture.md): only on the analysis machine, only on the owner's word ───
+
+  game:capture-log:
+    desc: "One capture of the game's logs on the analysis machine (docs/game-log-capture.md, item 11.1): refused unless PYCHIVALRY_OWNERS_WORD names the decision of docs/decisions.md that records the owner's word for a launch of the game on the analysis machine, checked before anything else; then with CK3_INSTALL_PATH, CK3_USER_PATH and CAPTURE_OUT (required, no defaults), CAPTURE_MODS and CAPTURE_OPTIONS: the mod list set through dlc_load.json, the game started directly, the logs awaited until quiet, the game stopped, the logs copied out, the mod list put back byte for byte and compared, a record written. Never in task ci; never run without the owner's word"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js game capture-log
+
+  scored:in-game-load:
+    desc: "One result of the scored authoring test through the in-game load, its third grade (docs/game-log-capture.md, item 11.8): the same guard as game:capture-log, then two captures, SCORED_BASE (the result's base mod) and SCORED_RESULT, and the grade: the result's log may add no line naming one of its files. Never in task ci; never run without the owner's word"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js scored in-game-load
+
   # ─── Documents written from the code ───
 
   docs:checks:
@@ -223,6 +237,12 @@ tasks:
     deps: [build]
     cmds:
       - node tools/dist/cli.js docs checks
+
+  docs:game-log:
+    desc: "Write the part of docs/game-log.md that says what the matcher makes of the spec package's catalogue, per family of messages, from the core (a test holds the committed page to it)"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js docs game-log
 
   # ─── The repository wiki, generated from docs/ (docs/wiki/README.md) ───
 

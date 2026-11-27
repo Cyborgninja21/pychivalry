@@ -40,6 +40,8 @@ export interface McpRequest extends HostRequest {
     readonly specSha256: string;
     readonly modDir: string;
     readonly game: GameChoice;
+    /** The folders `analyze_log` may read logs from (build step 11). */
+    readonly logDirs?: readonly string[];
     readonly tool: string;
     readonly args: Record<string, unknown>;
 }
@@ -84,6 +86,7 @@ export async function askForTool(
         specSha256: session.spec.sha256,
         modDir: session.modDir,
         game: session.game,
+        logDirs: session.logDirs,
         tool,
         args,
     };
@@ -110,7 +113,9 @@ function isMcpRequest(value: HostRequest): value is McpRequest {
         typeof v.tool === 'string' &&
         typeof v.args === 'object' &&
         typeof game === 'object' &&
-        (game.dir === null || typeof game.dir === 'string')
+        (game.dir === null || typeof game.dir === 'string') &&
+        (v.logDirs === undefined ||
+            (Array.isArray(v.logDirs) && v.logDirs.every((d) => typeof d === 'string')))
     );
 }
 
@@ -181,7 +186,13 @@ export class McpHost {
             throw new BaseRefused(`no tool ${request.tool}`);
         }
         this.prune();
-        const key = JSON.stringify([request.session, request.pid, request.modDir, request.game]);
+        const key = JSON.stringify([
+            request.session,
+            request.pid,
+            request.modDir,
+            request.game,
+            request.logDirs ?? [],
+        ]);
         let entry = this.sessions.get(key);
         if (entry === undefined) {
             entry = {
@@ -191,6 +202,7 @@ export class McpHost {
                     game: request.game,
                     cacheDir: this.lender.cacheDir,
                     base: this.lender.base,
+                    logDirs: request.logDirs ?? [],
                 }),
                 pid: request.pid,
                 used: Date.now(),

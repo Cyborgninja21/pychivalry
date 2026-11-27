@@ -465,7 +465,7 @@ test('a connected server whose tools were not offered is a harness problem', (t)
         stream({ tools: ['Read', 'Edit', 'mcp__pychivalry__check'] }),
     );
     assert.deepEqual(record.results.trials[0]?.harness_problems, [
-        "the agent server's tools were not offered: apply_format, call_graph, explain_code, find_definition, find_references, format, list_definitions, lookup, source",
+        "the agent server's tools were not offered: analyze_log, apply_format, call_graph, explain_code, find_definition, find_references, format, list_definitions, lookup, source",
     ]);
     // Still starting when the session began: no tools yet, and no problem.
     const pending = run(

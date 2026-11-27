@@ -166,7 +166,7 @@ test('a request of another spec package, version or tool is refused', () => {
     };
     assert.equal(drain(mcp.serveSteps(request)).isError, undefined, 'answered');
     assert.throws(() => drain(mcp.serveSteps({ ...request, version: 'another' })), BaseRefused);
-    assert.throws(() => drain(mcp.serveSteps({ ...request, tool: 'analyze_log' })), BaseRefused);
+    assert.throws(() => drain(mcp.serveSteps({ ...request, tool: 'no_such_tool' })), BaseRefused);
     assert.throws(
         () => drain(mcp.serveSteps({ ...request, specSha256: '0'.repeat(64) })),
         BaseRefused,

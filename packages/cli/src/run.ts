@@ -38,7 +38,7 @@ export function usage(commands: readonly Command[] = COMMANDS): string {
         ...commands.map((c, i) => `  ${(labels[i] ?? '').padEnd(width)}  ${c.summary}`),
         '',
         `${TOOL} <command> --help shows a command's options.`,
-        'Exit codes: 0 nothing wrong; 1 errors found (check), a name or code not known (lookup, explain), or a place not read (source); 2 bad usage.',
+        'Exit codes: 0 nothing wrong; 1 errors found (check), a name or code not known (lookup, explain), a place not read (source), or a message of the log tied to the mod (log); 2 bad usage.',
     ];
     return `${lines.join('\n')}\n`;
 }

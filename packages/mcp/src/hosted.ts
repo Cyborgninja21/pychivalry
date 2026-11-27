@@ -18,6 +18,7 @@ import {
 } from './tools/definitions.js';
 import { explainTool } from './tools/explain.js';
 import { applyFormatTool, formatTool } from './tools/format.js';
+import { analyzeLogTool } from './tools/log.js';
 import { lookupTool } from './tools/lookup.js';
 import { sourceTool } from './tools/source.js';
 
@@ -30,6 +31,7 @@ export const TOOLS: readonly ListedTool[] = [
     listed(listDefinitionsTool),
     listed(sourceTool),
     listed(callGraphTool),
+    listed(analyzeLogTool),
     listed(explainTool),
     listed(formatTool),
     listed(applyFormatTool),

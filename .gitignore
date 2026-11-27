@@ -14,6 +14,8 @@ dist/
 
 # Logs and caches
 *.log
+# but for the test logs of the game-log analysis (fixtures/logs/README.md)
+!fixtures/logs/**/*.log
 npm-debug.log*
 .eslintcache
 coverage/

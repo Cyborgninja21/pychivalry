@@ -1,0 +1,3 @@
+ERROR: harvest
+Log a string to the *error* log followed by a stack trace.
+Namespace 'harvst' used in event 'harvst.0004' (file: events/harvest_events.txt) is not defined

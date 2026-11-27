@@ -11,6 +11,8 @@ import {
     BACKGROUND_DONE as LSP_BACKGROUND_DONE,
     DEFAULT_SETTINGS,
     FINDINGS_REQUEST as LSP_FINDINGS_REQUEST,
+    LOG_FOLDERS_REQUEST as LSP_LOG_FOLDERS_REQUEST,
+    LOG_REQUEST as LSP_LOG_REQUEST,
     readSettings,
     SETTINGS_SECTION as LSP_SETTINGS_SECTION,
     SHARING_REQUEST as LSP_SHARING_REQUEST,
@@ -22,15 +24,20 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
     BACKGROUND_DONE,
+    CLEAR_GAME_LOG,
     EXTENSION_ID,
     FINDINGS_REQUEST,
     GAME_PATH_SETTING,
     LANGUAGES,
+    LOG_FOLDERS_REQUEST,
+    LOG_REQUEST,
     PROVIDER_ID,
     REMOVE_FROM_CLAUDE_CODE,
     SET_UP_CLAUDE_CODE,
     SETTINGS_SECTION,
     SHARING_REQUEST,
+    SHOW_GAME_LOG,
+    WATCH_GAME_LOG,
 } from './ids.js';
 
 const PACKAGE = fileURLToPath(new URL('../', import.meta.url));
@@ -103,6 +110,17 @@ test('the agent-server provider and the commands are the ones the code registers
             title: 'Remove from Claude Code',
             category: 'pychivalry',
         },
+        {
+            command: SHOW_GAME_LOG,
+            title: "Show the game's log against the mod",
+            category: 'pychivalry',
+        },
+        { command: WATCH_GAME_LOG, title: "Watch the game's log", category: 'pychivalry' },
+        {
+            command: CLEAR_GAME_LOG,
+            title: "Clear the game's log findings",
+            category: 'pychivalry',
+        },
     ]);
 });
 
@@ -141,7 +159,7 @@ test('the three languages are the ones the code gives the language client', () =
     );
 });
 
-test("the settings are the language server's five, each with its default and a description", () => {
+test("the settings are the language server's eight, each with its default and a description", () => {
     const { title, properties } = manifest.contributes.configuration;
     assert.equal(title, 'pychivalry');
     assert.equal(SETTINGS_SECTION, LSP_SETTINGS_SECTION);
@@ -151,6 +169,9 @@ test("the settings are the language server's five, each with its default and a d
         'pychivalry.gamePath',
         'pychivalry.inlayHints.enabled',
         'pychivalry.localization.unusedKeys',
+        'pychivalry.log.file',
+        'pychivalry.log.linePrefix',
+        'pychivalry.log.location',
     ]);
     assert.ok(`${SETTINGS_SECTION}.${GAME_PATH_SETTING}` in properties);
     // The defaults the manifest declares, read as the language server reads the section, are its own.
@@ -177,4 +198,6 @@ test("the language server's own requests are the ones the extension sends and li
     assert.equal(FINDINGS_REQUEST, LSP_FINDINGS_REQUEST);
     assert.equal(BACKGROUND_DONE, LSP_BACKGROUND_DONE);
     assert.equal(SHARING_REQUEST, LSP_SHARING_REQUEST);
+    assert.equal(LOG_REQUEST, LSP_LOG_REQUEST);
+    assert.equal(LOG_FOLDERS_REQUEST, LSP_LOG_FOLDERS_REQUEST);
 });
