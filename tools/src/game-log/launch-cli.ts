@@ -16,6 +16,7 @@
  * | `SCORED_BASE`, `SCORED_RESULT` | `scored in-game-load`: the result's base mod and the result |
  */
 
+import { homedir } from 'node:os';
 import path from 'node:path';
 import { capture } from './capture.js';
 import { ownersWord, OWNERS_WORD_VARIABLE } from './guard.js';
@@ -49,6 +50,7 @@ function common(root: string, env: Env) {
         start: { command: executable(installDir), args: [] },
         options: (env['CAPTURE_OPTIONS'] ?? '').split(/\s+/).filter((o) => o !== ''),
         userDir: required(env, 'CK3_USER_PATH'),
+        home: homedir(),
         outDir: required(env, 'CAPTURE_OUT'),
         log: (line: string) => {
             process.stdout.write(`${line}\n`);

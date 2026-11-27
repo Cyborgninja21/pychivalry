@@ -376,7 +376,9 @@ export function mcpConfig(
             [SERVER_NAME]: {
                 type: 'stdio',
                 command: process.execPath,
-                args: [options.server, ...args],
+                // No log folder of the game is looked for: a session reads no log of the
+                // developer's own (docs/game-log.md; the agent server's --no-log-folders).
+                args: [options.server, ...args, '--no-log-folders'],
                 env: { XDG_CACHE_HOME: cacheDir, LOCALAPPDATA: cacheDir },
             },
         },

@@ -47,6 +47,7 @@ import path from 'node:path';
 import { openSpec } from '@pychivalry/core';
 import { adviceProof, proofText } from './advice-proof.js';
 import { writeCheckReference } from './check-reference.js';
+import { writeGameLogReference } from './game-log-reference.js';
 import { prepareLegacySpec, runResultBaseline, runSpeedBaseline } from './baseline.js';
 import { requireGameDir } from './game.js';
 import { checkRecords } from './records-check.js';
@@ -71,7 +72,7 @@ const USAGE = `usage: pychivalry-tools <command>
   baseline spec|speed|results
   wiki check|build|publish
   advice proof
-  docs checks
+  docs checks|game-log
   scored agent-use|authoring|calibrate|targets|rejudge|in-game-load
   game capture-log`;
 
@@ -193,6 +194,11 @@ function run(args: readonly string[]): number {
         return proof.rows.every((r) => r.verdict === 'holds' || r.verdict === 'follows')
             ? EXIT.ok
             : EXIT.failed;
+    }
+    if (group === 'docs' && command === 'game-log') {
+        const file = writeGameLogReference(root);
+        process.stdout.write(`docs game-log: ${path.relative(root, file)} written\n`);
+        return EXIT.ok;
     }
     if (group === 'docs' && command === 'checks') {
         const file = writeCheckReference(root);

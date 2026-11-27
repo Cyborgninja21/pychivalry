@@ -4,16 +4,20 @@
  * docs/decisions.md, decision 194: no capture until he says).
  *
  * Nothing that starts the game runs without a flag naming the owner's word: the variable
- * `PYCHIVALRY_OWNERS_WORD` set to `decision <n>`, where row `<n>` of docs/decisions.md records
- * that word in the words this guard asks for, `the owner's word for a launch of the game on the
- * analysis machine`. A row that says something else, a number with no row, or no flag at all, and
- * the guard refuses before anything is read, written or started. It is checked first, every time.
+ * `PYCHIVALRY_OWNERS_WORD` set to `decision <n>`, where row `<n>` of docs/decisions.md is a
+ * decision of the area `Game launch` whose text opens with `On the owner's word` and holds the
+ * words `LAUNCH_WORDS`. A row of another area, one that only describes the guard, a number with no
+ * row, or no flag at all, and the guard refuses before anything is read, written or started. It
+ * is checked first, every time.
  */
 
 import { readFileSync } from 'node:fs';
 
 /** The words a decision must hold to let a launch run. */
 export const LAUNCH_WORDS = "the owner's word for a launch of the game on the analysis machine";
+
+/** The area a decision that lets a launch run is filed under. */
+export const LAUNCH_AREA = 'Game launch';
 
 /** The variable that names the decision. */
 export const OWNERS_WORD_VARIABLE = 'PYCHIVALRY_OWNERS_WORD';
@@ -55,7 +59,15 @@ export function ownersWord(given: string | undefined, decisionsFile: string): Ow
     if (row === undefined) {
         throw new LaunchRefused(`docs/decisions.md has no decision ${String(decision)}`);
     }
-    if (!row.includes(LAUNCH_WORDS)) {
+    // | n | date | area | decision |
+    const cells = row.split('|').map((c) => c.trim());
+    const area = cells[3] ?? '';
+    const text = cells.slice(4).join('|');
+    if (
+        area !== LAUNCH_AREA ||
+        !text.startsWith("On the owner's word") ||
+        !text.includes(LAUNCH_WORDS)
+    ) {
         throw new LaunchRefused(
             `decision ${String(decision)} does not record ${LAUNCH_WORDS}: no launch`,
         );

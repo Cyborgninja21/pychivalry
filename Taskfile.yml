@@ -238,6 +238,12 @@ tasks:
     cmds:
       - node tools/dist/cli.js docs checks
 
+  docs:game-log:
+    desc: "Write the part of docs/game-log.md that says what the matcher makes of the spec package's catalogue, per family of messages, from the core (a test holds the committed page to it)"
+    deps: [build]
+    cmds:
+      - node tools/dist/cli.js docs game-log
+
   # ─── The repository wiki, generated from docs/ (docs/wiki/README.md) ───
 
   wiki:build:

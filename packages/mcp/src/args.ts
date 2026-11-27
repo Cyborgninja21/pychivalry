@@ -10,6 +10,9 @@
  * - `--spec`: another spec package file or its folder; by default the one pychivalry ships.
  * - `--logs`: a folder `analyze_log` may read logs from, beside the game's log folders found on
  *   this system (`logFolders`) and the mod's own folder.
+ * - `--no-log-folders`: look for no log folder of the game: `analyze_log` reads only in a folder
+ *   `--logs` gives and the mod's own. A scored test session's server is started so, so that no
+ *   session reads the developer's own logs.
  *
  * Bad arguments stop the server before it speaks the protocol, with the reason on standard
  * error and exit code 2: a harness shows a server that failed to start in its own log.
@@ -40,7 +43,7 @@ export class UsageError extends Error {
 }
 
 export const USAGE =
-    'usage: pychivalry-mcp [--mod <folder>] [--vanilla <game folder> | --no-vanilla] [--spec <file or folder>] [--logs <folder>]';
+    'usage: pychivalry-mcp [--mod <folder>] [--vanilla <game folder> | --no-vanilla] [--spec <file or folder>] [--logs <folder>] [--no-log-folders]';
 
 /** What the server reads its arguments and surroundings from; a test passes its own. */
 export interface Surroundings {
@@ -52,6 +55,11 @@ export interface Surroundings {
     readonly specDir: string;
     /** The game folder of the game `gameId`, or null; by default every Steam library is searched. */
     readonly findGame: (gameId: string) => string | null;
+    /**
+     * The game's log folders on this system (`logFolders`), the Proton prefix of the game folder
+     * among them; by default this process's own. Absent, none is looked for, as in the tests.
+     */
+    readonly findLogFolders?: (gameDir: string | null) => string[];
 }
 
 /**
@@ -74,6 +82,13 @@ export function processSurroundings(): Surroundings {
         home,
         specDir: defaultSpecDir(),
         findGame: (gameId) => findGameFolders(gameId, { env, platform, home })[0] ?? null,
+        findLogFolders: (gameDir) =>
+            logFolders({
+                env,
+                platform,
+                home,
+                gameFolders: () => (gameDir === null ? [] : [gameDir]),
+            }).map((f) => f.dir),
     };
 }
 
@@ -84,7 +99,7 @@ function isDirectory(dir: string): boolean {
 /** The options given, each once at most. */
 function readOptions(argv: readonly string[]): Map<string, string | true> {
     const valued = new Set(['--mod', '--vanilla', '--spec', '--logs']);
-    const flags = new Set(['--no-vanilla']);
+    const flags = new Set(['--no-vanilla', '--no-log-folders']);
     const out = new Map<string, string | true>();
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i] ?? '';
@@ -178,14 +193,11 @@ export function sessionOptions(argv: readonly string[], where: Surroundings): Se
         }
         logDirs.push(dir);
     }
-    for (const folder of logFolders({
-        env: where.env,
-        platform: where.platform,
-        home: where.home,
-        gameFolders: () => (game.dir === null ? [] : [game.dir]),
-    })) {
-        logDirs.push(folder.dir);
-    }
+    const search =
+        options.has('--no-log-folders') || where.findLogFolders === undefined
+            ? []
+            : where.findLogFolders(game.dir);
+    logDirs.push(...search);
     return {
         spec,
         modDir,

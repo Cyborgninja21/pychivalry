@@ -51,7 +51,12 @@ measures as paths with no `.info` type, and the GUI questions, among them the GU
 structural words as data, which the parser holds as grammar until then (decision 191). The same
 day the fix-error and write-content skills began to use `call_graph` (decision 193), and build
 step 11 started without launching the game: agents build what the spec's catalogue and the
-documented log locations allow, and no capture is made until the owner says (decision 194). What
+documented log locations allow, and no capture is made until the owner says (decision 194). Built
+so (decisions 195 to 199): the matcher on the catalogue's messages, which assumes no line prefix,
+the ties to the mod's files, `log` in the command line, `analyze_log` in the agent server (its
+eleventh tool, tool schema version 7), the log shown against the mod in the editor, the log
+folders of Windows, Linux and Proton, and the capture procedure and the in-game load, prepared
+behind a guard and not run ([game-log.md](game-log.md)). The matcher has not seen a real log. What
 waits on the owner or on the spec work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
 
@@ -376,7 +381,7 @@ Everything in this section is in the MVP.
 | Localization | Reads localization files. A missing key is a warning, with game evidence. Unbalanced brackets are a warning, with game evidence. An unused key is advice. |
 | GUI and GFX files | A parser for GUI syntax proven on every base-game GUI file; an index of GUI types and templates; go to definition. No checks or lookup against a GUI vocabulary. |
 | Graphics-file check | Warns when a referenced `.dds`, `.png` or `.tga` file exists in neither the mod, the base game nor its DLC folders. The keys it reads and its game evidence are written in the check inventory. Silent when no game folder is set. |
-| Game-log analysis | Reads the game's own error log and ties each message to the file and line in the mod it is about. Lines it cannot tie are listed, not dropped. |
+| Game-log analysis | Reads the game's own error log and ties each message to the file and line in the mod it is about. Lines it cannot tie are listed, not dropped. *Built on the catalogue alone (build step 11, decision 194; [game-log.md](game-log.md)):* the matcher, the ties, the command line's `log`, the agent server's `analyze_log` and the editor's log commands; the real format, read from captures, waits on the owner's word. |
 | Call graph | Five kinds of link: an event triggering an event, a scripted effect call, a scripted trigger call, an on-action firing an event or another on-action, and a decision firing an event. |
 
 ### Editor (VS Code)
@@ -392,7 +397,10 @@ default folder.
 `check`, `lookup`, `source`, `calls`, `format`, `explain`, `log` and `mcp`. *Since decision 143:*
 `source <layer> <file> <line>`, the text around a place a result named, the same lines as the
 agent server's `source` from the same core code. *Since build step 10:* `calls <name>...`, the
-call graph of a name, the agent server's `call_graph` from the same core code.
+call graph of a name, the agent server's `call_graph` from the same core code. *Since build step
+11:* `log [<log>]`, the game's log read against the error catalogue and tied to the mod, the agent
+server's `analyze_log` from the same core code, and `log --catalogue`, what the matcher makes of
+the catalogue.
 
 - `check` keeps what 2.3.0 had, so results stay comparable: the mod folder, `--vanilla`,
   `--spec`, `--json`, and exit codes 0 (no errors), 1 (errors) and 2 (bad usage).
@@ -406,9 +414,11 @@ call graph of a name, the agent server's `call_graph` from the same core code.
 
 - **Tools.** About nine: check; look up names (several at once); find a definition; find
   references; list definitions of a kind; call graph; analyse a log; explain codes; format.
-  *Built, tool schema version 6 (build step 10):* ten tools, exactly `check`, `lookup`,
+  *Built, tool schema version 7 (build step 11):* eleven tools, exactly `check`, `lookup`,
   `find_definition`, `find_references`, `list_definitions`, `source`, `call_graph`,
-  `explain_code`, `format` and `apply_format`; `analyze_log` comes with build step 11. Besides the
+  `analyze_log`, `explain_code`, `format` and `apply_format`. `analyze_log` reads the game's log
+  only in its log folders, a folder the server is given, or the mod's own, and answers whole by
+  message as `lookup` answers by name. Besides the
   tools that search (`lookup`, `find_definition`, `find_references`, `list_definitions`) and
   `check`, two read text for an agent: `format`, a file of the mod in the format, and `source`,
   the base game's own text (or the mod's) around a place another result named, at most 40 lines,
@@ -575,7 +585,7 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | Localization | Fixture mod | Missing keys and unbalanced brackets are warnings; unused keys are advice; entries with and without a version number are read. |
 | GUI files | Base-game GUI files `G`; fixtures | Every base-game GUI file parses; types and templates are found; go to definition lands on them. *After build step 10's items 10.1 to 10.4 (#172): every `.gui` file of the install parses, 583 (`game/gui/`'s 441 among them), and each of its 18 GUI findings is classified a defect of the game's own files (`records/game/parse.json`); the five mods' 209 GUI files parse too. The fixture mod `gui-index` over its stub: every type and template found, with what is in force by the override rules, and go to definition landing on them in the editor, on the command line and in the agent server, the same on all three (`packages/core/src/gui/index.test.ts`, `packages/lsp/src/gui.test.ts`, `packages/vscode/src/gui-answers.test.ts`, the editor tests).* |
 | Graphics-file check | Fixture mod with present and absent files | Warns on each absent file and on none that exists in mod, base game or DLC. |
-| Game-log analysis | Real captured logs `T` kept as fixtures | Each message is tied to the right file and line; unmatched lines are listed. |
+| Game-log analysis | Real captured logs `T` kept as fixtures | Each message is tied to the right file and line; unmatched lines are listed. *Until a capture is made on the owner's word: hand-made logs from catalogue templates (`fixtures/logs/hand-made/`), every matched template found on a line made from it, and the same answers from the command line and the agent server.* |
 | Call graph, call hierarchy | Fixture mod | Callers and callees equal the known graph, for all five kinds of link. *Built in step 10: the graph equals the fixture's `expected.json` for all five kinds.* |
 | Selection ranges, document symbols | Fixture positions | Ranges and symbols equal the expected ones. |
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
@@ -848,7 +858,9 @@ executable analysis needs the analysis machine; the parts that only read game fi
     graphics-file check. The call graph.
 11. Game-log analysis. First real logs are captured on the analysis machine: the base game alone, a fixture
     mod with one planted defect per check, and each test mod. Then the matcher is built on
-    them. Then the in-game load is added as the authoring run's third measure.
+    them. Then the in-game load is added as the authoring run's third measure. *Since decision
+    194 the matcher comes first, built on the catalogue without a launch; the captures, prepared,
+    wait on the owner's word, and the matcher is checked against them when they come.*
 12. Editor views: the CK3 Explorer tree, call hierarchy and selection ranges.
 13. Benchmarks enforced, `legacy/` removed, release 1.0.0 of `pychivalry`.
 
@@ -861,7 +873,7 @@ executable analysis needs the analysis machine; the parts that only read game fi
 | Skills or the server do not load the same way in both AI harnesses | Two sets of setup instead of one. | Build step 7 proves both with the server alone, before any skill is written. |
 | The analysis machine | It hibernates after 30 idle minutes, has powered itself off mid-run, and the game needs an unlocked desktop session there. | It is needed only for spec derivation and in-game loads; a keep-awake task runs for the length of a run. |
 | The in-game load proves less than hoped | A defect in content that never runs may not be logged at load. | The measure is named for what it proves; build step 11 tests which planted defects the game reports. |
-| The error-log format is not what 2.3.0 assumed | The log matcher is built on a wrong format. | Real logs are captured before the matcher is written. |
+| The error-log format is not what 2.3.0 assumed | The log matcher is built on a wrong format. | Real logs are captured before the matcher is written. *Since decision 194 the matcher is built first, on the catalogue's messages alone: it assumes no line prefix, no place format and no line per message, lists what it cannot match, and is checked against the first captures.* |
 | The scope is a full product, not a small first version | Nothing ships for a long time. | Preview builds at steps 7, 8 and 9. |
 | Model output is not repeatable | A scored run passes one day and fails the next. | Rates over several trials, targets set from real numbers. |
 | The derived spec is incomplete somewhere | A false "unknown" error on a real keyword. | Nothing is dropped from the spec; the real-mod suite demands zero false errors. |

@@ -14,7 +14,9 @@
  *    `quietSeconds` after the first change since the launch (30 s, as the spec work's 1.20.0.2
  *    launch measured it); the process ending by itself also ends the wait; past `timeoutSeconds`
  *    the capture stops and says so.
- * 5. The game is stopped, and every log it wrote or changed since the launch is copied out.
+ * 5. The game is stopped, and every log it wrote or changed since the launch is copied out,
+ *    each folder of this machine in it written as a placeholder (`scrubbed`), so that what is
+ *    kept may be committed.
  * 6. Always, whatever happened: the descriptors written are removed, `dlc_load.json` is written
  *    back byte for byte with its time, and its SHA-256 compared with the original's.
  * 7. A record of the capture: the game build, the executable's SHA-256, the options, the mods,
@@ -27,7 +29,6 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
-    copyFileSync,
     existsSync,
     mkdirSync,
     readdirSync,
@@ -69,6 +70,8 @@ export interface CaptureOptions {
     readonly userDir: string;
     /** The mods to load, in order: each a mod folder holding a `descriptor.mod`. */
     readonly mods: readonly string[];
+    /** The home folder, written `<home>` in the logs kept. */
+    readonly home?: string;
     /** Where the captured logs and the record are written: a new folder. */
     readonly outDir: string;
     /** The logs waited on for quiet. */
@@ -110,6 +113,34 @@ export interface CaptureRecord {
         readonly sha256: string;
     };
     readonly descriptors_removed: boolean;
+}
+
+/**
+ * A log's bytes with every folder of this machine written as a placeholder (the user's game
+ * folder `<user dir>`, the install `<game dir>`, each mod `<mod n>`, the home folder `<home>`),
+ * with either separator and in any letter case: what is kept of a log is what may be committed
+ * (AGENTS.md: no home folder, no absolute path). Read as Latin-1, so every other byte is kept.
+ */
+export function scrubbed(
+    bytes: Uint8Array,
+    folders: readonly (readonly [string, string])[],
+): Buffer {
+    let text = Buffer.from(bytes).toString('latin1');
+    // The longest folder first, so a mod inside the user's folder is named as the mod.
+    for (const [dir, name] of [...folders].sort((a, b) => b[0].length - a[0].length)) {
+        if (dir === '') {
+            continue;
+        }
+        for (const written of new Set([
+            dir,
+            dir.replaceAll('\\', '/'),
+            dir.replaceAll('/', '\\'),
+        ])) {
+            const pattern = new RegExp(written.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+            text = text.replace(pattern, name);
+        }
+    }
+    return Buffer.from(text, 'latin1');
 }
 
 function sha256(bytes: Uint8Array): string {
@@ -279,8 +310,13 @@ export async function capture(options: CaptureOptions): Promise<CaptureRecord> {
                 continue;
             }
             const target = path.join(options.outDir, 'logs', name);
-            copyFileSync(path.join(logs, name), target);
-            const bytes = readFileSync(target);
+            const bytes = scrubbed(readFileSync(path.join(logs, name)), [
+                [options.userDir, '<user dir>'],
+                [options.installDir, '<game dir>'],
+                ...options.mods.map((dir, n) => [dir, `<mod ${String(n)}>`] as const),
+                [options.home ?? '', '<home>'],
+            ]);
+            writeFileSync(target, bytes);
             copied.push({
                 name,
                 bytes: bytes.length,

@@ -43,7 +43,10 @@ function main(): void {
     const logs = path.join(userDir, 'logs');
     mkdirSync(logs, { recursive: true });
     writeFileSync(path.join(logs, 'error.log'), errors.map((e) => `${e}\n`).join(''));
-    writeFileSync(path.join(logs, 'debug.log'), `stand-in started with ${rest.join(' ')}\n`);
+    writeFileSync(
+        path.join(logs, 'debug.log'),
+        `stand-in started with ${rest.join(' ')}, reading ${path.join(userDir, 'dlc_load.json')}\n`,
+    );
     if (rest.includes('--exit')) {
         return;
     }

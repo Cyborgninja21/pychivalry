@@ -42,12 +42,8 @@ Each is written by the step named, from evidence.
 | [gui-syntax.md](gui-syntax.md) | GUI file syntax, measured from all 583 `.gui` files of the install: which files, what it shares with script, named blocks, type definitions, templates and `using`, values with units, constants; what the GUI parser reports and the install's own defects; the index of GUI types and templates and go to definition; how a mod's GUI overrides the base game's, from the spec package's override rules, and what is open | Step 10, items 10.1 to 10.4 |
 | [graphics-check.md](graphics-check.md) | The graphics-file check: which keys it reads and from which part of the spec package, which values it judges and leaves undecided, where it looks, its evidence, the base game's findings, and what the package does not say yet | Step 10, item 10.5 |
 | [call-graph.md](call-graph.md) | The call graph: what makes a link, the five kinds of the plan and the others, the base game's graph in numbers, and how it is tested on every surface | Step 10, items 10.6 and 10.7 |
-
-These do not exist yet:
-
-| Document | What it will hold | Written by |
-| --- | --- | --- |
-| `game-log.md` | The error-log format | Step 11 |
+| [game-log.md](game-log.md) | The game's own log: what is known of it without a capture and from what, the list of what only a capture can settle, how the matcher reads a line on the spec package's catalogue, what it makes of the catalogue per family of messages (written by `task docs:game-log`), what a message is tied to, where the logs are on each system, and the surfaces. Written without a launch: the log's real format waits on the captures | Step 11, items 11.2 to 11.4, 11.6 and 11.7 |
+| [game-log-capture.md](game-log-capture.md) | The capture procedure of item 11.1 and the in-game load of item 11.8, prepared and not run: the guard on every launch, the steps, the captures planned, the grade, and the stand-in they are tested on | Step 11, items 11.1 and 11.8 |
 
 ## Elsewhere in the repository
 

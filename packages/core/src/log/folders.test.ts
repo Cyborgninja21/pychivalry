@@ -114,8 +114,9 @@ test('only folders that exist are offered, unless every candidate is asked for',
         'logs',
     );
     mkdirSync(dir, { recursive: true });
+    // Compared as this system resolves them: a Linux search on Windows joins with `/`.
     assert.deepEqual(
-        logFolders({ platform: 'linux', home, env: {} }).map((f) => f.dir),
-        [dir],
+        logFolders({ platform: 'linux', home, env: {} }).map((f) => path.resolve(f.dir)),
+        [path.resolve(dir)],
     );
 });

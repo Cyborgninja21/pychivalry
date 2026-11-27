@@ -5,6 +5,7 @@
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { test } from 'node:test';
 import { defaultSpecDir, sessionOptions, type Surroundings, UsageError } from './args.js';
@@ -83,4 +84,21 @@ test('the server does not start on bad arguments: the reason on standard error, 
     assert.equal(r.status, 2);
     assert.equal(r.stdout, '', 'nothing on the protocol channel');
     assert.match(r.stderr, /^pychivalry-mcp: --mod: not a folder: .*\nusage: pychivalry-mcp /);
+});
+
+test("the log folders: --logs first, then the game's log folders found, none with --no-log-folders", (t) => {
+    const dir = scratch(t);
+    const mod = path.join(MODS, 'names-unknown-trigger-bad');
+    const found = path.join(dir, 'found');
+    mkdirSync(found);
+    const where = { ...surroundings(mod, dir), findLogFolders: () => [found] };
+    assert.deepEqual(sessionOptions(['--no-vanilla'], where).logDirs, [found]);
+    assert.deepEqual(sessionOptions(['--no-vanilla', '--logs', dir], where).logDirs, [dir, found]);
+    assert.deepEqual(sessionOptions(['--no-vanilla', '--no-log-folders'], where).logDirs, []);
+    // A test's surroundings look for none.
+    assert.deepEqual(sessionOptions(['--no-vanilla'], surroundings(mod, dir)).logDirs, []);
+    assert.throws(
+        () => sessionOptions(['--no-vanilla', '--logs', path.join(dir, 'nothing')], where),
+        /--logs: not a folder/,
+    );
 });

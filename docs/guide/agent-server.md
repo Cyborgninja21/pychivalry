@@ -98,15 +98,33 @@ and columns count from 1, as an editor shows them.
 | `list_definitions` | `kind`: the folder that holds the definitions (`common/scripted_effects`, `events`), a localization language (`localization:l_english`), or since build step 10 GUI types (`gui`) and templates (`gui:templates`); `limit`; `cursor` | The count by layer, then the definitions, the mod's first, each with whether it is in force |
 | `source` | A place as results write it: `layer`, `file` (its path inside the layer) and `line`; `end_line`; `context` (10 lines by default, at most 20) | The text around it, at most 40 lines, each its number, a tab and its text, of a script, localization or GUI file pychivalry reads, in the base game or the mod: to see how the game itself writes a name. Never by an address on disk: an absolute path, `..`, a link or a file outside its layer is refused. The same lines, and the same refusals, as `pychivalry source <layer> <file> <line>` on the terminal ([Commands](commands.md#options-of-source)), from the same code |
 | `call_graph` | `names` (at most 20); `direction` (`both` by default, `callers` or `callees`) | Every name answered whole, in the order asked: where the mod and the base game define it as script (at most 5 places), then what calls it (`callers`) and what it calls (`callees`), each side with its counts by kind (`events -> events`, `common/on_action -> events`) and by layer, then its links, the mod's first: the definition at the other end, the link's kind, the statement (`trigger_event.id`, `events`, a scripted effect's own name), what in the spec package makes it a call, and its place. A callee nothing defines says `defined: false`. `not_answered` names the names that did not fit, to ask in another call; there is no cursor. The same links as `pychivalry calls --json` ([Commands](commands.md#options-of-calls)) and the editor's call hierarchy |
+| `analyze_log` | `log` (a log file, or a folder whose `error.log` is read; by default the game's `error.log`); `messages` (keys an earlier answer gave, at most 50); `unmatched` (true by default); `line_prefix`, `location` | The game's own log read against the error catalogue ([below](#the-games-log)): the totals, then every message the log holds, answered whole with all its lines and the places each ties to, the mod's first; then the lines no message matches, as many as fit. `not_answered` names the messages that did not fit, to ask for with `messages`; there is no cursor. The same answer as `pychivalry log --json` ([Commands](commands.md#options-of-log)) |
 | `explain_code` | `codes`: codes, families or `*` | What each code means: its severity, what it finds, the game's evidence with the game's own message, and whether it is off by default or can be turned off |
 | `format` | `file`: a script or localization file of the mod the game reads; `cursor` | The file formatted by pychivalry's rules ([Formatting](formatting.md)), as a proposal: nothing is written. `formatted` (false for a file with a parse error or not valid UTF-8, with the `reason`), `changed`, `bom` and `line_ending` (`crlf`), `total_lines`, and the `text` from `first_line`, without the byte-order mark, a page at a time with `next_cursor`; no text when nothing changes |
 | `apply_format` | `file`: a script or localization file of the mod the game reads | The same formatting **written to the file**, as `pychivalry format <file>` writes it: Windows line breaks and the UTF-8 byte-order mark, whitespace only, never a token or a comment changed. `written` (false when the file is already in the format, or is left as it is), `formatted`, `changed`, `reason`, `bom`, `line_ending`, `total_lines`. It exists because an AI harness's own file tools may not write Windows line breaks or the mark: the first scored authoring run left every file it wrote out of the format |
 
-One more tool comes with the step that builds it: `analyze_log` (step 11). The tools' shapes are
-schema version 6 since `call_graph` came (step 10), every other tool unchanged; version 5 came
+The tools' shapes are schema version 7 since `analyze_log` came (step 11), every other tool
+unchanged; version 6 came with `call_graph` (step 10), version 5
 with `lookup`'s `evidence` (step 9), and version 4 with `source`, `lookup` answering every name
 whole and places that say their layer (step 9; version 3 came with `apply_format`, version 2 with
 `format`, step 8).
+
+### The game's log
+
+`analyze_log` reads a log only in the game's log folders the server found when it started
+(Windows' Documents and OneDrive's, Linux's `~/.local/share`, the Proton prefix), in a folder it
+was started with (`--logs <folder>`), or in the mod's own folder; it refuses any other path,
+naming the folders it reads, and only reads the log. Each message comes with its catalogue entry
+(two or more when they match its lines equally well, which is said, never picked), the game's own
+text with each value written `<value>`, its family, and the pychivalry codes whose evidence it is
+(`explain_code` says what they find). Each line gives its number in the log, its values, and its
+places: `kind` `file` (a file the message names, with `line_from`: the message's own line, the
+`location` pattern's, or `not-known`, when the place is the file's first line), `definition` (where
+a name it names is defined) or `use` (where the mod writes a name nothing defines); each place says
+its layer, and outside the mod `read_with: "source"`. No line prefix and no place format are
+assumed, since no real log has been read yet ([The game's log](../game-log.md)); give them with
+`line_prefix` and `location` when you know them. A message whose lines would not fit one result
+alone comes with `detail: "cut"`, its count whole and as many lines as fit.
 
 ### Evidence
 

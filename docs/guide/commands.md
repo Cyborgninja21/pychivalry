@@ -5,6 +5,9 @@
 | Command | What it does |
 | --- | --- |
 | pychivalry: Set up for Claude Code | Adds pychivalry's agent server to Claude Code's own configuration for the mod's folder, which Claude Code reads instead of what VS Code extensions register. With Claude Code's `claude` command installed it runs `claude mcp add --scope local` (removing an earlier entry first), so the entry is private to you and kept outside the mod. Without it, it says so and asks whether to write a project configuration file, `.mcp.json`, in the mod's folder instead; nothing is written before you answer. Once the server is set up, it copies pychivalry's three skills ([below](#the-skills)) into Claude Code's folder of personal skills. Run it once per mod folder; it keeps working when the extension updates, and running it again changes nothing that is already in place |
+| pychivalry: Show the game's log against the mod | Reads the game's own error log (build step 11, [The game's log](../game-log.md)) and shows each place in the mod one of its messages is about, as a warning whose source is `CK3 game log`, apart from pychivalry's own findings: the log's line, the game's own text, and why it is shown there (the file and line the message names, the file with its line not known, the definition of a name it names, or where the mod writes it). It reads the log the command is given, or the setting `pychivalry.log.file`, or the `error.log` of the game's log folder it finds, asking when there are several. The log is only read |
+| pychivalry: Watch the game's log | The same, and again each time the log changes, as the game writes it |
+| pychivalry: Clear the game's log findings | Stops watching and clears the log's findings; pychivalry's own stay |
 | pychivalry: Remove from Claude Code | Undoes the set-up for the mod's folder: removes the server's entry (`claude mcp remove --scope local`), takes pychivalry's own entry out of the folder's `.mcp.json` (the file goes too when nothing else is left in it; an entry of that name pychivalry did not write is left), and, when no other folder you set up is left, removes the skills it copied. Run it before you uninstall the extension, which cannot do it for you |
 
 When `pychivalry.gamePath` changes after a set-up, Claude Code still has the command line it was
@@ -84,6 +87,7 @@ libraries, or reads it from `--vanilla <game folder>`.
 | `pychivalry source <layer> <file> <line>` | The text around a place a result named, at most 40 lines, each with its number: the base game's own script, localization or GUI files (to see how the game itself writes a name), or the mod's. The same lines the agent server's `source` gives for the same place ([below](#options-of-source)) |
 | `pychivalry calls <name>...` | The call graph of each name: where the mod and the base game define it as script, what calls it and what it calls, each link with its kind (the caller's folder and the callee's: `events -> events`, `common/on_action -> events`), the statement that writes it and its place ([below](#options-of-calls)). The same links as the agent server's `call_graph` and the editor's call hierarchy |
 | `pychivalry format <file\|folder>...` | Formats the mod's script and localization files by pychivalry's rules ([Formatting](formatting.md)), in place; a file with a parse error, or not valid UTF-8, is left as it is and named; GUI files are not formatted, and a folder's are counted in one line |
+| `pychivalry log [<log>]` | The game's own error log read against the game's error catalogue: every line that is one of its messages, grouped by message, each tied to the places in the mod and the base game it is about; every line that is no message of the catalogue, listed as it is ([below](#options-of-log)). The same answer as the agent server's `analyze_log` and the editor's "Show the game's log against the mod" |
 | `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it, its message with each value a named slot (`Unknown trigger '<trigger>'`). A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
 | `pychivalry --version` | The version |
@@ -154,6 +158,27 @@ on-action. The text output writes each link as its other end, its kind, the stat
 defines says so. With `--json`, one object per name: its definitions, its callers and its callees
 whole, every place with its layer. `calls` exits `1` when a name is neither defined nor called
 anywhere, and `2` when there is nothing to read (`--no-vanilla` and no `--mod`).
+
+### Options of `log`
+
+`pychivalry log [<log>]` takes a log file, or a folder whose `error.log` it reads; without one, it
+reads the `error.log` of the first of the game's log folders it finds ([Where the logs
+are](../game-log.md#where-the-logs-are)). It only reads the log. `--vanilla`, `--no-vanilla`,
+`--spec` and `--json` as for `check`, and:
+
+| Option | What it does |
+| --- | --- |
+| `--mod <mod>` | A mod folder, read over the base game, whose files the messages are tied to. Without it and without the base game, the lines are matched and nothing is tied |
+| `--prefix <pattern>` | What the game writes before each message on a line, as a regular expression matched at the line's start and taken off first. None is assumed: no real log has been read yet, and without it each message is found wherever it starts on its line |
+| `--location <pattern>` | How a message writes a place in a script file, as a regular expression naming `(?<file>...)` and optionally `(?<line>...)` and `(?<column>...)`. None is assumed: without it a message's file is found by its path, and its line only where the message itself says `line` |
+| `--catalogue` | Read no log: what the matcher makes of the catalogue itself, the messages it matches and cannot, the ambiguous ones, and per family what their values can be tied to ([The matcher on the catalogue](../game-log.md#the-matcher-on-the-catalogue)) |
+
+The text output gives the totals, then each message: its catalogue entry (or the entries that
+match its lines equally well), its family and the pychivalry codes whose evidence it is, its text
+with each value written `<value>`, and each of its lines with their values and places
+(`<layer> <file>:<line>:<column>`, or `(line not known)`); then the lines no message matches. With
+`--json`, one object: the log read and the core's whole report. `log` exits `1` when a message is
+tied to the mod's files, `0` when none is.
 
 ### Options of `source`
 

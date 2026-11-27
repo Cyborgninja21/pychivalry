@@ -1,6 +1,6 @@
 # Settings
 
-pychivalry has five settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
+pychivalry has eight settings, in VS Code's Settings under "pychivalry" (or in `settings.json`
 as `pychivalry.*`). The language server reads them, and the extension gives the agent server the
 game folder; each step that adds a setting adds it here with its name, its default and what it
 changes.
@@ -12,6 +12,9 @@ changes.
 | `pychivalry.localization.unusedKeys` | `true` | Report `localization/unused-key`, a hint for each localization key nothing uses; on by default, as in the command line and the agent server; `false` turns it off |
 | `pychivalry.encoding.fallback` | `"none"` | `"windows-1252"`: read the bytes of a file that are not valid UTF-8 as Windows-1252, so their letters show correctly ([what the parser reads](../encoding.md)) |
 | `pychivalry.inlayHints.enabled` | `true` | Show pychivalry's inline hints in script files: beside a record's key the localized text of its name (an event's title, a decision's name, an option's text), and after a link or an iterator the scope type it switches to. They are shown, never judged. VS Code's own `editor.inlayHints.enabled` also applies |
+| `pychivalry.log.file` | empty | The game's log "Show the game's log against the mod" and "Watch the game's log" read: a log file, or a folder whose `error.log` is read. Empty: the `error.log` of the game's log folders pychivalry finds, asking when there are several ([The game's log](../game-log.md#where-the-logs-are)). Only read |
+| `pychivalry.log.linePrefix` | empty | What the game writes before each message on a line of its log, as a regular expression matched at the line's start. Empty: none is assumed, since no real log has been read yet; each message is found wherever it starts on its line |
+| `pychivalry.log.location` | empty | How a message of the log writes a place in a script file, as a regular expression naming `(?<file>...)` and optionally `(?<line>...)` and `(?<column>...)`. Empty: none is assumed; a message's file is found by its path, its line only where the message itself says `line` |
 
 No setting changes how pychivalry formats ([Formatting](formatting.md)). VS Code's own settings
 switch formatting on and off: `editor.formatOnSave` and `editor.formatOnType` (both off by

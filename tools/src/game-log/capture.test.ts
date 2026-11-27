@@ -24,7 +24,7 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { openSpec } from '@pychivalry/core';
-import { capture, descriptorName } from './capture.js';
+import { capture, descriptorName, scrubbed } from './capture.js';
 import { LAUNCH_WORDS, LaunchRefused, ownersWord } from './guard.js';
 import { contentFiles, inGameLoad, inGameLoadGrade } from './in-game-load.js';
 import { repoRoot } from '../util.js';
@@ -60,7 +60,9 @@ function setUp(t: TestContext) {
         decisions,
         [
             "| 1 | 2026-01-01 | Step 11 | On the owner's word, step 11 starts without launching the game. |",
-            `| 2 | 2026-01-02 | Step 11 | On ${LAUNCH_WORDS}: the captures of item 11.1. |`,
+            `| 2 | 2026-01-02 | Game launch | On the owner's word, ${LAUNCH_WORDS}: the captures of item 11.1. |`,
+            `| 3 | 2026-01-02 | Game launches | The guard asks for ${LAUNCH_WORDS}. |`,
+            `| 4 | 2026-01-02 | Game launch | The guard asks for ${LAUNCH_WORDS}. |`,
             '',
         ].join('\n'),
     );
@@ -104,11 +106,18 @@ test("the guard: no launch without a decision recording the owner's word for one
         /does not record the owner's word for a launch/,
     );
     assert.equal(ownersWord('decision 2', s.decisions).decision, 2);
-    // The repository's own page: decision 194 is the word to start step 11 without a launch.
-    assert.throws(
-        () => ownersWord('decision 194', path.join(repoRoot(), 'docs', 'decisions.md')),
-        /does not record/,
-    );
+    // A row that only quotes the words, of another area or not the owner's word, lets nothing run.
+    assert.throws(() => ownersWord('decision 3', s.decisions), /does not record/);
+    assert.throws(() => ownersWord('decision 4', s.decisions), /does not record/);
+    // The repository's own page: decision 194 is the word to start step 11 without a launch,
+    // decision 199 the guard's own description; neither lets a launch run.
+    for (const n of [194, 199]) {
+        assert.throws(
+            () =>
+                ownersWord(`decision ${String(n)}`, path.join(repoRoot(), 'docs', 'decisions.md')),
+            /does not record/,
+        );
+    }
 });
 
 test('a refused capture touches nothing: no mod list written, no descriptor, no folder', async (t) => {
@@ -169,9 +178,12 @@ test('a capture: the mod list set, the game started, quiet logs awaited, stopped
     assert.equal(readFileSync(path.join(s.user, 'dlc_load.json'), 'utf8'), s.list);
     assert.equal(statSync(path.join(s.user, 'dlc_load.json')).mtime.getTime(), s.then.getTime());
     assert.deepEqual(readdirSync(path.join(s.user, 'mod')), []);
-    // The record names no folder of this machine.
+    // The record and the logs kept name no folder of this machine.
     const text = readFileSync(path.join(out, 'capture.json'), 'utf8');
     assert.ok(!text.includes(s.root), 'no absolute path in the record');
+    const debug = readFileSync(path.join(out, 'logs', 'debug.log'), 'utf8');
+    assert.ok(!debug.includes(s.root), debug);
+    assert.match(debug, /reading <user dir>[\\/]dlc_load\.json/);
 });
 
 test('a game that ends by itself ends the wait; a descriptor of the same name already there is refused', async (t) => {
@@ -278,8 +290,9 @@ test("the tools refuse both launch commands without the owner's word, before rea
         ['scored', 'in-game-load'],
     ] as const) {
         for (const word of [undefined, 'decision 194']) {
-            const env: Record<string, string> = {
-                PATH: process.env['PATH'] ?? '',
+            const env: Record<string, string | undefined> = {
+                ...process.env,
+                PYCHIVALRY_OWNERS_WORD: undefined,
                 CK3_INSTALL_PATH: s.install,
                 CK3_USER_PATH: s.user,
                 CAPTURE_OUT: path.join(s.root, 'out'),
@@ -297,4 +310,18 @@ test("the tools refuse both launch commands without the owner's word, before rea
     }
     assert.equal(readFileSync(path.join(s.user, 'dlc_load.json'), 'utf8'), s.list);
     assert.ok(!readdirSync(s.root).includes('out'));
+});
+
+test('a log kept names no folder of this machine: each written as its placeholder, any separator, any case', () => {
+    const out = scrubbed(
+        Buffer.from(
+            'C:\\Users\\Someone\\Documents\\x.txt and c:/users/someone/mods/a/events/b.txt\n',
+        ),
+        [
+            ['C:\\Users\\Someone\\Documents', '<user dir>'],
+            ['C:\\Users\\Someone\\mods\\a', '<mod 0>'],
+            ['C:\\Users\\Someone', '<home>'],
+        ],
+    ).toString('latin1');
+    assert.equal(out, '<user dir>\\x.txt and <mod 0>/events/b.txt\n');
 });

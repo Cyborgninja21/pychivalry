@@ -1060,7 +1060,8 @@ What it does not show:
    model's.
 2. **More than one model.** Opus 5.5 wrote every result and Fable 5.2 judged every one; the
    results say nothing of another model, of VS Code's AI (the hand checklist's to see), or of the
-   game loading the content (step 11's third measure).
+   game loading the content (step 11's third measure, the in-game load: built and guarded, not
+   run, [docs/game-log-capture.md](../../docs/game-log-capture.md#the-in-game-load)).
 3. **That the judge can say no.** It said yes to all 180 questions here, as to all 180 in the
    first run. Nothing found a result wrong for it to say no to; only results graded by hand,
    wrong ones among them, can show the difference: the calibration (item 9.6).
@@ -1991,10 +1992,10 @@ the third preview was published the same day on the owner's word, also before hi
 and his checklist (decision 180;
 [docs/preview-release-0.3.0.md](../../docs/preview-release-0.3.0.md)).
 
-## What the next run is given: tool schema version 6 and new skills (decision 193)
+## What the next run is given: tool schema version 7 and new skills (decision 193)
 
-Since the release run, what a session is given changed twice, and the next scored run is the
-first made on both:
+Since the release run, what a session is given changed three times, and the next scored run is
+the first made on all three:
 
 1. **Tool schema version 6** (decision 188, #171): the agent server's tenth tool, `call_graph`,
    which says for each name where it is defined, what calls it and what it calls, answered by
@@ -2004,7 +2005,15 @@ first made on both:
    version 5 or earlier: `task scored:targets` says so first, and a run refuses to continue one.
    This holds for both tests, the agent-use test (whose sessions are given no skill) and the
    authoring test.
-2. **The skills changed** (decision 193, the owner's word of 2026-11-27): the fix-error skill
+2. **Tool schema version 7** (build step 11): the eleventh tool, `analyze_log`, which reads the
+   game's own `error.log` against the error catalogue and ties its messages to the mod's files
+   ([docs/game-log.md](../../docs/game-log.md)); every other tool is unchanged. A trial is offered
+   the eleven tools of `SERVER_TOOLS`, and every record a run makes now states
+   `server.schema_version` 7. A scored session has no game log to read: its server is started
+   with `--no-log-folders` (`mcpConfig` in `run.ts`), so it looks for none of the developer's own,
+   and the trial's mod holds none; the tool can only answer that it found none, and no task of
+   either test asks for it.
+3. **The skills changed** (decision 193, the owner's word of 2026-11-27): the fix-error skill
    asks `call_graph` for the callers of a scripted effect, a scripted trigger or an event before
    it edits it, and its report says what the change affects; the write-content skill, after its
    draft and before the checker's rounds, reads back each event chain or call it wrote with
@@ -2012,7 +2021,7 @@ first made on both:
    them in `results.task.skills`; the explain-error skill's is unchanged. The release run's
    record names the skills of decision 168.
 
-So **the next scored run is measured on the new skills and tool schema version 6**, and is not
+So **the next scored run is measured on the new skills and tool schema version 7**, and is not
 compared with `authoring.json`, or any committed record, without saying so: `SCORED_CONTINUE=true`
 refuses a record of another server version or of other skills, so no record holds sessions given
 both. What a trial is graded by does not change: the authoring grade, the requests' expectations
