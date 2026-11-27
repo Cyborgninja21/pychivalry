@@ -8,6 +8,8 @@
  * - `--vanilla`: the game's `game` folder; by default the game is looked for in every Steam
  *   library. `--no-vanilla` runs without it: names the game defines are not judged.
  * - `--spec`: another spec package file or its folder; by default the one pychivalry ships.
+ * - `--logs`: a folder `analyze_log` may read logs from, beside the game's log folders found on
+ *   this system (`logFolders`) and the mod's own folder.
  *
  * Bad arguments stop the server before it speaks the protocol, with the reason on standard
  * error and exit code 2: a harness shows a server that failed to start in its own log.
@@ -17,6 +19,7 @@ import {
     defaultCacheDir,
     findGameFolders,
     isGameFolder,
+    logFolders,
     openSpec,
     packageFileIn,
     SpecError,
@@ -37,7 +40,7 @@ export class UsageError extends Error {
 }
 
 export const USAGE =
-    'usage: pychivalry-mcp [--mod <folder>] [--vanilla <game folder> | --no-vanilla] [--spec <file or folder>]';
+    'usage: pychivalry-mcp [--mod <folder>] [--vanilla <game folder> | --no-vanilla] [--spec <file or folder>] [--logs <folder>]';
 
 /** What the server reads its arguments and surroundings from; a test passes its own. */
 export interface Surroundings {
@@ -80,7 +83,7 @@ function isDirectory(dir: string): boolean {
 
 /** The options given, each once at most. */
 function readOptions(argv: readonly string[]): Map<string, string | true> {
-    const valued = new Set(['--mod', '--vanilla', '--spec']);
+    const valued = new Set(['--mod', '--vanilla', '--spec', '--logs']);
     const flags = new Set(['--no-vanilla']);
     const out = new Map<string, string | true>();
     for (let i = 0; i < argv.length; i++) {
@@ -165,11 +168,30 @@ export function sessionOptions(argv: readonly string[], where: Surroundings): Se
     }
     const specGiven = options.get('--spec');
     const spec = specFrom(typeof specGiven === 'string' ? specGiven : undefined, where);
+    const game = gameFrom(options, where, spec);
+    const logs = options.get('--logs');
+    const logDirs: string[] = [];
+    if (typeof logs === 'string') {
+        const dir = path.resolve(where.cwd, logs);
+        if (!isDirectory(dir)) {
+            throw new UsageError(`--logs: not a folder: ${dir}`);
+        }
+        logDirs.push(dir);
+    }
+    for (const folder of logFolders({
+        env: where.env,
+        platform: where.platform,
+        home: where.home,
+        gameFolders: () => (game.dir === null ? [] : [game.dir]),
+    })) {
+        logDirs.push(folder.dir);
+    }
     return {
         spec,
         modDir,
-        game: gameFrom(options, where, spec),
+        game,
         cacheDir: defaultCacheDir(where.env, where.platform, where.home),
         place: { env: where.env, platform: where.platform, home: where.home },
+        logDirs,
     };
 }

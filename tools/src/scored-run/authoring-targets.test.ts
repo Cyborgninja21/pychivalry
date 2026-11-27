@@ -496,9 +496,10 @@ test("the third preview's release run, the committed record: every request 10 ti
     assert.equal(reading.without_expert.requests, 12);
     assert.equal(reading.without_expert.met, true);
     // Its sessions were given tool schema version 5, the agent server before `call_graph`
-    // (version 6, build step 10), and it was judged with the committed judge's prompt: the
-    // reading says both first, and that its measures are not those of a run on version 6.
-    assert.equal(SERVER_SCHEMA_VERSION, 6);
+    // (version 6, build step 10) and `analyze_log` (version 7, build step 11), and it was judged
+    // with the committed judge's prompt: the reading says both first, and that its measures are
+    // not those of a run on version 7.
+    assert.equal(SERVER_SCHEMA_VERSION, 7);
     assert.deepEqual(reading.server, { schema_version: 5, committed: false });
     assert.equal(reading.judge?.version, JUDGE_PROMPT_VERSION.version);
     assert.equal(reading.judge.committed, true);

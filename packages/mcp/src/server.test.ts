@@ -24,6 +24,7 @@ const TOOL_NAMES = [
     'list_definitions',
     'source',
     'call_graph',
+    'analyze_log',
     'explain_code',
     'format',
     'apply_format',
@@ -98,10 +99,8 @@ test('the ten tools, each read-only but apply_format, declaring what it takes an
             openWorldHint: false,
         });
     }
-    // `call_graph` came with build step 10 (schema version 6); `analyze_log` waits for step 11.
-    for (const later of ['analyze_log']) {
-        assert.ok(!tools.some((tool) => tool.name === later), `${later} waits for its step`);
-    }
+    // `call_graph` came with build step 10 (schema version 6), `analyze_log` with step 11 (7).
+    assert.equal(SCHEMA_VERSION, 7);
 });
 
 /** Every keyword an input shape uses, at any depth. */

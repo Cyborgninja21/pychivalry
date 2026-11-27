@@ -20,6 +20,8 @@ export const VERSION = '0.0.0';
  * request, the spec package's evidence behind its readings, as the command line's `lookup --json`
  * gives it, its answer otherwise unchanged (the owner's second decision of 2026-11-25); 6,
  * `call_graph` (build step 10): for each name, where it is defined, what calls it and what it calls,
- * answered whole by name as `lookup` is, no other tool changed.
+ * answered whole by name as `lookup` is, no other tool changed; 7, `analyze_log` (build step
+ * 11): the game's log read against the error catalogue, every message answered whole with the
+ * places it ties to, the lines no message matches listed, no other tool changed.
  */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;

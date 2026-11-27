@@ -11,8 +11,9 @@
  * - **The mod** is brought up to date before every request (`syncMod`): an agent edits the
  *   mod's files between requests, and each answer is about the files as they are now.
  * - **What it reads and writes** (item 6.5): it reads the mod folder, the game folder, the spec
- *   package it ships with and the index cache; it writes nothing but the index cache, and that
- *   only when none answers for the installed game. A path an agent gives must be inside the mod
+ *   package it ships with and the index cache, and, for `analyze_log` (step 11), a log in one of
+ *   the game's log folders (`logDirs`); it writes nothing but the index cache, and that only
+ *   when none answers for the installed game. A path an agent gives must be inside the mod
  *   folder.
  */
 
@@ -61,6 +62,11 @@ export interface SessionOptions {
      * and home), or undefined to answer every request here.
      */
     readonly place?: Place | undefined;
+    /**
+     * The folders `analyze_log` may read a log from, absolute, beside the mod's own: the game's
+     * log folders found when the server started and any it was given (`--logs`). Only read.
+     */
+    readonly logDirs?: readonly string[] | undefined;
 }
 
 /** A path inside the mod: its path relative to the mod folder, with `/`; empty for the mod. */
@@ -76,6 +82,7 @@ export class Session {
     readonly cacheDir: string | null;
     readonly base: SharedBase | undefined;
     readonly place: Place | undefined;
+    readonly logDirs: readonly string[];
     private opened: { readonly index: WorkspaceIndex; readonly game: GameIndex | null } | null =
         null;
     private mod: SyncedMod | null = null;
@@ -94,6 +101,7 @@ export class Session {
         this.cacheDir = options.cacheDir;
         this.base = options.base;
         this.place = options.place;
+        this.logDirs = options.logDirs ?? [];
     }
 
     /** The workspace: the base game, opened once, and the mod as its folder is now. */
