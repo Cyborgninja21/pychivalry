@@ -7,7 +7,7 @@ pychivalry's agent server and command line, and hold no CK3 knowledge of their o
 | Skill | What it is for |
 | --- | --- |
 | [pychivalry-explain-error](pychivalry-explain-error/SKILL.md) | Explain a finding: what its code means, the game's evidence, what is valid instead. Changes no file |
-| [pychivalry-fix-error](pychivalry-fix-error/SKILL.md) | Fix the errors and warnings of a mod: check, look up, ask the call graph what calls a scripted effect, a scripted trigger or an event before changing it, edit, check again, at most 5 rounds, then format |
+| [pychivalry-fix-error](pychivalry-fix-error/SKILL.md) | Fix the errors and warnings of a mod: check, look up, ask the call graph what calls a scripted effect, a scripted trigger or an event before changing it, edit, check again, at most 5 rounds, then format; when the person gives the game's log, read it against the mod and fix what it reports about the files being fixed (decision 203) |
 | [pychivalry-write-content](pychivalry-write-content/SKILL.md) | Write events with their localization, decisions, scripted effects and scripted triggers by the rules of item 9.2, every option of an event with several options given an AI weight (decision 159), and the event chains and calls it wrote read back from the call graph before the checker's rounds (decision 193) |
 
 ## The one form both harnesses load
@@ -64,7 +64,13 @@ field one of them does not know is left out
   event's callers (`direction: "callers"`) before it edits that definition, and its report says
   what the change affects; the second, after its draft and before the checker's rounds, reads
   back every call it wrote (`direction: "callees"`), each call it meant there and each callee
-  defined, and its report lists them.
+  defined, and its report lists them;
+- the fix-error skill uses `analyze_log` (tool schema version 7, decision 203), and only when there
+  is a log: when the person gives a game log, or a log folder is known, it runs the tool once, at
+  the start, and for each file it fixes uses the messages tied to that file, never calls it again
+  to see a fix, and reports each such message fixed or left; with no log it makes no call, which
+  holds every call of the tool in the skill to that condition. The other two skills do not name
+  it.
 
 The editor tests (`task vscode:test`) show VS Code listing the three, handing them to its
 Copilot harness, and the set-up copying, keeping up to date and removing Claude Code's copies.

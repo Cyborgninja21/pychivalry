@@ -2,14 +2,15 @@
 
 Test logs for the game-log analysis of build step 11 ([docs/game-log.md](../../docs/game-log.md)).
 
-**No real game log is here.** The game has not been launched for this step: a capture on the
-analysis machine waits on the owner's word (docs/decisions.md, decision 194). Every log below is
-**hand-made**, and says so in its folder's name. The matcher has not seen a real log.
+**No real game log is here yet.** The game has not been launched for this step. The owner gave
+his word for the eight captures of item 11.1 on the analysis machine on 2026-11-27
+(docs/decisions.md, decision 200); none is made yet. Every log below is **hand-made**, and says so
+in its folder's name. The matcher has not seen a real log.
 
 | Folder | What it holds |
 | --- | --- |
 | [hand-made/](hand-made/) | Logs written from the spec package's catalogue messages: each line is a catalogue template with its placeholders filled by names and files of the planted-defect mod (`fixtures/defects/mod/`, over the game stub `fixtures/game/planted-defects/`), or a catalogue text the matcher does not use |
-| `captured/` | Not yet made: the real captures of item 11.1, each with its capture record, when the owner gives his word |
+| `captured/` | Not yet made: the eight real captures of item 11.1 (decision 200), each with its capture record, its logs scrubbed by the capture and committed only after the check of each file for names and paths in [docs/game-log-capture.md](../../docs/game-log-capture.md#before-the-logs-are-committed) (decision 202) |
 
 ## The hand-made logs
 

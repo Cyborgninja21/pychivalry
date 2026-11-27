@@ -1,6 +1,6 @@
 ---
 name: pychivalry-fix-error
-description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, asking what calls a scripted effect, scripted trigger or event before changing it, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, call_graph, source, format, apply_format).
+description: Fix the errors and warnings pychivalry reports in a Crusader Kings 3 (CK3) mod, by checking, looking up what is valid, asking what calls a scripted effect, scripted trigger or event before changing it, editing, and checking again until none is left or 5 rounds have passed, then formatting what was changed; when the user gives the game's own error log, also fixing what it reports about the files being fixed. Use when the user asks to fix, repair or clean up CK3 script errors, warnings or pychivalry style findings in a mod, or the errors the game's log shows for it. Uses pychivalry's agent server (check, explain_code, lookup, find_definition, find_references, list_definitions, call_graph, analyze_log, source, format, apply_format).
 ---
 
 # Fix what pychivalry finds
@@ -15,14 +15,15 @@ the person the edits. Repair from what the tools return, never from memory of CK
 lists it under, `mcp__pychivalry__` and the tool's own name: `mcp__pychivalry__check`,
 `mcp__pychivalry__explain_code`, `mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`,
 `mcp__pychivalry__find_references`, `mcp__pychivalry__list_definitions`,
-`mcp__pychivalry__call_graph`, `mcp__pychivalry__source`, `mcp__pychivalry__format`,
-`mcp__pychivalry__apply_format`. Only a listed name can be called: a call of a short name reaches
-nothing, and Claude Code answers that there is no such tool. Another client lists the same tools
-under its own prefix (VS Code's Copilot harness `pychivalry-`, VS Code's own `mcp_pychivalry_`, each
-before the tool's own name): there, call the tool whose name ends in the same tool's name. If a call
-finds no such tool, call the same tool again by its listed name. If no pychivalry tool is offered at
-all, say so and stop: in VS Code the extension registers the agent server by itself; for Claude
-Code, the person runs "pychivalry: Set up for Claude Code" in VS Code once for the mod's folder.
+`mcp__pychivalry__call_graph`, `mcp__pychivalry__analyze_log`, `mcp__pychivalry__source`,
+`mcp__pychivalry__format`, `mcp__pychivalry__apply_format`. Only a listed name can be called: a call
+of a short name reaches nothing, and Claude Code answers that there is no such tool. Another client
+lists the same tools under its own prefix (VS Code's Copilot harness `pychivalry-`, VS Code's own
+`mcp_pychivalry_`, each before the tool's own name): there, call the tool whose name ends in the
+same tool's name. If a call finds no such tool, call the same tool again by its listed name. If no
+pychivalry tool is offered at all, say so and stop: in VS Code the extension registers the agent
+server by itself; for Claude Code, the person runs "pychivalry: Set up for Claude Code" in VS Code
+once for the mod's folder.
 
 ## The rules
 
@@ -47,6 +48,21 @@ Code, the person runs "pychivalry: Set up for Claude Code" in VS Code once for t
    answers is answered whole; one listed in `not_answered` did not fit: ask about it in another
    call. A name with more callers than one answer holds comes with `detail` set to `cut`: its
    counts are whole, its callers listed in part.
+7. **Read the game's log only when there is one.** When the person gives you a game log, a log
+   file or a folder of the game's logs, or a log folder is known (they name one, or say they have
+   run the mod in the game, whose own log folder then holds its log), run
+   `mcp__pychivalry__analyze_log` on it once, at the start: with `log` set to the file or folder
+   they gave, or with no `log` for the game's own log folder. If it answers that it found no log,
+   say so and go on without one. Each message it lists is one the game wrote, with its `ties`,
+   the places it is about, the mod's first. For each file you fix, the messages tied to that file
+   are the game's own report about it (when the person asks you to fix what the log shows, the
+   files you fix are the mod's files its messages are tied to): fix each as step 3 fixes a
+   finding with no fix, with `mcp__pychivalry__explain_code` on the codes its `checks` lists. A
+   message listed in `not_answered` did not fit: ask for it in another call, with `messages` set
+   to its key. The log is what the game wrote when it last ran, and your edits do not change it:
+   never call `mcp__pychivalry__analyze_log` again to see whether a fix worked, and never say a
+   message is gone; whether a fix holds in the game shows only when the person runs the game
+   again. With no log, make no call.
 
 ## Steps
 
@@ -54,7 +70,8 @@ Code, the person runs "pychivalry: Set up for Claude Code" in VS Code once for t
    folder of it) with `min_severity` set to `warning`. The `totals` count every finding by
    severity and by code, whatever is listed; the findings come a page at a time (follow
    `next_cursor`). Lines and columns count from 1, and an end column is the column just after
-   the end.
+   the end. When there is a game log (rule 7), run `mcp__pychivalry__analyze_log` on it now, and
+   keep the messages tied to the mod's files beside the findings.
 2. **For each finding with a `fix`:**
    - `safety` is `safe`: apply its one alternative as it is, every one of its `edits` (each
      replaces the text from `line` and `column` to `end_line` and `end_column` of its `file`
@@ -93,8 +110,10 @@ Code, the person runs "pychivalry: Set up for Claude Code" in VS Code once for t
    applied).
 6. **Report.** What you changed and why, file by file; for each scripted effect, scripted trigger
    or event you changed, what calls it, as `mcp__pychivalry__call_graph` listed it (rule 6), and
-   so what the change affects; the last `mcp__pychivalry__check`'s totals; and anything left, as
-   rule 5 says.
+   so what the change affects; the last `mcp__pychivalry__check`'s totals; when you read a game
+   log (rule 7), each of its messages tied to a file you fixed, and whether you fixed it or why
+   not, saying that the game shows whether a fix holds only when it runs again; and anything
+   left, as rule 5 says.
 
 Information and hints are pychivalry's advice, not the game's: fix them only when the person
 asks. When the person asks to clean up the `style/` findings, the hints among them are fixed as

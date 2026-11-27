@@ -2,9 +2,11 @@
 
 The procedure for build step 11's captures (item 11.1 of [PLAN.md](PLAN.md)) and for the
 authoring run's third grade, the in-game load (item 11.8), with the tooling that runs them.
-**Prepared, not run.** Both launch the game, which happens only on the analysis machine and only
-on the owner's word (AGENTS.md, rule 9); the owner has not given it for step 11 (decision 194).
-The tooling refuses to start without it, and its tests run a stand-in, never the game.
+Both launch the game, which happens only on the analysis machine and only on the owner's word
+(AGENTS.md, rule 9). **The owner has given it for the eight captures of item 11.1** (decision 200,
+2026-11-27), and for nothing else: **not for the in-game load of item 11.8**, which waits on a word
+of its own. None has been run yet. The tooling refuses to start without a recorded word, and its
+tests run a stand-in, never the game.
 
 The procedure is the one the spec work used for its documentation dumps (`pdx-parser-re`,
 `research/oracle/1.21.0.3/README.md`, which launched the game twice on the analysis machine on
@@ -18,8 +20,15 @@ Every command here reads the variable `PYCHIVALRY_OWNERS_WORD` before anything e
 (`LAUNCH_WORDS` in `tools/src/game-log/guard.ts`: his word for a launch of the game, on the
 analysis machine). No variable, a value of another form, a number with no row, a row of another
 area or one that only describes the guard (decisions 194 and 199 among them), and the command
-stops with exit code 2 before it reads a folder, writes a file or starts a program. Recording the word is the owner's, or done on his word, as for
-every decision.
+stops with exit code 2 before it reads a folder, writes a file or starts a program. Recording the
+word is the owner's, or done on his word, as for every decision.
+
+**Decision 200** is that word for the eight captures below: `PYCHIVALRY_OWNERS_WORD=decision 200`.
+A test holds that the guard accepts it, that it names the eight captures and leaves out item 11.8,
+and that it is the only row of the page the guard accepts (`capture.test.ts`). The guard reads the
+row, not what the row covers: it would let `task scored:in-game-load` start on decision 200 too, and
+it does not count launches. What the row covers is held by the agent that runs the captures: the
+eight below, each once, and no in-game load.
 
 ## Before a launch
 
@@ -31,9 +40,11 @@ On the analysis machine, as the spec work's launches had it:
 3. The game build is the spec package's (1.21.0.3): the capture records the launcher's
    `rawVersion` and the executable's SHA-256, and a capture of another build is not compared with
    one of this.
-4. The repository is checked out there and built (`task build`), with Node 22. *Whether Node is
-   installed on the analysis machine is not known here; the spec work drove its launches with
-   PowerShell.*
+4. The repository is checked out there and built (`task build`), with Node 22: the tooling runs
+   with Node (decision 201). *Whether Node is installed on the analysis machine is not known
+   here; the spec work drove its launches with PowerShell.* If it is not installed, the agent
+   coordinating the work comes back to the owner before any capture, and no agent installs it
+   there on its own; nothing of the tooling is rewritten for PowerShell.
 5. The launch runs in the logged-on user's desktop session, as the spec work's did: started over
    SSH through a one-shot scheduled task with interactive logon, so the game opens its window on
    that desktop.
@@ -64,16 +75,21 @@ On the analysis machine, as the spec work's launches had it:
 4. **The game is stopped**, and every log it wrote or changed since the launch is copied out, each
    folder of the machine in it written as a placeholder (`<user dir>`, `<game dir>`, `<mod n>`,
    `<home>`), so that what is kept may be committed: no home folder, no absolute path (AGENTS.md).
+   How many times each placeholder was written in each log is counted, printed when the capture
+   ends, and kept in the record (`scrub` in `capture.ts`).
 5. **The mod list is put back**, whatever happened: the descriptors removed, `dlc_load.json`
    written back with its time, its SHA-256 compared with the original's. A capture whose list is
    not byte for byte the original fails.
-6. **The record**, `capture.json`: the owner's decision, the game build, the executable's SHA-256,
-   the options, the mods by name, how the wait ended and after how long, the exit code, each log's
-   size, SHA-256 and lines, and the mod list restored. It names no folder of the machine.
+6. **The record**, `capture.json` (`capture_format` 2): the owner's decision, the game build, the
+   executable's SHA-256, the options, the mods by name, how the wait ended and after how long, the
+   exit code, each log's size, SHA-256 and lines as kept, what was replaced in it (`replaced`: each
+   placeholder of a folder given, with its count, 0 when never written), and the mod list
+   restored. It names no folder of the machine.
 
 ## The captures of item 11.1
 
-Each a capture as above, kept under `fixtures/logs/captured/<name>/` with its record:
+The eight launches decision 200 gives the owner's word for, each a capture as above, kept under
+`fixtures/logs/captured/<name>/` with its record once it has passed the check below:
 
 | Name | Mods | Options | For |
 | --- | --- | --- | --- |
@@ -81,6 +97,46 @@ Each a capture as above, kept under `fixtures/logs/captured/<name>/` with its re
 | `base-game-no-debug` | none | none | What debug mode adds (MVP.md, open question 3) |
 | `planted-defects` | the planted-defect mod, `fixtures/defects/mod/` | `-debug_mode` | Which of its 37 planted defects the game reports at load, at which line, in which message (item 11.5, open question 2) |
 | `corpus-<slug>` | each of the five test mods of the corpus, one capture each | `-debug_mode` | Real mods' messages, matched and tied, the unmatched counted |
+
+## Before the logs are committed
+
+On the owner's word (decision 202), the logs a capture keeps may be committed to this public
+repository as test fixtures, in `fixtures/logs/captured/<name>/` beside their `capture.json`, **after
+a check of each file for names and paths** by the agent that commits them. The scrubber writes as a
+placeholder only the folders it was given; this check is what finds anything else.
+
+1. **Start from what the scrubber replaced.** `task game:capture-log` prints, and `capture.json`
+   holds (`replaced` of each log), each placeholder with the number of times it was written in each
+   log. They say which logs named the machine's folders, and so which to read most closely. A
+   count of 0 is no proof that a log names nothing of the machine.
+2. **Search every file kept**, each log and `capture.json`, in any letter case, and look at every
+   hit:
+   - a path of the machine left: a drive letter and a separator (`C:\`, `c:/`), a network path (two
+     backslashes and a name), a user's or home folder (`Users` and a separator, `/home/`,
+     `AppData`, `OneDrive`), a short folder name (`~1`);
+   - the user name the game ran under, the machine's own name, the Steam name the game ran under,
+     and its 17-digit Steam ID (it starts `7656119`);
+   - an e-mail address.
+
+   The names of the second point are given to the search on its command line on the machine, and
+   never written into a file of the repository, a commit message or a pull request.
+3. **What a hit means.** A hit that is the game's own text (a catalogue message, a path inside the
+   game's folders after `<game dir>`) may stay, and the pull request says which hits were the
+   game's. Any other hit, and the file is **not committed**, nor edited by hand to take the hit out
+   (the record holds the SHA-256 of the file the capture kept): it is left out, and the agent
+   coordinating the work comes back to the owner.
+4. **The bytes as kept.** Each log's SHA-256 in the repository is compared with its record before
+   the commit; `fixtures/logs/** -text` in `.gitattributes` keeps their line breaks.
+
+The first and third points' search, with GNU `grep` (Git for Windows' shell has it), the names of
+the second point in place of the three placeholders:
+
+```sh
+grep -rniE '\b[a-z]:[\\/]|\\\\[a-z0-9]|users[\\/]|/home/|appdata|onedrive|~1|7656119[0-9]{10}|[a-z0-9._%+-]+@[a-z0-9-]+\.[a-z]' fixtures/logs/captured/<name>/
+grep -rniF -e '<user name>' -e '<machine name>' -e '<Steam name>' fixtures/logs/captured/<name>/
+```
+
+## What the captures answer
 
 Then docs/game-log.md is written again from them (item 11.2): every question of its list
 "What only a capture can settle" answered from what the logs show, and the matcher's line prefix
@@ -91,7 +147,8 @@ every message tied to a file and line or listed as unmatched, the unmatched coun
 
 The authoring run's third grade (MVP.md, "AI first": "loads in the game"),
 `task scored:in-game-load` (`tools/src/game-log/in-game-load.ts`), for one result the authoring run
-kept (`SCORED_KEEP`):
+kept (`SCORED_KEEP`). **Decision 200 does not cover it**: it runs only on a row of its own that
+records the owner's word for it.
 
 | Variable | Meaning |
 | --- | --- |
@@ -122,5 +179,7 @@ shape rests on a real run ("Done when" 3 of step 11).
 templates), in a temporary user folder: the guard refusing before anything is touched, a capture
 ending on quiet logs and one ending by itself, the mod list put back byte for byte with its time,
 no descriptor left, a descriptor of the same name refused, the logs kept naming no folder of the
-machine, and the in-game load failing a result whose log names its file and passing one whose log
-does not. Both commands are refused through the tools' own command line without the owner's word.
+machine and each log's count of what was replaced, and the in-game load failing a result whose log
+names its file and passing one whose log does not. Both commands are refused through the tools' own
+command line without the owner's word, and the guard accepts decision 200, the one row of the
+repository's page that records it, and still refuses decisions 194 and 199.

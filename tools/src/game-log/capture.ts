@@ -15,13 +15,14 @@
  *    launch measured it); the process ending by itself also ends the wait; past `timeoutSeconds`
  *    the capture stops and says so.
  * 5. The game is stopped, and every log it wrote or changed since the launch is copied out,
- *    each folder of this machine in it written as a placeholder (`scrubbed`), so that what is
- *    kept may be committed.
+ *    each folder of this machine in it written as a placeholder (`scrub`), so that what is
+ *    kept may be committed, with the count of each placeholder written.
  * 6. Always, whatever happened: the descriptors written are removed, `dlc_load.json` is written
  *    back byte for byte with its time, and its SHA-256 compared with the original's.
  * 7. A record of the capture: the game build, the executable's SHA-256, the options, the mods,
- *    how the wait ended, each log's size, SHA-256 and lines, and the mod list restored. It holds
- *    no absolute path: the folders are written `<user dir>`, `<game dir>` and `<mod n>`.
+ *    how the wait ended, each log's size, SHA-256, lines and what was replaced in it, and the mod
+ *    list restored. It holds no absolute path: the folders are written `<user dir>`, `<game dir>`
+ *    and `<mod n>`.
  *
  * Nothing here is run by `task ci` but with a stand-in for the game (`capture.test.ts`).
  */
@@ -41,8 +42,11 @@ import {
 import path from 'node:path';
 import { ownersWord, type OwnersWord } from './guard.js';
 
-/** The record's format. */
-export const CAPTURE_FORMAT = 1;
+/**
+ * The record's format: 2 since each log kept lists what the scrubber replaced in it (decision
+ * 202). No capture was made in format 1.
+ */
+export const CAPTURE_FORMAT = 2;
 
 /** The descriptor name of the capture's `n`-th mod in the user's `mod/` folder. */
 export function descriptorName(n: number): string {
@@ -89,9 +93,12 @@ export type Ended = 'quiet' | 'exited' | 'timeout';
 /** One log the capture holds. */
 export interface CapturedLog {
     readonly name: string;
+    /** Its size, SHA-256 and lines as kept, scrubbed. */
     readonly bytes: number;
     readonly sha256: string;
     readonly lines: number;
+    /** What the scrubber wrote in it: each placeholder and how many times (`scrub`). */
+    readonly replaced: Readonly<Record<string, number>>;
 }
 
 /** The record of one capture. */
@@ -115,17 +122,31 @@ export interface CaptureRecord {
     readonly descriptors_removed: boolean;
 }
 
+/** A log as it is kept: its bytes scrubbed, and how many times each placeholder was written. */
+export interface Scrub {
+    readonly bytes: Buffer;
+    /**
+     * Each folder given (an empty one is not), by its placeholder, in the order given: how many
+     * times it was found and written as the placeholder, 0 when never.
+     */
+    readonly replaced: Readonly<Record<string, number>>;
+}
+
 /**
  * A log's bytes with every folder of this machine written as a placeholder (the user's game
  * folder `<user dir>`, the install `<game dir>`, each mod `<mod n>`, the home folder `<home>`),
- * with either separator and in any letter case: what is kept of a log is what may be committed
+ * with either separator and in any letter case, and the count of each replacement, so that what
+ * was taken out is on record (decision 202): what is kept of a log is what may be committed
  * (AGENTS.md: no home folder, no absolute path). Read as Latin-1, so every other byte is kept.
  */
-export function scrubbed(
-    bytes: Uint8Array,
-    folders: readonly (readonly [string, string])[],
-): Buffer {
+export function scrub(bytes: Uint8Array, folders: readonly (readonly [string, string])[]): Scrub {
     let text = Buffer.from(bytes).toString('latin1');
+    const replaced: Record<string, number> = {};
+    for (const [dir, name] of folders) {
+        if (dir !== '') {
+            replaced[name] = 0;
+        }
+    }
     // The longest folder first, so a mod inside the user's folder is named as the mod.
     for (const [dir, name] of [...folders].sort((a, b) => b[0].length - a[0].length)) {
         if (dir === '') {
@@ -137,10 +158,21 @@ export function scrubbed(
             dir.replaceAll('/', '\\'),
         ])) {
             const pattern = new RegExp(written.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-            text = text.replace(pattern, name);
+            text = text.replace(pattern, () => {
+                replaced[name] = (replaced[name] ?? 0) + 1;
+                return name;
+            });
         }
     }
-    return Buffer.from(text, 'latin1');
+    return { bytes: Buffer.from(text, 'latin1'), replaced };
+}
+
+/** A log's bytes scrubbed, as `scrub` writes them. */
+export function scrubbed(
+    bytes: Uint8Array,
+    folders: readonly (readonly [string, string])[],
+): Buffer {
+    return scrub(bytes, folders).bytes;
 }
 
 function sha256(bytes: Uint8Array): string {
@@ -310,7 +342,7 @@ export async function capture(options: CaptureOptions): Promise<CaptureRecord> {
                 continue;
             }
             const target = path.join(options.outDir, 'logs', name);
-            const bytes = scrubbed(readFileSync(path.join(logs, name)), [
+            const { bytes, replaced } = scrub(readFileSync(path.join(logs, name)), [
                 [options.userDir, '<user dir>'],
                 [options.installDir, '<game dir>'],
                 ...options.mods.map((dir, n) => [dir, `<mod ${String(n)}>`] as const),
@@ -326,6 +358,7 @@ export async function capture(options: CaptureOptions): Promise<CaptureRecord> {
                         ? 0
                         : bytes.toString('latin1').split('\n').length -
                           (bytes[bytes.length - 1] === 0x0a ? 1 : 0),
+                replaced,
             });
         }
         return finish();

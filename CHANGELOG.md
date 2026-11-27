@@ -681,6 +681,15 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   decision records the owner's word for a launch, tested on a stand-in for the game; the logs it
   keeps name no folder of the machine. A new reference page, `docs/references/game-logs.md`.
 
+- The capture lists what its scrubber replaced (decision 202): each log kept counts how many times
+  each folder of the machine was written as its placeholder (`<user dir>`, `<game dir>`,
+  `<mod n>`, `<home>`), in the capture record (`replaced`, capture record format 2) and printed by
+  `task game:capture-log`, so that the check of each file before the logs are committed starts
+  from it. The check itself is described in docs/game-log-capture.md ("Before the logs are
+  committed"): a path of the machine left, the user name the game ran under and the machine's own
+  name, the Steam name and Steam ID, an e-mail address; a file with a hit that is not the game's
+  own text is left out, never edited.
+
 ### Changed
 
 - The planted-defect mod plants `graphics/missing-file` (37 defects, 30 look-alikes); its game stub holds the texture the decisions show. The language server checks the mod again when a texture is added or removed.
@@ -1116,6 +1125,23 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   warnings, each a defect of the game's own files, count as raising nothing. The GUI parser's
   structural words are GUI grammar, not game vocabulary (decision 191). Build step 11 started
   without launching the game (decision 194).
+- The fix-error skill reads the game's log with `mcp__pychivalry__analyze_log` (decision 203), and
+  only when there is one: when the person gives a game log, a file or a folder of the game's logs,
+  or a log folder is known, it runs the tool once, at the start, and for each file it fixes uses
+  the messages tied to that file, fixing each as a finding with no fix and reporting each fixed or
+  left; it never calls the tool again to see a fix, since the log is the game's last run. With no
+  log it makes no call. The write-content and explain-error skills are unchanged.
+  `skill-files.test.ts` holds it. The fix-error skill's hash changes again, so the next scored run
+  is measured on these skills and tool schema version 7; scored sessions still start the server
+  with `--no-log-folders` (`tools/scored-run/README.md`).
+- On the owner's word of 2026-11-27, decision 200 records his word for a launch of the game on the
+  analysis machine for the eight captures of item 11.1, and for nothing else: the base game alone,
+  with `-debug_mode`, the planted-defect mod and each of the five test mods. It is written in the
+  guard's words, and a test holds that the guard accepts it, that it is the only row it accepts and
+  that it still refuses decisions 194 and 199. The in-game load of item 11.8 is not covered. The
+  capture tooling runs there with Node, if Node is installed (decision 201); the captured logs may
+  be committed as fixtures after a check of each file for names and paths (decision 202). No
+  capture has been made yet.
 
 ### Fixed
 
@@ -1159,8 +1185,14 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   keywords' letter case; and a ninth (decision 191), the GUI grammar's structural words as data,
   which the parser then reads from the package. Questions for the owner are in
   `docs/decisions.md`.
-- Build step 11's captures on the analysis machine, and the items that rest on them (11.1, 11.2,
-  11.5 and 11.8), wait on the owner's word (decision 194).
+- Build step 11's captures on the analysis machine (item 11.1) have the owner's word (decision
+  200) and are not made yet; items 11.2 and 11.5 rest on them. Whether Node is installed on the
+  analysis machine is not known; if it is not, the owner is asked before any capture (decision
+  201). The in-game load of item 11.8 waits on a word of its own.
+- Build step 11's matcher goes back to the spec work in one point (decision 204): the source file
+  of the executable each catalogue message is written from, as data, so that the 17 groups of
+  entries that match one another's lines equally well can be told apart and the log's line prefix
+  read as data; until then the matcher assumes no prefix and the groups stay ambiguous.
 - Build step 10's graphics check goes back to the spec work in three points (decision 187): the
   `.info` type `file_path` as data on the 48 fields of 25 folders measured as paths, the folder a
   file name is read in for a field that names one inside a define's folder, and how the game reads

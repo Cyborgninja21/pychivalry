@@ -70,6 +70,16 @@ export async function captureFromEnv(root: string, env: Env): Promise<number> {
     process.stdout.write(
         `capture: ${record.ended} after ${String(record.seconds)} s; ${String(record.logs.length)} logs; mod list restored ${record.dlc_load.identical ? 'byte for byte' : 'NOT identical'}\n`,
     );
+    // What the scrubber took out of each log kept, for the check before the logs are committed
+    // (docs/game-log-capture.md, "Before the logs are committed").
+    for (const log of record.logs) {
+        const replaced = Object.entries(log.replaced)
+            .map(([placeholder, count]) => `${placeholder} ${String(count)}`)
+            .join(', ');
+        process.stdout.write(
+            `  ${log.name}: ${String(log.lines)} lines; replaced: ${replaced === '' ? 'nothing' : replaced}\n`,
+        );
+    }
     return record.dlc_load.identical && record.descriptors_removed && record.ended !== 'timeout'
         ? EXIT.ok
         : EXIT.failed;

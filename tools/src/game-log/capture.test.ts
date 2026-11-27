@@ -24,7 +24,7 @@ import path from 'node:path';
 import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { openSpec } from '@pychivalry/core';
-import { capture, descriptorName, scrubbed } from './capture.js';
+import { capture, descriptorName, scrub, scrubbed } from './capture.js';
 import { LAUNCH_WORDS, LaunchRefused, ownersWord } from './guard.js';
 import { contentFiles, inGameLoad, inGameLoadGrade } from './in-game-load.js';
 import { repoRoot } from '../util.js';
@@ -120,6 +120,51 @@ test("the guard: no launch without a decision recording the owner's word for one
     }
 });
 
+test("the guard lets the eight captures of item 11.1 run on the owner's word of decision 200, and only that row", () => {
+    // The owner's word of 2026-11-27: decision 200 records it for the eight captures of item 11.1
+    // on the analysis machine, written so the guard accepts it; rows 194 and 199 still let nothing
+    // run. The guard reads the row, not what the row covers: what it covers is held here.
+    const page = path.join(repoRoot(), 'docs', 'decisions.md');
+    const word = ownersWord('decision 200', page);
+    assert.equal(word.decision, 200);
+    assert.match(word.row, /^\| 200 \| 2026-11-27 \| Game launch \| On the owner's word, /);
+    assert.ok(word.row.includes(LAUNCH_WORDS), "the guard's exact words");
+    for (const named of [
+        'the base game alone',
+        'the base game with `-debug_mode`',
+        'the planted-defect mod',
+        '`balance-of-power-ui`',
+        '`divine-intervention`',
+        '`elf-destiny`',
+        '`rice`',
+        '`viet-events`',
+    ]) {
+        assert.ok(word.row.includes(named), `decision 200 names ${named}`);
+    }
+    assert.match(word.row, /these eight launches only/);
+    assert.match(word.row, /not the in-game load of item 11\.8/);
+    for (const n of [194, 199]) {
+        assert.throws(() => ownersWord(`decision ${String(n)}`, page), /does not record/);
+    }
+    // No other row of the page lets a launch run.
+    const launches = readFileSync(page, 'utf8')
+        .split(/\r?\n/)
+        .map((line) => /^\| (\d+) \|/.exec(line)?.[1])
+        .filter((n): n is string => n !== undefined)
+        .filter((n) => {
+            try {
+                ownersWord(`decision ${n}`, page);
+                return true;
+            } catch (err) {
+                if (err instanceof LaunchRefused) {
+                    return false;
+                }
+                throw err;
+            }
+        });
+    assert.deepEqual(launches, ['200']);
+});
+
 test('a refused capture touches nothing: no mod list written, no descriptor, no folder', async (t) => {
     const s = setUp(t);
     const out = path.join(s.root, 'out');
@@ -163,11 +208,21 @@ test('a capture: the mod list set, the game started, quiet logs awaited, stopped
     assert.deepEqual(record.owners_word, { decision: 2 });
     assert.deepEqual(record.dlc_load.restored && record.dlc_load.identical, true);
     assert.equal(record.descriptors_removed, true);
+    assert.equal(record.capture_format, 2);
     assert.deepEqual(
         record.logs.map((l) => [l.name, l.lines]),
         [
             ['debug.log', 1],
             ['error.log', 1],
+        ],
+    );
+    // What the scrubber wrote in each log, every folder given listed: the stand-in's debug.log
+    // names the user's folder once; its error.log names a file inside the mod, not a folder.
+    assert.deepEqual(
+        record.logs.map((l) => [l.name, l.replaced]),
+        [
+            ['debug.log', { '<user dir>': 1, '<game dir>': 0, '<mod 0>': 0 }],
+            ['error.log', { '<user dir>': 0, '<game dir>': 0, '<mod 0>': 0 }],
         ],
     );
     assert.match(
@@ -324,4 +379,53 @@ test('a log kept names no folder of this machine: each written as its placeholde
         ],
     ).toString('latin1');
     assert.equal(out, '<user dir>\\x.txt and <mod 0>/events/b.txt\n');
+});
+
+test('the scrubber lists what it replaced: each folder given by its placeholder, with its count', () => {
+    // Decision 202: the logs kept may be committed after a check of each file, which starts from
+    // what the scrubber took out of it.
+    const { bytes, replaced } = scrub(
+        Buffer.from(
+            [
+                'C:\\Users\\Someone\\Documents\\x.txt',
+                'c:/users/someone/documents/y.txt',
+                'C:\\USERS\\SOMEONE\\mods\\a\\events\\b.txt',
+                'C:\\Users\\Someone\\AppData\\z.txt',
+                'D:\\Games\\elsewhere.txt',
+                '',
+            ].join('\r\n'),
+        ),
+        [
+            ['C:\\Users\\Someone\\Documents', '<user dir>'],
+            ['C:\\Program Files\\Game', '<game dir>'],
+            ['C:\\Users\\Someone\\mods\\a', '<mod 0>'],
+            ['', '<mod 1>'],
+            ['C:\\Users\\Someone', '<home>'],
+        ],
+    );
+    assert.equal(
+        bytes.toString('latin1'),
+        [
+            '<user dir>\\x.txt',
+            '<user dir>/y.txt',
+            '<mod 0>\\events\\b.txt',
+            '<home>\\AppData\\z.txt',
+            'D:\\Games\\elsewhere.txt',
+            '',
+        ].join('\r\n'),
+    );
+    // In the order given; a folder never found counts 0; a folder not given is not listed. A path
+    // of no folder given is left as it is, and so is not counted: the check before committing is
+    // what finds it.
+    assert.deepEqual(Object.entries(replaced), [
+        ['<user dir>', 2],
+        ['<game dir>', 0],
+        ['<mod 0>', 1],
+        ['<home>', 1],
+    ]);
+    // The bytes the record's SHA-256 is of are those scrubbed alone.
+    assert.deepEqual(
+        scrubbed(Buffer.from('C:\\Users\\Someone\\x'), [['C:\\Users\\Someone', '<home>']]),
+        Buffer.from('<home>\\x'),
+    );
 });
