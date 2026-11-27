@@ -96,7 +96,9 @@ export interface GuiFile {
  * compared without regard to letter case: the base game writes `Types` three times, and the
  * types those blocks define are used by windows the game shows. These are words of the GUI
  * file grammar, not of the GUI vocabulary (docs/MVP.md: checks against a GUI vocabulary come
- * after the MVP).
+ * after the MVP), and the owner accepted them as grammar, held here with `GUI_TYPE_KEYWORDS`
+ * (docs/decisions.md, decision 191). The spec package is asked to give both lists as data;
+ * when it does, the parser reads them from the package instead.
  */
 export const GUI_NAMED_KEYWORDS: readonly string[] = [
     'types',

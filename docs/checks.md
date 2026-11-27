@@ -611,6 +611,13 @@ it ([gui-syntax.md](gui-syntax.md)). Every one is advice at information: no cata
 shown to be the GUI reader's ([why](#the-gui-syntax-findings)). Each is tested by its pair,
 `fixtures/mods/gui-<what>-bad` and `-good`.
 
+The grammar these codes judge ([gui-syntax.md](gui-syntax.md#named-blocks)) has eight structural
+words, `types`, `template`, `local_template`, `layer`, `block`, `blockoverride`, `type` and
+`local_type`, which the parser holds as GUI grammar, not game vocabulary, on the owner's word
+(decision 191). **Follow-up:** a spec request asks the package to give them as data; once it
+does, the parser reads them from the package (item 6 of
+[What the inventory needs from the 1.21 spec](#what-the-inventory-needs-from-the-121-spec)).
+
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `syntax/gui-missing-closing-brace` | information | A block of a GUI file still open at the end of the file | Advice ([why](#the-gui-syntax-findings)) | new (2.3.0 read GUI files with its script parser) | `gui-missing-closing-brace` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
@@ -1171,6 +1178,9 @@ Beyond what the format 5 plan already holds, this inventory needs:
    fields hold a texture path (`graphics/missing-file`): met for 13 fields by the `.info` type `file_path`, the rest requested (decision 187).
 5. **A clash row's message in the rules table**, for every folder the spec work finds the game
    reports a duplicate in (`definitions/clash`).
+6. **The GUI grammar's structural words, as data** (decision 191): `types`, `template`,
+   `local_template`, `layer`, `block`, `blockoverride`, `type` and `local_type`, which the GUI
+   parser holds as grammar until the package gives them, and then reads from it.
 
 ## How the counts were made
 

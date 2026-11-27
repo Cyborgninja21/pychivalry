@@ -7,7 +7,9 @@
  * own vocabulary, a name the spec package has or a role of its part D4 (the words `lookup` reads a
  * keyword's role in), so a skill makes no claim about a CK3 keyword the spec cannot back. The
  * authoring skill states the rules of item 9.2, and the owner's rule that every option of an
- * event with several options has an AI weight (decision 159).
+ * event with several options has an AI weight (decision 159). Since decision 193 the fix-error
+ * skill asks `call_graph` what calls a definition before changing it, and the authoring skill
+ * checks the chains it wrote with it.
  */
 
 import { COMMANDS, TOOL as COMMAND_LINE } from '@pychivalry/cli';
@@ -37,6 +39,7 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'find_definition',
         'find_references',
         'list_definitions',
+        'call_graph',
         'source',
         'format',
         'apply_format',
@@ -47,6 +50,7 @@ const DRIVES: Readonly<Record<string, readonly string[]>> = {
         'find_definition',
         'list_definitions',
         'find_references',
+        'call_graph',
         'source',
         'explain_code',
         'format',
@@ -504,4 +508,66 @@ test('the fix-error skill fixes style/option-without-ai-weight as the other styl
     );
     assert.match(prose, /`style\/option-without-ai-weight` has no fix/);
     assert.match(prose, /the same weight for every option of the event when they name none/);
+});
+
+test('the fix-error skill asks call_graph what calls a definition before changing it, and the authoring skill checks the chains it wrote', () => {
+    // The owner's word of 2026-11-27 (decision 193): a change to a scripted effect, a scripted
+    // trigger or an event reaches every definition that calls it, so the fix-error skill asks for
+    // its callers first and says what the change affects; the authoring skill reads the calls it
+    // wrote back as `call_graph` reads them. Each names the tool by Claude Code's full name (the
+    // tests above), and neither leaves the tool's paging out.
+    const prose = (name: string): string => {
+        const skill = skills.find((s) => s.name === name);
+        assert.ok(skill !== undefined, name);
+        return parse(skill.name, textOf(skill)).body.replace(/\s+/g, ' ');
+    };
+    const fix = prose('pychivalry-fix-error');
+    assert.match(fix, /\*\*Ask what calls a definition before you change it\.\*\*/);
+    assert.match(
+        fix,
+        /Before you edit a scripted effect, a scripted trigger or an event, a definition in `common\/scripted_effects`, `common\/scripted_triggers` or `events`, run `mcp__pychivalry__call_graph` with `names` the name it is defined under \(an event by its id\) and `direction` set to `callers`/,
+    );
+    assert.match(
+        fix,
+        /a change to the definition reaches each of them, and your report says which/,
+    );
+    assert.match(
+        fix,
+        /for each scripted effect, scripted trigger or event you changed, what calls it, as `mcp__pychivalry__call_graph` listed it \(rule 6\), and so what the change affects/,
+    );
+    // The question comes before the edit: a rule, so it holds in steps 2 and 3 alike.
+    const fixBody = fix.slice(fix.indexOf('## The rules'));
+    assert.ok(
+        fixBody.indexOf('6. **Ask what calls a definition') < fixBody.indexOf('## Steps'),
+        'the fix-error skill states it among its rules',
+    );
+
+    const write = prose('pychivalry-write-content');
+    assert.match(
+        write,
+        /run `mcp__pychivalry__call_graph` with `names` each definition you wrote that calls another \(up to 20 a call\) and `direction` set to `callees`/,
+    );
+    assert.match(
+        write,
+        /every call you meant must be there, to the definition you meant, its callee `defined` true/,
+    );
+    assert.match(
+        write,
+        /the calls between them, as `mcp__pychivalry__call_graph` listed them \(step 6\)/,
+    );
+    // After the draft, before the checker's rounds: the checker has the last word on what was
+    // repaired.
+    const draft = write.indexOf('5. **Draft,**');
+    const chains = write.indexOf('6. **Check the chains you wrote.**');
+    const rounds = write.indexOf('7. **Format, check and repair,**');
+    const report = write.indexOf('8. **Report.**');
+    assert.ok(draft > 0 && draft < chains && chains < rounds && rounds < report, 'step order');
+
+    for (const text of [fix, write]) {
+        assert.match(text, /listed in `not_answered` did not fit: ask about it in another call/);
+    }
+    assert.match(
+        fix,
+        /comes with `detail` set to `cut`: its counts are whole, its callers listed in part/,
+    );
 });

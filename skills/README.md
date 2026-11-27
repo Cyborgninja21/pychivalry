@@ -7,8 +7,8 @@ pychivalry's agent server and command line, and hold no CK3 knowledge of their o
 | Skill | What it is for |
 | --- | --- |
 | [pychivalry-explain-error](pychivalry-explain-error/SKILL.md) | Explain a finding: what its code means, the game's evidence, what is valid instead. Changes no file |
-| [pychivalry-fix-error](pychivalry-fix-error/SKILL.md) | Fix the errors and warnings of a mod: check, look up, edit, check again, at most 5 rounds, then format |
-| [pychivalry-write-content](pychivalry-write-content/SKILL.md) | Write events with their localization, decisions, scripted effects and scripted triggers by the rules of item 9.2, every option of an event with several options given an AI weight (decision 159) |
+| [pychivalry-fix-error](pychivalry-fix-error/SKILL.md) | Fix the errors and warnings of a mod: check, look up, ask the call graph what calls a scripted effect, a scripted trigger or an event before changing it, edit, check again, at most 5 rounds, then format |
+| [pychivalry-write-content](pychivalry-write-content/SKILL.md) | Write events with their localization, decisions, scripted effects and scripted triggers by the rules of item 9.2, every option of an event with several options given an AI weight (decision 159), and the event chains and calls it wrote read back from the call graph before the checker's rounds (decision 193) |
 
 ## The one form both harnesses load
 
@@ -58,7 +58,13 @@ field one of them does not know is left out
   names it did not answer (tool schema version 4, decision 140);
 - only the explain-error skill names `lookup`'s `evidence`, the spec package's evidence of one
   name, for when a person asks why a name is wrong or where its reading comes from (tool schema
-  version 5); the other two have every fact they need in the plain answer, which stays small.
+  version 5); the other two have every fact they need in the plain answer, which stays small;
+- the fix-error skill and the write-content skill use `call_graph` (tool schema version 6,
+  decision 193): the first, as a rule, asks for a scripted effect's, a scripted trigger's or an
+  event's callers (`direction: "callers"`) before it edits that definition, and its report says
+  what the change affects; the second, after its draft and before the checker's rounds, reads
+  back every call it wrote (`direction: "callees"`), each call it meant there and each callee
+  defined, and its report lists them.
 
 The editor tests (`task vscode:test`) show VS Code listing the three, handing them to its
 Copilot harness, and the set-up copying, keeping up to date and removing Claude Code's copies.

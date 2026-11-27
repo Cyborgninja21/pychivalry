@@ -20,8 +20,8 @@ it from what you ask, or you start one by name.
 | Skill | When the AI uses it |
 | --- | --- |
 | `pychivalry-explain-error` | You ask what an error, a warning or a code means, or why pychivalry reports something. It explains from the game's own evidence and documentation, and changes nothing |
-| `pychivalry-fix-error` | You ask to fix the errors and warnings of the mod or a file. It checks, looks up what is valid, edits, and checks again, at most five rounds, and formats what it changed; it says what is left |
-| `pychivalry-write-content` | You ask for new content: an event with its localization, a decision, a scripted effect or a scripted trigger. It looks every name up before writing it, writes the localization with the event, runs the checker and repairs from what it finds, at most five rounds, formats what it wrote, and never says it is done while an error is left |
+| `pychivalry-fix-error` | You ask to fix the errors and warnings of the mod or a file. It checks, looks up what is valid, edits, and checks again, at most five rounds, and formats what it changed; before it changes a scripted effect, a scripted trigger or an event, it asks the call graph what calls it, and it tells you what the change affects; it says what is left |
+| `pychivalry-write-content` | You ask for new content: an event with its localization, a decision, a scripted effect or a scripted trigger. It looks every name up before writing it, writes the localization with the event, reads back from the call graph each event chain or call it wrote, runs the checker and repairs from what it finds, at most five rounds, formats what it wrote, and never says it is done while an error is left |
 
 - **VS Code's own AI** has them as soon as the extension is installed: they are listed in the
   chat's skills, and in agent mode the AI loads one when your request matches it (or type `/`

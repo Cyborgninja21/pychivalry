@@ -1,6 +1,6 @@
 ---
 name: pychivalry-write-content
-description: Write new Crusader Kings 3 (CK3) mod content that the game accepts, events with their localization, decisions, scripted effects and scripted triggers. Use when the user asks to write, add, create or draft CK3 script for a mod. Looks every name up first with pychivalry's agent server, runs its checker and repairs from the findings for at most 5 rounds, formats what it writes, and never claims success while an error is left.
+description: Write new Crusader Kings 3 (CK3) mod content that the game accepts, events with their localization, decisions, scripted effects and scripted triggers. Use when the user asks to write, add, create or draft CK3 script for a mod. Looks every name up first with pychivalry's agent server, checks the event chains and calls it wrote with the call graph, runs its checker and repairs from the findings for at most 5 rounds, formats what it writes, and never claims success while an error is left.
 ---
 
 # Write new CK3 content
@@ -11,19 +11,18 @@ game's own documentation, and its checker says whether what you wrote is valid. 
 tools decide. Never trust memory of CK3 for a name: models remember names that the game does not
 have, or had once.
 
-**Call each tool by the name your client lists.** Every tool is written here by the name Claude
-Code lists it under, `mcp__pychivalry__` and the tool's own name: `mcp__pychivalry__check`,
-`mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`,
-`mcp__pychivalry__list_definitions`, `mcp__pychivalry__find_references`,
-`mcp__pychivalry__source`, `mcp__pychivalry__explain_code`, `mcp__pychivalry__format`,
-`mcp__pychivalry__apply_format`. Only a listed name can be called: a call of a short name reaches
-nothing, and Claude Code answers that there is no such tool. Another client lists the same tools
-under its own prefix (VS Code's Copilot harness `pychivalry-`, VS Code's own `mcp_pychivalry_`,
-each before the tool's own name): there, call the tool whose name ends in the same tool's name.
-If a call finds no such tool, call the same tool again by its listed name. If no pychivalry tool
-is offered at all, say so and stop: in VS Code the extension registers the agent server by
-itself; for Claude Code, the person runs "pychivalry: Set up for Claude Code" in VS Code once for
-the mod's folder.
+**Call each tool by the name your client lists.** Every tool is written here by the name Claude Code
+lists it under, `mcp__pychivalry__` and the tool's own name: `mcp__pychivalry__check`,
+`mcp__pychivalry__lookup`, `mcp__pychivalry__find_definition`, `mcp__pychivalry__list_definitions`,
+`mcp__pychivalry__find_references`, `mcp__pychivalry__call_graph`, `mcp__pychivalry__source`,
+`mcp__pychivalry__explain_code`, `mcp__pychivalry__format`, `mcp__pychivalry__apply_format`. Only a
+listed name can be called: a call of a short name reaches nothing, and Claude Code answers that
+there is no such tool. Another client lists the same tools under its own prefix (VS Code's Copilot
+harness `pychivalry-`, VS Code's own `mcp_pychivalry_`, each before the tool's own name): there,
+call the tool whose name ends in the same tool's name. If a call finds no such tool, call the same
+tool again by its listed name. If no pychivalry tool is offered at all, say so and stop: in VS Code
+the extension registers the agent server by itself; for Claude Code, the person runs "pychivalry:
+Set up for Claude Code" in VS Code once for the mod's folder.
 
 ## The rules
 
@@ -112,10 +111,21 @@ same.
 5. **Draft,** looking up every name before you write it (rule 1), writing the localization
    with the script (rule 2), and giving every option of an event with several options its AI
    weight (rule 8).
-6. **Format, check and repair,** as rules 3 to 8 say, round by round:
+6. **Check the chains you wrote.** When what you wrote calls another definition (an event that
+   fires another event, a decision that fires an event, an option or an effect that runs a
+   scripted effect or tests a scripted trigger), run `mcp__pychivalry__call_graph` with `names`
+   each definition you wrote that calls another (up to 20 a call) and `direction` set to
+   `callees`. It lists each call it reads in them, with its `kind`, the statement that writes it
+   (`via`) and its place: every call you meant must be there, to the definition you meant, its
+   callee `defined` true. Repair a callee that is not defined, or a call to another definition
+   than you meant, before you check; a call you meant that is not listed, say so in your report,
+   with the statement you wrote. Every name it answers is answered whole; one listed in
+   `not_answered` did not fit: ask about it in another call.
+7. **Format, check and repair,** as rules 3 to 8 say, round by round:
    `mcp__pychivalry__apply_format` on each file you wrote or changed, then
    `mcp__pychivalry__check`.
-7. **Report.** The files you wrote and the names you defined; the last `mcp__pychivalry__check`'s
+8. **Report.** The files you wrote and the names you defined; the calls between them, as
+   `mcp__pychivalry__call_graph` listed them (step 6); the last `mcp__pychivalry__check`'s
    totals for those files; the choices you made; and anything left, as rule 6 says. Say also
    what a clean check does not prove: that the content does what was asked when it runs in the
    game.

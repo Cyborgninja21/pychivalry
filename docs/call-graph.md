@@ -5,8 +5,11 @@ effect that runs a scripted effect, an on-action that fires an event, a decision
 The core reads it from the spec package and the workspace index (`packages/core/src/calls/`), and
 three surfaces give the same links: the command line's `pychivalry calls`, the agent server's
 `call_graph` and the editor's call hierarchy ([Commands](guide/commands.md#options-of-calls),
-[The agent server](guide/agent-server.md#the-tools)). This page says what makes a link, what the
-graph of the base game holds, and how it is tested.
+[The agent server](guide/agent-server.md#the-tools)). The fix-error and write-content skills ask
+`call_graph` too: the first for a definition's callers before it changes a scripted effect, a
+scripted trigger or an event, the second for the calls of the content it wrote (decision 193,
+[skills/README.md](../skills/README.md)). This page says what makes a link, what the graph of the
+base game holds, and how it is tested.
 
 ## What makes a link
 
