@@ -16,19 +16,30 @@ The procedure is the one the spec work used for its documentation dumps (`pdx-pa
 
 Every command here reads the variable `PYCHIVALRY_OWNERS_WORD` before anything else: it must be
 `decision <n>`, and row `<n>` of [decisions.md](decisions.md) must be a decision of the area
-`Game launch` whose text opens with "On the owner's word" and holds the words the guard asks for
+`Game launch` whose text opens with "On the owner's word", holds the words the guard asks for
 (`LAUNCH_WORDS` in `tools/src/game-log/guard.ts`: his word for a launch of the game, on the
-analysis machine). No variable, a value of another form, a number with no row, a row of another
-area or one that only describes the guard (decisions 194 and 199 among them), and the command
-stops with exit code 2 before it reads a folder, writes a file or starts a program. Recording the
+analysis machine), and **names the command being started**, its task with the variable set to that
+very row: `task game:capture-log` with `PYCHIVALRY_OWNERS_WORD=decision <n>`, or the same for
+`task scored:in-game-load` (`launchNaming`; decision 205). A row that mentions a command only to
+leave it out, or names it with another row's number, does not let it start. No variable, a value
+of another form, a number with no row, a row of another area or one that only describes the guard
+(decisions 194 and 199 among them), a row that does not name the command, and the command stops
+with exit code 2 before it reads a folder, writes a file or starts a program. Recording the
 word is the owner's, or done on his word, as for every decision.
 
-**Decision 200** is that word for the eight captures below: `PYCHIVALRY_OWNERS_WORD=decision 200`.
-A test holds that the guard accepts it, that it names the eight captures and leaves out item 11.8,
-and that it is the only row of the page the guard accepts (`capture.test.ts`). The guard reads the
-row, not what the row covers: it would let `task scored:in-game-load` start on decision 200 too, and
-it does not count launches. What the row covers is held by the agent that runs the captures: the
-eight below, each once, and no in-game load.
+**Decision 200** is that word for the eight captures below: `PYCHIVALRY_OWNERS_WORD=decision 200`,
+which names `task game:capture-log`. Tests hold that the guard accepts it for that command and
+refuses it for `task scored:in-game-load`, that it names the eight captures
+and leaves out item 11.8, that it is the only row of the page that starts the capture and that no
+row starts the in-game load, and that decisions 194 and 199 are refused for both
+(`capture.test.ts`, through the tools' command line too). Each capture record names the decision
+and the command it ran for (`owners_word`).
+
+**The guard does not count launches** (decision 205): nothing durable that every launch sees
+records them where it runs (each record goes to a new `CAPTURE_OUT` folder, and reaches the
+repository only after the check below, if at all), a count in the user's game folder would leave a
+file of pychivalry's there, and a count does not say which capture is which. The agent running the
+captures makes each of the eight once; the committed records show afterwards what ran.
 
 ## Before a launch
 
@@ -181,5 +192,6 @@ ending on quiet logs and one ending by itself, the mod list put back byte for by
 no descriptor left, a descriptor of the same name refused, the logs kept naming no folder of the
 machine and each log's count of what was replaced, and the in-game load failing a result whose log
 names its file and passing one whose log does not. Both commands are refused through the tools' own
-command line without the owner's word, and the guard accepts decision 200, the one row of the
-repository's page that records it, and still refuses decisions 194 and 199.
+command line without the owner's word for them, the guard accepts decision 200, the one row of the
+repository's page that records it, for the capture alone, refuses it for the in-game load, and
+still refuses decisions 194 and 199 for both.

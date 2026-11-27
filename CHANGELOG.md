@@ -1142,6 +1142,12 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   capture tooling runs there with Node, if Node is installed (decision 201); the captured logs may
   be committed as fixtures after a check of each file for names and paths (decision 202). No
   capture has been made yet.
+- The guard on every launch of the game lets a command start only on a decision that names it
+  (decision 205): row `<n>` must name the command's task with `PYCHIVALRY_OWNERS_WORD=decision <n>`,
+  as decision 200 names `task game:capture-log`. `task scored:in-game-load` is refused on decision
+  200, decisions 194 and 199 are refused for both commands, and each capture record names the
+  command it ran for (`owners_word.command`). Launches are not counted against a row: no count
+  would be sound (decision 205 says why).
 
 ### Fixed
 

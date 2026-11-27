@@ -25,7 +25,14 @@ import { test, type TestContext } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { openSpec } from '@pychivalry/core';
 import { capture, descriptorName, scrub, scrubbed } from './capture.js';
-import { LAUNCH_WORDS, LaunchRefused, ownersWord } from './guard.js';
+import {
+    LAUNCH_COMMANDS,
+    LAUNCH_WORDS,
+    launchNaming,
+    LaunchRefused,
+    ownersWord,
+    type LaunchCommand,
+} from './guard.js';
 import { contentFiles, inGameLoad, inGameLoadGrade } from './in-game-load.js';
 import { repoRoot } from '../util.js';
 
@@ -60,9 +67,12 @@ function setUp(t: TestContext) {
         decisions,
         [
             "| 1 | 2026-01-01 | Step 11 | On the owner's word, step 11 starts without launching the game. |",
-            `| 2 | 2026-01-02 | Game launch | On the owner's word, ${LAUNCH_WORDS}: the captures of item 11.1. |`,
-            `| 3 | 2026-01-02 | Game launches | The guard asks for ${LAUNCH_WORDS}. |`,
-            `| 4 | 2026-01-02 | Game launch | The guard asks for ${LAUNCH_WORDS}. |`,
+            `| 2 | 2026-01-02 | Game launch | On the owner's word, ${LAUNCH_WORDS}: the captures of item 11.1, \`task game:capture-log\` with \`PYCHIVALRY_OWNERS_WORD=decision 2\`; not the in-game load, \`task scored:in-game-load\`. |`,
+            `| 3 | 2026-01-02 | Game launches | The guard asks for ${LAUNCH_WORDS}, \`task game:capture-log\` with \`PYCHIVALRY_OWNERS_WORD=decision 3\`. |`,
+            `| 4 | 2026-01-02 | Game launch | The guard asks for ${LAUNCH_WORDS}, \`task game:capture-log\` with \`PYCHIVALRY_OWNERS_WORD=decision 4\`. |`,
+            `| 5 | 2026-01-02 | Game launch | On the owner's word, ${LAUNCH_WORDS}: the in-game load, \`task scored:in-game-load\` with \`PYCHIVALRY_OWNERS_WORD=decision 5\`. |`,
+            `| 6 | 2026-01-02 | Game launch | On the owner's word, ${LAUNCH_WORDS}: \`task game:capture-log\` with \`PYCHIVALRY_OWNERS_WORD=decision 2\`. |`,
+            `| 7 | 2026-01-02 | Game launch | On the owner's word, ${LAUNCH_WORDS}: the captures. |`,
             '',
         ].join('\n'),
     );
@@ -97,36 +107,82 @@ function setUp(t: TestContext) {
 
 test("the guard: no launch without a decision recording the owner's word for one", (t) => {
     const s = setUp(t);
-    assert.throws(() => ownersWord(undefined, s.decisions), LaunchRefused);
-    assert.throws(() => ownersWord('', s.decisions), /set PYCHIVALRY_OWNERS_WORD/);
-    assert.throws(() => ownersWord('yes', s.decisions), /must be "decision <n>"/);
-    assert.throws(() => ownersWord('decision 9', s.decisions), /has no decision 9/);
-    assert.throws(
-        () => ownersWord('decision 1', s.decisions),
-        /does not record the owner's word for a launch/,
-    );
-    assert.equal(ownersWord('decision 2', s.decisions).decision, 2);
-    // A row that only quotes the words, of another area or not the owner's word, lets nothing run.
-    assert.throws(() => ownersWord('decision 3', s.decisions), /does not record/);
-    assert.throws(() => ownersWord('decision 4', s.decisions), /does not record/);
-    // The repository's own page: decision 194 is the word to start step 11 without a launch,
-    // decision 199 the guard's own description; neither lets a launch run.
-    for (const n of [194, 199]) {
+    for (const command of LAUNCH_COMMANDS) {
+        assert.throws(() => ownersWord(undefined, s.decisions, command), LaunchRefused);
+        assert.throws(() => ownersWord('', s.decisions, command), /set PYCHIVALRY_OWNERS_WORD/);
+        assert.throws(() => ownersWord('yes', s.decisions, command), /must be "decision <n>"/);
+        assert.throws(() => ownersWord('decision 9', s.decisions, command), /has no decision 9/);
         assert.throws(
-            () =>
-                ownersWord(`decision ${String(n)}`, path.join(repoRoot(), 'docs', 'decisions.md')),
-            /does not record/,
+            () => ownersWord('decision 1', s.decisions, command),
+            /does not record the owner's word for a launch/,
         );
+        // A row that only quotes the words, of another area or not the owner's word, lets
+        // nothing run, though it names the command.
+        assert.throws(() => ownersWord('decision 3', s.decisions, command), /does not record/);
+        assert.throws(() => ownersWord('decision 4', s.decisions, command), /does not record/);
+        // A launch row that names a command with another row's number, or names none, lets
+        // nothing run.
+        for (const n of [6, 7]) {
+            assert.throws(
+                () => ownersWord(`decision ${String(n)}`, s.decisions, command),
+                new RegExp(`records the owner's word for a launch, but not of task ${command}`),
+            );
+        }
+        // The repository's own page: decision 194 is the word to start step 11 without a launch,
+        // decision 199 the guard's own description; neither lets a launch run.
+        for (const n of [194, 199]) {
+            assert.throws(
+                () =>
+                    ownersWord(
+                        `decision ${String(n)}`,
+                        path.join(repoRoot(), 'docs', 'decisions.md'),
+                        command,
+                    ),
+                /does not record/,
+            );
+        }
     }
 });
 
-test("the guard lets the eight captures of item 11.1 run on the owner's word of decision 200, and only that row", () => {
+test('the guard: a launch command starts only on a Game launch row that names it with that row', (t) => {
+    // Decision 205: a row lets start the commands it names as `task <command>` with
+    // `PYCHIVALRY_OWNERS_WORD=decision <its number>`, and no other; a row that mentions another
+    // command to leave it out (row 2 names the in-game load's task) does not let it start.
+    const s = setUp(t);
+    assert.deepEqual(ownersWord('decision 2', s.decisions, 'game:capture-log'), {
+        decision: 2,
+        row: readFileSync(s.decisions, 'utf8').split('\n')[1],
+        command: 'game:capture-log',
+    });
+    assert.throws(
+        () => ownersWord('decision 2', s.decisions, 'scored:in-game-load'),
+        /records the owner's word for a launch, but not of task scored:in-game-load: a decision lets a command start only when it names it as `task scored:in-game-load` with `PYCHIVALRY_OWNERS_WORD=decision 2`/,
+    );
+    assert.equal(ownersWord('decision 5', s.decisions, 'scored:in-game-load').decision, 5);
+    assert.throws(
+        () => ownersWord('decision 5', s.decisions, 'game:capture-log'),
+        /but not of task game:capture-log/,
+    );
+    assert.equal(
+        launchNaming('game:capture-log', 200),
+        '`task game:capture-log` with `PYCHIVALRY_OWNERS_WORD=decision 200`',
+    );
+    assert.deepEqual([...LAUNCH_COMMANDS], ['game:capture-log', 'scored:in-game-load']);
+});
+
+test("the guard lets the eight captures of item 11.1 run on the owner's word of decision 200, and nothing else", () => {
     // The owner's word of 2026-11-27: decision 200 records it for the eight captures of item 11.1
-    // on the analysis machine, written so the guard accepts it; rows 194 and 199 still let nothing
-    // run. The guard reads the row, not what the row covers: what it covers is held here.
+    // on the analysis machine, written so the guard accepts it for `task game:capture-log`, the
+    // command it names (decision 205), and refuses it for `task scored:in-game-load`; rows 194 and
+    // 199 still let nothing run. What else the row covers is held here.
     const page = path.join(repoRoot(), 'docs', 'decisions.md');
-    const word = ownersWord('decision 200', page);
+    const word = ownersWord('decision 200', page, 'game:capture-log');
     assert.equal(word.decision, 200);
+    assert.equal(word.command, 'game:capture-log');
+    assert.throws(
+        () => ownersWord('decision 200', page, 'scored:in-game-load'),
+        /records the owner's word for a launch, but not of task scored:in-game-load/,
+    );
     assert.match(word.row, /^\| 200 \| 2026-11-27 \| Game launch \| On the owner's word, /);
     assert.ok(word.row.includes(LAUNCH_WORDS), "the guard's exact words");
     for (const named of [
@@ -143,17 +199,23 @@ test("the guard lets the eight captures of item 11.1 run on the owner's word of 
     }
     assert.match(word.row, /these eight launches only/);
     assert.match(word.row, /not the in-game load of item 11\.8/);
-    for (const n of [194, 199]) {
-        assert.throws(() => ownersWord(`decision ${String(n)}`, page), /does not record/);
+    for (const command of LAUNCH_COMMANDS) {
+        for (const n of [194, 199]) {
+            assert.throws(
+                () => ownersWord(`decision ${String(n)}`, page, command),
+                /does not record/,
+            );
+        }
     }
-    // No other row of the page lets a launch run.
-    const launches = readFileSync(page, 'utf8')
+    // No other row of the page lets a launch run: decision 200 the captures, none the in-game load.
+    const rows = readFileSync(page, 'utf8')
         .split(/\r?\n/)
         .map((line) => /^\| (\d+) \|/.exec(line)?.[1])
-        .filter((n): n is string => n !== undefined)
-        .filter((n) => {
+        .filter((n): n is string => n !== undefined);
+    const launches = (command: LaunchCommand): string[] =>
+        rows.filter((n) => {
             try {
-                ownersWord(`decision ${n}`, page);
+                ownersWord(`decision ${n}`, page, command);
                 return true;
             } catch (err) {
                 if (err instanceof LaunchRefused) {
@@ -162,7 +224,8 @@ test("the guard lets the eight captures of item 11.1 run on the owner's word of 
                 throw err;
             }
         });
-    assert.deepEqual(launches, ['200']);
+    assert.deepEqual(launches('game:capture-log'), ['200']);
+    assert.deepEqual(launches('scored:in-game-load'), []);
 });
 
 test('a refused capture touches nothing: no mod list written, no descriptor, no folder', async (t) => {
@@ -171,6 +234,7 @@ test('a refused capture touches nothing: no mod list written, no descriptor, no 
     await assert.rejects(
         capture({
             ownersWord: 'decision 1',
+            command: 'game:capture-log',
             decisionsFile: s.decisions,
             installDir: s.install,
             start: s.start,
@@ -191,6 +255,7 @@ test('a capture: the mod list set, the game started, quiet logs awaited, stopped
     const out = path.join(s.root, 'out');
     const record = await capture({
         ownersWord: 'decision 2',
+        command: 'game:capture-log',
         decisionsFile: s.decisions,
         installDir: s.install,
         start: s.start,
@@ -205,7 +270,7 @@ test('a capture: the mod list set, the game started, quiet logs awaited, stopped
     assert.equal(record.game.build, '1.21.0.3');
     assert.deepEqual(record.options, ['-debug_mode']);
     assert.deepEqual(record.mods, [{ name: 'result', descriptor: `mod/${descriptorName(0)}` }]);
-    assert.deepEqual(record.owners_word, { decision: 2 });
+    assert.deepEqual(record.owners_word, { decision: 2, command: 'game:capture-log' });
     assert.deepEqual(record.dlc_load.restored && record.dlc_load.identical, true);
     assert.equal(record.descriptors_removed, true);
     assert.equal(record.capture_format, 2);
@@ -245,6 +310,7 @@ test('a game that ends by itself ends the wait; a descriptor of the same name al
     const s = setUp(t);
     const record = await capture({
         ownersWord: 'decision 2',
+        command: 'game:capture-log',
         decisionsFile: s.decisions,
         installDir: s.install,
         start: s.start,
@@ -262,6 +328,7 @@ test('a game that ends by itself ends the wait; a descriptor of the same name al
     await assert.rejects(
         capture({
             ownersWord: 'decision 2',
+            command: 'game:capture-log',
             decisionsFile: s.decisions,
             installDir: s.install,
             start: s.start,
@@ -300,7 +367,7 @@ test("the in-game load grade: a result's log may add no line naming its files", 
 test('the in-game load end to end on the stand-in: two captures, the grade', async (t) => {
     const s = setUp(t);
     const options = {
-        ownersWord: 'decision 2',
+        ownersWord: 'decision 5',
         decisionsFile: s.decisions,
         specDir: SPEC,
         installDir: s.install,
@@ -318,6 +385,10 @@ test('the in-game load end to end on the stand-in: two captures, the grade', asy
     });
     assert.equal(bad.grade.held, false);
     assert.deepEqual(bad.grade.files, ['events/b.txt']);
+    // Both captures ran on the in-game load's own decision, as its command (decision 205).
+    for (const record of [bad.without, bad.with]) {
+        assert.deepEqual(record.owners_word, { decision: 5, command: 'scored:in-game-load' });
+    }
     writeFileSync(path.join(s.result, 'events', 'b.txt'), 'a.1 = { }\n');
     const good = await inGameLoad({
         ...options,
@@ -334,17 +405,33 @@ test('the in-game load end to end on the stand-in: two captures, the grade', asy
         }),
         LaunchRefused,
     );
+    // The captures' decision does not name the in-game load: refused before anything is touched.
+    await assert.rejects(
+        inGameLoad({
+            ...options,
+            ownersWord: 'decision 2',
+            resultDir: s.result,
+            outDir: path.join(s.root, 'not-its-decision'),
+        }),
+        /but not of task scored:in-game-load/,
+    );
+    assert.ok(!readdirSync(s.root).includes('not-its-decision'));
     assert.equal(readFileSync(path.join(s.user, 'dlc_load.json'), 'utf8'), s.list);
 });
 
-test("the tools refuse both launch commands without the owner's word, before reading anything else", (t) => {
+test("the tools refuse both launch commands without the owner's word for them, before reading anything else", (t) => {
     const s = setUp(t);
     const cli = fileURLToPath(new URL('../cli.js', import.meta.url));
     for (const [group, command] of [
         ['game', 'capture-log'],
         ['scored', 'in-game-load'],
     ] as const) {
-        for (const word of [undefined, 'decision 194']) {
+        // Decision 200, the repository's word for the captures, does not name the in-game load.
+        const words =
+            group === 'scored'
+                ? [undefined, 'decision 194', 'decision 199', 'decision 200']
+                : [undefined, 'decision 194', 'decision 199'];
+        for (const word of words) {
             const env: Record<string, string | undefined> = {
                 ...process.env,
                 PYCHIVALRY_OWNERS_WORD: undefined,
@@ -359,7 +446,11 @@ test("the tools refuse both launch commands without the owner's word, before rea
             assert.equal(r.status, 2, r.stderr);
             assert.match(
                 r.stderr,
-                word === undefined ? /no launch without the owner's word/ : /does not record/,
+                word === undefined
+                    ? /no launch without the owner's word/
+                    : word === 'decision 200'
+                      ? /decision 200 records the owner's word for a launch, but not of task scored:in-game-load/
+                      : /does not record/,
             );
         }
     }

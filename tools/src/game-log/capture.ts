@@ -4,7 +4,9 @@
  * `research/oracle/1.21.0.3/README.md`), adapted to a mod list: prepared, never run without the
  * owner's word (`guard.ts`, checked first).
  *
- * 1. The guard: no owner's word recorded for a launch, no launch, and nothing is touched.
+ * 1. The guard: no owner's word recorded for a launch by the command that starts it
+ *    (`game:capture-log`, or `scored:in-game-load` for its two captures), no launch, and nothing is
+ *    touched.
  * 2. The mod list: `dlc_load.json` in the user's game folder is backed up byte for byte, with its
  *    time; each mod of the capture gets a descriptor of its own in the user's `mod/` folder
  *    (`pychivalry_capture_<n>.mod`, its `path` the mod's folder), refused when one of that name
@@ -40,7 +42,7 @@ import {
     writeFileSync,
 } from 'node:fs';
 import path from 'node:path';
-import { ownersWord, type OwnersWord } from './guard.js';
+import { ownersWord, type LaunchCommand, type OwnersWord } from './guard.js';
 
 /**
  * The record's format: 2 since each log kept lists what the scrubber replaced in it (decision
@@ -63,6 +65,8 @@ export interface Start {
 export interface CaptureOptions {
     /** `PYCHIVALRY_OWNERS_WORD`, `decision <n>`: checked before anything else. */
     readonly ownersWord: string | undefined;
+    /** The command this capture is started by, which that decision must name (decision 205). */
+    readonly command: LaunchCommand;
     /** docs/decisions.md, where that decision is recorded. */
     readonly decisionsFile: string;
     /** The game's install folder, holding `launcher/` (for its build) and `binaries/`. */
@@ -104,7 +108,7 @@ export interface CapturedLog {
 /** The record of one capture. */
 export interface CaptureRecord {
     readonly capture_format: number;
-    readonly owners_word: { readonly decision: number };
+    readonly owners_word: { readonly decision: number; readonly command: LaunchCommand };
     readonly started: string;
     readonly game: { readonly build: string | null; readonly executable_sha256: string };
     readonly options: readonly string[];
@@ -221,7 +225,7 @@ function wait(ms: number): Promise<void> {
 
 /** One capture, as above; the record is also written to `<outDir>/capture.json`. */
 export async function capture(options: CaptureOptions): Promise<CaptureRecord> {
-    const word: OwnersWord = ownersWord(options.ownersWord, options.decisionsFile);
+    const word: OwnersWord = ownersWord(options.ownersWord, options.decisionsFile, options.command);
     const say = options.log ?? (() => undefined);
     const quietMs = (options.quietSeconds ?? 30) * 1000;
     const timeoutMs = (options.timeoutSeconds ?? 480) * 1000;
@@ -390,7 +394,7 @@ export async function capture(options: CaptureOptions): Promise<CaptureRecord> {
         restore();
         const record: CaptureRecord = {
             capture_format: CAPTURE_FORMAT,
-            owners_word: { decision: word.decision },
+            owners_word: { decision: word.decision, command: word.command },
             started: startedAt.toISOString(),
             game: {
                 build: buildOf(options.installDir),

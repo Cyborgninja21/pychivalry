@@ -2,12 +2,13 @@
  * The two commands that launch the game (docs/game-log-capture.md): `game capture-log`, one
  * capture of item 11.1, and `scored in-game-load`, one result of the authoring run through the
  * in-game load of item 11.8. Only on the analysis machine, only on the owner's word: the guard
- * (`PYCHIVALRY_OWNERS_WORD`) is read before any other variable, path or file. Every folder is a
- * variable with no default, so nothing reaches a folder no one named.
+ * (`PYCHIVALRY_OWNERS_WORD`) is read before any other variable, path or file, and its decision
+ * must name the command being started (decision 205). Every folder is a variable with no default,
+ * so nothing reaches a folder no one named.
  *
  * | Variable | Meaning |
  * | --- | --- |
- * | `PYCHIVALRY_OWNERS_WORD` | `decision <n>`: the row of docs/decisions.md recording the owner's word for a launch |
+ * | `PYCHIVALRY_OWNERS_WORD` | `decision <n>`: the row of docs/decisions.md recording the owner's word for a launch by this command |
  * | `CK3_INSTALL_PATH` | The game's install folder (holding `binaries/` and `launcher/`) |
  * | `CK3_USER_PATH` | The user's game folder (holding `dlc_load.json`, `logs/` and `mod/`) |
  * | `CAPTURE_OUT` | A new folder for the captured logs and the record |
@@ -19,7 +20,7 @@
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { capture } from './capture.js';
-import { ownersWord, OWNERS_WORD_VARIABLE } from './guard.js';
+import { ownersWord, OWNERS_WORD_VARIABLE, type LaunchCommand } from './guard.js';
 import { inGameLoad } from './in-game-load.js';
 import { CommandError, EXIT } from '../util.js';
 
@@ -38,10 +39,10 @@ function executable(installDir: string): string {
     return path.join(installDir, 'binaries', process.platform === 'win32' ? 'ck3.exe' : 'ck3');
 }
 
-function common(root: string, env: Env) {
-    // The guard first: nothing is read before it holds.
+function common(root: string, env: Env, command: LaunchCommand) {
+    // The guard first, for the command being started: nothing is read before it holds.
     const decisionsFile = path.join(root, 'docs', 'decisions.md');
-    ownersWord(env[OWNERS_WORD_VARIABLE], decisionsFile);
+    ownersWord(env[OWNERS_WORD_VARIABLE], decisionsFile, command);
     const installDir = required(env, 'CK3_INSTALL_PATH');
     return {
         ownersWord: env[OWNERS_WORD_VARIABLE],
@@ -60,13 +61,13 @@ function common(root: string, env: Env) {
 
 /** `game capture-log`. */
 export async function captureFromEnv(root: string, env: Env): Promise<number> {
-    const c = common(root, env);
+    const c = common(root, env, 'game:capture-log');
     const mods = (env['CAPTURE_MODS'] ?? '')
         .split(',')
         .map((m) => m.trim())
         .filter((m) => m !== '')
         .map((m) => path.resolve(m));
-    const record = await capture({ ...c, mods });
+    const record = await capture({ ...c, command: 'game:capture-log', mods });
     process.stdout.write(
         `capture: ${record.ended} after ${String(record.seconds)} s; ${String(record.logs.length)} logs; mod list restored ${record.dlc_load.identical ? 'byte for byte' : 'NOT identical'}\n`,
     );
@@ -87,7 +88,7 @@ export async function captureFromEnv(root: string, env: Env): Promise<number> {
 
 /** `scored in-game-load`. */
 export async function inGameLoadFromEnv(root: string, env: Env): Promise<number> {
-    const c = common(root, env);
+    const c = common(root, env, 'scored:in-game-load');
     const result = await inGameLoad({
         ...c,
         specDir: path.join(root, 'spec'),
