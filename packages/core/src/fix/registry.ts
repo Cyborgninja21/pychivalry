@@ -54,6 +54,10 @@ export interface FixRow {
 
 const NONE_ADVICE = 'None: the right change is a choice of content the data does not make.';
 
+/** Why a GUI syntax finding has no fix: step 10 leaves GUI files out of the formatter and the fixes. */
+const NONE_GUI =
+    'None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md).';
+
 /** Every code's fix. */
 export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
     'syntax/missing-closing-brace': {
@@ -101,6 +105,19 @@ export const FIX_ROWS: Readonly<Record<Code, FixRow>> = {
         offer: 'none',
         what: 'None: what the expression should compute is a choice.',
     },
+    'syntax/gui-missing-closing-brace': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-unexpected-closing-brace': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-operator-without-key': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-operator-not-equals': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-missing-value': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-missing-equals': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-value-without-key': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-block-without-key': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-missing-block-name': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-malformed-type': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-trailing-semicolon': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-unterminated-string': { offer: 'none', what: NONE_GUI },
+    'syntax/gui-malformed-arithmetic': { offer: 'none', what: NONE_GUI },
     'names/unknown-trigger': {
         offer: 'safe-or-suggestion',
         what: 'The documented replacement of a removed trigger, or the triggers near the name that fit the scope; safe when there is only one.',

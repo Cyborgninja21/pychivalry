@@ -1,0 +1,4 @@
+﻿window = {
+	name = "fixture_window"
+	size > { 400 300 }
+}

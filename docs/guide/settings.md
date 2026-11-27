@@ -24,6 +24,9 @@ VS Code's own settings for CK3 files by default, which you can change like any o
 | `files.encoding` | `[ck3]`, `[ck3-localization]` | `utf8bom` | The format's byte-order mark is the file's encoding in VS Code: saving writes it |
 | `files.eol` | `[ck3]`, `[ck3-localization]` | `\r\n` | New files get the format's Windows line breaks; Format Document turns an existing file's `\n` to `\r\n` |
 
+GUI files have a language of their own, `ck3-gui`, and no default is set for it: pychivalry does
+not format them ([GUI syntax](../gui-syntax.md#what-step-10-does-not-do)).
+
 A value of the wrong type is ignored and the default used. Changing the game folder or the
 fallback encoding reads the game again; turning `unusedKeys` on or off checks every file again.
 

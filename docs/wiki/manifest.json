@@ -25,6 +25,7 @@
         { "page": "What-The-Parser-Reads", "source": "docs/encoding.md" },
         { "page": "Override-Rules", "source": "docs/overrides.md" },
         { "page": "Formatting-Rules", "source": "docs/formatting.md" },
+        { "page": "GUI-Syntax", "source": "docs/gui-syntax.md" },
         { "page": "Check-Inventory", "source": "docs/checks.md" },
         { "page": "Test-Data", "source": "docs/test-data.md" },
         { "page": "Decision-Log", "source": "docs/decisions.md" }
@@ -63,6 +64,7 @@
                 "What-The-Parser-Reads",
                 "Override-Rules",
                 "Formatting-Rules",
+                "GUI-Syntax",
                 "Check-Inventory"
             ]
         },

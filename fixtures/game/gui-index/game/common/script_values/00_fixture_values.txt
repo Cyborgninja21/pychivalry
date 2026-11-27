@@ -1,0 +1,2 @@
+# A game folder has common/ (isGameFolder); the stub's one script value, used nowhere.
+fixture_gui_stub_value = 1

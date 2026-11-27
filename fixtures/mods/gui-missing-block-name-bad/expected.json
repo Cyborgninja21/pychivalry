@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-missing-block-name",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 3,
+                    "message": "'blockoverride' is followed by its block with no name between them."
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\" fixture_header = { blockoverride <none> { text = \"FIXTURE_TITLE\" } } } types FixtureTypes { type fixture_header = hbox { text_single = { block \"header_text\" { text = \"\" } } } }"
+        }
+    }
+}

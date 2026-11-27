@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-malformed-type",
+                    "severity": "information",
+                    "line": 3,
+                    "column": 24,
+                    "message": "A type definition not written 'type <name> = <base> { ... }': its base type is missing."
+                }
+            ],
+            "tree": "types FixtureTypes { type fixture_button = <none> { size = { 30 30 } } }"
+        }
+    }
+}

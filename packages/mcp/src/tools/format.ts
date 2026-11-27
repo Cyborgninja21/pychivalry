@@ -18,9 +18,11 @@
 
 import {
     decodeScript,
+    fileKindOf,
     folderTableFromSpec,
     formatKindOf,
     formatText,
+    GUI_NOT_FORMATTED,
     leftMessage,
     listMod,
     type FormatResult,
@@ -79,6 +81,11 @@ function formatOf(file: string, session: Session): Formatted {
         (f) => f.path,
     );
     const kind = formatKindOf(target.relative);
+    if (fileKindOf(target.relative) === 'gui' && listed.includes(target.relative)) {
+        throw new BadInput(
+            `file: ${target.relative}: ${GUI_NOT_FORMATTED}; give a script (.txt) or localization (.yml) file`,
+        );
+    }
     if (kind === undefined || !listed.includes(target.relative)) {
         throw new BadInput(
             `file: ${target.relative} is not a script or localization file the game reads (a .txt file of a folder the spec package lists, or a .yml file under localization/)`,

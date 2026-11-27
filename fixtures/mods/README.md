@@ -26,6 +26,14 @@ committed spec's catalogue. The tree is the one-line summary of
 block has no `}`), comments in parentheses, a name before a key as `<name>`, and a missing
 operator or value as `<none>`.
 
+A GUI fixture pair (build step 10), `gui-<what>-bad` and `gui-<what>-good`, holds one GUI file
+in `gui/`; the bad half's `expected.json` maps it to the GUI parser's findings and its tree, as a
+parser fixture's does (the tree is the one-line summary of `packages/core/src/gui/testing.ts`:
+named blocks as `keyword name { ... }`, type definitions as `type name = base { ... }`, a missing
+part as `<none>`), and the good half has none. GUI files are not in the formatter: they are
+written with Windows line breaks and the byte-order mark, as the other fixture files are, and
+`.gitattributes` keeps their bytes exact.
+
 An index fixture's `expected.json` (build step 3) says what a correct index answers. For the
 override-rules mods, a list of `cases`: per name of a database, the rule of docs/overrides.md
 that decides it, the `status` (`single`, `winner`, `all`, `statements`, `clash`, `not-read` or
@@ -106,6 +114,20 @@ rewritten to this layout. Where one is carried over, its README says which file 
 | [fields-wrong-kind-of-value-bad](fields-wrong-kind-of-value-bad/README.md), [-good](fields-wrong-kind-of-value-good/README.md) | In `common/decision_group_types`, whose `sort_order` the base game writes only as whole numbers, `important_decision_group` only as `yes` or `no`, and `gui_tags` only as a list, a record writes a word for the number (`ten`), `maybe` for the yes-or-no, and one word for the list | Item 4.5 |
 | [fix-near-values](fix-near-values/README.md) | Three values of advice findings, each a misspelling of exactly one value its place takes (`character_evnt`, `fixture_idel`, `yess`): each fix is a suggestion of that value, since advice is never fixed safely; read over the stub `planted-defects` | Item 8.6 (#146) |
 | [fix-scope-links](fix-scope-links/README.md) | The fixes of the scope findings: an effect one plain link away (a safe fix wrapping it in `dynasty`), one two links away (a suggestion of both), a link that needs a link before it; read over the stub `planted-defects` | Item 8.6 (#146) |
+| [gui-block-without-key-bad](gui-block-without-key-bad/README.md), [-good](gui-block-without-key-good/README.md) | A block with no key among a window's properties: `syntax/gui-block-without-key` | Item 10.2 |
+| [gui-malformed-arithmetic-bad](gui-malformed-arithmetic-bad/README.md), [-good](gui-malformed-arithmetic-good/README.md) | `@[ ... ]` with its last operand missing: `syntax/gui-malformed-arithmetic` | Item 10.2 |
+| [gui-malformed-type-bad](gui-malformed-type-bad/README.md), [-good](gui-malformed-type-good/README.md) | A type definition with its base type left out: `syntax/gui-malformed-type` | Item 10.2 |
+| [gui-missing-block-name-bad](gui-missing-block-name-bad/README.md), [-good](gui-missing-block-name-good/README.md) | A `blockoverride` followed by its block with no name: `syntax/gui-missing-block-name` | Item 10.2 |
+| [gui-missing-closing-brace-bad](gui-missing-closing-brace-bad/README.md), [-good](gui-missing-closing-brace-good/README.md) | A window whose own `}` is missing: `syntax/gui-missing-closing-brace` | Item 10.2 |
+| [gui-missing-equals-bad](gui-missing-equals-bad/README.md), [-good](gui-missing-equals-good/README.md) | `size { 5 0 }` and `align right\|top`, the two shapes the base game writes without `=`: `syntax/gui-missing-equals` | Item 10.2 |
+| [gui-missing-value-bad](gui-missing-value-bad/README.md), [-good](gui-missing-value-good/README.md) | A widget's `name =` with nothing after it: `syntax/gui-missing-value` | Item 10.2 |
+| [gui-operator-not-equals-bad](gui-operator-not-equals-bad/README.md), [-good](gui-operator-not-equals-good/README.md) | A size written with `>`: `syntax/gui-operator-not-equals` | Item 10.2 |
+| [gui-operator-without-key-bad](gui-operator-without-key-bad/README.md), [-good](gui-operator-without-key-good/README.md) | An `=` with no key among a widget's properties: `syntax/gui-operator-without-key` | Item 10.2 |
+| [gui-trailing-semicolon-bad](gui-trailing-semicolon-bad/README.md), [-good](gui-trailing-semicolon-good/README.md) | `expanding;` and `"[Close]";`: `syntax/gui-trailing-semicolon` | Item 10.2 |
+| [gui-unexpected-closing-brace-bad](gui-unexpected-closing-brace-bad/README.md), [-good](gui-unexpected-closing-brace-good/README.md) | A `}` after the window's own: `syntax/gui-unexpected-closing-brace` | Item 10.2 |
+| [gui-unterminated-string-bad](gui-unterminated-string-bad/README.md), [-good](gui-unterminated-string-good/README.md) | Quoted text with no closing quote, which leaves the window open too: `syntax/gui-unterminated-string` | Item 10.2 |
+| [gui-value-without-key-bad](gui-value-without-key-bad/README.md), [-good](gui-value-without-key-good/README.md) | A word alone among a widget's properties: `syntax/gui-value-without-key` | Item 10.2 |
+| [gui-index](gui-index/README.md) | GUI types and templates over the stub [gui-index](../game/gui-index/README.md): a type the mod defines again in another file, a file the mod replaces at the same path, a type in a sub-folder of `gui/`, a template, a local type and a local template, and a use in other letter case; its `expected.json` is what a correct index answers | Item 10.4 |
 | [index-definitions-and-uses](index-definitions-and-uses/README.md) | One definition of every form, and every way a word is a use | Step 3 |
 | [localization-missing-key-bad](localization-missing-key-bad/README.md), [-good](localization-missing-key-good/README.md) | Localization keys, in fields that hold one and that a record has by its name, defined in no localization file; read over the stub [event-targets-and-localization](../game/event-targets-and-localization/README.md) | Item 4.6 |
 | [localization-unbalanced-brackets-bad](localization-unbalanced-brackets-bad/README.md), [-good](localization-unbalanced-brackets-good/README.md) | Localization text with an extra `[` and with an extra `]`; since format 9 a `[`, a `(`, a `'` and a `$` left open, and a `]` inside an open parenthesis, which is not decided | Item 4.6 (format 9) |

@@ -202,8 +202,9 @@ The index applies `listing-depth` (whether a folder is read with its subfolders)
 other seven without applying them: `mount-order`, `mount-dependencies`, `key-identity`,
 `field-outcomes`, `path-case-mechanism`, `duplicate-message` and `open-question`; each one's
 reason is `SKIPPED_KINDS` in `rules.ts` and docs/decisions.md. The one `key-identity` row that
-folds letter case, `key-identity-gui-types`, is for GUI type names, and the index reads no
-`.gui` file.
+folds letter case, `key-identity-gui-types`, is for GUI type names; since build step 10 the index
+reads GUI files and applies it to the database it names, `gui`, where it keeps the GUI types
+([docs/gui-syntax.md](../docs/gui-syntax.md#the-index-of-types-and-templates)).
 
 Format 8 adds fields that say a decision as data, and the index applies each where its row
 decides:

@@ -1,0 +1,7 @@
+﻿window = {
+	name = "fixture_window"
+	vbox = {
+		= 5
+		layoutpolicy_horizontal = expanding
+	}
+}

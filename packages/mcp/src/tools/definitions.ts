@@ -119,7 +119,7 @@ function askedName(
         return {
             name: null,
             at: null,
-            note: `${target.relative} is not a file the game reads as script or localization: no name is indexed in it`,
+            note: `${target.relative} is not a file the game reads as script, localization or GUI: no name is indexed in it`,
         };
     }
     if (args.line > indexed.lines) {

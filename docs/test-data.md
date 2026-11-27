@@ -49,6 +49,19 @@ the findings and tree a correct parser gives in its `expected.json`; and
 tables in the test files under `packages/core/src/syntax/`: the 74 parser cases of 2.3.0, and
 one case per token and per form.
 
+Build step 10 added the GUI fixtures ([gui-syntax.md](gui-syntax.md)): thirteen pairs
+`gui-<what>-bad` and `-good`, one per finding of the GUI parser, each bad half with the findings
+and the tree a correct parser gives in its `expected.json`; and the mod `gui-index` over the
+game stub `gui-index`, whose `expected.json` says what a correct index answers for every GUI
+type and template (in force, or winner not known), each name written at a place of the mod and
+the definitions it goes to, and the uses of a type in any letter case. The editor tests write a
+GUI file into their copy of the planted-defect mod, never into the mod itself, so that the
+same-answers test covers a GUI file's findings, its formatting left alone and its definitions.
+For its graphics check and its call graph, step 10 also added `graphics-missing-file-bad` and
+`-good`, over the game stub `graphics` (a texture in `game/`, one in a DLC pack, one in
+`jomini/`): `graphics/missing-file`; and `call-graph`: a mod with a known call graph, every kind
+of link, its `expected.json` the graph.
+
 Build step 3 added the index's fixtures. The first game stub,
 [`fixtures/game/override-rules`](../fixtures/game/README.md), is an install with the three folders
 `game/`, `jomini/` and `clausewitz/` and one DLC pack, holding the game's side of every rule in
@@ -170,23 +183,24 @@ check pairs still.
 
 [`fixtures/defects/`](../fixtures/defects/README.md), written by hand in build step 6 (items 6.7
 to 6.9) and made harder after the first test sessions (decision 83): a "Harvest Festival" mod,
-`mod/`, of 17 files and 563 lines, in pychivalry's format but for its defects, with 36 planted
-defects, every check code of this build that is an error or a warning at least once (21 errors
-and 9 warnings, the `style/` family's two among them, `structure/triggered-desc-other-field` since
-format 9; four codes twice; and the hint of the planted formatting defect), and 29
+`mod/`, of 17 files and 563 lines, in pychivalry's format but for its defects, with 37 planted
+defects (since step 10, a picture in a folder that does not exist, `graphics/missing-file`), every check code of this build that is an error or a warning at least once (21 errors
+and 10 warnings, the `style/` family's two among them, `structure/triggered-desc-other-field` since
+format 9; four codes twice; and the hint of the planted formatting defect), and 30
 lines that look wrong and are not; `manifest.json`, which gives each defect's code, the line the
 checker reports it at, the text of that line and the lines a fix may change, and each
 look-alike with why it is right; and `reference/`, the same mod with every defect fixed. Some
 defects need a lookup to fix, some interact (the obvious fix of one makes another), and some
 are fixed away from the line the finding points at. It is checked over its own game stub,
 [`fixtures/game/planted-defects`](../fixtures/game/README.md), which defines the tradition and
-the scripted effect the mod uses and does not define itself, so CI needs no game.
+the scripted effect the mod uses and does not define itself, and holds `decision_misc.dds`, the
+texture its decisions show, so CI needs no game.
 
 On `mod/` the checker reports exactly the planted defects (26 errors, the clash at both of its
-definitions, 10 warnings and 1 hint); on `reference/`, nothing
+definitions, 11 warnings and 1 hint); on `reference/`, nothing
 (`tools/src/scored-run/defects.test.ts`). Since format 9 every option of its shown events with
 several options gives the AI a weight (`ai_chance`), in both copies, so that the best-practice
-hint `style/option-without-ai-weight` finds nothing. The built agent server gives the same 37 findings
+hint `style/option-without-ai-weight` finds nothing. The built agent server gives the same 38 findings
 (`tools/src/scored-run/server.test.ts`). It is what the scored agent-use test is graded on: in
 each test session of the developer's own Claude Code an agent is asked to fix a fresh copy, and
 the trial passes when the checker reports no errors, every planted defect is gone, nothing else
@@ -210,11 +224,13 @@ configuration folders, on copies of committed test data written into a temporary
 - `smoke`: the packaged `.vsix`, installed by VS Code's own installer, on a copy of the
   planted-defect mod in a folder whose name holds a space, with `pychivalry.gamePath` naming its
   game stub. Its same-answers test compares the editor's, the command line's (typed into a
-  terminal of that VS Code) and the agent server's findings: 38 in its 16 checked files, 26
-  errors, 10 warnings and 2 hints. The mod being in pychivalry's format, the copy writes one
-  file, `events/harvest_faith_events.txt`, with `\n` line breaks, so that the same-formatting
-  test still proves Format Document turns a document's `\n` into `\r\n`; that file adds the
-  formatter's warning and hint to the planted defects' 36.
+  terminal of that VS Code) and the agent server's findings: 41 in its 17 checked files, 26
+  errors, 12 warnings, 1 information and 2 hints (since build step 10). The mod being in
+  pychivalry's format, the copy writes one file, `events/harvest_faith_events.txt`, with `\n`
+  line breaks, so that the same-formatting test still proves Format Document turns a document's
+  `\n` into `\r\n`; that file adds the formatter's warning and hint to the planted defects' 38
+  findings (37 defects, the clash at both of its definitions), and the GUI file the copy writes,
+  `gui/harvest_gui_window.gui`, its one GUI finding.
 - `update-1`, `update-2`: two versions of the extension written by test code as installable
   files, on the same fixture mod copy.
 
@@ -252,14 +268,16 @@ Read from the local install of the current game version. The suites state the bu
 of the game's file manifest in each record. `task game:parse` reads 4,854 script files of game
 1.21.0.3 in ten folders and measures the encoding of all 20,530 text files; its record is
 `records/game/parse.json`, and every parse error in it is classified in
-`tools/data/parse-classifications.json` ([encoding.md](encoding.md)).
+`tools/data/parse-classifications.json` ([encoding.md](encoding.md)). Since build step 10 it also
+parses the install's 583 GUI files and the five mods' 209, every GUI finding of the base game
+classified in `tools/data/gui-parse-classifications.json` ([gui-syntax.md](gui-syntax.md)).
 
-`task game:index` indexes the whole base game (17,302 files of 1.21.0.3 in the 236 folders of
-the spec's list that hold files, with the install's `jomini/` and `clausewitz/` folders and the
+`task game:index` indexes the whole base game (17,880 files of 1.21.0.3 since build step 10, the
+581 GUI files of `gui/` among them, in the folders of the spec's list that hold files, with the install's `jomini/` and `clausewitz/` folders and the
 DLC packs), caches and reloads the index, and indexes each of the five mods over it; its record
 is `records/game/index.json` ([records/README.md](../records/README.md#index-records-gameindex)).
 
-`task game:check` runs every check on those 17,302 files and `task game:mods` on each of the
+`task game:check` runs every check on those 17,880 files and `task game:mods` on each of the
 five mods, through the same code the command line runs; their records are
 `records/game/check.json` and `records/game/mods.json`
 ([records/README.md](../records/README.md#check-records-gamecheck-gamemods)). Every error and

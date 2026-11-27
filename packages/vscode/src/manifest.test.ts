@@ -106,10 +106,11 @@ test('the agent-server provider and the commands are the ones the code registers
     ]);
 });
 
-test('it activates on a CK3 script, a localization file, or a folder holding a mod descriptor', () => {
+test('it activates on a CK3 script, a localization file, a GUI file, or a folder holding a mod descriptor', () => {
     assert.deepEqual(manifest.activationEvents, [
         'onLanguage:ck3',
         'onLanguage:ck3-localization',
+        'onLanguage:ck3-gui',
         'workspaceContains:**/descriptor.mod',
     ]);
 });
@@ -121,13 +122,19 @@ test("the languages' file patterns are the spec package's own top folders", () =
     const patterns = Object.fromEntries(
         manifest.contributes.languages.map((l) => [l.id, l.filenamePatterns]),
     );
+    // GUI files: the folders whose reader the package says takes `.gui` files (format 9).
+    const gui = spec.data.directories
+        .filter((d) => d.files?.script.extensions?.includes('.gui') === true)
+        .map((d) => `**/${d.path}/**/*.gui`);
+    assert.deepEqual(gui, ['**/gui/**/*.gui']);
     assert.deepEqual(patterns, {
         ck3: tops.filter((t) => t !== 'localization').map((t) => `**/${t}/**/*.txt`),
         'ck3-localization': ['**/localization/**/*.yml'],
+        'ck3-gui': gui,
     });
 });
 
-test('the two languages are the ones the code gives the language client', () => {
+test('the three languages are the ones the code gives the language client', () => {
     assert.deepEqual(
         manifest.contributes.languages.map((l) => l.id),
         [...LANGUAGES],

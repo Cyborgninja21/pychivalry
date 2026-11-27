@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-value-without-key",
+                    "severity": "information",
+                    "line": 3,
+                    "column": 2,
+                    "message": "The value 'expanding' stands among statements with no key in front of it."
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\" expanding size = { 400 300 } }"
+        }
+    }
+}

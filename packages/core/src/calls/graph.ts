@@ -19,12 +19,12 @@
  */
 
 import { compareCodePoints, layerKind } from '../index/order.js';
-import type { Definition, WorkspaceIndex } from '../index/workspace.js';
+import { fileKindOf, type Definition, type WorkspaceIndex } from '../index/workspace.js';
 import type { FileSource } from '../lookup/localization.js';
 import type { Spec } from '../spec/reader.js';
 import { parse } from '../syntax/parser.js';
 import type { DefinedNames } from '../check/context.js';
-import { definedNamesOf, isLocalizationDatabase } from '../check/names.js';
+import { definedNamesOf } from '../check/names.js';
 import { callLinksOf, type CallEnd, type CallLink, type CallPlace } from './links.js';
 
 export interface CallGraphOptions {
@@ -50,9 +50,12 @@ export function comparePlaces(a: CallPlace, b: CallPlace): number {
     );
 }
 
-/** True for a definition that can be a caller: one of script, not a localization key. */
+/**
+ * True for a definition that can be a caller: one of a script file, not a localization key nor,
+ * since build step 10, a GUI type or template, which call nothing.
+ */
 function isScriptDefinition(d: Definition): boolean {
-    return !isLocalizationDatabase(d.database);
+    return fileKindOf(d.file) === 'script';
 }
 
 /** A definition of a name that can call: its database and the place of its key. */

@@ -412,6 +412,9 @@ The command line writes it with the file.
   first, and once converted it is formatted like any other.
 - **Other files** are not formatted: GUI files, `.info`, `.asset`, `.shader`, `.gfx`, `.settings`,
   and anything that is neither a script file nor a localization file of a folder the game reads.
+  Since build step 10 pychivalry reads GUI files and leaves them out of the formatter: Format
+  Document, `pychivalry format` and the agent server's `format` each say so
+  ([gui-syntax.md](gui-syntax.md#what-step-10-does-not-do)).
 
 ### 13. Localization files
 

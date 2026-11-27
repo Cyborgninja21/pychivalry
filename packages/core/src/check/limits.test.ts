@@ -10,6 +10,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
+import { readGui } from '../gui/parser.js';
 import { fileKindOf } from '../index/workspace.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
 import type { Severity } from '../syntax/findings.js';
@@ -17,6 +18,7 @@ import type { WorkspaceNames } from './names.js';
 import {
     capFindings,
     checkWorkspace,
+    guiFindings,
     localizationFindings,
     MAX_FINDINGS_PER_FILE,
     openWorkspace,
@@ -224,13 +226,16 @@ test("without a game folder, no finding on any fixture's bad half depends on a b
                 bytes: readFileSync(file.disk),
                 names: EVERYTHING,
             };
+            const kind = fileKindOf(file.path);
             const found =
-                fileKindOf(file.path) === 'localization'
-                    ? localizationFindings(input)
-                    : scriptFindings({
-                          ...input,
-                          index: { workspace: workspace.index, layer: file.layer },
-                      });
+                kind === 'gui'
+                    ? guiFindings(file.path, file.layer, readGui(input.bytes))
+                    : kind === 'localization'
+                      ? localizationFindings(input)
+                      : scriptFindings({
+                            ...input,
+                            index: { workspace: workspace.index, layer: file.layer },
+                        });
             for (const f of found) {
                 over.add(place(f));
             }

@@ -1,0 +1,10 @@
+﻿window = {
+	name = "fixture_window"
+	spacer = {
+		size = { 5 0 }
+	}
+	text_single = {
+		align = right|top
+		text = "FIXTURE_TITLE"
+	}
+}

@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:mods",
     "command": "task game:mods",
-    "made_at": "2026-11-26T21:28:49.706Z",
+    "made_at": "2026-11-26T22:16:55.675Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "a52819109a69e906df348cc3059e2022ab29a3be",
+        "commit": "66b4382add0175fe5d06be39ef1a67aee7173d00",
         "dirty": false
     },
     "machine": {
@@ -38,24 +38,24 @@
         ]
     },
     "notes": [
-        "Each corpus mod is checked with the core's one runner, checkWorkspace, as the command line's check runs it: its .txt and .yml files in the folders the committed spec lists, over the base game's index. The index is built once into a cache in a temporary folder (base_game_cache), deleted after the run; each mod is checked in a fresh process that loads it from there.",
+        "Each corpus mod is checked with the core's one runner, checkWorkspace, as the command line's check runs it: its .txt and .yml files in the folders the committed spec lists, and its .gui files of gui/ (build step 10), over the base game's index. The index is built once into a cache in a temporary folder (base_game_cache), deleted after the run; each mod is checked in a fresh process that loads it from there.",
         "Every error is listed and classified in tools/data/mods-classifications.json, matched by mod, file, code and line: real-defect (shown from the mod and game 1.21.0.3), spec-package-fault, pychivalry-fault (fails the run) or unclassified (not shown either way: fails the run). Warnings are listed; information and hints are counted by code.",
         "baseline_2_3_0 gives release 2.3.0's results on the same mod from records/baseline-2.3.0/results-mods.json, and how many errors the two report at the same file and line.",
         "time_ms.load_base is listing the base game's files and loading its index from the cache; time_ms.check indexing the mod over it and checking it; peak_rss_kib the mod's process's own.",
         "The style/ family (docs/formatting.md) is counted in by_code and by_severity, never listed or classified: it rests on pychivalry's own formatting rules, not on the game. warnings and warning_list are the other warnings.",
-        "The load average over one minute was 3.60 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 3.30 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
         "base_game_cache": {
-            "build_ms": 32655,
-            "peak_rss_kib": 1860020
+            "build_ms": 40837,
+            "peak_rss_kib": 1643148
         },
         "mods": [
             {
                 "slug": "balance-of-power-ui",
-                "files": 11,
+                "files": 13,
                 "not_checked": [
                     {
                         "folder": "data_binding",
@@ -160,15 +160,15 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2458,
-                    "check": 236,
-                    "total": 2694
+                    "load_base": 3391,
+                    "check": 310,
+                    "total": 3701
                 },
-                "peak_rss_kib": 798300
+                "peak_rss_kib": 807088
             },
             {
                 "slug": "divine-intervention",
-                "files": 433,
+                "files": 521,
                 "not_checked": [
                     {
                         "folder": "(top level)",
@@ -179,7 +179,7 @@
                     "error": 0,
                     "warning": 429,
                     "information": 0,
-                    "hint": 107282
+                    "hint": 107289
                 },
                 "by_code": [
                     {
@@ -190,7 +190,7 @@
                     {
                         "code": "style/indentation",
                         "severity": "hint",
-                        "count": 71661
+                        "count": 71659
                     },
                     {
                         "code": "style/block-layout",
@@ -205,7 +205,7 @@
                     {
                         "code": "localization/unused-key",
                         "severity": "hint",
-                        "count": 3467
+                        "count": 3476
                     },
                     {
                         "code": "style/trailing-whitespace",
@@ -266,7 +266,7 @@
                 "capped": {
                     "max_per_file": 1000,
                     "files": 62,
-                    "dropped": 1114746,
+                    "dropped": 1114748,
                     "dropped_by_code": [
                         {
                             "code": "localization/unused-key",
@@ -301,7 +301,7 @@
                         {
                             "code": "style/indentation",
                             "severity": "hint",
-                            "count": 908279
+                            "count": 908281
                         },
                         {
                             "code": "style/line-endings",
@@ -397,15 +397,15 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 3146,
-                    "check": 33468,
-                    "total": 36614
+                    "load_base": 2776,
+                    "check": 39049,
+                    "total": 41824
                 },
-                "peak_rss_kib": 3175492
+                "peak_rss_kib": 3275388
             },
             {
                 "slug": "elf-destiny",
-                "files": 958,
+                "files": 1010,
                 "not_checked": [
                     {
                         "folder": "data_binding",
@@ -420,7 +420,7 @@
                     "error": 2,
                     "warning": 949,
                     "information": 434,
-                    "hint": 71236
+                    "hint": 71247
                 },
                 "by_code": [
                     {
@@ -464,14 +464,19 @@
                         "count": 129
                     },
                     {
-                        "code": "variables/read-without-set",
-                        "severity": "information",
-                        "count": 12
-                    },
-                    {
                         "code": "references/unknown-name",
                         "severity": "information",
                         "count": 11
+                    },
+                    {
+                        "code": "variables/read-without-set",
+                        "severity": "information",
+                        "count": 11
+                    },
+                    {
+                        "code": "syntax/gui-trailing-semicolon",
+                        "severity": "information",
+                        "count": 1
                     },
                     {
                         "code": "style/indentation",
@@ -501,7 +506,7 @@
                     {
                         "code": "localization/unused-key",
                         "severity": "hint",
-                        "count": 2444
+                        "count": 2455
                     },
                     {
                         "code": "style/blank-lines",
@@ -1270,15 +1275,15 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 2168,
-                    "check": 4654,
-                    "total": 6821
+                    "load_base": 3500,
+                    "check": 6775,
+                    "total": 10276
                 },
-                "peak_rss_kib": 1101276
+                "peak_rss_kib": 1063024
             },
             {
                 "slug": "rice",
-                "files": 2090,
+                "files": 2157,
                 "not_checked": [],
                 "by_severity": {
                     "error": 841,
@@ -17077,11 +17082,11 @@
                     "errors_only_here": 333
                 },
                 "time_ms": {
-                    "load_base": 2217,
-                    "check": 38792,
-                    "total": 41009
+                    "load_base": 2908,
+                    "check": 46906,
+                    "total": 49814
                 },
-                "peak_rss_kib": 1745884
+                "peak_rss_kib": 1852740
             },
             {
                 "slug": "viet-events",
@@ -17382,11 +17387,11 @@
                     "errors_only_here": 0
                 },
                 "time_ms": {
-                    "load_base": 1821,
-                    "check": 5692,
-                    "total": 7513
+                    "load_base": 3886,
+                    "check": 6428,
+                    "total": 10314
                 },
-                "peak_rss_kib": 970912
+                "peak_rss_kib": 1052560
             }
         ]
     }

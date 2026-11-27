@@ -132,6 +132,8 @@ test('an open script file is re-parsed incrementally, to the tree a full parse g
     assert.deepEqual(doc.script().file, parse('z = 1\n').file);
     assert.equal(doc.parses.whole, 2);
     // A file outside the mod, or of another kind, is no script.
-    assert.equal(new OpenDocument('file:///x.gui', 'gui/x.gui', 1, '', catalogue).kind, null);
+    // A GUI file is read since build step 10, by the GUI parser, as a whole.
+    assert.equal(new OpenDocument('file:///x.gui', 'gui/x.gui', 1, '', catalogue).kind, 'gui');
+    assert.equal(new OpenDocument('file:///x.dds', 'gfx/x.dds', 1, '', catalogue).kind, null);
     assert.equal(new OpenDocument('file:///x.txt', null, 1, '', catalogue).kind, null);
 });

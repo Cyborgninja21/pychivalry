@@ -39,7 +39,12 @@ hand checklist (decision 178), the third preview's release run was made: every r
 480 test sessions, every target met, the judge yes to all 800 of its questions, so that its ability
 to say no is not yet calibrated (decision 179). On his word of the same day, also given before
 both, the third preview, version 0.3.0, is published as a GitHub pre-release (2026-11-26, decision
-180). The calibration's hand grading and the hand checklist are still the owner's. What
+180). The calibration's hand grading and the hand checklist are still the owner's. Build step
+10 was built after it, in two pull requests: GUI files (#172: the GUI parser and its parse suite,
+the index of GUI types and templates, go to definition on them on every surface) and the
+graphics-file check and the call graph (#171: `graphics/missing-file`, the agent server's
+`call_graph`, its tenth tool, at tool schema version 6, the language server's call hierarchy and
+the command line's `calls`). What
 waits on the owner or on the spec
 work is in [decisions.md](decisions.md). Nothing else in this
 document is built yet.
@@ -378,9 +383,10 @@ default folder.
 
 ### Command line
 
-`check`, `lookup`, `source`, `format`, `explain`, `log` and `mcp`. *Since decision 143:*
+`check`, `lookup`, `source`, `calls`, `format`, `explain`, `log` and `mcp`. *Since decision 143:*
 `source <layer> <file> <line>`, the text around a place a result named, the same lines as the
-agent server's `source` from the same core code.
+agent server's `source` from the same core code. *Since build step 10:* `calls <name>...`, the
+call graph of a name, the agent server's `call_graph` from the same core code.
 
 - `check` keeps what 2.3.0 had, so results stay comparable: the mod folder, `--vanilla`,
   `--spec`, `--json`, and exit codes 0 (no errors), 1 (errors) and 2 (bad usage).
@@ -394,9 +400,9 @@ agent server's `source` from the same core code.
 
 - **Tools.** About nine: check; look up names (several at once); find a definition; find
   references; list definitions of a kind; call graph; analyse a log; explain codes; format.
-  *Built, tool schema version 5 (decisions 140 and 144):* nine tools, exactly `check`, `lookup`,
-  `find_definition`, `find_references`, `list_definitions`, `source`, `explain_code`, `format`
-  and `apply_format`; `call_graph` and `analyze_log` come with build steps 10 and 11. Besides the
+  *Built, tool schema version 6 (build step 10):* ten tools, exactly `check`, `lookup`,
+  `find_definition`, `find_references`, `list_definitions`, `source`, `call_graph`,
+  `explain_code`, `format` and `apply_format`; `analyze_log` comes with build step 11. Besides the
   tools that search (`lookup`, `find_definition`, `find_references`, `list_definitions`) and
   `check`, two read text for an agent: `format`, a file of the mod in the format, and `source`,
   the base game's own text (or the mod's) around a place another result named, at most 40 lines,
@@ -561,13 +567,13 @@ sessions of Claude Code (see [AI tests](#ai-tests)). Everything unmarked runs in
 | On-type formatting | Fixture keystrokes | Agrees with the formatter on the same text. *After build step 8: on every golden output, typed key by key, and Enter, `}` and `=` typed again at every place.* |
 | Quick fixes | Fixture per fix | Applying the fix removes the finding and adds none. |
 | Localization | Fixture mod | Missing keys and unbalanced brackets are warnings; unused keys are advice; entries with and without a version number are read. |
-| GUI files | Base-game GUI files `G`; fixtures | Every base-game GUI file parses; types and templates are found; go to definition lands on them. |
+| GUI files | Base-game GUI files `G`; fixtures | Every base-game GUI file parses; types and templates are found; go to definition lands on them. *After build step 10's items 10.1 to 10.4 (#172): every `.gui` file of the install parses, 583 (`game/gui/`'s 441 among them), and each of its 18 GUI findings is classified a defect of the game's own files (`records/game/parse.json`); the five mods' 209 GUI files parse too. The fixture mod `gui-index` over its stub: every type and template found, with what is in force by the override rules, and go to definition landing on them in the editor, on the command line and in the agent server, the same on all three (`packages/core/src/gui/index.test.ts`, `packages/lsp/src/gui.test.ts`, `packages/vscode/src/gui-answers.test.ts`, the editor tests).* |
 | Graphics-file check | Fixture mod with present and absent files | Warns on each absent file and on none that exists in mod, base game or DLC. |
 | Game-log analysis | Real captured logs `T` kept as fixtures | Each message is tied to the right file and line; unmatched lines are listed. |
-| Call graph, call hierarchy | Fixture mod | Callers and callees equal the known graph, for all five kinds of link. |
+| Call graph, call hierarchy | Fixture mod | Callers and callees equal the known graph, for all five kinds of link. *Built in step 10: the graph equals the fixture's `expected.json` for all five kinds.* |
 | Selection ranges, document symbols | Fixture positions | Ranges and symbols equal the expected ones. |
 | CK3 Explorer tree | Fixture mod; real mods `G` | Tree contents equal the index; each node opens the right file and line. |
-| Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same. Step 9 extends it to `source` and `lookup`'s evidence: the command line's `source --json` and the agent server's `source` give the same lines and the same refusals for every place of the planted-defect mod and its game stub, and `lookup`'s evidence of one name is `lookup --json`'s readings.* |
+| Same answers on every surface | One mod through editor, command line and agent server | The three finding lists are identical. Extended each time a build step adds a feature. *Step 10 extends it to GUI files (#172): a GUI file's findings, its formatting left alone, and go to definition on its types and templates, the same in the editor, the command line and the agent server.* *Step 10 extends it to the call graph: the command line's `calls --json`, the agent server's `call_graph` and the language server's call hierarchy give the same callers and callees at the same places for every definition of the fixture `call-graph` and of the lookup fixture over its game stub.* *Step 8 extends it to formatting: each file's text formatted by the three, with the shared index on and off, is the same. Step 9 extends it to `source` and `lookup`'s evidence: the command line's `source --json` and the agent server's `source` give the same lines and the same refusals for every place of the planted-defect mod and its game stub, and `lookup`'s evidence of one name is `lookup --json`'s readings.* |
 | Agent use | Planted defects `M` | See [AI tests](#ai-tests). |
 | Authoring | Fixed content requests `M`; the in-game load `T` | See [AI tests](#ai-tests). *Two runs, 2026-11-24, are on record. The first (`records/scored/authoring-run-1.json`): 50 of 60 trials without an error, none in the format, 58 meeting every expectation. The second, after its fixes (`records/scored/authoring-run-2.json`, committed as `authoring.json` until the release run): 60 of 60 on every measure, the judge yes to all 180 questions, every target of the owner's met. Both on the first twelve requests; twelve expert requests were added after them (decision 131), 24 in all. The expert requests' development run, 2026-11-25 (`records/scored/authoring-expert-run-1.json`, decision 138): 61 trials, 60 held; 60 of 60 without an error, without a warning, in the format and meeting every expectation; every judged dimension 100% yes but `conditions-as-asked`, 52 of 55 (94.5%), short of its 95% target. Its three answers that were not yes were the judge's error, not the results': it said from memory that the game's `popular_opinion` is not a trigger, which in 1.21.0.3 it is. Since then the judge takes names and their meanings from the checker and the game's own documentation (version 2 of its prompt); the run's kept results judged again with it, 61 judge test sessions and no authoring session (decision 139, `records/scored/authoring-expert-run-1-judge-2.json`): `conditions-as-asked` 55 of 55 and every target met, the judge saying yes to all 220 questions, so that whether it can say no still rests on the owner's hand-graded calibration sheets. Since decision 140 what a session is given has changed (tool schema version 4: `source`, `lookup` whole by name, places that say their layer; version 5 since decision 144: `lookup`'s `evidence` on request), and a record names the server's tool schema version so that records made before and after are not read as one. The development run of the expert requests on version 5, with the spec package in format 9 and an AI weight for every option, made on the owner's word of 2026-11-26 (decisions 165 and 166, `records/scored/authoring-expert-run-2.json`): 60 trials, every one held; 60 of 60 without an error, without a warning, in the format and meeting every expectation; every judged dimension 100% yes, the judge saying yes to all 220 questions; every target met. Its sessions' first lookups were answered whole in 40 of 60 (none before), no file was read outside the mod, every option was weighted, and no first draft fell into its request's trap, so no session needed a repair round. The release run before the third preview, 10 trials of each of the 24 requests, 240 trials and 480 test sessions (decision 132), was made on the owner's word of 2026-11-26, before his hand calibration and hand checklist (decision 178), from the merge of #168 (`records/scored/authoring.json`, the second run's record kept as `authoring-run-2.json`, decision 179): 240 of 240 trials held; 240 of 240 without an error, without a warning, in the format and meeting every expectation; every judged dimension 100% yes, the judge saying yes to all 800 questions; every target met as a release run, and again without the expert requests. The judge's ability to say no is not yet calibrated: that rests on the owner's three hand-graded sheets, now graded after the run. From its kept trials: 2 tool errors, both a bare tool name (9 in the second expert run's 60 sessions), no file read outside the mod, every option weighted, and no session needing a repair round.* |
 | Speed | Benchmarks `G` | Within the stated tolerance of the 2.3.0 medians recorded in build step 1. |
@@ -600,8 +606,8 @@ rate, because a model's output is not repeatable.
 - **Agent use.** A test mod with planted defects, every error and warning code at least once,
   plus lines that look wrong and are not; hard enough that the pass rate tells a better agent
   server from a worse one: defects whose fix needs a lookup, defects that interact, defects
-  fixed in another file than the finding (built: 36 defects and 29 look-alikes in 17 files, in
-  `fixtures/defects/`, the `style/` family's warnings among them since decision 110). A trial passes when the checker reports zero errors, every planted
+  fixed in another file than the finding (built: 37 defects and 30 look-alikes in 17 files, in
+  `fixtures/defects/`, the `style/` family's warnings among them since decision 110, `graphics/missing-file` since build step 10). A trial passes when the checker reports zero errors, every planted
   defect is gone, nothing outside the planted lines changed, the look-alikes are untouched and
   nothing was deleted. The graders judge by the checker and the manifest's fix ranges, so any
   fix the checker accepts inside those ranges passes, not only the reference copy's.
@@ -718,6 +724,10 @@ The MVP is done when all of these hold, each proved by a suite in the repository
    errors, every one a defect of the game's own files (3 parse errors, 8 unknown triggers, 2
    unknown effects), none a spec-package or pychivalry fault (met for script files); the scope
    check judges 179,669 of 610,886 uses (29.4%) with no finding (met).
+   *2026-11-26, after build step 10's GUI items (#172):* every GUI file parses (met for GUI
+   files): the 583 `.gui` files of the install, each a tree, their 18 findings each a defect of
+   the game's own files, information since no catalogue message is the GUI reader's (decision
+   181).
    *2026-11-25, on the owner's word (decision 157):* the line **stays open** until the spec
    work answers decisions 151 and 154, each of which can let a check judge names it cannot
    judge now. Its state today: 13 base-game errors, every one a defect of the game's own files

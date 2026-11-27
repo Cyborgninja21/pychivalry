@@ -125,6 +125,56 @@ function statisticsProblems(results: unknown): string[] {
 }
 
 /**
+ * The GUI part of a parse record (build step 10) whose figures disagree with each other: the
+ * totals and the folders, the findings and the folders' counts, `passed` and its failures, each
+ * failure among the record's own (written `gui: <failure>`), and in a passing part every finding
+ * classified a defect of the game's own files.
+ */
+function guiProblems(gui: unknown, recordFailures: readonly unknown[]): string[] {
+    if (!isObject(gui)) {
+        return [];
+    }
+    const problems: string[] = [];
+    const folders = Array.isArray(gui['folders']) ? gui['folders'].filter(isObject) : [];
+    const findings = Array.isArray(gui['findings']) ? gui['findings'].filter(isObject) : [];
+    const failures = Array.isArray(gui['failures']) ? gui['failures'] : [];
+    const sum = (key: string): number =>
+        folders.reduce((n, f) => n + (typeof f[key] === 'number' ? f[key] : 0), 0);
+    for (const key of ['files', 'trees'] as const) {
+        if (gui[key] !== sum(key)) {
+            problems.push(
+                `/results/gui/${key}: ${JSON.stringify(gui[key])} is not the folders' total (${String(sum(key))})`,
+            );
+        }
+    }
+    if (sum('findings') !== findings.length) {
+        problems.push(
+            `/results/gui/findings: ${String(findings.length)} listed, but the folders count ${String(sum('findings'))}`,
+        );
+    }
+    if (gui['passed'] !== (failures.length === 0)) {
+        problems.push(
+            `/results/gui/passed: ${JSON.stringify(gui['passed'])} with ${String(failures.length)} failures`,
+        );
+    }
+    failures.forEach((failure, i) => {
+        if (!recordFailures.includes(`gui: ${String(failure)}`)) {
+            problems.push(`/results/gui/failures/${String(i)}: not among the record's failures`);
+        }
+    });
+    if (gui['passed'] === true) {
+        findings.forEach((finding, i) => {
+            if (finding['classification'] !== 'game-defect') {
+                problems.push(
+                    `/results/gui/findings/${String(i)}: a passing GUI suite holds a finding classified ${JSON.stringify(finding['classification'])}`,
+                );
+            }
+        });
+    }
+    return problems;
+}
+
+/**
  * A parse record's figures that disagree with each other: the totals and the folders, the
  * error counts and the error list, `passed` and the failures, and every error classified.
  */
@@ -172,6 +222,7 @@ function parseProblems(results: unknown): string[] {
             results['passed'],
         ),
     );
+    problems.push(...guiProblems(results['gui'], failures));
     return problems;
 }
 

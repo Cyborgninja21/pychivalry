@@ -1,0 +1,6 @@
+﻿types FixtureTypes
+{
+	type fixture_button = button {
+		size = { 30 30 }
+	}
+}

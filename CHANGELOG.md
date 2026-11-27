@@ -630,8 +630,42 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
   by-hand check, the calibration and the checklist were not done before it. The install guide
   describes 0.3.0.
 
+- Build step 10, items 10.1 to 10.4 (#172): GUI files. `docs/gui-syntax.md`, GUI syntax measured
+  from all 583 `.gui` files of the install (`game/` 442, `jomini/` 92, `clausewitz/` 49): what it
+  shares with script (the tokens, `key = value`, lists, only `=`), named blocks of six keywords
+  (`types`, `template`, `local_template`, `layer`, `block`, `blockoverride`) written with or
+  without `=` and in any letter case, type definitions (`type` and `local_type`), `using`, values
+  with units (`100%`, `5.5f`), constants and `@[ ]`, each with its count and first place; on every
+  count of the spec's GUI companion the two agree. The GUI parser (`packages/core/src/gui/`) reads
+  a GUI file with the script lexer and a grammar of its own, always gives a tree, and reports
+  thirteen new codes, `syntax/gui-*`, all advice at information (no catalogue message is shown to
+  be the GUI reader's), each with its row in `docs/checks.md` and its fixture pair
+  `fixtures/mods/gui-<what>-bad`/`-good`. `task game:parse` parses every GUI file of the install
+  (`results.gui`): 583 trees, 18 findings in 9 files, each classified a defect of the game's own
+  files in `tools/data/gui-parse-classifications.json`, and the five corpus mods' 209 GUI files,
+  one finding; every form counted. The workspace index reads the GUI files of `gui/`: types
+  (database `gui`, found in any letter case by part D1's settled `key-identity-gui-types`), local
+  types, templates and local templates (3,495 definitions in the base game), every word a use;
+  go to definition, find references, hover and the outline of a GUI file in the editor (a third
+  language, `ck3-gui`), `lookup` and `source` on the command line, `find_definition`,
+  `find_references`, `list_definitions` and `source` in the agent server, the same on all three
+  (the fixture mod `gui-index` over the stub `gui-index`; the language server's round trip; the
+  command line against the agent server; the editor tests on a GUI file of their planted copy).
+
+- Build step 10, items 10.5 to 10.7: the graphics-file check `graphics/missing-file` (warning), on the 13 fields the spec package documents as file paths, a `.dds`, `.png` or `.tga` path from the top of the game's folders looked up in the mod, the install's three folders and every DLC pack, by part D1's letter-case row, silent with no game folder ([docs/graphics-check.md](docs/graphics-check.md)); the index keeps the files of each layer it does not read. The call graph in the core (`packages/core/src/calls/`): keys called by name (`vanilla_indexed_dirs`) and values naming an event or an on-action (part D6), each link with its caller, callee, place, statement and basis ([docs/call-graph.md](docs/call-graph.md)). The agent server's `call_graph` (tool schema version 6), the language server's call hierarchy, and the command line's `pychivalry calls`.
+
 ### Changed
 
+- The planted-defect mod plants `graphics/missing-file` (37 defects, 30 look-alikes); its game stub holds the texture the decisions show. The language server checks the mod again when a texture is added or removed.
+- GUI files are read since build step 10: a GUI file's findings are the GUI parser's alone (no
+  engine check, no `style/` rule, no fix), and the formatter leaves GUI files as they are, which
+  Format Document, `pychivalry format` (a folder's counted in one line) and the agent server's
+  `format` each say. `task game:parse` now reads the corpus (its GUI files). The index cache's
+  format is 6. `localization/unused-key` sees the words of the base game's GUI files through the
+  index, and a mod's GUI file no longer counts its comments' words. The base game's index: 17,880
+  files (581 GUI files more), 3,374,650 definitions, 9,497,915 uses; 277 names with no winner
+  known (233 before: 44 GUI names in sub-folders of `gui/`, which no row says are read). The game-file
+  records are made again (after merging #171): the base game's errors (13) and warnings (17,207, #171's 19 `graphics/missing-file` among them) unchanged by the GUI files, its information 167 (149 before: the 18 GUI findings); in the five mods no error or warning changed by them (rice's 3 `graphics/missing-file` are #171's); elf-destiny's one GUI finding; `localization/unused-key` 9 more in divine-intervention and 11 in elf-destiny, each a key a GUI file writes only in a comment; `variables/read-without-set` one fewer in elf-destiny (`disable_toast_notifications`, which a GUI file of the mod reads).
 - The game-file suites are re-run with the format 9 checks. The base game: errors (13) and
   warnings (17,188) unchanged; new `style/option-without-ai-weight` 4,165 (the per-file limit
   drops the rest), `variables/read-without-set` 31, `style/redundant-condition` 1. The five mods:
@@ -1078,6 +1112,16 @@ This changelog starts with the rebuild. The history of releases up to 2.3.0 is i
 
 ### Open
 
+- Build step 10's GUI items go back to the spec work in eight points (decision 181): which reader
+  reads a `.gui` file and what it prints for a defect (until then the `syntax/gui-*` codes are
+  advice), whether `gui/` is read with its sub-folders (224 of `game/gui/`'s 441 files "read: not
+  known"), which of two types of one name in two files is in force, templates registered twice,
+  one database for two registries, files outside `gui/`, local types and templates, and the
+  keywords' letter case. Questions for the owner are in `docs/decisions.md`.
+- Build step 10's graphics check goes back to the spec work in three points (decision 187): the
+  `.info` type `file_path` as data on the 48 fields of 25 folders measured as paths, the folder a
+  file name is read in for a field that names one inside a define's folder, and how the game reads
+  a path with no folder, a `..` segment, a leading `/` or a backslash.
 - The harder planted mod has not been run by a test session yet; a run starts only on the
   owner's word (decision 80).
 - The by-hand check of the signed-in AI harnesses, on Linux and Windows, is the owner's.

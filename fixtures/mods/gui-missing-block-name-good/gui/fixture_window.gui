@@ -1,0 +1,20 @@
+﻿window = {
+	name = "fixture_window"
+	fixture_header = {
+		blockoverride "header_text"
+		{
+			text = "FIXTURE_TITLE"
+		}
+	}
+}
+
+types FixtureTypes
+{
+	type fixture_header = hbox {
+		text_single = {
+			block "header_text" {
+				text = ""
+			}
+		}
+	}
+}

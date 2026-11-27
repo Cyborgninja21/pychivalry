@@ -292,12 +292,112 @@
                 "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } }
             }
         },
-        "parseResults": {
-            "description": "The base-game parse suite (records/README.md, \"Parse records\"): the folders read, every parse error with its classification, the information notes, the text files not read, how every text file of the game is encoded, and the formatter's round trip over the script files read and the localization files.",
+        "guiParseResults": {
+            "description": "The GUI parse suite of build step 10 (records/README.md, \"Parse records\"): every .gui file of the install's game/, jomini/ and clausewitz/ folders parsed by the GUI parser, every finding with its classification, every form of GUI syntax the files write, and each corpus mod's GUI files with their findings.",
             "type": "object",
             "additionalProperties": false,
-            "required": ["passed", "failures", "files", "trees", "parse_ms", "folders", "errors", "notes", "not_read", "encoding", "round_trip", "round_trip_localization"],
+            "required": ["passed", "failures", "files", "trees", "parse_ms", "folders", "findings", "forms", "mods"],
             "properties": {
+                "passed": { "type": "boolean" },
+                "failures": { "type": "array", "items": { "$ref": "#/$defs/text" } },
+                "files": { "$ref": "#/$defs/count" },
+                "trees": { "$ref": "#/$defs/count" },
+                "parse_ms": { "$ref": "#/$defs/count" },
+                "folders": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["layer", "folder", "expected_files", "files", "trees", "bom", "not_utf8", "findings", "parse_ms", "why"],
+                        "properties": {
+                            "layer": { "enum": ["game", "jomini", "clausewitz"] },
+                            "folder": { "$ref": "#/$defs/text" },
+                            "expected_files": { "$ref": "#/$defs/count" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "trees": { "$ref": "#/$defs/count" },
+                            "bom": { "$ref": "#/$defs/count" },
+                            "not_utf8": { "$ref": "#/$defs/count" },
+                            "findings": { "$ref": "#/$defs/count" },
+                            "parse_ms": { "$ref": "#/$defs/count" },
+                            "why": { "$ref": "#/$defs/text" }
+                        }
+                    }
+                },
+                "findings": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["layer", "file", "line", "column", "id", "message", "classification", "reason"],
+                        "properties": {
+                            "layer": { "enum": ["game", "jomini", "clausewitz"] },
+                            "file": { "$ref": "#/$defs/text" },
+                            "line": { "type": "integer", "minimum": 1 },
+                            "column": { "type": "integer", "minimum": 1 },
+                            "id": { "$ref": "#/$defs/text" },
+                            "message": { "$ref": "#/$defs/text" },
+                            "classification": { "enum": ["game-defect", "pychivalry-fault", "unclassified"] },
+                            "reason": { "type": "string" }
+                        }
+                    }
+                },
+                "forms": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["count", "files", "by_layer", "example"],
+                        "properties": {
+                            "count": { "$ref": "#/$defs/count" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "by_layer": {
+                                "type": "object",
+                                "propertyNames": { "enum": ["game", "jomini", "clausewitz"] },
+                                "additionalProperties": { "$ref": "#/$defs/count" }
+                            },
+                            "example": { "$ref": "#/$defs/text" }
+                        }
+                    }
+                },
+                "mods": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": ["slug", "files", "trees", "parse_ms", "findings"],
+                        "properties": {
+                            "slug": { "$ref": "#/$defs/text" },
+                            "files": { "$ref": "#/$defs/count" },
+                            "trees": { "$ref": "#/$defs/count" },
+                            "parse_ms": { "$ref": "#/$defs/count" },
+                            "findings": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "required": ["file", "line", "column", "id", "message"],
+                                    "properties": {
+                                        "file": { "$ref": "#/$defs/text" },
+                                        "line": { "type": "integer", "minimum": 1 },
+                                        "column": { "type": "integer", "minimum": 1 },
+                                        "id": { "$ref": "#/$defs/text" },
+                                        "message": { "$ref": "#/$defs/text" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "parseResults": {
+            "description": "The base-game parse suite (records/README.md, \"Parse records\"): the folders read, every parse error with its classification, the information notes, the text files not read, how every text file of the game is encoded, the formatter's round trip over the script files read and the localization files, and the GUI parse suite (gui).",
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["passed", "failures", "files", "trees", "parse_ms", "folders", "errors", "notes", "not_read", "encoding", "round_trip", "round_trip_localization", "gui"],
+            "properties": {
+                "gui": { "$ref": "#/$defs/guiParseResults" },
                 "round_trip": { "$ref": "#/$defs/roundTrip" },
                 "round_trip_localization": { "$ref": "#/$defs/roundTrip" },
                 "passed": { "type": "boolean" },

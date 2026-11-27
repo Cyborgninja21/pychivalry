@@ -9,8 +9,8 @@ byte-order mark, the formatter's layout) but for its planted defects.
 
 ```text
 fixtures/defects/
-  mod/             the mod as an agent receives it: 36 defects, every error and warning code
-                   at least once, and 29 lines that look wrong and are not
+  mod/             the mod as an agent receives it: 37 defects, every error and warning code
+                   at least once, and 30 lines that look wrong and are not
   reference/       the same mod with every defect fixed; it passes every grader
   manifest.json    each planted defect: the check code, where the checker reports it, the text
                    of that line, what it is, and the lines a fix may change; and each
@@ -88,18 +88,18 @@ or a brace lands outside the lines its fix may change (`only-planted-lines`). Te
 ## What the checker reports
 
 On `mod/`, over the stub: exactly the planted defects, one finding each and two for the clash
-(one at each definition), at every severity: 26 errors, 10 warnings and 1 hint, no information.
+(one at each definition), at every severity: 26 errors, 11 warnings and 1 hint, no information.
 On `reference/`: nothing at all. It is the same with unused keys on (`localization/unused-key`,
 off by default in the runner and in the agent server's `check`): the mod has none. A test holds
-all of it (`tools/src/scored-run/defects.test.ts`), and another gets the same 37 findings from
+all of it (`tools/src/scored-run/defects.test.ts`), and another gets the same 38 findings from
 the built agent server's `check`, with the data that says what is valid at the scope and field
 findings (`tools/src/scored-run/server.test.ts`).
 
 ## The defects
 
 Every check code this build has that is an error or a warning is planted at least once, 21
-errors and 9 warnings (the `style/` family's two among them; `structure/triggered-desc-other-field`
-since the spec package's format 9 put its message in the catalogue); `names/unknown-effect` three times,
+errors and 10 warnings (the `style/` family's two among them; `structure/triggered-desc-other-field`
+since the spec package's format 9 put its message in the catalogue; `graphics/missing-file` since build step 10); `names/unknown-effect` three times,
 `names/unknown-trigger`, `references/unknown-key` and `scope/wrong-scope-for-effect` twice; and
 one hint, `style/indentation`, which the planted formatting defect raises with its warning. No
 advice code is planted.
@@ -110,6 +110,7 @@ advice code is planted.
 | `fields/bare-value-in-record` | `common/decision_group_types/harvest_groups.txt:4` | important_decision_group is written without "= yes"; the game reports it at the token after it. |
 | `fields/missing-required-field` | `common/character_interaction_categories/harvest_categories.txt:9` | An interaction category without its required index; the base game's categories use 0 to 15 and the mod's other one 16. A fix may rewrite the record. |
 | `fields/unknown-field` | `common/decisions/harvest_decisions.txt:5` | ai_check_interval misspelled. |
+| `graphics/missing-file` | `common/decisions/harvest_decisions.txt:3` | The festival decision's picture names a folder decision/ that does not exist: the picture is gfx/interface/illustrations/decisions/decision_misc.dds, in the base game, as the granaries decision names it. |
 | `localization/missing-key` | `events/harvest_court_events.txt:50` | The description key harvest.0013.desc is defined in no localization file: the fix is a line added to the localization file, or the field changed to a key that exists. |
 | `localization/unbalanced-brackets` | `localization/english/harvest_l_english.yml:3` | A [ without its ]. |
 | `names/modifier-outside-use-area` | `common/culture/traditions/harvest_traditions.txt:18` | monthly_piety, a character modifier, in the county_modifier block; it belongs in the character_modifier block above. |
@@ -164,6 +165,7 @@ category), where only the `look-alikes-untouched` grader protects them.
 | `common/decisions/harvest_decisions.txt:42` | `primary_title = { tier >= 3 }` | tier inside primary_title: a title trigger in a title scope. |
 | `common/decisions/harvest_decisions.txt:47` | `liege = { is_adult = yes }` | liege, a link from a character, in a character scope. |
 | `common/decisions/harvest_decisions.txt:54` | `id = harvest_market.0002` | An event of the harvest_market namespace, spelled right. |
+| `common/decisions/harvest_decisions.txt:36` | `picture = { reference = "gfx/interface/illustrations/decisions/decision_misc.dds" }` | The picture is a texture of the base game, at that path. |
 | `common/decisions/harvest_decisions.txt:38` | `ai_check_interval = 60` | The field ai_check_interval, spelled right. |
 | `common/decisions/harvest_decisions.txt:52` | `harvest_alms_giving_effect = yes` | The scripted effect the mod defines, called by its own name. |
 | `common/scripted_triggers/harvest_triggers.txt:16` | `harvest_famine_trigger = { always = no }` | A trigger that is never true, on purpose, as its comment says. |

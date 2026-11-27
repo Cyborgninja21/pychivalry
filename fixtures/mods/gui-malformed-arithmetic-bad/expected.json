@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-malformed-arithmetic",
+                    "severity": "information",
+                    "line": 5,
+                    "column": 11,
+                    "message": "Malformed inline expression '@[fixture_width + ]': unexpected end of the expression"
+                }
+            ],
+            "tree": "@fixture_width = 40 window = { name = \"fixture_window\" size = { @[fixture_width + ] 30 } }"
+        }
+    }
+}

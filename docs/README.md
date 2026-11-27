@@ -39,12 +39,14 @@ Each is written by the step named, from evidence.
 | [encoding.md](encoding.md) | What the parser reads: encodings, byte-order marks, line endings, positions, the base-game folders it reads, the syntax it accepts and the findings it reports; and the best-practice warning on a file not UTF-8, with its converting fix (decision 106) | Step 2; step 8 (#148) |
 | [overrides.md](overrides.md) | The game's override rules: which definition the game uses when one is made twice, by a mod and the base game, by two files or in one file; the evidence for each rule, settled or open, and the in-game experiment for each open one. The rules are carried as data in the spec package's part D1 | Step 3, items 3.1 and 3.1a |
 | [formatting.md](formatting.md) | The formatting rules, as the owner decided them (decisions 90 to 103) and as built: the principle, each rule with its base-game evidence and what it changes, the 120-column rule, the `style/` findings, what the formatter guarantees, the round trip on the base game, on-type formatting and Format Selection, what release 2.3.0's formatter did, and the record of what was decided | Step 8, items 8.1 to 8.5 |
+| [gui-syntax.md](gui-syntax.md) | GUI file syntax, measured from all 583 `.gui` files of the install: which files, what it shares with script, named blocks, type definitions, templates and `using`, values with units, constants; what the GUI parser reports and the install's own defects; the index of GUI types and templates and go to definition; how a mod's GUI overrides the base game's, from the spec package's override rules, and what is open | Step 10, items 10.1 to 10.4 |
+| [graphics-check.md](graphics-check.md) | The graphics-file check: which keys it reads and from which part of the spec package, which values it judges and leaves undecided, where it looks, its evidence, the base game's findings, and what the package does not say yet | Step 10, item 10.5 |
+| [call-graph.md](call-graph.md) | The call graph: what makes a link, the five kinds of the plan and the others, the base game's graph in numbers, and how it is tested on every surface | Step 10, items 10.6 and 10.7 |
 
 These do not exist yet:
 
 | Document | What it will hold | Written by |
 | --- | --- | --- |
-| `gui-syntax.md` | GUI file syntax | Step 10 |
 | `game-log.md` | The error-log format | Step 11 |
 
 ## Elsewhere in the repository

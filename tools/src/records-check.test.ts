@@ -287,6 +287,48 @@ function parseRecord(): SuiteRecord {
             },
             round_trip: roundTrip(2, 1),
             round_trip_localization: roundTrip(0, 0),
+            gui: {
+                passed: true,
+                failures: [],
+                files: 1,
+                trees: 1,
+                parse_ms: 1,
+                folders: [
+                    {
+                        layer: 'game',
+                        folder: 'gui',
+                        expected_files: 1,
+                        files: 1,
+                        trees: 1,
+                        bom: 0,
+                        not_utf8: 0,
+                        findings: 1,
+                        parse_ms: 1,
+                        why: 'The GUI folder.',
+                    },
+                ],
+                findings: [
+                    {
+                        layer: 'game',
+                        file: 'gui/a.gui',
+                        line: 2,
+                        column: 3,
+                        id: 'syntax/gui-missing-equals',
+                        message: "'size' and its value have no '=' between them.",
+                        classification: 'game-defect',
+                        reason: 'Written without its =.',
+                    },
+                ],
+                forms: {
+                    'named:types': {
+                        count: 1,
+                        files: 1,
+                        by_layer: { game: 1 },
+                        example: 'game gui/a.gui:1',
+                    },
+                },
+                mods: [],
+            },
         },
     };
 }
@@ -365,6 +407,30 @@ test('a parse record must agree with itself: totals, error counts, passed and cl
     assert.deepEqual(checkRecord(lost, validate, expected), [
         '/results/round_trip/trees_equal: 0 of 1 in a passing record',
         '/results/round_trip: comments lost or moved in a passing record',
+    ]);
+});
+
+test("a parse record's GUI part must agree with itself: totals, findings, failures, classifications", () => {
+    const record = parseRecord();
+    const gui = record.results['gui'] as Record<string, unknown>;
+    gui['trees'] = 2;
+    gui['passed'] = false;
+    gui['failures'] = ['gui/b.gui yielded no tree'];
+    (gui['findings'] as object[]).push({
+        ...((gui['findings'] as object[])[0] as object),
+        line: 9,
+    });
+    assert.deepEqual(checkRecord(record, validate, expected), [
+        "/results/gui/trees: 2 is not the folders' total (1)",
+        '/results/gui/findings: 2 listed, but the folders count 1',
+        "/results/gui/failures/0: not among the record's failures",
+    ]);
+    const passing = parseRecord();
+    const findings = (passing.results['gui'] as { findings: { classification: string }[] })
+        .findings;
+    findings[0] = { ...findings[0], classification: 'unclassified' };
+    assert.deepEqual(checkRecord(passing, validate, expected), [
+        '/results/gui/findings/0: a passing GUI suite holds a finding classified "unclassified"',
     ]);
 });
 

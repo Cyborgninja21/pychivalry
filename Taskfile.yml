@@ -121,7 +121,7 @@ tasks:
   # ─── Game-file suites (local only; docs/PLAN.md, "Environment for the game-file suites") ───
 
   game:parse:
-    desc: 'Base-game parse suite (CK3_GAME_PATH); writes records/game/parse.json. Step 1: a stub'
+    desc: "Base-game parse suite (CK3_GAME_PATH, CK3_CORPUS, CK3_CORPUS_SLUGS): every script file of the base game parsed and formatted twice, the localization files formatted, and every GUI file of the install parsed, with each corpus mod's GUI files (build step 10); writes records/game/parse.json"
     deps: [build]
     cmds:
       - node tools/dist/cli.js game parse

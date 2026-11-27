@@ -106,9 +106,9 @@ export function isLocalizationDatabase(database: string): boolean {
 /** What the checks may know beside the index. */
 export interface NamesOptions {
     /**
-     * The words of the mod's text files the index does not read (its interface files, `.txt`
-     * files of folders the spec does not describe): `unreadWords` in the index's reader. A key
-     * one of them writes is used.
+     * The words of the mod's text files the index does not read (`.txt` and `.gui` files of
+     * folders the spec does not describe, `.asset` files): `unreadWords` in the index's reader.
+     * A key one of them writes is used.
      */
     readonly unreadWords?: ReadonlySet<string>;
 }

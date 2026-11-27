@@ -16,8 +16,8 @@ import type { LineIndex, Range } from './position.js';
 
 export type Severity = 'error' | 'warning' | 'information' | 'hint';
 
-/** The kinds of finding the syntax layer reports. */
-export type FindingId =
+/** The kinds of finding the script parser reports. */
+export type ScriptFindingId =
     | 'syntax/missing-closing-brace'
     | 'syntax/unexpected-closing-brace'
     | 'syntax/block-without-key'
@@ -29,10 +29,35 @@ export type FindingId =
     | 'syntax/unterminated-string'
     | 'syntax/malformed-arithmetic';
 
+/**
+ * The kinds of finding the GUI parser reports (docs/gui-syntax.md, build step 10). No catalogue
+ * message is shown to be the GUI reader's (docs/checks.md, "Step 10: GUI syntax"), so each is
+ * pychivalry's own advice, at information.
+ */
+export type GuiFindingId =
+    | 'syntax/gui-missing-closing-brace'
+    | 'syntax/gui-unexpected-closing-brace'
+    | 'syntax/gui-operator-without-key'
+    | 'syntax/gui-operator-not-equals'
+    | 'syntax/gui-missing-value'
+    | 'syntax/gui-missing-equals'
+    | 'syntax/gui-value-without-key'
+    | 'syntax/gui-block-without-key'
+    | 'syntax/gui-missing-block-name'
+    | 'syntax/gui-malformed-type'
+    | 'syntax/gui-trailing-semicolon'
+    | 'syntax/gui-unterminated-string'
+    | 'syntax/gui-malformed-arithmetic';
+
+/** The kinds of finding the syntax layer reports: the script parser's and the GUI parser's. */
+export type FindingId = ScriptFindingId | GuiFindingId;
+
 /** A value a message is about, or the place the finding is at, which the renderer fills in. */
 export type Slot = 'value' | 'location';
 
 export interface FindingKind {
+    /** Which parser reports it: the script parser (step 2) or the GUI parser (step 10). */
+    readonly reader: 'script' | 'gui';
     /** The catalogue entry holding the game's own message, or null when there is none. */
     readonly catalogue: string | null;
     /** What the message's placeholders are filled with, in order. */
@@ -51,53 +76,143 @@ export interface FindingKind {
  */
 export const FINDING_KINDS: Readonly<Record<FindingId, FindingKind>> = {
     'syntax/missing-closing-brace': {
+        reader: 'script',
         catalogue: 'expected_after_arguments',
         slots: [],
         description: "A block is still open at the end of the file: its '}' is missing.",
     },
     'syntax/unexpected-closing-brace': {
+        reader: 'script',
         catalogue: 'unexpected_token_expected_key',
         slots: [],
         description: "A '}' at the top level of the file, where no block is open.",
     },
     'syntax/block-without-key': {
+        reader: 'script',
         catalogue: 'unexpected_token_expected_key',
         slots: [],
         description: 'A block at the top level of the file with no key in front of it.',
     },
     'syntax/operator-without-key': {
+        reader: 'script',
         catalogue: 'unexpected_token_expected_key',
         slots: [],
         description: 'An operator with no key in front of it.',
     },
     'syntax/missing-value': {
+        reader: 'script',
         catalogue: 'expected_between_equals_and_arguments',
         slots: [],
         description: 'An operator with no value after it.',
     },
     'syntax/missing-operator': {
+        reader: 'script',
         catalogue: 'unexpected_token_X_found_at_X_expected',
         slots: ['value', 'location'],
         description:
             "A key at the top level of the file with no operator after it; the finding is at the token found where '=' belongs.",
     },
     'syntax/missing-equals-before-block': {
+        reader: 'script',
         catalogue: 'expected_between_block_name_and_body',
         slots: [],
         description:
             "A block written as 'name { ... }' among statements, with the '=' missing; read as 'name = { ... }'.",
     },
     'syntax/null-safe-operator-after-value': {
+        reader: 'script',
         catalogue: 'unexpected_token_X_found_at_X_expected',
         slots: ['value', 'location'],
         description: "'?=' after something that is not a name or a scope chain.",
     },
     'syntax/unterminated-string': {
+        reader: 'script',
         catalogue: null,
         slots: ['location'],
         description: "Unterminated string starting at '%s'",
     },
     'syntax/malformed-arithmetic': {
+        reader: 'script',
+        catalogue: null,
+        slots: ['value', 'value'],
+        description: "Malformed inline expression '@[%s]': %s",
+    },
+    'syntax/gui-missing-closing-brace': {
+        reader: 'gui',
+        catalogue: null,
+        slots: [],
+        description: "A block is still open at the end of the file: its '}' is missing.",
+    },
+    'syntax/gui-unexpected-closing-brace': {
+        reader: 'gui',
+        catalogue: null,
+        slots: [],
+        description: "A '}' at the top level of the file, where no block is open.",
+    },
+    'syntax/gui-operator-without-key': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description: "The operator '%s' has no key in front of it.",
+    },
+    'syntax/gui-operator-not-equals': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description:
+            "The operator '%s' where a GUI file writes '=': every statement of a GUI file is 'key = value'.",
+    },
+    'syntax/gui-missing-value': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description: "'%s' has no value after its '='.",
+    },
+    'syntax/gui-missing-equals': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description:
+            "'%s' and its value have no '=' between them: a GUI file writes 'key = value' and 'key = { ... }'.",
+    },
+    'syntax/gui-value-without-key': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description: "The value '%s' stands among statements with no key in front of it.",
+    },
+    'syntax/gui-block-without-key': {
+        reader: 'gui',
+        catalogue: null,
+        slots: [],
+        description: 'A block with no key in front of it, among statements.',
+    },
+    'syntax/gui-missing-block-name': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description: "'%s' is followed by its block with no name between them.",
+    },
+    'syntax/gui-malformed-type': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value'],
+        description: "A type definition not written 'type <name> = <base> { ... }': %s.",
+    },
+    'syntax/gui-trailing-semicolon': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['value', 'value'],
+        description: "A ';' after '%s', which GUI syntax does not use: %s.",
+    },
+    'syntax/gui-unterminated-string': {
+        reader: 'gui',
+        catalogue: null,
+        slots: ['location'],
+        description: "Unterminated string starting at '%s'",
+    },
+    'syntax/gui-malformed-arithmetic': {
+        reader: 'gui',
         catalogue: null,
         slots: ['value', 'value'],
         description: "Malformed inline expression '@[%s]': %s",

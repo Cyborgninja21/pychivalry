@@ -14,7 +14,7 @@
  *
  * - **By place, never by address.** It takes a layer and a file's path inside that layer, as
  *   every place in a result is written (`places.ts`), and a line. Only a file the index read is
- *   shown (a script or localization file of a folder the game reads, of the base game the server
+ *   shown (a script, localization or GUI file of a folder the game reads, of the base game the server
  *   was started with or of the mod), found in the listings the index was built from; an absolute
  *   path, a `..`, a link, or a file whose real address is outside its layer's folder is refused.
  * - **Bounded.** At most `MAX_LINES` lines: the place's lines and up to `context` lines before
@@ -59,7 +59,7 @@ export const sourceTool: Tool<SourceArgs> = {
     name: 'source',
     title: 'Show the text around a place',
     description: [
-        "The text of a file around a place another result named: the base game's own script or localization (to see how the game itself writes a name), or the mod's.",
+        "The text of a file around a place another result named: the base game's own script, localization or GUI files (to see how the game itself writes a name), or the mod's.",
         'Give the place as results write it: its layer (game, jomini, clausewitz, dlc:<pack>, or mod), its file (the path inside that layer, with /) and its line; end_line for a place of several lines.',
         `Returns at most ${String(MAX_LINES)} lines, each as its number, a tab and its text: the place's lines and up to context lines (default ${String(DEFAULT_CONTEXT)}) before and after.`,
         'A place whose layer is not mod is in the installed game, outside the mod: read it with source, never with your own file tools, which cannot reach it. Only files pychivalry reads are shown, by their place; never an address on disk. Reads only; writes nothing.',

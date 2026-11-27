@@ -6,13 +6,14 @@
  * A key counts as used, and is not reported, when any of these holds:
  *
  * - the base game defines it too: the mod replaces a text of the base game, which the base
- *   game's own files, its interface files or the engine show (the index does not read `.gui`
- *   files, so it cannot see every such use);
+ *   game's own files, its interface files or the engine show (the engine's uses no file shows);
  * - a file of the index uses it as a word: written in a field or anywhere in a script file,
  *   or as `$key$` in a localization text (`WorkspaceIndex.isUsed`), a dotted key also when it
- *   is written as one scope chain (`my_mod.event.t`: `isUsedAsChain`); or a text file of the mod
- *   the index does not read writes it, an interface file above all (`unreadWords`, passed to
- *   `definedNamesOf`: without it, a key only an interface file shows is reported);
+ *   is written as one scope chain (`my_mod.event.t`: `isUsedAsChain`), or as a word of a GUI
+ *   file, which the index reads since build step 10 (quoted text and data bindings included,
+ *   `gui/extract.ts`); or a text file of the mod the index does not read writes it
+ *   (`unreadWords`, passed to `definedNamesOf`: without it, a key only such a file shows is
+ *   reported);
  * - it is itself the name of a definition of the mod or the base game (a scripted GUI, a
  *   record): the record's own name is a key it may show, as the plain `<name>` rows of part D5
  *   measure in 112 folders;

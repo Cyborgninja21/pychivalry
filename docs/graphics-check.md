@@ -116,7 +116,7 @@ none of them. Every other warning of the five mods is as before.
 
 ## What the spec package does not say yet
 
-Sent back to the spec work as a request (the owner relays it):
+Sent back to the spec work as a request (decision 187; the owner relays it):
 
 1. **48 more fields of 25 folders hold texture paths and have no `.info` type.** The package
    measures them as paths (part B1) and their `.info` text calls them textures, in words only:

@@ -20,6 +20,9 @@ the repository's issues page.
 - **Formatting and quick fixes.** Format Document, Format Selection and formatting as you type,
   in the one layout pychivalry gives every CK3 script and localization file; a finding with a
   mechanical fix offers it as a quick fix.
+- **GUI files** (`.gui`): their syntax is checked, and go to definition, find references and the
+  outline work on their types and templates, across your mod and the base game. They are not
+  formatted.
 - **The agent server for your AI.** VS Code's own AI sees pychivalry's tools (check, lookup,
   find definitions and references, read the game's own text around a place, explain a code,
   format) as soon as the extension is installed. For Claude Code, run **pychivalry: Set up for

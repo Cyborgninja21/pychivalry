@@ -1,0 +1,22 @@
+﻿window = {
+	name = "fixture_window"
+	using = Fixture_Window_Background
+
+	fixture_button = {
+		text = "FIXTURE_BUTTON_TEXT"
+	}
+	Fixture_Button = {
+	}
+}
+
+types FixtureWindowTypes
+{
+	type fixture_button = button {
+		size = { 30 30 }
+	}
+}
+
+template Fixture_Window_Background
+{
+	alpha = 0.5
+}

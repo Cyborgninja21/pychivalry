@@ -17,7 +17,9 @@
 > (`style/redundant-false-condition`) new on the owner's word of 2026-11-25, and
 > `localization/unused-key` is on by default (decision 108). Since decision 113 a
 > file not valid UTF-8 shows one finding, `style/not-utf8`: the parse note `encoding/not-utf8`
-> is retired ([Retired codes](#retired-codes)). The last column of each table, **State**, says which, and why
+> is retired ([Retired codes](#retired-codes)). Build step 10 added thirteen rows of the family
+> `syntax`, the GUI parser's `syntax/gui-*` codes, all built, all advice at information
+> ([Step 10: GUI syntax](#step-10-gui-syntax)). The last column of each table, **State**, says which, and why
 > where a row is not fully built ([The inventory in numbers](#the-inventory-in-numbers)). What
 > was decided is listed at the end, under [What the owner signed off](#what-the-owner-signs-off).
 
@@ -39,14 +41,15 @@ items 4.7, 4.9 and 4.10 before any check ships.
 3. [The inventory](#the-inventory)
 4. [The inventory in numbers](#the-inventory-in-numbers)
 5. [The step 2 findings](#the-step-2-findings)
-6. [Where the executable keeps each message](#where-the-executable-keeps-each-message)
-7. [Release 2.3.0's codes, one by one](#release-230s-codes-one-by-one)
-8. [The pre-2.0 rules, one by one](#the-pre-20-rules-one-by-one)
-9. [The base game's own errors in release 2.3.0](#the-base-games-own-errors-in-release-230)
-10. [ck3-tiger and the CWTools rule files](#ck3-tiger-and-the-cwtools-rule-files)
-11. [What the inventory needs from the 1.21 spec](#what-the-inventory-needs-from-the-121-spec)
-12. [How the counts were made](#how-the-counts-were-made)
-13. [What the owner signs off](#what-the-owner-signs-off)
+6. [The GUI syntax findings](#the-gui-syntax-findings)
+7. [Where the executable keeps each message](#where-the-executable-keeps-each-message)
+8. [Release 2.3.0's codes, one by one](#release-230s-codes-one-by-one)
+9. [The pre-2.0 rules, one by one](#the-pre-20-rules-one-by-one)
+10. [The base game's own errors in release 2.3.0](#the-base-games-own-errors-in-release-230)
+11. [ck3-tiger and the CWTools rule files](#ck3-tiger-and-the-cwtools-rule-files)
+12. [What the inventory needs from the 1.21 spec](#what-the-inventory-needs-from-the-121-spec)
+13. [How the counts were made](#how-the-counts-were-made)
+14. [What the owner signs off](#what-the-owner-signs-off)
 
 ## How to read a row
 
@@ -144,7 +147,7 @@ The families:
 
 | Family | What its findings are about | Items |
 | --- | --- | --- |
-| `syntax` | How a file reads: braces, operators, values, quoted text, `@[ ]` | Step 2 |
+| `syntax` | How a file reads: braces, operators, values, quoted text, `@[ ]`; since step 10 a GUI file too (`syntax/gui-*`) | Step 2, item 10.2 |
 | `encoding` | How a file's bytes decode | Step 2 |
 | `definitions` | What the index knows about a definition: a clash, a file the game does not read | 4.5 |
 | `names` | A keyword the game does not know in its place: trigger, effect, link, list, modifier, on-action | 4.2 |
@@ -599,11 +602,36 @@ check built on the table is a new row with a new code,
 | `structure/event-redundant-override-background` | information | An untriggered `override_background` equal to the background its theme shows first | Advice | `CK3433` | `structure-event-redundant-override-background` | 4.7 | keyword roles | 2026-11-23, by item 4.7's re-proof on the 1.21.0.3 base game: applies to 3,511, fires on 206 (decision 46: an advice row ships only when it fires on none) |
 | `encoding/not-utf8` | information | A file that is not valid UTF-8 | Advice ([why](#the-step-2-findings)) | new | `encoding-windows-1252` | 2 | none | 2026-11-23, on the owner's word (decision 113): a file not valid UTF-8 shows one finding, the warning `style/not-utf8`, whose message and data now say what this note said, how the file was read |
 
+### Step 10: GUI syntax
+
+Built in `packages/core/src/gui/parser.ts` (item 10.2); the identifier is the code, in the family
+`syntax`, each named `syntax/gui-<what>` so that it never meets a code of the script parser's. A
+GUI file (`.gui`) gets these findings and no other: no engine check and no `style/` finding reads
+it ([gui-syntax.md](gui-syntax.md)). Every one is advice at information: no catalogue message is
+shown to be the GUI reader's ([why](#the-gui-syntax-findings)). Each is tested by its pair,
+`fixtures/mods/gui-<what>-bad` and `-good`.
+
+| Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `syntax/gui-missing-closing-brace` | information | A block of a GUI file still open at the end of the file | Advice ([why](#the-gui-syntax-findings)) | new (2.3.0 read GUI files with its script parser) | `gui-missing-closing-brace` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-unexpected-closing-brace` | information | A `}` at the top level of a GUI file, where no block is open | Advice ([why](#the-gui-syntax-findings)) | new | `gui-unexpected-closing-brace` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-operator-without-key` | information | An operator with no key before it | Advice ([why](#the-gui-syntax-findings)) | new | `gui-operator-without-key` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-operator-not-equals` | information | An operator other than `=`: every statement of a GUI file is `key = value` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-operator-not-equals` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-missing-value` | information | `key =` with nothing after it | Advice ([why](#the-gui-syntax-findings)) | new | `gui-missing-value` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-missing-equals` | information | `key { ... }` or `key value` among statements, without its `=` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-missing-equals` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-value-without-key` | information | A value standing among statements with no key | Advice ([why](#the-gui-syntax-findings)) | new | `gui-value-without-key` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-block-without-key` | information | A block with no key among statements | Advice ([why](#the-gui-syntax-findings)) | new | `gui-block-without-key` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-missing-block-name` | information | A named-block keyword (`types`, `template`, `block`, `blockoverride`...) followed by its block with no name | Advice ([why](#the-gui-syntax-findings)) | new | `gui-missing-block-name` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-malformed-type` | information | A type definition not written `type <name> = <base> { ... }` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-malformed-type` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-trailing-semicolon` | information | A `;` after a statement, which GUI syntax does not use | Advice ([why](#the-gui-syntax-findings)) | new | `gui-trailing-semicolon` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-unterminated-string` | information | Quoted text without its closing quote | Advice ([why](#the-gui-syntax-findings)) | new | `gui-unterminated-string` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+| `syntax/gui-malformed-arithmetic` | information | `@[ ... ]` that is not well formed, or has no `]` | Advice ([why](#the-gui-syntax-findings)) | new | `gui-malformed-arithmetic` | 10.2 | the GUI reader's messages | Built (step 10) | None: no fix is offered in a GUI file; build step 10 leaves GUI files out of the formatter and of the fixes (docs/gui-syntax.md). |
+
 ### Step 10: graphics
 
 | Code | Severity | What it finds | Evidence | Replaces | Fixture pair | Item | Needs from the spec | State | Fix |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `graphics/missing-file` | warning | A `.dds`, `.png` or `.tga` path that exists in neither the mod, the base game nor a DLC pack. Silent when no game folder is set | Catalogue `failed_to_load_texture_X_file_not_found` ("Failed to load texture %s - file not found") | `GFX001` | `graphics-missing-file` | 10.5 | value types (which fields hold a texture path; 2.3.0 read nine names from its own code) | Not built: step 10 | Not built |
+| `graphics/missing-file` | warning | A `.dds`, `.png` or `.tga` path, in a field the spec package documents as a file path, that exists in neither the mod, the base game nor a DLC pack. Silent when no game folder is set | Catalogue `failed_to_load_texture_X_file_not_found` ("Failed to load texture %s - file not found"); proposed beside it, the file layer's `failed_to_open_file_X_file_does_not_exist_in_any_of_the_moun` ("Failed to open file %.*s. File does not exist in any of the mounted locations.") | `GFX001` | `graphics-missing-file` | 10.5 | value types, met in part: the fields whose `.info` type is `file_path` (part C1) and whose measured value type has the group `path` (part B1), 13 fields of 8 folders ([graphics-check.md](graphics-check.md)); the 48 fields of 25 folders measured as paths with no `.info` type wait on the spec work (decision 187) | Built in part (10.5): those 13 fields; on the base game 19 warnings in 6 files, every one a defect of the game's files | None: which file was meant is the author's choice; a path that matches a file only in other letter case names that file's spelling in its data |
 
 ### Step 11: the game's error log
 
@@ -618,15 +646,16 @@ check with the same catalogue entry, is decided in items 11.2 and 11.3 from capt
 ## The inventory in numbers
 
 78 rows: 11 built in step 2, and 67 proposed; 79 with the row format 9 added,
-`variables/read-without-set`. By state, after items 4.2 to 4.11 (2026-11-23) and the checks
+`variables/read-without-set`; 92 with step 10's thirteen rows of GUI syntax. By state, after items 4.2 to 4.11 (2026-11-23) and the checks
 format 9 unblocked (2026-11-25):
 
 | State | Rows | Which |
 | --- | ---: | --- |
 | Built | 60 | Step 2's 10 (its eleventh retired); 4.2's 4 others; 4.4's 3; 4.5's 10 others (`structure/triggered-desc-other-field` since format 9); 4.6's all 4 (the opener left open of `localization/unbalanced-brackets` since format 9); 4.7's 28 others (`scope/title-text-reads-scope-saved-late` since format 9); and `variables/read-without-set`, new with format 9 |
-| Built in part | 4 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `references/unknown-name` (the game-concept half waits for the package to define a concept's aliases, docs/decisions.md row 151) |
+| Built in part | 5 | `names/unknown-trigger` and `names/unknown-effect` (the iterator sub-cases wait on the owner), `fields/wrong-kind-of-value` (7 value groups of 9: block and word fire on correct mod script), `references/unknown-name` (the game-concept half waits for the package to define a concept's aliases, docs/decisions.md row 151), `graphics/missing-file` (13 fields of 8 folders; the rest wait on the spec work, decision 187) |
 | Retired | 12 | The provisional advice rows item 4.7's re-proof found firing on the base game, and `encoding/not-utf8` (decision 113) ([Retired codes](#retired-codes)) |
-| Not built yet | 3 | `graphics/missing-file` (step 10), `log/game-message` and `log/unmatched-line` (step 11) |
+| Not built yet | 2 | `log/game-message` and `log/unmatched-line` (step 11) |
+| Built, step 10 | 13 | The GUI parser's codes, `syntax/gui-*`, all advice at information ([Step 10: GUI syntax](#step-10-gui-syntax)) |
 | Built, step 8 | 17 | The `style/` family, added on the owner's word of 2026-11-23: nine rows on pychivalry's own formatting rules ([Formatting](#formatting-the-style-family)), one warning and eight hints; eight on its own best-practice rules ([Best practice](#best-practice-the-style-familys-best-practice-rules)), one warning and seven hints, `style/redundant-condition` built and `style/option-without-ai-weight` added since format 9 gave part D4 the roles they read, and `style/redundant-false-condition` added on the owner's word of 2026-11-25 (decision 158) |
 
 The tables below are the inventory as item 4.1 proposed it.
@@ -681,6 +710,33 @@ three at information**:
 | `syntax/malformed-arithmetic` | `@[`, `inline`, `math`, `arithmetic`, `formula`, `parse`, the `Expected: <...>` family | Catalogue: `failed_to_parse_advanced_statement_arithmetic_expression` ("Failed to parse advanced statement arithmetic expression") and `invalid_character_X_in_advanced_statement`. The executable keeps both inside the script reader, between the messages for `@` variables ("Unknown variable '{}'", "Invalid variable name ..."). The `Expected: <@[>`, `Expected: <]>`, `Expected: <math-scalar>` family belongs to the separate `pdx_ast` parser | Keep information until "advanced statement" is shown to mean `@[ ... ]`: by the cleaned catalogue marking the message script-facing, or by the planted-defect capture of item 11.1. Then raise it to an error with `failed_to_parse_advanced_statement_arithmetic_expression` as its evidence. The alternative, raising it now on the text alone, is question 5 |
 | `encoding/not-utf8` (retired 2026-11-23, decision 113) | `utf`, `unicode`, `ansi`, `encod`, `bom`, `byte`, `invalid char` | Catalogue: only "Failed to read culture history / title history, not a valid date at: {} (check encoding, should be ansi)", about history dates. Executable: "File '%s' should be in utf8-bom encoding (will try to use it anyways)" beside the script lexer, "Missing UTF8 BOM in '%s'", "Failed conversion of utf8 string: %s"; none in the catalogue, and none says what happens to an invalid byte | Keep information. The game ships and loads 27 files that are not valid UTF-8 ([encoding.md](encoding.md)), so it does not refuse them |
 
+## The GUI syntax findings
+
+Build step 10 (item 10.2) looked for the message the game prints for each defect of GUI syntax,
+in the committed catalogue (2,671 entries, 57 with the subject `gui`) and in the 1.21.0.3 Linux
+executable (725,545 strings of six characters or more, read with `strings -n 6`), and found none
+it can tie to the GUI reader, so all thirteen codes are **advice at information**:
+
+- The executable keeps the GUI loader's words beside its source files `pdx_gui_file.cpp` and
+  `pdx_gui_factory.cpp` (`types `, `using = `, `template `, `block "`, `blockoverride "`), and
+  the messages kept there are about what a statement names, not how it is written: "failed
+  reading property, at line %d in file %s", "'%s' is not a valid widget/type/property"
+  (`X_is_not_a_valid_widget_type_property`), "Could not find template '%s'",
+  `type_X_already_registered_at_X_X` and `template_X_already_registered_at_X_X`. Those are the
+  GUI vocabulary's, after the MVP (docs/MVP.md).
+- The script reader's parse messages, which the step 2 codes cite, sit beside
+  `pdx_persistent_reader.cpp` and `pdx_reader_actions.cpp`; whether the GUI loader reads its
+  files through that reader is not shown by the strings.
+- A third parser, `pdx_ast_parser.cpp`, keeps the `Expected: <...>` family (`expected_7`,
+  "Expected: <{>", `expected_rhs`, "Expected: <rhs>", ...) and node names that match GUI syntax
+  (`named_list`, `variable_definition`, `math_expr`); its other users in the executable are tool
+  states (the map editor's nudger, the log viewer), and nothing ties it to `.gui` files.
+
+Which reader reads a `.gui` file, and which message it prints for each defect, is a request to
+the spec work ([decisions.md](decisions.md)); with that evidence a code can be raised to an
+error, as a changed severity, never a new code. Until then a GUI file that does not parse is
+still read as far as the parser can, and every finding says what it found.
+
 ## Where the executable keeps each message
 
 A compiled program keeps the text of each message near the other texts of the source file that
@@ -708,7 +764,7 @@ and the duplicated event id; `jomini_scriptvalue.cpp` for the range; `event.cpp`
 non-character event; `casus_belli.cpp`, `character_interaction_category.cpp` and `databases.cpp`
 for the three required fields; `characterhistory.cpp` for the duplicate character id;
 `modifier_instance.cpp` for the unknown modifier; `pdx_data_localize.cpp` for the localization
-brackets; `mapgraphics.cpp` for the missing texture. `unexpected_token_expected_key` has no
+brackets; `mapgraphics.cpp` for the missing texture (the file layer's message for a file in no mounted location sits beside `pdx_core`; the GUI's intersection mask reads its texture in `pdx_gui_intersection_mask.cpp`). `unexpected_token_expected_key` has no
 source path near it.
 
 ## Release 2.3.0's codes, one by one
@@ -1112,7 +1168,7 @@ Beyond what the format 5 plan already holds, this inventory needs:
    "Unterminated `'` ..." and "Unterminated '$' ..." messages.
 4. **Value types that name a database or a file**: which database a field's value is a key of
    (`references/unknown-key`), which definition kind it names (`references/unknown-name`), which
-   fields hold a texture path (`graphics/missing-file`).
+   fields hold a texture path (`graphics/missing-file`): met for 13 fields by the `.info` type `file_path`, the rest requested (decision 187).
 5. **A clash row's message in the rules table**, for every folder the spec work finds the game
    reports a duplicate in (`definitions/clash`).
 

@@ -197,7 +197,9 @@ error. `results.context` states the load average before each run and the exit co
 
 `task game:parse` (build step 2) parses every script file of the base game in an explicit list
 of folders and extensions, and measures the encoding of every text file of the game
-([docs/encoding.md](../docs/encoding.md)). Its `notes` are required. `results`:
+([docs/encoding.md](../docs/encoding.md)). Since build step 10 it also parses every GUI file of
+the install and of each corpus mod ([docs/gui-syntax.md](../docs/gui-syntax.md)), so it reads the
+corpus and its `corpus` names it. Its `notes` are required. `results`:
 
 | Field | What it states |
 | --- | --- |
@@ -210,13 +212,18 @@ of folders and extensions, and measures the encoding of every text file of the g
 | `encoding` | Over every text file of the game: `files`, `bom`, `utf16_bom`, `not_utf8`, `line_endings`, the same `by_folder`, and per file that is not valid UTF-8 its `invalid_bytes`, `first_line`, where the bytes sit (`in_comments`, `in_strings`, `elsewhere`) and its `valid_multibyte_sequences` |
 | `round_trip` | The formatter's round trip over every file parsed (build step 8, item 8.3; [docs/formatting.md](../docs/formatting.md)): the `rules` used; `files`, `formatted`, `left` (each with a parse error: `file`, `id`, `line`), `changed`; `trees_equal`, `tokens_equal`, `second_format_unchanged`; `comments_before`, `comments_after`, `comments_moved`; `lines_before`, `lines_after`, `lines_changed` (the lines its edits touch); `blocks_written_on_one_line_broken` and `blocks` (by kind: one simple pair, plain values, empty, other; written on one line or several, laid out on one or several); `by_rule` (each `style/` hint's `files`, `places` and `lines`); `width` (the 120-column rule: lines over it before, formatted without it and with it, and the files it changes alone); `format_ms` and the `largest_file`; its `failures` |
 | `round_trip_localization` | The same over the game's `localization/` `.yml` files, their reading by the index's localization reader compared |
+| `gui` | The GUI parse suite (build step 10): `passed`, `failures`; `files`, `trees`, `parse_ms`; per folder of the install (`layer` `game`, `jomini` or `clausewitz`, and the `folder` inside it) `expected_files`, `files`, `trees`, `bom`, `not_utf8`, `findings`, `parse_ms` and `why`; every `finding` with its `layer`, `file`, `line`, `column`, `id`, `message`, `classification` and `reason`; `forms`, each form of GUI syntax by name with its `count`, `files`, `by_layer` and first place (`example`); and `mods`, per corpus mod its GUI `files`, `trees`, `parse_ms` and every finding, unclassified |
 
 The run passes when every folder holds the files expected, every file yields a tree, every
 file formatted keeps its tree, tokens and comments (none moved) and a second format changes
 nothing, and every
 error matches an entry of `tools/data/parse-classifications.json` (by file, finding and line)
 classified `game-defect`. An error without an entry, an entry without an error, and a
-`pychivalry-fault` each fail it. A failed run still writes its record, and exits 1.
+`pychivalry-fault` each fail it. Its GUI part passes on the same terms: every folder holds the
+GUI files expected, every one yields a tree, and every GUI finding, though each is information,
+matches an entry of `tools/data/gui-parse-classifications.json` (by layer, file, finding and
+line) classified `game-defect`; each GUI failure is among the record's own, written
+`gui: <failure>`. A failed run still writes its record, and exits 1.
 
 ## Index records (`game:index`)
 

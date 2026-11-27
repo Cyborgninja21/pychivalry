@@ -5,7 +5,9 @@
  *
  * - **What is formatted:** a folder's script and localization files that the game reads (the
  *   `.txt` and `.yml` files of the folders the spec package lists, as `check` reads them), and
- *   each file named, which must be one of them. Links are not followed.
+ *   each file named, which must be one of them. Links are not followed. A GUI file (`.gui`),
+ *   which `check` reads since build step 10, is not formatted: a folder's are counted on standard
+ *   error in one line, and one named is left as it is with the reason.
  * - **The mod:** `--mod <folder>`, or the nearest folder at or above the first path given that
  *   holds a `descriptor.mod`, otherwise the first path given when it is a folder, otherwise the
  *   working folder. Every path given must be inside it: nothing outside the mod is touched.
@@ -22,8 +24,10 @@
 
 import {
     decodeScript,
+    fileKindOf,
     folderTableFromSpec,
     formatKindOf,
+    GUI_NOT_FORMATTED,
     formatText,
     leftMessage,
     listMod,
@@ -205,7 +209,14 @@ function formatOne(modDir: string, file: string, dryRun: boolean, diff: boolean)
     const bytes = readFileSync(disk);
     const decoded = decodeScript(bytes);
     if (kind === undefined) {
-        return { file, state: 'left', reason: 'not a script or localization file' };
+        return {
+            file,
+            state: 'left',
+            reason:
+                fileKindOf(file) === 'gui'
+                    ? GUI_NOT_FORMATTED
+                    : 'not a script or localization file',
+        };
     }
     if (!decoded.validUtf8) {
         return {
@@ -263,6 +274,8 @@ export const formatCommand: Command = {
             listMod(modDir, folderTableFromSpec(spec.data)).files.map((f) => f.path),
         );
         const chosen = new Set<string>();
+        // GUI files of a folder given: not formatted, counted (build step 10).
+        const guiFiles = new Set<string>();
         for (const p of given) {
             const real = realpathSync(p);
             const rel = inside(modDir, real);
@@ -274,7 +287,11 @@ export const formatCommand: Command = {
             if (statSync(real).isDirectory()) {
                 for (const file of listed) {
                     if (rel === '' || file === rel || file.startsWith(`${rel}/`)) {
-                        chosen.add(file);
+                        if (fileKindOf(file) === 'gui') {
+                            guiFiles.add(file);
+                        } else {
+                            chosen.add(file);
+                        }
                     }
                 }
             } else if (listed.has(rel)) {
@@ -287,6 +304,11 @@ export const formatCommand: Command = {
         }
         const dryRun = check || diff;
         const outcomes = [...chosen].sort().map((f) => formatOne(modDir, f, dryRun, diff));
+        if (guiFiles.size > 0) {
+            io.stderr(
+                `${String(guiFiles.size)} GUI file${guiFiles.size === 1 ? '' : 's'} left as ${guiFiles.size === 1 ? 'it is' : 'they are'}: ${GUI_NOT_FORMATTED}\n`,
+            );
+        }
         const out: string[] = [];
         for (const o of outcomes) {
             if (o.state === 'left') {

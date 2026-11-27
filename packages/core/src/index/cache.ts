@@ -31,10 +31,13 @@ import {
 } from 'node:fs';
 import { endianness, homedir } from 'node:os';
 import path from 'node:path';
-import { WorkspaceIndex, type IndexOptions, type IndexState } from './workspace.js';
+import { WorkspaceIndex, type FileKind, type IndexOptions, type IndexState } from './workspace.js';
 
-/** The cache's format. A change to the layout raises it, and every older cache is rebuilt. */
-export const CACHE_FORMAT = 5;
+/**
+ * The cache's format. A change to the layout raises it, and every older cache is rebuilt: 6 since
+ * build step 10, whose index reads GUI files (a file of the kind `gui`).
+ */
+export const CACHE_FORMAT = 6;
 
 /** What a cache was built from. Two equal keys mean the cache answers for the same input. */
 export interface CacheKey {
@@ -99,7 +102,7 @@ interface Header {
     readonly files: readonly {
         readonly layer: string;
         readonly path: string;
-        readonly kind: 'script' | 'localization';
+        readonly kind: FileKind;
         readonly folder: string | null;
         readonly exactCase: boolean;
         readonly noDefinitions: string | null;

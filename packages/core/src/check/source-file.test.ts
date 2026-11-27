@@ -10,6 +10,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSyn
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { test, type TestContext } from 'node:test';
+import { parseGui } from '../gui/parser.js';
 import { readLocalization } from '../index/localization.js';
 import { fileKindOf } from '../index/workspace.js';
 import { committedSpec, REPO_ROOT } from '../spec/testing.js';
@@ -60,17 +61,20 @@ test('from bytes, from parsed text or from read text, a file has the runner’s 
             const fromBytes = checkSourceFile({ ...common, source: { bytes } });
             assert.deepEqual(json(fromBytes.kept), expected, `${mod}: ${file.path} from bytes`);
             const decoded = decodeScript(bytes, { catalogue });
+            const kind = fileKindOf(file.path);
             const fromText = checkSourceFile({
                 ...common,
                 source:
-                    fileKindOf(file.path) === 'localization'
-                        ? { localization: readLocalization(bytes) }
-                        : {
-                              script: parse(decoded.text, { catalogue }),
-                              decoded: { invalid: decoded.invalid, encoding: decoded.encoding },
-                              // The file's mark, which text without it does not show.
-                              bom: decoded.bom,
-                          },
+                    kind === 'gui'
+                        ? { gui: parseGui(decoded.text) }
+                        : kind === 'localization'
+                          ? { localization: readLocalization(bytes) }
+                          : {
+                                script: parse(decoded.text, { catalogue }),
+                                decoded: { invalid: decoded.invalid, encoding: decoded.encoding },
+                                // The file's mark, which text without it does not show.
+                                bom: decoded.bom,
+                            },
             });
             assert.deepEqual(json(fromText.kept), expected, `${mod}: ${file.path} from text`);
             compared++;

@@ -39,8 +39,8 @@ only reads, but for `apply_format`, which the skills run on each file the AI wro
 pychivalry's format (your harness asks you first, unless you allowed it). A clean check proves
 the script is valid, not that it does what you asked: read what the AI wrote.
 
-The editor features need no command: the extension starts when you open a CK3 script or
-localization file, or a folder holding a `descriptor.mod`. They are the language server's:
+The editor features need no command: the extension starts when you open a CK3 script,
+localization or GUI file, or a folder holding a `descriptor.mod`. They are the language server's:
 
 - the mod's findings in the Problems panel, while you type and for the whole mod in the
   background (closing a file keeps its findings);
@@ -48,7 +48,10 @@ localization file, or a folder holding a `descriptor.mod`. They are the language
   name the mod or the game defines is defined and which definition is in force;
 - completion: what is valid where you type (effects in an effect block, triggers in a trigger
   block, names the mod and the game define, the values the base game writes in a field);
-- Go to Definition, Find All References and the outline of a file (document symbols);
+- Go to Definition, Find All References and the outline of a file (document symbols); in a GUI
+  file (`.gui`, since build step 10) on its types and templates, a type found in any letter case,
+  the outline its `types` blocks and templates ([GUI syntax](../gui-syntax.md)); a GUI file's
+  findings are its syntax's alone, and it is not formatted;
 - Show Call Hierarchy (Shift+Alt+H, or the context menu) on an event, an on-action, a scripted
   effect or trigger, a decision or any definition: what calls it and what it calls, in the mod
   and the base game, each call opening the place it is written ([The call graph](../call-graph.md));
@@ -78,9 +81,9 @@ libraries, or reads it from `--vanilla <game folder>`.
 | --- | --- |
 | `pychivalry check <mod>` | Checks a mod folder: every finding, file by file, then a summary |
 | `pychivalry lookup <name>...` | What a name is: every reading the spec package has of it (its description, the scopes it supports, what it takes, the version it came in or went out), where the base game and a mod define and use it and which definition is in force, and, for a name nothing knows, the names close to it |
-| `pychivalry source <layer> <file> <line>` | The text around a place a result named, at most 40 lines, each with its number: the base game's own script or localization (to see how the game itself writes a name), or the mod's. The same lines the agent server's `source` gives for the same place ([below](#options-of-source)) |
+| `pychivalry source <layer> <file> <line>` | The text around a place a result named, at most 40 lines, each with its number: the base game's own script, localization or GUI files (to see how the game itself writes a name), or the mod's. The same lines the agent server's `source` gives for the same place ([below](#options-of-source)) |
 | `pychivalry calls <name>...` | The call graph of each name: where the mod and the base game define it as script, what calls it and what it calls, each link with its kind (the caller's folder and the callee's: `events -> events`, `common/on_action -> events`), the statement that writes it and its place ([below](#options-of-calls)). The same links as the agent server's `call_graph` and the editor's call hierarchy |
-| `pychivalry format <file\|folder>...` | Formats the mod's script and localization files by pychivalry's rules ([Formatting](formatting.md)), in place; a file with a parse error, or not valid UTF-8, is left as it is and named |
+| `pychivalry format <file\|folder>...` | Formats the mod's script and localization files by pychivalry's rules ([Formatting](formatting.md)), in place; a file with a parse error, or not valid UTF-8, is left as it is and named; GUI files are not formatted, and a folder's are counted in one line |
 | `pychivalry explain <code>...` | What a finding's code means: its severity, what it finds and the game's evidence for it, its message with each value a named slot (`Unknown trigger '<trigger>'`). A code may be written `names/*` for a whole family, or `*` for all |
 | `pychivalry --help`, `pychivalry <command> --help` | The commands, or one command's options |
 | `pychivalry --version` | The version |
@@ -163,7 +166,7 @@ path inside that layer, with `/`, and its line, counted from 1. `--vanilla`, `--
 | --- | --- |
 | `--end-line <line>` | The last line of the place, for a place of several lines |
 | `--context <lines>` | How many lines to show before and after the place, 0 to 20; 10 by default, fewer when the 40 lines it shows would be passed |
-| `--mod <mod>` | A mod folder, whose script and localization files are then read as the layer `mod` |
+| `--mod <mod>` | A mod folder, whose script, localization and GUI files are then read as the layer `mod` |
 | `--no-vanilla` | Read no base game: only the layer `mod`, with `--mod` |
 
 It shows the lines as the index reads the file (its byte-order mark removed, a file not valid
@@ -175,7 +178,7 @@ ask for next. With `--json` it prints one object: `layer`, `file`, `line` and `e
 lines shown), `line_count`, `lines`, `cut_lines`, `encoding` and `notes`, the same lines the
 agent server's `source` gives for the same place.
 
-Only a script or localization file pychivalry reads is shown, at the path a result names it by;
+Only a script, localization or GUI file pychivalry reads is shown, at the path a result names it by;
 never an address on disk. `source` refuses, saying why: an absolute path, a backslash, an empty,
 `.` or `..` part of the path, a line before 1, `--end-line` before the line or `--context` past
 20 (exit `2`, bad usage); and a layer that is not read (the base game when it was not found or

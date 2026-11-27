@@ -2,11 +2,11 @@
     "record_format": 1,
     "suite": "game:check",
     "command": "task game:check",
-    "made_at": "2026-11-26T21:25:10.262Z",
+    "made_at": "2026-11-26T22:13:51.423Z",
     "tool": {
         "name": "pychivalry",
         "version": "0.0.0",
-        "commit": "a52819109a69e906df348cc3059e2022ab29a3be",
+        "commit": "66b4382add0175fe5d06be39ef1a67aee7173d00",
         "dirty": false
     },
     "machine": {
@@ -29,25 +29,25 @@
     },
     "corpus": null,
     "notes": [
-        "Every file of the base game the index reads is checked (the .txt and .yml files of the folders the committed spec lists, in the install's clausewitz/, jomini/ and game/ folders and the DLC packs, each in its own layer), with the core's one runner, checkWorkspace, as the command line's check runs it on a mod: the parser and every engine check, over the base game's own index, built in the same process.",
+        "Every file of the base game the index reads is checked (the .txt and .yml files of the folders the committed spec lists, and since build step 10 the .gui files of gui/, which give the GUI parser's findings alone, in the install's clausewitz/, jomini/ and game/ folders and the DLC packs, each in its own layer), with the core's one runner, checkWorkspace, as the command line's check runs it on a mod: the parser and every engine check, over the base game's own index, built in the same process.",
         "Every error and warning is listed with its file, layer, line and column, and classified in tools/data/check-classifications.json, matched by layer, file, code and line: game-defect (a defect of the game's own files), spec-package-fault (the committed spec package is wrong or lacks what the check needs; the request is in docs/decisions.md) or pychivalry-fault (fails the run). Information and hints are counted by code.",
         "scope counts the keyword uses (triggers, effects and iterators in trigger and effect blocks) the scope checks saw, those whose scope was known, those judged against the scope data of the game's own documentation, the findings, and the uses not judged by why; and the link steps judged. baseline_2_3_0 gives release 2.3.0's figures on the same game from records/baseline-2.3.0/results-base-game.json.",
         "time_ms and peak_rss_kib are the checking process's own: listing and building the base game's index, then checking every file; times in milliseconds on this machine.",
         "The style/ family (docs/formatting.md) rests on pychivalry's own formatting rules, not on the game: its warning (style/not-formatted, one a file not in the format) and its hints are counted in by_code and by_severity, never listed or classified; warnings and warning_list are the other warnings. The base game is not written in the format, so nearly every file has a style warning.",
-        "The load average over one minute was 6.86 on 10 logical CPUs just before the run: the times are this machine's, under that load."
+        "The load average over one minute was 3.49 on 10 logical CPUs just before the run: the times are this machine's, under that load."
     ],
     "results": {
         "passed": true,
         "failures": [],
-        "files": 17299,
+        "files": 17880,
         "files_by_layer": [
             {
                 "layer": "game",
-                "files": 16938
+                "files": 17379
             },
             {
                 "layer": "jomini",
-                "files": 230
+                "files": 321
             },
             {
                 "layer": "dlc",
@@ -55,13 +55,13 @@
             },
             {
                 "layer": "clausewitz",
-                "files": 87
+                "files": 136
             }
         ],
         "by_severity": {
             "error": 13,
             "warning": 17207,
-            "information": 149,
+            "information": 167,
             "hint": 858192
         },
         "by_code": [
@@ -126,9 +126,24 @@
                 "count": 26
             },
             {
+                "code": "syntax/gui-trailing-semicolon",
+                "severity": "information",
+                "count": 13
+            },
+            {
                 "code": "references/unknown-name",
                 "severity": "information",
                 "count": 4
+            },
+            {
+                "code": "syntax/gui-missing-equals",
+                "severity": "information",
+                "count": 4
+            },
+            {
+                "code": "syntax/gui-unexpected-closing-brace",
+                "severity": "information",
+                "count": 1
             },
             {
                 "code": "style/block-layout",
@@ -2246,11 +2261,11 @@
             "keyword_uses_judged": 101162
         },
         "time_ms": {
-            "list": 437,
-            "build": 29759,
-            "check": 153154,
-            "total": 183350
+            "list": 550,
+            "build": 32934,
+            "check": 145157,
+            "total": 178641
         },
-        "peak_rss_kib": 3985368
+        "peak_rss_kib": 3942776
     }
 }

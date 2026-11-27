@@ -1,0 +1,7 @@
+﻿window = {
+	name = "fixture_window"
+	layoutpolicy_horizontal = expanding;
+	button = {
+		onclick = "[Close]";
+	}
+}

@@ -126,7 +126,7 @@ record under `records/`, which is committed; CI checks the record.
 
 | Task | Reads | Record |
 | --- | --- | --- |
-| `task game:parse` | game | `records/game/parse.json` |
+| `task game:parse` | game, corpus (its GUI files) | `records/game/parse.json` |
 | `task game:index` | game, corpus | `records/game/index.json` |
 | `task game:check` | game | `records/game/check.json` |
 | `task game:mods` | game, corpus | `records/game/mods.json` |

@@ -1,0 +1,16 @@
+{
+    "files": {
+        "gui/fixture_window.gui": {
+            "findings": [
+                {
+                    "id": "syntax/gui-operator-not-equals",
+                    "severity": "information",
+                    "line": 3,
+                    "column": 7,
+                    "message": "The operator '>' where a GUI file writes '=': every statement of a GUI file is 'key = value'."
+                }
+            ],
+            "tree": "window = { name = \"fixture_window\" size > { 400 300 } }"
+        }
+    }
+}

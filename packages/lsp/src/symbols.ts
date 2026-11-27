@@ -2,12 +2,13 @@
  * Document symbols (docs/PLAN.md item 7.5), from the syntax tree and the definitions the index
  * holds for the file. A script file's symbols are its top-level keys, each with the
  * definitions written inside it (an entry of a container, a nested name) as its children; a
- * localization file's are its language headers, each with the keys written under it. A key's
- * symbol kind says what the index read it as (a record, a constant, a localization key), and
- * its detail names the database it is a definition of.
+ * localization file's are its language headers, each with the keys written under it. A GUI
+ * file's (build step 10) are its `types` blocks, each with the types defined in it, and its
+ * templates. A key's symbol kind says what the index read it as (a record, a constant, a
+ * localization key), and its detail names the database it is a definition of.
  */
 
-import { parseLocalization, type Definition, type Form } from '@pychivalry/core';
+import { parseGui, parseLocalization, type Definition, type Form } from '@pychivalry/core';
 import { SymbolKind, type DocumentSymbol, type Range } from 'vscode-languageserver/node';
 import type { OpenDocument } from './documents.js';
 
@@ -46,6 +47,9 @@ export function documentSymbols(
     definitions: readonly Definition[],
 ): DocumentSymbol[] {
     const lines = doc.lines;
+    if (doc.kind === 'gui') {
+        return guiSymbols(doc, definitions);
+    }
     if (doc.kind === 'localization') {
         const file = parseLocalization(doc.text);
         const out: DocumentSymbol[] = [];
@@ -110,6 +114,52 @@ export function documentSymbols(
                 lines.rangeOf(item.start, item.end),
                 lines.rangeOf(item.key.start, item.key.end),
                 own?.database ?? '',
+                inside,
+            ),
+        );
+    }
+    return out;
+}
+
+/**
+ * A GUI file's symbols: each `types` block at the top level, with the types defined in it as its
+ * children, and each template; the index's definitions of the file, by the key they are at.
+ */
+function guiSymbols(doc: OpenDocument, definitions: readonly Definition[]): DocumentSymbol[] {
+    const lines = doc.lines;
+    const out: DocumentSymbol[] = [];
+    const symbolOf = (d: Definition): DocumentSymbol =>
+        symbol(
+            d.name,
+            d.database.endsWith('templates') ? SymbolKind.Struct : SymbolKind.Class,
+            lines.rangeOf(d.start, Math.max(d.end, d.extentEnd)),
+            lines.rangeOf(d.start, d.end),
+            d.database,
+        );
+    for (const item of parseGui(doc.text).file.items) {
+        if (item.kind !== 'gui-named') {
+            continue;
+        }
+        // A template's own definition: its key, between the keyword and the block.
+        const own = definitions.find((d) => d.start >= item.start && d.start < item.body.start);
+        if (own !== undefined) {
+            out.push(symbolOf(own));
+            continue;
+        }
+        if (item.keyword.text.toLowerCase() !== 'types') {
+            continue;
+        }
+        const inside = definitions
+            .filter((d) => d.start > item.body.start && d.start < item.body.end)
+            .map(symbolOf);
+        const name = item.name ?? item.keyword;
+        out.push(
+            symbol(
+                name.text,
+                SymbolKind.Namespace,
+                lines.rangeOf(item.start, item.end),
+                lines.rangeOf(name.start, name.end),
+                '',
                 inside,
             ),
         );

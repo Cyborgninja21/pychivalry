@@ -32,7 +32,9 @@ test('every suite writes a valid record made on the committed spec; the stub, em
     const options: SuiteOptions = {
         manifestFile: manifest,
         parseFolders: [{ folder: 'common', extension: '.txt', expected: 1, why: 'The fixture.' }],
+        guiFolders: [{ layer: 'game', folder: 'gui', expected: 0, why: 'The fixture.' }],
         classificationsFile: path.join(dir, 'classifications.json'),
+        guiClassificationsFile: path.join(dir, 'classifications.json'),
     };
     const expected: Expected = {
         spec: { version: spec.version, sha256: spec.sha256 },
@@ -52,6 +54,13 @@ test('every suite writes a valid record made on the committed spec; the stub, em
             assert.equal(record.results['passed'], true);
             assert.equal(record.results['files'], 1);
             assert.equal(record.results['trees'], 1);
+            // The GUI suite reads the corpus mods' GUI files (the fixture mod has none).
+            const gui = record.results['gui'] as { files: number; mods: { slug: string }[] };
+            assert.equal(gui.files, 0);
+            assert.deepEqual(
+                gui.mods.map((m) => m.slug),
+                ['fixture-mod'],
+            );
         } else if (suite === 'index') {
             assert.equal(record.results['passed'], true);
             assert.equal((record.results['base_game'] as { definitions: number }).definitions, 1);
@@ -75,7 +84,7 @@ test('every suite writes a valid record made on the committed spec; the stub, em
             assert.deepEqual(record.results, {});
         }
         assert.equal(record.game.build, '1.21.0.3');
-        if (suite === 'mods' || suite === 'bench' || suite === 'index') {
+        if (suite === 'mods' || suite === 'bench' || suite === 'index' || suite === 'parse') {
             assert.deepEqual(record.corpus, { manifest_sha256: sha, slugs: ['fixture-mod'] });
         } else {
             assert.equal(record.corpus, null);
